@@ -9,7 +9,7 @@ cpt.pbal <- do.call(function() {
    cpt.gy$env <- as.factor(as.character(cpt.gy$env))
    cpt.gy$entry <- as.factor(as.character(cpt.gy$entry))
    
-   cpt.inc <- coincidence.matrix(cpt.gy,a.name = "entry",b.name="env")
+   cpt.inc <- coincidence.matrix(cpt.gy,a.name="entry",b.name="env")
 
    empty.cells <- which(cpt.inc==0,arr.ind=TRUE)
 

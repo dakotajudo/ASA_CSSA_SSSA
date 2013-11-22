@@ -1,1 +1,3 @@
-exportPattern("^[[:alpha:]]+")
+export(coincidence.matrix,
+      incidence.matrix
+)
