@@ -1,0 +1,9 @@
+Package: ASA_CSSA_SSSA
+Type: Package
+Title: Agricultural Science Analysis
+Version: 1.0
+Date: 2013-11-11
+Author: Peter Claussen
+Maintainer: Peter Claussen <Peter@gdmdata.com>
+Description: R code implementing various analysis published in American Society of Agronomy, Crop Science Society of America, and Soil Science Society of America journals. See Vignettes for citations to specific articles.
+License: GPL
