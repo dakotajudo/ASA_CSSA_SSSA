@@ -1,0 +1,689 @@
+
+\section{Implementing a Gibbs Sampler}
+
+Cotes, et al, \cite{cotes.j-2006} provide considerable detail toward implementing a Bayesian analysis of MET with heterogenous error variances and independent GEI variances. Their full model, in matrix form, is
+
+\begin{equation}
+   \mathbf{y}=\mathbf{X}\mathbf{\beta}  +\mathbf{Z}_1
+   \mathbf{u}_1 +\mathbf{Z}_2 \mathbf{u}_2 + 
+   {\sum ^{g} _{k = 1}} 
+      \mathbf{Z}_{3 ( k)} \mathbf{u}_{3 ( k)}
+   +\mathbf{1}_{n_i} \otimes \mathbf{e}_i
+\end{equation}
+
+For Gibbs Sampling, they parameterize the model as
+\begin{equation}
+\mathbf{\theta}= \left(\begin{array}{c}
+        \mathbf{\beta}\\
+        \mathbf{u}_1\\
+        .\\
+        .\\
+        .\\
+        \mathbf{u}_{3 ( g)}
+      \end{array}\right), \mathbf{\theta}_0 \left(\begin{array}{c}
+        \mathbf{\beta}_0\\
+        \mathbf{0}\\
+        .\\
+        .\\
+        .\\
+        \mathbf{0}
+      \end{array}\right), \mathbf{D}= \left(\begin{array}{cccccc}
+        \mathbf{I}\mathbf{\sigma}_0^2 &  &  &  &  & \\
+        & \mathbf{I}\mathbf{\sigma}_{u_1}^2 &  &  &  & \\
+        &  & . &  &  & \\
+        &  &  & . &  & \\
+        &  &  &  & . & \\
+        &  &  &  &  & \mathbf{I}\mathbf{\sigma}_{u_{3 ( g)}}^2
+      \end{array}\right)
+\end{equation}
+and $\mathbf{W}= [ \mathbf{X}\mathbf{Z}_1 \ldots \mathbf{Z}_{3 ( g)}]$. Effects estimates, both fixed and random, are estimated by $\theta$, while $\theta_0$ represents prior information about effects. $D$ represents the variance associated with effects. Since only the main diagonal is non-zero (i.e. there is no covariance), effects are modeled as independent.
+
+
+Briefly, we review mixed model theory\cite{piepho.m-4-2008}. The general mixed model takes the form
+\begin{equation}
+  \mathbf{y}  = \mathbf{X}\mathbf{\beta}+\mathbf{Z}\mathbf{u}+\mathbf{e}
+\end{equation}  
+
+where $\mathbf{X}$ specifies the design of the fixed portion (i.e. treatments) of the experiment and $\mathbf{Z}$ the design of random effects (e.g. blocks), while $\beta$ and $\mathbf{u}$ are the corresponding effect parameters. Further, the random effects are $\sim MVN ( \mathbf{0}, \mathbf{D})$ \footnote{Many authors use the notation $G$} and experimental error, $\mathbf{e} \sim MVN ( \mathbf{0}, \mathbf{R})$
+
+If the variance-covariance matrices, $\mathbf{D}$ and $\mathbf{R}$ are known, then effects estimates are calculated by
+
+\begin{equation}
+\left[ 
+   \begin{array}{ll}
+      \mathbf{X}^t \mathbf{R}^{- 1} \mathbf{X} & \mathbf{X}^t \mathbf{R}^{- 1} \mathbf{Z} \\
+      \mathbf{Z}^t \mathbf{R}^{- 1} \mathbf{X} & \mathbf{Z}^t \mathbf{R}^{- 1}
+      \mathbf{Z}+\mathbf{D}^{- 1}
+   \end{array}
+\right] 
+\left[
+   \begin{array}{c}
+      \hat{\mathbf{\beta}} \\
+      \hat{\mathbf{u}}
+   \end{array} 
+\right] 
+= 
+\left[ 
+   \begin{array}{c}
+      \mathbf{X}^t \mathbf{R}^{- 1} \mathbf{y} \\
+      \mathbf{Z}^t \mathbf{R}^{- 1} \mathbf{y}
+   \end{array} 
+\right]
+\end{equation}
+
+
+\subsection{Gibbs Sampling}
+Gibbs sampling, briefly stated, samples from joint posterior distributions to determine marginal distributions of parameters of interest. This requires identifying the fully conditional distributions of all unknown parameters. We contrast this with the hyper-parameters that are not estimated from Gibbs sampling but obtained from prior experiments (or selected from non-informative priors). Summarizing wheat information from Table 1 \cite{cotes.j-2006}, "Prior information in the Bayesian analysis of potato, wheat and maize MET's",
+
+\begin{table}[h]
+  \begin{tabular}{cccc}
+    Parameter & Non-informative & Empirical & Comment\\
+    $B_0$ & 0.1 & 3.65-5.77 & REML fixed effects\\
+    $\sigma_0^2$ & 10000 & 0.6180-0.7115 & REML s.e.\\
+    $s_{m_{u_1}}^2$ & 0.01 & 18613 & REML variance\\
+    $\nu_{u_1}$ & 1 & $a-1 = 4$ & Environment d.f.\\
+    $s_{m_{u_2}}^2$ & 0.01 & 0.0001 & REML variance\\
+    $\nu_{u_2}$ & 1 & $a(b-1) = 5$ & Block d.f.\\
+    $s_{m_{u_3}}^2$ & 0.01 & 0.0001-0.6047 & REML variance \\
+    $\nu_{u_{3 ( g)}}$ & 1 & $a-1 = 4$ & Environment d.f.\\
+    $s_{e_i^2}$ & 0.01 & 0.0454-0.2422 & Within-site residual variance \\
+    $\nu_{e_i}$ & 1 & $(g-1)(b-1)=9$ & Within-site residual d.f.
+  \end{tabular}
+  \caption{}
+\end{table}
+
+These are hyperparameters for a wheat MET trial with 5 environments, 2
+replicates per environment and 10 genotypes, repeated over two consecutive
+years. Emperical priors are taken from REML analysis of the first year,
+Bayesian analysis performed on data from the second year.
+
+For now, we'll define some constants for non-informative priors.
+<<prior hyperparameters>>=
+#non-informative priors, according to Cotes
+B0.ni <- 0.1
+
+sigma0.ni <- 100000
+var_u.ni <- 0.01
+s2_u.ni <- 0.01
+nu_u.ni <- 1
+s2_e.ni <- 0.01
+nu_e.ni <- 1
+
+u_i.initial <- 0
+@
+
+\subsection{Conditional Posterior Distributions}
+Conditional distributions are given for three groups. The effects vector, $\theta = [\beta, u_i, \ldots ]$ is define as a single multivariate distribution, while variance estimates, $\sigma _u ^2$ and $\sigma _e ^2$ are sampled independently. 
+
+\subsubsection{Effects}
+\begin{equation}
+   \mathbf{\theta} | \sigma_{u_1}^2, \sigma_{u_2}^2, \sigma_{u_{3
+      ( 1)},}^2 \ldots, \sigma_{u_{3 ( k)}}^2, \sigma_{e_1}^2, \ldots,
+      \sigma_{e_a}^2, \mathbf{y}, \mathbf{h} \sim \mathcal{N} (
+      \hat{\mathbf{\theta}}, ( \mathbf{W}^t \mathbf{R}^{- 1}
+      \mathbf{W}+\mathbf{D}^{- 1})^{- 1}) 
+\end{equation}
+
+To sample from this distribution, we define a function that takes two parameters, $\theta$ and $V^{-1} = \mathbf{W}^t \mathbf{R}^{- 1} \mathbf{W}+\mathbf{D}^{- 1})^{- 1}$. We note that for these type of matrices, the build in \verb|solve| function won't work; design matrices tend to be singular. I frequently use the generalized inverse in \verb|MASS|.
+
+<<>>=
+library(MASS)
+
+v.mat <- function(W.par,R.par,D.par) {
+   WR <- t(W.par) %*% ginv(R.par)
+   WRW <- WR %*% W.par
+   Dinv <- ginv(D.par)
+   return(WRW + Dinv)
+}
+
+theta.sample.fn <- function(theta.hat.par,v.inv.par) {
+   max <- length(theta.hat.par)
+
+   ret <- rep(0,max)
+   for(idx in 1:max) {
+      ret[idx] <- rnorm(1,mean=theta.hat.par[idx],sd=v.inv.par[idx,idx])
+   }
+   return(ret)
+}
+@
+
+$\hat{\theta}$ is estimated by 
+\begin{equation}
+   \hat{\mathbf{\theta}} = ( \mathbf{W}^t \mathbf{R}^{- 1}
+      \mathbf{W}+\mathbf{D}^{- 1})^{- 1} ( \mathbf{W}^t \mathbf{R}^{- 1}
+      \mathbf{y}+\mathbf{D}^{- 1} \mathbf{\theta}_0)
+\end{equation}
+Note that for computational convenience (that is, decomposing the algorithm into function) we will end up recalculating $V$; that's an issue that could be optimized away later.
+
+<<>>=
+theta.hat.fn <- function(theta0.par,W.par,R.par,D.par,y.par) {
+   WR <- t(W.par) %*% ginv(R.par)
+   WRW <- WR %*% W.par
+   Dinv <- ginv(D.par)
+   WRWDinv <- ginv(WRW + Dinv)
+   
+   WRy <- WR %*% y.par 
+   WRyDtheta <- WRy + Dinv %*% theta0.par
+   
+   theta.hat <- WRWDinv %*% WRyDtheta
+   return(theta.hat)
+}
+@
+
+\subsubsection{Error Variances}
+
+In general, the notations $n_i$ represent the total number of observations in each environment, $\nu$ the "degrees of belief" and $s^2$ prior variances
+
+\begin{equation}
+\sigma_{e_1}^2 |  \mathbf{\beta}, \mathbf{u}_1, \ldots,
+      \mathbf{u}_{3 ( g)}, \sigma_{u_1}^2, \sigma_{u_2}^2, \sigma_{u_{3 ( 1)},}^2
+      \ldots, \sigma_{u_{3 ( k)}}^2, \mathbf{y}, \mathbf{h} \sim \tmop{Inv} -
+      \tmop{Scaled} -\mathbf{\chi}^2 ( \hat{\nu}_{e_i}, \hat{s}^2_{e_i})
+\end{equation}
+Using the \verb|geoR| library for a scaled inverse $\chi^2$ distribution,
+<<>>=
+library(geoR)
+sigma2_e.sample <- function(nu.e.par,s2.e.par) {
+   #rinvchisq(1, df=nu.e.par, scale = 1/s2.e.par)
+   rinvchisq(1, df=nu.e.par, scale = s2.e.par)
+}
+@
+\begin{equation}
+ \hat{\nu}_{e_i} = \nu_{e_i} + n_i
+\end{equation}
+
+\begin{equation}
+\hat{s}^2_{e_i} = \frac{\nu_{e_i}^2
+      s^2_{e_i} +\mathbf{e}_i^t \mathbf{e}_i}{\nu_{e_i} + n_i}
+\end{equation}
+
+Note this computes an error SS, not error MS.
+<<>>=
+hat.s2_e.fn <- function(e.par,nu_e.par,s2_e.par) {
+   n <- length(e.par)
+   SS <- sum(e.par*e.par)
+   hat.s2_e <- (SS + nu_e.par*s2_e.par)/(nu_e.par + n)
+   return(hat.s2_e)
+}
+@
+
+\subsubsection{Random Variances}
+\begin{equation}
+\sigma_{u_m}^2 |  \mathbf{\beta}, \mathbf{u}_1, \ldots,
+      \mathbf{u}_{3 ( g)}, \sigma_{e_1}^2, \ldots, \sigma_{e_a}^2, \mathbf{y},
+      \mathbf{h} \sim \tmop{Inv} - \tmop{Scaled} -\mathbf{\chi}^2 (
+      \hat{\nu}_{u_m}, \hat{s}^2_{u_m})
+\end{equation}
+<<>>=
+sigma2_u.sample <- function(nu.e.par,s2.e.par) {
+   rinvchisq(1, df=nu.e.par, scale = s2.e.par)
+}
+@
+\begin{equation}
+   \hat{\nu}_{u_m} = \nu_{u_m} + q_m
+\end{equation}
+
+\begin{equation}
+ \hat{s}^2_{u_m} = \frac{\nu_{u_m}^2
+   s^2_{u_m} +\mathbf{u}_m^t \mathbf{u}_m}{\nu_{u_m} + q_m}
+\end{equation}
+
+<<>>=
+hat.s2_u.fn <- function(u.par,nu_u.par,s2_u.par) {
+   n <- length(u.par)
+   SS <- sum(u.par*u.par)
+   ret <- NULL
+   for(i in 1:legnth(s2_u.par)) {
+      ret <- c(ret,(SS + nu_u.par[i]*s2_u.par[i])/(nu_u.par[i] + n))
+   }
+   #hat.s2_e <- (SS + nu_e.par*s2_e.par)/(nu_e.par + n)
+   return(hat.s2_e)
+}
+@
+
+\subsection{Design Matrices}
+
+We need to produce X and Z matrices. These are matrices with values 0 or 1 corresponding to combinations of treatments, trials and blocks in the experiment. I typically use
+<<>>=
+cLevels <- levels(four.trials$entry)
+contr <- contr.treatment(cLevels,contrasts=FALSE)
+idx <- as.numeric(four.trials$entry)
+X <- matrix(t(contr[,idx]),ncol=length(cLevels))
+
+cLevels <- levels(four.trials$env)
+contr <- contr.treatment(cLevels,contrasts=FALSE)
+idx <- as.numeric(four.trials$env)
+Z1 <- matrix(t(contr[,idx]),ncol=length(cLevels))
+
+#need a dummy variable for rep in trial
+four.trials$blocks <- four.trials$env:four.trials$bloc
+cLevels <- levels(four.trials$blocks)
+contr <- contr.treatment(cLevels,contrasts=FALSE)
+idx <- as.numeric(four.trials$blocks)
+Z2 <- matrix(t(contr[,idx]),ncol=length(cLevels))
+
+four.trials$gei <- four.trials$entry:four.trials$env
+cLevels <- levels(four.trials$gei)
+contr <- contr.treatment(cLevels,contrasts=FALSE)
+idx <- as.numeric(four.trials$gei)
+Z3 <- matrix(t(contr[,idx]),ncol=length(cLevels))
+
+W <- cbind(rep(1,dim(X)[1]),X,Z1,Z2,Z3)
+y <- four.trials$GY
+@
+
+We can examine these by
+<<>>=
+head(four.trials)
+head(X)
+head(Z1)
+head(Z2)
+head(Z3)
+@
+
+\subsection{RCB model}
+Before we attempt to implement the full Gibbs sampler, we start with a simple model, a randomized complete block design with homogeneous trial variances. We have only one random effect, blocks in trials. This pools trials, but this is only for convenience, we'll add trials and nested blocks as we extend the algorithm.
+
+Our model for RCB, retaining the original subscripting, is simply
+\begin{equation}
+   \mathbf{y}=\mathbf{X}\mathbf{\beta} + \mathbf{Z}_2 \mathbf{u}_2 + \mathbf{e}
+\end{equation}
+
+<<>>=
+tapply(four.trials$GY,list(four.trials$entry),mean)
+summary(aov(GY ~ entry,data=four.trials))
+@
+
+<<constants>>=
+g <- length(levels(four.trials$entry))
+a <- length(levels(four.trials$env))
+b <- length(levels(four.trials$bloc))
+@
+
+
+We start with a non-informative $B0$ and non-informative $u_2$, combining these for $\theta_0$
+
+<<theta RCB>>=
+B0 <- rep(B0.ni,g)
+u2.0 <- c(rep(rep(u_i.initial,b),a))
+theta.0 <- c(B0,u2.0)
+@
+
+For $D$, we can produce a diagonal matrix with non-informative $\sigma_{u_2} ^2$ variances
+<<D RCB>>=
+#I.d <- diag(length(var.0))
+sigma.0 <- rep(sigma0.ni,length(B0))
+var.0 <- c(sigma.0,rep(u_i.initial,length(u2.0)))
+D <- diag(var.0)
+head(D)
+@
+
+$W$ is our two design matrices
+<<>>=
+W <- cbind(X,Z2)
+head(W)
+@
+
+We define non-informative, homogeneous residuals for $R$
+<<>>=
+I.r <- diag(length(y))
+R <- I.r*sigma0.ni
+head(R)
+@
+
+\subsubsection{RCB Gibbs sampling}
+
+<<control parameters>>=
+N <- 5000
+thin<-10
+burn<-1000
+@
+
+<<Initialize RCB samples>>=
+
+B.sample <- B0
+
+se.r.sample <- s2_e.ni
+
+u2.sample <- u2.0
+u2.var.sample <- var_u.ni
+
+var.sample <- c(B0,u2.0)
+@
+
+Non-informative priors for variance posteriors
+<<variance priors RCB>>=
+#nu.u2 <- b*(a-1)
+nu.u2 <- nu_u.ni
+hat.nu_s2 <- nu.u2 + length(u2.0)
+
+hat.s2_e = s2_e.ni
+hat.s2_u2 = s2_u.ni
+
+nu_e <- nu_e.ni
+hat.ne_e = nu_e + length(y)
+
+s2.u2 <- s2_u.ni
+s2_e <- s2_e.ni
+@
+
+We'll need an index to extract $u$ from $\theta$
+<<>>=
+u2.start <- 1+length(B0)
+@
+
+We store the Markov Chains in matrices corresponding to each set of parameters.
+<<mcmc chains RCB>>=
+rcb.theta.mat=matrix(0,ncol=length(theta.0),nrow=N)
+rcb.se.mat=matrix(0,ncol=length(se.r.sample),nrow=N)
+rcb.var.mat=matrix(0,ncol=1,nrow=N)
+
+rcb.theta.mat[1,]=theta.0
+rcb.se.mat[1,]=se.r.sample
+rcb.var.mat[1,]=u2.var.sample
+@
+
+Cotes et al., created 5000 vectors for "burn-in", then generated $10^6$ but used only 1 of 10 to produce marginal distributions for $p(\theta|y), p(\sigma^2 _{u_m} |y)$ and $p(\sigma^2 _{e_a} | y)$
+
+
+Go
+<<Gibbs sampling RCB>>=
+#first
+burn.count <- 0
+i=1
+while (i <= N) {
+  for (j in 1:thin) {
+     R <- I.r*se.r.sample
+     #D <- I.d*var.sample
+     D <- diag(var.sample)
+     
+     V <- v.mat(W,R,D)
+     v.inv <- ginv(v.mat(W,R,D))
+     t.hat <- theta.hat.fn(theta.0,W,R,D,y)
+
+     theta.sample=theta.sample.fn(t.hat,v.inv)
+     
+     #sample error variance
+      y.hat <- W %*% theta.sample
+      hat.s2_e <- hat.s2_e.fn(y.hat-y,nu_e,s2_e)
+      se.r.sample= sigma2_e.sample(hat.ne_e,hat.s2_e)
+      
+      #sample random effect variances
+      u2.sample <- theta.sample[u2.start:(u2.start+length(u2.0)-1)]
+
+      hat.s2_u2 <- hat.s2_e.fn(u2.sample-mean(u2.sample),nu.u2,s2_e)
+
+      u2.var.sample <- sigma2_u.sample(hat.nu_s2,hat.s2_u2)
+      
+      var.sample <- c(sigma.0, rep(u2.var.sample,length(u2.0)))
+      burn.count <- burn.count+1
+  }
+  if(burn.count>burn) {
+     rcb.theta.mat[i,]=theta.sample
+     rcb.se.mat[i,]=se.r.sample
+     rcb.var.mat[i,]=u2.var.sample
+     i=i+1
+  } else {
+     i=1
+  }
+}
+@
+
+\subsection{RCB Results}
+Take a simple mean of samples to be estimates of RCB parameters, and compare with arithmetic means and REML variances.
+<<>>=
+rcb.estimates <- apply(rcb.theta.mat,2,mean)
+rcb.estimates
+mean(rcb.se.mat)
+mean(rcb.var.mat)
+tapply(four.trials$GY, list(four.trials$entry),mean)
+summary(lmer(GY ~ entry + (1 | env:bloc),data=four.trials))
+ranef(lmer(GY ~ entry + (1 | env:bloc),data=four.trials))
+summary(MCMCglmm(fixed=  GY ~ entry, random = ~ env:bloc,data=four.trials,verbose=FALSE))
+@
+
+\subsubsection{RCB Diagnostics}
+<<fig=TRUE,echo=FALSE,width=9,height=5>>=
+par(mfrow=c(2,3))
+truehist(rcb.theta.mat[,1],xlab="sd97059-2")
+truehist(rcb.theta.mat[,2],xlab="sd98102")
+truehist(rcb.theta.mat[,3],xlab="Wesley")
+truehist(rcb.var.mat[,1],xlab="Block Variance")
+truehist(rcb.se.mat[,1],xlab="Residual Variance")
+par(mfrow=c(1,1))
+@
+
+<<fig=TRUE,echo=FALSE,width=9,height=5>>=
+par(mfrow=c(2,3))
+plot(rcb.theta.mat[,1],type="l")
+plot(rcb.theta.mat[,2],type="l")
+plot(rcb.theta.mat[,3],type="l")
+plot(rcb.se.mat[,1],type="l")
+plot(rcb.var.mat[,1],type="l")
+par(mfrow=c(1,1))
+@
+
+
+
+
+
+\subsection{Homogeneous GEI}
+Next, we added environment effects $u_1$ and interactions, $u_3$ to $\theta_0$. This isn't as simple, since we need to modify the coding used
+
+<<theta GEI>>=
+B0 <-  rep(B0.ni,g)
+u1.0 <- c(rep(u_i.initial,a))
+u2.0 <- c(rep(rep(u_i.initial,b),a))
+u3.0 <- c(rep(rep(u_i.initial,a),g))
+
+theta.0 <- c(B0,u1.0,u2.0,u3.0)
+@
+
+<<D GEI>>=
+#I.d <- diag(length(var.0))
+sigma.0 <- rep(sigma0.ni,length(B0))
+u1.var.0 <- rep(u_i.initial,length(u1.0))
+u2.var.0 <- rep(0,length(u2.0))
+u3.var.0 <- rep(0,length(u3.0))
+var.0 <- c(sigma.0,u1.var.0,u2.var.0,u3.var.0)
+D <- diag(var.0)
+head(D)
+@
+
+$W$ contains all design matrices for combined trials. 
+<<W GEI>>=
+W <- cbind(X,Z1,Z2,Z3)
+
+#this produces the same Z matrix
+#dummy <- lmer(GY ~ entry + (1 | env) + (1 | entry:env) + (1 | env:bloc),data=four.trials)
+#Z <- t(dummy@Zt)
+#W <- cbind(X,Z)
+#u1.0 <- c(rep(u_i.initial,a-1))
+#u2.0 <- c(rep(rep(u_i.initial,b-1),a))
+#u3.0 <- c(rep(rep(u_i.initial,a-1),g-1))
+@
+
+R is the same non-informative matrix.
+<<R GEI>>=
+I.r <- diag(length(y))
+R <- I.r*sigma0.ni
+head(R)
+@
+
+\subsection{GEI Gibbs sampling}
+Initialize, again with non-informative priors.
+<<Initialize GEI samples>>=
+B.sample <- B0
+se.r.sample <- s2_e.ni
+
+
+u1.sample <- u1.0
+u2.sample <- u2.0
+u3.sample <- u3.0
+u1.var.sample <- var_u.ni
+u2.var.sample <- var_u.ni
+u3.var.sample <- var_u.ni
+
+#var.sample <- c(B0,u1.0,u2.0,u3.0)
+var.sample <- c(sigma.0,
+                   rep(u1.var.sample,length(u1.0)),
+                   rep(u2.var.sample,length(u2.0)),
+                   rep(u3.var.sample,length(u3.0)))
+@
+
+Non-informative priors for variance posteriors
+<<variance priors GEI>>=
+#nu.u2 <- b*(a-1)
+nu.u1 <- nu_u.ni
+nu.u2 <- nu_u.ni
+nu.u3 <- nu_u.ni
+
+hat.nu_s1 <- nu.u1 + length(u1.0)
+hat.nu_s2 <- nu.u2 + length(u2.0)
+hat.nu_s3 <- nu.u3 + length(u3.0)
+
+hat.s2_e = s2_e.ni
+hat.s2_u1 = s2_u.ni
+hat.s2_u2 = s2_u.ni
+hat.s2_u3 = s2_u.ni
+
+nu_e <- nu_e.ni
+hat.ne_e = nu_e + length(y)
+
+s2.u1 <- s2_u.ni
+s2.u2 <- s2_u.ni
+s2.u3 <- s2_u.ni
+s2_e <- s2_e.ni
+@
+
+<<homogeneous GEI indexing>>=
+u1.start <- 1+length(B0)
+u2.start <- u1.start + length(u1.0)
+u3.start <- u2.start + length(u2.0)
+@
+
+<<GEI chains>>=
+gei.theta.mat=matrix(0,ncol=length(theta.0),nrow=N)
+gei.se.mat=matrix(0,ncol=1,nrow=N)
+gei.var.mat=matrix(0,ncol=3,nrow=N)
+@
+
+<<Homogeneous GEI sampling>>=
+burn.count <- 0
+burn=0
+thin=1
+i=1
+while (i < 5) {
+  for (j in 1:thin) {
+     R <- I.r*se.r.sample
+     #D <- I.d*var.sample
+     D <- diag(var.sample)
+     
+     V <- v.mat(W,R,D)
+     v.inv <- ginv(v.mat(W,R,D))
+     t.hat <- theta.hat.fn(theta.0,W,R,D,y)
+
+     theta.sample=theta.sample.fn(t.hat,v.inv)
+     
+     #sample error variance
+      y.hat <- W %*% theta.sample
+      hat.s2_e <- hat.s2_e.fn(y.hat-y,nu_e,s2_e)
+      se.r.sample= sigma2_e.sample(hat.ne_e,hat.s2_e)
+      
+      #sample random effect variances
+      u1.sample <- theta.sample[u1.start:(u1.start+length(u1.0)-1)]
+      u2.sample <- theta.sample[u2.start:(u2.start+length(u2.0)-1)]
+      u3.sample <- theta.sample[u3.start:(u3.start+length(u3.0)-1)]
+ 
+      #hat.s2_u1 <- hat.s2_e.fn(u1.sample-mean(u1.sample),nu.u1,s2_e)
+      #hat.s2_u2 <- hat.s2_e.fn(u2.sample-mean(u2.sample),nu.u2,s2_e)
+      #hat.s2_u3 <- hat.s2_e.fn(u3.sample-mean(u3.sample),nu.u3,s2_e)
+           
+      hat.s2_u1 <- hat.s2_e.fn(u1.sample,nu.u1,s2_e)
+      hat.s2_u2 <- hat.s2_e.fn(u2.sample,nu.u2,s2_e)
+      hat.s2_u3 <- hat.s2_e.fn(u3.sample,nu.u3,s2_e)
+      
+      u1.var.sample <- sigma2_u.sample(hat.nu_s1,hat.s2_u1)
+      u2.var.sample <- sigma2_u.sample(hat.nu_s2,hat.s2_u2)
+      u3.var.sample <- sigma2_u.sample(hat.nu_s3,hat.s2_u3)
+      
+      var.sample <- c(sigma.0,
+                         rep(u1.var.sample,length(u1.0)),
+                         rep(u2.var.sample,length(u2.0)),
+                         rep(u3.var.sample,length(u3.0)))
+                         
+      burn.count <- burn.count+1
+  }
+  if(burn.count>burn) {
+     gei.theta.mat[i,]=theta.sample
+     gei.se.mat[i,]=se.r.sample
+     gei.var.mat[i,]=c(u1.var.sample,u2.var.sample,u3.var.sample)
+     i=i+1
+  } else {
+     i=1
+  }
+}
+@
+
+
+Take a simple mean of samples to be estimates of RCB parameters, and compare with arithmetic means and REML variances.
+<<>>=
+gei.estimates <- apply(gei.theta.mat,2,mean)
+gei.estimates
+tapply(four.trials$GY, list(four.trials$entry),mean)
+summary(lmer(GY ~ entry + (1 + env) + (1 | env:entry) + (1 | env:bloc),data=four.trials))
+ranef(lmer(GY ~entry + (1 + env) + (1 | env:entry) + (1 | env:bloc),data=four.trials))
+@
+
+<<fig=TRUE,echo=FALSE>>=
+par(mfrow=c(3,2))
+truehist(gei.theta.mat[,1],xlab="sd97059-2")
+truehist(gei.theta.mat[,2],xlab="sd98102")
+truehist(gei.theta.mat[,3],xlab="Wesley")
+truehist(gei.var.mat[,1],xlab="Block Variance")
+truehist(rcb.se.mat[,1],xlab="Residual Variance")
+par(mfrow=c(1,1))
+@
+
+\subsection{Heterogeneous GEI}
+
+This section is incomplete
+<<Heterogeneous Interaction>>=
+N <- 100
+
+b.var.0 <- rep(1000,length(B0))
+
+#sigma0 <- 10^8
+
+#six elements to main diagonal
+
+s2.u1 <- s2_e
+s2.u2 <- s2_e
+s2.u3.m <- s2_e
+s2.u3.sd97 <- s2_e
+s2.u3.sd98 <- s2_e
+
+W <- cbind(X,Z1,Z2,Z3)
+@
+
+\section{Gibbs Appendix}
+The code I borrowed, from somewhere on the internet
+\begin{verbatim}
+gibbs<-function(N=50000,thin=1000)
+{
+    mat=matrix(0,ncol=2,nrow=N)
+    x=0
+    y=0
+    for (i in 1:N) {
+        for (j in 1:thin) {
+            x=rgamma(1,3,y*y+4)
+            y=rnorm(1,1/(x+1),1/sqrt(2*x+2))
+        }
+        mat[i,]=c(x,y)
+    }
+    names(mat)=c("x","y")
+    mat
+}
+\end{verbatim}
+
+%\end{document}
