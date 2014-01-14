@@ -1,0 +1,1114 @@
+Implementing "A Bayesian Approach for Assessing the Stability of Genotypes"
+===========================================================================
+
+```{r echo=FALSE,results='hide'}
+library(lme4)
+library(ggplot2)
+```
+
+Background
+----------
+   Cotes, et al, "A Bayesian Approach for Assessing the Stability of Genotypes", \emph{Crop Sci.} 46:2654-2665 (2006) provide a Bayesian method for analyzing multi-environment variety trials (MET) \cite{cotes.j-2006}.
+Quoting from \cite{cotes.j-2006}, the key goals of MET are
+
+\begin{quote}
+\begin{itemize}
+   \item[i] to estimate and predict yield with high precision
+   \item[ii] to determine yield stability and patterns of response
+   \item[iii] to select the best genotype to be sown in future years and new localities 
+\end{itemize}
+\end{quote}
+
+Traditionally, the results of MET are summarized by simple analysis of variance (AOV) using ordinary least squares. However, in the execution of these trials the most common assumptions of AOV are frequently violated. Specifically, the authors cite the problem of incomplete data, associated with the natural loss of experimental units and that  certain genotypes can be evaluated in only some environments. Mixed model analysis and REML estimation is the accepted alternative but is not without flaw. In particular, negative variance estimates sometimes arise from REML methods.
+
+\subsection{Genotype Selection}
+Plant breeders use a series of increasingly stringent trials to identify elite or superior genotypes. The process frequently starts with a very large number of potential lines, derived from crosses made among existing elite genotypes or novel varieties with unique traits. A portion of the best performing (usually in terms of gross yield, in mass per acre) are selected for further screening. As screening advances, fewer genotypes are tested under a wider variety of environmental conditions. In the final stages, potential new products - named genotypes to be sold to farmers for agricultural production - are tested alongside existing elite genotypes. 
+
+
+Additionally, MET frequently violate the common assumption of homogeneity of variances \cite{edwards.j-2006,so-2009}. While REML methods allow for some degree of heterogeneity in variance estimates, the size of most MET makes REML computationally difficult. Thus, Cotes, et al, suggest a Bayesian approach to the analysis of MET.  While they focus on estimating Shukla's stability variances \cite{shukla.g-1972}, these methods are generalizable to the analysis of combined trials where treatment-by-trial interaction and trial specific experimental error are heterogenous.
+
+\section{Example Data}
+We use as an example data set results from the SDSU Winter Wheat project. These data come from Crop Performance Trials (CPT) grown during  2003-2006. This data set illustrates many of the problems associated with the analysis of multiple agronomic trials.
+
+I've added the data to a libary I use for testing, this is loaded by
+<<CPT data>>=
+library(ASA.CSSA.SSSA)
+data(cpt)
+```
+
+The CPT data set includes an entry for \verb|fill|. This is some unnamed wheat variety that is use to fill out the experimental grid and to provide a buffer zone. We don't analyze these, so they should be removed.
+<<Remove fill>>=
+cpt.dat <- subset(cpt.dat,!(cpt.dat$entry=="fill"))
+cpt.dat$entry <- as.factor(as.character(cpt.dat$entry))
+```
+
+Yield data are stored as \verb|GY| (Gross Yield). There are some missing observations, so we'll subset the data.
+<<remove missing yield>>=
+cpt.dat <- subset(cpt.dat,!is.na(cpt.dat$GY))
+```
+Examining the full data set, we see that many entries (genotypes) appear only in only one or two seasons.
+
+```{r}
+head(tapply(cpt.dat$GY,list(cpt.dat$entry,cpt.dat$year),length))
+```
+
+This is a very unbalanced data set. We can provide some balance by analyzing only those genotypes that are common to all trials. This data set will be only partially balanced (which we denote by the suffix \verb|pbal|) in that not all genotypes are replicated an equal number of times in all trials. Thus, this data set should not be analyzed using linear model AOV. The exact steps for processing are included in my library.
+
+<<load processed data>>=
+data(cpt_data)
+cpt.pbal <- subset(cpt.pbal,!is.na(cpt.pbal$GY))
+cpt.pbal$year <- as.factor(cpt.pbal$year)
+```
+
+I've also included, for comparison, a subset where only equally replicated trials are included. This is fully balanced and can be analyzed using OLS AOV.
+```{r}
+cpt.bal <- subset(cpt.bal,!is.na(cpt.bal$GY))
+cpt.bal$year <- as.factor(cpt.bal$year)
+```
+
+Gross yield was record as bushels/acre. To compare results with \cite{cotes.j-2006} we need to convert to Megagrams/hectare.
+```{r}
+#convert to Mg ha-1
+cpt.pbal$GY <- (cpt.pbal$TW * cpt.pbal$GY)*0.00112
+cpt.bal$GY <- (cpt.bal$TW * cpt.bal$GY)*0.00112
+```
+
+The partially balanced data set includes a large number of genotypes and environments.
+```{r}
+length(levels(cpt.pbal$entry))
+length(levels(cpt.pbal$env))
+```
+Modeling this data following Cotes, et al, will require a large number of parameters - means estimates for each genotype, a variance estimate for each genotype across environments (Shukla's stability variance, according to \cite{cotes.j-2006}) and a unique, heterogeneous error variance for each environment. To make comparing analysis methods more understandable, we'll use, at first, only three genotypes tested in one location over four years.\footnote{When subsetting, R carries the entire list of levels for factors. I use the simple trick of converting factors to string, then back to factors, to remove unused levels from the original data set.}
+
+```{r}
+three.entries <- subset(cpt.pbal, cpt.pbal$entry %in% c("sd97059-2","wesley","sd98102"))
+four.trials <- subset(three.entries, three.entries$location == "Brookings")
+four.trials$entry <- as.factor(as.character(four.trials$entry))
+four.trials$env <- as.factor(as.character(four.trials$env))
+four.trials$bloc <- as.factor(as.character(four.trials$bloc))
+four.trials<-four.trials[order(four.trials$year),]
+head(four.trials)
+```
+  
+SD98102 was ultimately released as "Darrell" \cite{ibrahim-2008b}. This line was first selected based on visual uniformity and appearance from an F4 nursery and initially screened in Early Yield Trials (EYT). EYT are unreplicated trials (each line planted in one plot only, with a check plot - Arapahoe - every 10 plots) in 3 locations in 1998. SD98102 was then screened in Preliminary Yield Trials (2 replicates) in 1999, and in Advanced Yield Trials (3 replicates), 2000-2001 over 6 locations. SD98102 was then entered into CPT for final evaluation.
+
+The CPT trials were analyzed, for release, using mixed models, environments and genotypes fixed and replicates random; analyzed both within year and across year. Only common entries were included.
+
+
+SD97059-2 was considered for release, but I cannot find any release information.
+
+Wesley \cite{peterson.c-2001} is included as a check genotype. This variety accounted for roughly one third of winter wheat acres planted in South Dakota, 2002-2011 \cite{sdwhtvar11}
+
+\section{Stability}
+From \cite{piepho.h-1996} "It is noted that mean yield and stability are two different features of a variety, so mean comparisons are no substitute for stability analysis".
+
+To illustrate the concept of stability, we will plot genotype means (per trial) against the overall trial mean. 
+<<calculate combined trial means>>=
+stability.entries <- subset(cpt.pbal, cpt.pbal$entry %in% c("sd97059-2","wesley","sd98102"))
+trial.means <- tapply(cpt.pbal$GY,list(cpt.pbal$env),mean,na.rm=TRUE)
+stability.entries$trial.mean <- trial.means[stability.entries$env]
+```
+
+<<fig=TRUE,width=7,height=4>>=
+ggplot(stability.entries, aes(trial.mean,GY)) + geom_point(size=2,alpha = 0.4,aes(color=entry)) + geom_smooth(aes(group=entry,linetype=entry,color=entry),size=1.5,method="lm",se = FALSE) + ylab("Genotype Average (Bu/Acre)")+ xlab("Trial Average (Bu/Acre)")
+```
+
+The slope of genotype yield against trial mean will be larger in less stable lines, with the slope proportional to variance. If there is no interaction among genotypes and environments, then the slopes for all genotypes will be identical - the regression lines are parallel. If not, then we may see two types of interaction. If we compare SD97059-2 to Wesley, we see that SD97059-2 consistently out-yields Wesley, and that yield difference increases in higher-yielding environments. Comparing SD97059-2 to SD98102, however, we see a cross-over interaction - SD98102 outperforms SD97059-2 in low-yielding environments, but underperforms in high-yield environments. Thus, the relative rank of these genotypes depends on the choice of environment. Since the performance of SD98102 varies less with environment, this genotype can be considered a more stable choice when grows have less certainty about future environments.
+
+```{r}
+lm(GY ~ trial.mean,data=subset(stability.entries,stability.entries$entry=="sd97059-2"))
+lm(GY ~ trial.mean,data=subset(stability.entries,stability.entries$entry=="sd98102"))
+lm(GY ~ trial.mean,data=subset(stability.entries,stability.entries$entry=="wesley"))
+```
+
+Another way to visual stability is to compare histograms:
+
+
+<<fig=TRUE,echo=FALSE,width=9,height=5>>=
+ggplot(stability.entries, aes(GY, colour = entry)) + geom_density(adjust=2) + xlim(-2, 12)
+```
+
+
+<<fig=TRUE,echo=FALSE,width=9,height=5>>=
+ggplot(stability.entries, aes(GY, colour = env)) + geom_density(adjust=2) + xlim(-2, 12)
+```
+
+Note that the pooled variance of genotypes across all trials are vary similar, but the large part of that variance is account for by the variances among trials. We should also note that the spread of values within individual trials varies considerably.
+
+
+\section{Advantages of the Bayesian Method}
+
+Cotes, et al, cite specific advantages of Bayesian analysis for MET data:
+\begin{itemize}
+   \item deals with incomplete GEI data 
+   \item avoids negative variance components estimates
+   \item includes in the analysis the heterogeneity of within environment error variances
+\end{itemize}   
+
+\subsection{Incomplete data}
+
+First, consider the small data set, with three entries in four trials, all entries equally replicated. The analysis of variance based on a linear model is executed in R as 
+<<aov small data>>=
+four.trials.aov <- aov(GY ~ entry + env + env:entry + env:bloc,data=four.trials)
+four.trials.tbl <- anova(four.trials.aov)
+four.trials.tbl
+```
+
+Given the standard expected mean squares (when environments and replicates are modeled as random effects), we can estimate variance algebraically \cite{mcintosh-1983}. Note, we use the notation from \cite{cotes.j-2006} for number of genotypes ($g$), environments ($a$) and replicates ($b$).
+
+\begin{center}
+  \begin{tabular}{lll}
+    \textbf{Source} & \textbf{d.f.} & \textbf{Expected Mean Squares} \\
+    Genotypes & $g - 1$ & $\sigma_e^2 + b \sigma_{u_3} + a b \theta_{\beta}^2$ \\
+    Environments & $a - 1$ & $\sigma_e^2 + g \sigma^2_{u_2} + b \sigma_{u_3} +
+    g b \sigma^2_{u_1}$ \\
+    Blocks in Environments & $b ( a - 1)$ & $\sigma_e^2 + g \sigma^2_{u_2}$ \\
+    GEI & $( a - 1) ( g - 1)$ & $\sigma_e^2 + b \sigma_{u_3}^2$ \\
+    Residual & $a ( g - 1) ( g b - g - 1)$ & $\sigma_e^2$ 
+  \end{tabular}
+\end{center}
+
+<<algebraic variance estimates>>=
+g <- 3
+a <- 4
+b <- 4
+env.var <- (four.trials.tbl[2,3]-four.trials.tbl[4,3] - four.trials.tbl[3,3] +four.trials.tbl[5,3])/(g*b)
+env.var
+bloc.var <- (four.trials.tbl[4,3]-four.trials.tbl[5,3])/g
+bloc.var
+GEI.var <- (four.trials.tbl[3,3]-four.trials.tbl[5,3])/b
+GEI.var
+```
+
+These are directly comparable to REML estimates.
+<<REML estimates of small data set>>=
+four.trials.hom.var1 <- lmer(GY ~ entry + (1 | env) + (1 | entry:env) + (1|env:bloc), data=four.trials)
+four.trials.hom.var1
+```
+
+But, if we have unbalanced data, then algebraic estimates are invalid. Consider the larger, unbalanced data:
+<<AOV and REML unbalanced CPT data>>=
+cpt.pbal.aov <- aov(GY ~ entry + env + env:entry + env:bloc, data=cpt.pbal)
+cpt.pbal.tbl <- anova(cpt.pbal.aov)
+cpt.pbal.tbl
+cpt.pbal.g <- length(levels(cpt.pbal$entry))
+cpt.pbal.a <- length(levels(cpt.pbal$env))
+cpt.pbal.b <- length(levels(cpt.pbal$bloc))
+cpt.pbal.GEI.var <- (cpt.pbal.tbl[3,3]-cpt.pbal.tbl[5,3])/cpt.pbal.b
+cpt.pbal.bloc.var <- (cpt.pbal.tbl[4,3]-cpt.pbal.tbl[5,3])/cpt.pbal.g
+cpt.pbal.env.var <- (cpt.pbal.tbl[2,3]-cpt.pbal.tbl[4,3] - cpt.pbal.tbl[3,3] + cpt.pbal.tbl[5,3])/(cpt.pbal.g*cpt.pbal.b)
+cpt.pbal.GEI.var
+cpt.pbal.bloc.var
+cpt.pbal.env.var
+cpt.pbal.hom.var1 <- lmer(GY ~ entry + (1 | env) + (1 | entry:env) + (1|env:bloc), data=cpt.pbal)
+print(cpt.pbal.hom.var1,correlation=FALSE)
+```
+
+We can compare a Bayesian estimate to AOV and REML, quickly and conveniently, using the \verb|MCMCglmm| library\cite{hadfield.j-04-2010}. This library allows us to specify mixed models using formula similar to the formula passed to AOV and REML.
+
+<<mcmc homogeneous variances>>=
+library(MCMCglmm)
+hom.mcmc1 <- MCMCglmm(fixed=  GY ~ entry, random = ~ env + env:entry + env:bloc, data=four.trials, verbose=FALSE)
+summary(hom.mcmc1)
+#summary(MCMCglmm(fixed=  GY ~ entry, random = ~ env + entry:env + env:bloc, data=four.trials))
+cpt.pbal.mcmc1 <- MCMCglmm(fixed=  GY ~ entry, random = ~ env + env:entry + env:bloc, data=cpt.pbal, verbose=FALSE)
+summary(cpt.pbal.mcmc1)
+```
+
+\subsection{Non-negative variance estimates}
+
+Steel and Torrie, \cite{steel.r-1960}, Exercise 16.8.1,
+\begin{quotation}
+   Twelve strains of soybeans were compared in a randomized complete block experiment with three blocks at each of three locations in North Carolina.
+\end{quotation}
+
+I've added this data set to my library. Consider the classical analysis of variance.
+```{r}
+data(SteelTorrie)
+st.aov <- aov(Yield ~ Variety + Trial + Variety:Trial + Trial:Rep,data=p399)
+st.aov.tbl <- anova(st.aov)
+st.aov.tbl
+```
+
+If we attempt to compute variances algebraically
+<<Steel Torrie AOV variance estimates>>=
+(st.aov.tbl[3,3]-st.aov.tbl[5,3])/3
+(st.aov.tbl[4,3]-st.aov.tbl[5,3])/12
+(st.aov.tbl[2,3]-st.aov.tbl[4,3] - st.aov.tbl[3,3] + st.aov.tbl[5,3])/(12*3)
+```
+
+REML estimates will typically be constrained.
+<<Steel Torrie REML variance estimates>>=
+st.lmer <- lmer(Yield ~ Variety + (1 | Trial) + (1 | Variety:Trial) + (1 | Trial:Rep),data=p399)
+print(st.lmer,correlation=FALSE)
+```
+
+
+However, using MCMC
+<<Steel Torrie MCMC variance estimates>>=
+summary(MCMCglmm(fixed = Yield ~ Variety, random = ~ Trial + Variety:Trial + Trial:Rep,data=p399, verbose=FALSE))
+```
+
+
+We haven't yet attempted to model heterogeneous interaction variances; that is, allow genotype $\times$ environment variance to be estimated uniquely for each genotype. This is necessary to provide an estimate for Shukla's stability variance. Shukla \cite{shukla.g-1972} provides an algebraic method based on cell means (that is, the mean of each genotype in each environment) that is comparable to Tukey's 1 d.f. test for additivity. However, it's more convenient to use REML. We can specify independent variances by
+
+<<heterogeneous GEI variances>>=
+het.var1 <- lmer(GY ~ entry + (1 | env) + (entry | env) + (1|env:bloc),data=four.trials)
+print(het.var1,correlation=FALSE)
+het.var1.0 <- lmer(GY ~ entry + (1 | env) + (0 + entry | env) + (1|env:bloc),data=four.trials)
+print(het.var1.0,correlation=FALSE)
+```
+
+I've specified the random effects using two different encodings. I prefer the second, in that it simplifies interpretation, but the first is typically more computationally robust. In both, however, we have a variance estimate that is effectively 0. This may be a problem of the size of the data. 
+
+This is not a problem with the Bayesian approach.
+<<mcmc heterogenous>>=
+het.mcmc1 <- MCMCglmm(fixed=  GY ~ entry, random = ~ env + idh(entry):env + env:bloc,data=four.trials, verbose=FALSE)
+summary(het.mcmc1)
+```
+
+\subsubsection{Performance with large data}
+Larger data sets typically provide better estimates of variance components using REML, if more observations contribute to variance. However, REML can take much longer that other methods when heterogeneous variances are needed. 
+
+Compare
+<<profile>>=
+if(!file.exists("cpt.pbal.het.var.0.Rda")) {
+   Rprof("cpt.pbal.hom")
+   cpt.pbal.aov <- aov(GY ~ entry + env + entry:env + env:bloc, data=cpt.pbal)
+   cpt.pbal.het.var.0 <- lmer(GY ~ entry + (1 | env) + (1 | entry:env) + (1|env:bloc), data=cpt.pbal)
+   cpt.pbal.het.mcmc1 <- MCMCglmm(fixed=  GY ~ entry, random = ~ env + entry:env + env:bloc,data=cpt.pbal)
+   Rprof(NULL)
+   
+   Rprof("cpt.pbal.het")
+   cpt.pbal.aov <- aov(lm(GY ~ entry + env + entry:env + env:bloc, data=cpt.pbal))
+   cpt.pbal.het.var.0 <- lmer(GY ~ entry + (1 | env) + (0 + entry | env) + (1|env:bloc), data=cpt.pbal)
+   cpt.pbal.het.mcmc1 <- MCMCglmm(fixed=  GY ~ entry, random = ~ env + idh(entry):env + env:bloc,data=cpt.pbal)
+   save(cpt.pbal.aov ,file="cpt.pbal.aov.Rda")
+   save(cpt.pbal.het.var.0,file="cpt.pbal.het.var.0.Rda")
+   save(cpt.pbal.het.mcmc1,file="cpt.pbal.het.mcmc1.Rda")
+   Rprof(NULL)
+} else {
+   load(file="cpt.pbal.aov.Rda")
+   load(file="cpt.pbal.het.var.0.Rda")
+   load(file="cpt.pbal.het.mcmc1.Rda")
+}
+current.prof <- summaryRprof("cpt.pbal.hom")
+head(summaryRprof("cpt.pbal.hom")[[2]],n=20)
+current.prof <- summaryRprof("cpt.pbal.het")
+head(current.prof[[2]],n=30)
+```
+
+<<full profile models>>=
+summary(cpt.pbal.aov)
+print(cpt.pbal.het.var.0,correlation=FALSE)
+summary(cpt.pbal.het.mcmc1)
+```
+
+\subsection{Heterogeneity of environmental error variances}
+
+First, we consider the analysis of single trials.
+<<single trial aov>>=
+summary(aov(GY ~ entry + bloc,data=four.trials[four.trials$env=="Brookings 2003",]))
+summary(aov(GY ~ entry + bloc,data=four.trials[four.trials$env=="Brookings 2004",]))
+summary(aov(GY ~ entry + bloc,data=four.trials[four.trials$env=="Brookings 2005",]))
+summary(aov(GY ~ entry + bloc,data=four.trials[four.trials$env=="Brookings 2006",]))
+```
+
+Three of the four trials have comparable residual errors. A rough rule of thumb is that variances can be considered homogeneous if the largest error MS is less than three times the smallest\cite{gomez-1984}, that is,
+
+<<quick Ftest>>=
+0.4076/0.0978
+```
+
+Using strict AOV, we would not be able to provide a combined analysis of these trials; the results from Brookings 2004 would be discarded.
+
+
+I've found no specific mechanism to allow for heterogeneous residual error using \verb|lmer|. We can allow blocks within environments to be heterogeneous. This may be an acceptable substitute, but does not compare with the approach of \cite{cotes.j-2006}.
+
+<<lmer with heterogenous block error>>=
+het.var2 <- lmer(GY ~ entry + (1 | env) + (0 + entry | env) + (0 + env | bloc),data=four.trials)
+print(het.var2, correlation=FALSE)
+```
+
+In contrast, heterogeneous error variances are is easily added to the \verb|MCMCglmm| model by specifying a residual covariance structure, \verb|rcov|.
+
+First, we specify only blocks as random. This allows us to compare the Bayesian fixed effects estimates to an OLS estimate.
+
+<<fixed GEI mcmc>>=
+het.mcmc2 <- MCMCglmm(fixed=  GY ~ entry + env + entry:env, random = ~ env:bloc,data=four.trials,rcov=~idh(env):units, verbose=FALSE)
+summary(het.mcmc2)
+print(lm(GY ~ entry + env + entry:env,data=four.trials))
+```
+
+Next, we consider heterogeneous environment variances.
+
+<<full cotes mcmc>>=
+het.mcmc3 <- MCMCglmm(fixed=  GY ~ entry, random = ~ env + idh(entry):env + env:bloc,data=four.trials,rcov=~idh(env):units, verbose=FALSE)
+summary(het.mcmc3)
+```
+
+This compares quite well with what we would expect for the different estimates, based on partial analysis using AOV and REML, and, for the most part, implements the methods in \cite{cotes.j-2006}.
+
+\section{Implementing a Gibbs Sampler}
+
+Cotes, et al, \cite{cotes.j-2006} provide considerable detail toward implementing a Bayesian analysis of MET with heterogenous error variances and independent GEI variances. Their full model, in matrix form, is
+
+\begin{equation}
+   \mathbf{y}=\mathbf{X}\mathbf{\beta}  +\mathbf{Z}_1
+   \mathbf{u}_1 +\mathbf{Z}_2 \mathbf{u}_2 + 
+   {\sum ^{g} _{k = 1}} 
+      \mathbf{Z}_{3 ( k)} \mathbf{u}_{3 ( k)}
+   +\mathbf{1}_{n_i} \otimes \mathbf{e}_i
+\end{equation}
+
+For Gibbs Sampling, they parameterize the model as
+\begin{equation}
+\mathbf{\theta}= \left(\begin{array}{c}
+        \mathbf{\beta}\\
+        \mathbf{u}_1\\
+        .\\
+        .\\
+        .\\
+        \mathbf{u}_{3 ( g)}
+      \end{array}\right), \mathbf{\theta}_0 \left(\begin{array}{c}
+        \mathbf{\beta}_0\\
+        \mathbf{0}\\
+        .\\
+        .\\
+        .\\
+        \mathbf{0}
+      \end{array}\right), \mathbf{D}= \left(\begin{array}{cccccc}
+        \mathbf{I}\mathbf{\sigma}_0^2 &  &  &  &  & \\
+        & \mathbf{I}\mathbf{\sigma}_{u_1}^2 &  &  &  & \\
+        &  & . &  &  & \\
+        &  &  & . &  & \\
+        &  &  &  & . & \\
+        &  &  &  &  & \mathbf{I}\mathbf{\sigma}_{u_{3 ( g)}}^2
+      \end{array}\right)
+\end{equation}
+and $\mathbf{W}= [ \mathbf{X}\mathbf{Z}_1 \ldots \mathbf{Z}_{3 ( g)}]$. Effects estimates, both fixed and random, are estimated by $\theta$, while $\theta_0$ represents prior information about effects. $D$ represents the variance associated with effects. Since only the main diagonal is non-zero (i.e. there is no covariance), effects are modeled as independent.
+
+
+Briefly, we review mixed model theory\cite{piepho.m-4-2008}. The general mixed model takes the form
+\begin{equation}
+  \mathbf{y}  = \mathbf{X}\mathbf{\beta}+\mathbf{Z}\mathbf{u}+\mathbf{e}
+\end{equation}  
+
+where $\mathbf{X}$ specifies the design of the fixed portion (i.e. treatments) of the experiment and $\mathbf{Z}$ the design of random effects (e.g. blocks), while $\beta$ and $\mathbf{u}$ are the corresponding effect parameters. Further, the random effects are $\sim MVN ( \mathbf{0}, \mathbf{D})$ \footnote{Many authors use the notation $G$} and experimental error, $\mathbf{e} \sim MVN ( \mathbf{0}, \mathbf{R})$
+
+If the variance-covariance matrices, $\mathbf{D}$ and $\mathbf{R}$ are known, then effects estimates are calculated by
+
+\begin{equation}
+\left[ 
+   \begin{array}{ll}
+      \mathbf{X}^t \mathbf{R}^{- 1} \mathbf{X} & \mathbf{X}^t \mathbf{R}^{- 1} \mathbf{Z} \\
+      \mathbf{Z}^t \mathbf{R}^{- 1} \mathbf{X} & \mathbf{Z}^t \mathbf{R}^{- 1}
+      \mathbf{Z}+\mathbf{D}^{- 1}
+   \end{array}
+\right] 
+\left[
+   \begin{array}{c}
+      \hat{\mathbf{\beta}} \\
+      \hat{\mathbf{u}}
+   \end{array} 
+\right] 
+= 
+\left[ 
+   \begin{array}{c}
+      \mathbf{X}^t \mathbf{R}^{- 1} \mathbf{y} \\
+      \mathbf{Z}^t \mathbf{R}^{- 1} \mathbf{y}
+   \end{array} 
+\right]
+\end{equation}
+
+
+\subsection{Gibbs Sampling}
+Gibbs sampling, briefly stated, samples from joint posterior distributions to determine marginal distributions of parameters of interest. This requires identifying the fully conditional distributions of all unknown parameters. We contrast this with the hyper-parameters that are not estimated from Gibbs sampling but obtained from prior experiments (or selected from non-informative priors). Summarizing wheat information from Table 1 \cite{cotes.j-2006}, "Prior information in the Bayesian analysis of potato, wheat and maize MET's",
+
+\begin{table}[h]
+  \begin{tabular}{cccc}
+    Parameter & Non-informative & Empirical & Comment\\
+    $B_0$ & 0.1 & 3.65-5.77 & REML fixed effects\\
+    $\sigma_0^2$ & 10000 & 0.6180-0.7115 & REML s.e.\\
+    $s_{m_{u_1}}^2$ & 0.01 & 18613 & REML variance\\
+    $\nu_{u_1}$ & 1 & $a-1 = 4$ & Environment d.f.\\
+    $s_{m_{u_2}}^2$ & 0.01 & 0.0001 & REML variance\\
+    $\nu_{u_2}$ & 1 & $a(b-1) = 5$ & Block d.f.\\
+    $s_{m_{u_3}}^2$ & 0.01 & 0.0001-0.6047 & REML variance \\
+    $\nu_{u_{3 ( g)}}$ & 1 & $a-1 = 4$ & Environment d.f.\\
+    $s_{e_i^2}$ & 0.01 & 0.0454-0.2422 & Within-site residual variance \\
+    $\nu_{e_i}$ & 1 & $(g-1)(b-1)=9$ & Within-site residual d.f.
+  \end{tabular}
+  \caption{}
+\end{table}
+
+These are hyperparameters for a wheat MET trial with 5 environments, 2
+replicates per environment and 10 genotypes, repeated over two consecutive
+years. Emperical priors are taken from REML analysis of the first year,
+Bayesian analysis performed on data from the second year.
+
+For now, we'll define some constants for non-informative priors.
+<<prior hyperparameters>>=
+#non-informative priors, according to Cotes
+B0.ni <- 0.1
+
+sigma0.ni <- 100000
+var_u.ni <- 0.01
+s2_u.ni <- 0.01
+nu_u.ni <- 1
+s2_e.ni <- 0.01
+nu_e.ni <- 1
+
+u_i.initial <- 0
+```
+
+\subsection{Conditional Posterior Distributions}
+Conditional distributions are given for three groups. The effects vector, $\theta = [\beta, u_i, \ldots ]$ is define as a single multivariate distribution, while variance estimates, $\sigma _u ^2$ and $\sigma _e ^2$ are sampled independently. 
+
+\subsubsection{Effects}
+\begin{equation}
+   \mathbf{\theta} | \sigma_{u_1}^2, \sigma_{u_2}^2, \sigma_{u_{3
+      ( 1)},}^2 \ldots, \sigma_{u_{3 ( k)}}^2, \sigma_{e_1}^2, \ldots,
+      \sigma_{e_a}^2, \mathbf{y}, \mathbf{h} \sim \mathcal{N} (
+      \hat{\mathbf{\theta}}, ( \mathbf{W}^t \mathbf{R}^{- 1}
+      \mathbf{W}+\mathbf{D}^{- 1})^{- 1}) 
+\end{equation}
+
+To sample from this distribution, we define a function that takes two parameters, $\theta$ and $V^{-1} = \mathbf{W}^t \mathbf{R}^{- 1} \mathbf{W}+\mathbf{D}^{- 1})^{- 1}$. We note that for these type of matrices, the build in \verb|solve| function won't work; design matrices tend to be singular. I frequently use the generalized inverse in \verb|MASS|.
+
+```{r}
+library(MASS)
+
+v.mat <- function(W.par,R.par,D.par) {
+   WR <- t(W.par) %*% ginv(R.par)
+   WRW <- WR %*% W.par
+   Dinv <- ginv(D.par)
+   return(WRW + Dinv)
+}
+
+theta.sample.fn <- function(theta.hat.par,v.inv.par) {
+   max <- length(theta.hat.par)
+
+   ret <- rep(0,max)
+   for(idx in 1:max) {
+      ret[idx] <- rnorm(1,mean=theta.hat.par[idx],sd=v.inv.par[idx,idx])
+   }
+   return(ret)
+}
+```
+
+$\hat{\theta}$ is estimated by 
+\begin{equation}
+   \hat{\mathbf{\theta}} = ( \mathbf{W}^t \mathbf{R}^{- 1}
+      \mathbf{W}+\mathbf{D}^{- 1})^{- 1} ( \mathbf{W}^t \mathbf{R}^{- 1}
+      \mathbf{y}+\mathbf{D}^{- 1} \mathbf{\theta}_0)
+\end{equation}
+Note that for computational convenience (that is, decomposing the algorithm into function) we will end up recalculating $V$; that's an issue that could be optimized away later.
+
+```{r}
+theta.hat.fn <- function(theta0.par,W.par,R.par,D.par,y.par) {
+   WR <- t(W.par) %*% ginv(R.par)
+   WRW <- WR %*% W.par
+   Dinv <- ginv(D.par)
+   WRWDinv <- ginv(WRW + Dinv)
+   
+   WRy <- WR %*% y.par 
+   WRyDtheta <- WRy + Dinv %*% theta0.par
+   
+   theta.hat <- WRWDinv %*% WRyDtheta
+   return(theta.hat)
+}
+```
+
+\subsubsection{Error Variances}
+
+In general, the notations $n_i$ represent the total number of observations in each environment, $\nu$ the "degrees of belief" and $s^2$ prior variances
+
+\begin{equation}
+\sigma_{e_1}^2 |  \mathbf{\beta}, \mathbf{u}_1, \ldots,
+      \mathbf{u}_{3 ( g)}, \sigma_{u_1}^2, \sigma_{u_2}^2, \sigma_{u_{3 ( 1)},}^2
+      \ldots, \sigma_{u_{3 ( k)}}^2, \mathbf{y}, \mathbf{h} \sim \tmop{Inv} -
+      \tmop{Scaled} -\mathbf{\chi}^2 ( \hat{\nu}_{e_i}, \hat{s}^2_{e_i})
+\end{equation}
+Using the \verb|geoR| library for a scaled inverse $\chi^2$ distribution,
+```{r}
+library(geoR)
+sigma2_e.sample <- function(nu.e.par,s2.e.par) {
+   #rinvchisq(1, df=nu.e.par, scale = 1/s2.e.par)
+   rinvchisq(1, df=nu.e.par, scale = s2.e.par)
+}
+```
+\begin{equation}
+ \hat{\nu}_{e_i} = \nu_{e_i} + n_i
+\end{equation}
+
+\begin{equation}
+\hat{s}^2_{e_i} = \frac{\nu_{e_i}^2
+      s^2_{e_i} +\mathbf{e}_i^t \mathbf{e}_i}{\nu_{e_i} + n_i}
+\end{equation}
+
+Note this computes an error SS, not error MS.
+```{r}
+hat.s2_e.fn <- function(e.par,nu_e.par,s2_e.par) {
+   n <- length(e.par)
+   SS <- sum(e.par*e.par)
+   hat.s2_e <- (SS + nu_e.par*s2_e.par)/(nu_e.par + n)
+   return(hat.s2_e)
+}
+```
+
+\subsubsection{Random Variances}
+\begin{equation}
+\sigma_{u_m}^2 |  \mathbf{\beta}, \mathbf{u}_1, \ldots,
+      \mathbf{u}_{3 ( g)}, \sigma_{e_1}^2, \ldots, \sigma_{e_a}^2, \mathbf{y},
+      \mathbf{h} \sim \tmop{Inv} - \tmop{Scaled} -\mathbf{\chi}^2 (
+      \hat{\nu}_{u_m}, \hat{s}^2_{u_m})
+\end{equation}
+```{r}
+sigma2_u.sample <- function(nu.e.par,s2.e.par) {
+   rinvchisq(1, df=nu.e.par, scale = s2.e.par)
+}
+```
+\begin{equation}
+   \hat{\nu}_{u_m} = \nu_{u_m} + q_m
+\end{equation}
+
+\begin{equation}
+ \hat{s}^2_{u_m} = \frac{\nu_{u_m}^2
+   s^2_{u_m} +\mathbf{u}_m^t \mathbf{u}_m}{\nu_{u_m} + q_m}
+\end{equation}
+
+```{r}
+hat.s2_u.fn <- function(u.par,nu_u.par,s2_u.par) {
+   n <- length(u.par)
+   SS <- sum(u.par*u.par)
+   ret <- NULL
+   for(i in 1:legnth(s2_u.par)) {
+      ret <- c(ret,(SS + nu_u.par[i]*s2_u.par[i])/(nu_u.par[i] + n))
+   }
+   #hat.s2_e <- (SS + nu_e.par*s2_e.par)/(nu_e.par + n)
+   return(hat.s2_e)
+}
+```
+
+\subsection{Design Matrices}
+
+We need to produce X and Z matrices. These are matrices with values 0 or 1 corresponding to combinations of treatments, trials and blocks in the experiment. I typically use
+```{r}
+cLevels <- levels(four.trials$entry)
+contr <- contr.treatment(cLevels,contrasts=FALSE)
+idx <- as.numeric(four.trials$entry)
+X <- matrix(t(contr[,idx]),ncol=length(cLevels))
+
+cLevels <- levels(four.trials$env)
+contr <- contr.treatment(cLevels,contrasts=FALSE)
+idx <- as.numeric(four.trials$env)
+Z1 <- matrix(t(contr[,idx]),ncol=length(cLevels))
+
+#need a dummy variable for rep in trial
+four.trials$blocks <- four.trials$env:four.trials$bloc
+cLevels <- levels(four.trials$blocks)
+contr <- contr.treatment(cLevels,contrasts=FALSE)
+idx <- as.numeric(four.trials$blocks)
+Z2 <- matrix(t(contr[,idx]),ncol=length(cLevels))
+
+four.trials$gei <- four.trials$entry:four.trials$env
+cLevels <- levels(four.trials$gei)
+contr <- contr.treatment(cLevels,contrasts=FALSE)
+idx <- as.numeric(four.trials$gei)
+Z3 <- matrix(t(contr[,idx]),ncol=length(cLevels))
+
+W <- cbind(rep(1,dim(X)[1]),X,Z1,Z2,Z3)
+y <- four.trials$GY
+```
+
+We can examine these by
+```{r}
+head(four.trials)
+head(X)
+head(Z1)
+head(Z2)
+head(Z3)
+```
+
+\subsection{RCB model}
+Before we attempt to implement the full Gibbs sampler, we start with a simple model, a randomized complete block design with homogeneous trial variances. We have only one random effect, blocks in trials. This pools trials, but this is only for convenience, we'll add trials and nested blocks as we extend the algorithm.
+
+Our model for RCB, retaining the original subscripting, is simply
+\begin{equation}
+   \mathbf{y}=\mathbf{X}\mathbf{\beta} + \mathbf{Z}_2 \mathbf{u}_2 + \mathbf{e}
+\end{equation}
+
+```{r}
+tapply(four.trials$GY,list(four.trials$entry),mean)
+summary(aov(GY ~ entry,data=four.trials))
+```
+
+<<constants>>=
+g <- length(levels(four.trials$entry))
+a <- length(levels(four.trials$env))
+b <- length(levels(four.trials$bloc))
+```
+
+
+We start with a non-informative $B0$ and non-informative $u_2$, combining these for $\theta_0$
+
+<<theta RCB>>=
+B0 <- rep(B0.ni,g)
+u2.0 <- c(rep(rep(u_i.initial,b),a))
+theta.0 <- c(B0,u2.0)
+```
+
+For $D$, we can produce a diagonal matrix with non-informative $\sigma_{u_2} ^2$ variances
+<<D RCB>>=
+#I.d <- diag(length(var.0))
+sigma.0 <- rep(sigma0.ni,length(B0))
+var.0 <- c(sigma.0,rep(u_i.initial,length(u2.0)))
+D <- diag(var.0)
+head(D)
+```
+
+$W$ is our two design matrices
+```{r}
+W <- cbind(X,Z2)
+head(W)
+```
+
+We define non-informative, homogeneous residuals for $R$
+```{r}
+I.r <- diag(length(y))
+R <- I.r*sigma0.ni
+head(R)
+```
+
+\subsubsection{RCB Gibbs sampling}
+
+<<control parameters>>=
+N <- 5000
+thin<-10
+burn<-1000
+```
+
+<<Initialize RCB samples>>=
+
+B.sample <- B0
+
+se.r.sample <- s2_e.ni
+
+u2.sample <- u2.0
+u2.var.sample <- var_u.ni
+
+var.sample <- c(B0,u2.0)
+```
+
+Non-informative priors for variance posteriors
+<<variance priors RCB>>=
+#nu.u2 <- b*(a-1)
+nu.u2 <- nu_u.ni
+hat.nu_s2 <- nu.u2 + length(u2.0)
+
+hat.s2_e = s2_e.ni
+hat.s2_u2 = s2_u.ni
+
+nu_e <- nu_e.ni
+hat.ne_e = nu_e + length(y)
+
+s2.u2 <- s2_u.ni
+s2_e <- s2_e.ni
+```
+
+We'll need an index to extract $u$ from $\theta$
+```{r}
+u2.start <- 1+length(B0)
+```
+
+We store the Markov Chains in matrices corresponding to each set of parameters.
+<<mcmc chains RCB>>=
+rcb.theta.mat=matrix(0,ncol=length(theta.0),nrow=N)
+rcb.se.mat=matrix(0,ncol=length(se.r.sample),nrow=N)
+rcb.var.mat=matrix(0,ncol=1,nrow=N)
+
+rcb.theta.mat[1,]=theta.0
+rcb.se.mat[1,]=se.r.sample
+rcb.var.mat[1,]=u2.var.sample
+```
+
+Cotes et al., created 5000 vectors for "burn-in", then generated $10^6$ but used only 1 of 10 to produce marginal distributions for $p(\theta|y), p(\sigma^2 _{u_m} |y)$ and $p(\sigma^2 _{e_a} | y)$
+
+
+Go
+<<Gibbs sampling RCB>>=
+#first
+burn.count <- 0
+i=1
+while (i <= N) {
+  for (j in 1:thin) {
+     R <- I.r*se.r.sample
+     #D <- I.d*var.sample
+     D <- diag(var.sample)
+     
+     V <- v.mat(W,R,D)
+     v.inv <- ginv(v.mat(W,R,D))
+     t.hat <- theta.hat.fn(theta.0,W,R,D,y)
+
+     theta.sample=theta.sample.fn(t.hat,v.inv)
+     
+     #sample error variance
+      y.hat <- W %*% theta.sample
+      hat.s2_e <- hat.s2_e.fn(y.hat-y,nu_e,s2_e)
+      se.r.sample= sigma2_e.sample(hat.ne_e,hat.s2_e)
+      
+      #sample random effect variances
+      u2.sample <- theta.sample[u2.start:(u2.start+length(u2.0)-1)]
+
+      hat.s2_u2 <- hat.s2_e.fn(u2.sample-mean(u2.sample),nu.u2,s2_e)
+
+      u2.var.sample <- sigma2_u.sample(hat.nu_s2,hat.s2_u2)
+      
+      var.sample <- c(sigma.0, rep(u2.var.sample,length(u2.0)))
+      burn.count <- burn.count+1
+  }
+  if(burn.count>burn) {
+     rcb.theta.mat[i,]=theta.sample
+     rcb.se.mat[i,]=se.r.sample
+     rcb.var.mat[i,]=u2.var.sample
+     i=i+1
+  } else {
+     i=1
+  }
+}
+```
+
+\subsection{RCB Results}
+Take a simple mean of samples to be estimates of RCB parameters, and compare with arithmetic means and REML variances.
+```{r}
+rcb.estimates <- apply(rcb.theta.mat,2,mean)
+rcb.estimates
+mean(rcb.se.mat)
+mean(rcb.var.mat)
+tapply(four.trials$GY, list(four.trials$entry),mean)
+summary(lmer(GY ~ entry + (1 | env:bloc),data=four.trials))
+ranef(lmer(GY ~ entry + (1 | env:bloc),data=four.trials))
+summary(MCMCglmm(fixed=  GY ~ entry, random = ~ env:bloc,data=four.trials,verbose=FALSE))
+```
+
+\subsubsection{RCB Diagnostics}
+<<fig=TRUE,echo=FALSE,width=9,height=5>>=
+par(mfrow=c(2,3))
+truehist(rcb.theta.mat[,1],xlab="sd97059-2")
+truehist(rcb.theta.mat[,2],xlab="sd98102")
+truehist(rcb.theta.mat[,3],xlab="Wesley")
+truehist(rcb.var.mat[,1],xlab="Block Variance")
+truehist(rcb.se.mat[,1],xlab="Residual Variance")
+par(mfrow=c(1,1))
+```
+
+<<fig=TRUE,echo=FALSE,width=9,height=5>>=
+par(mfrow=c(2,3))
+plot(rcb.theta.mat[,1],type="l")
+plot(rcb.theta.mat[,2],type="l")
+plot(rcb.theta.mat[,3],type="l")
+plot(rcb.se.mat[,1],type="l")
+plot(rcb.var.mat[,1],type="l")
+par(mfrow=c(1,1))
+```
+
+
+
+
+
+\subsection{Homogeneous GEI}
+Next, we added environment effects $u_1$ and interactions, $u_3$ to $\theta_0$. This isn't as simple, since we need to modify the coding used
+
+<<theta GEI>>=
+B0 <-  rep(B0.ni,g)
+u1.0 <- c(rep(u_i.initial,a))
+u2.0 <- c(rep(rep(u_i.initial,b),a))
+u3.0 <- c(rep(rep(u_i.initial,a),g))
+
+theta.0 <- c(B0,u1.0,u2.0,u3.0)
+```
+
+<<D GEI>>=
+#I.d <- diag(length(var.0))
+sigma.0 <- rep(sigma0.ni,length(B0))
+u1.var.0 <- rep(u_i.initial,length(u1.0))
+u2.var.0 <- rep(0,length(u2.0))
+u3.var.0 <- rep(0,length(u3.0))
+var.0 <- c(sigma.0,u1.var.0,u2.var.0,u3.var.0)
+D <- diag(var.0)
+head(D)
+```
+
+$W$ contains all design matrices for combined trials. 
+<<W GEI>>=
+W <- cbind(X,Z1,Z2,Z3)
+
+#this produces the same Z matrix
+#dummy <- lmer(GY ~ entry + (1 | env) + (1 | entry:env) + (1 | env:bloc),data=four.trials)
+#Z <- t(dummy```Zt)
+#W <- cbind(X,Z)
+#u1.0 <- c(rep(u_i.initial,a-1))
+#u2.0 <- c(rep(rep(u_i.initial,b-1),a))
+#u3.0 <- c(rep(rep(u_i.initial,a-1),g-1))
+```
+
+R is the same non-informative matrix.
+<<R GEI>>=
+I.r <- diag(length(y))
+R <- I.r*sigma0.ni
+head(R)
+```
+
+\subsection{GEI Gibbs sampling}
+Initialize, again with non-informative priors.
+<<Initialize GEI samples>>=
+B.sample <- B0
+se.r.sample <- s2_e.ni
+
+
+u1.sample <- u1.0
+u2.sample <- u2.0
+u3.sample <- u3.0
+u1.var.sample <- var_u.ni
+u2.var.sample <- var_u.ni
+u3.var.sample <- var_u.ni
+
+#var.sample <- c(B0,u1.0,u2.0,u3.0)
+var.sample <- c(sigma.0,
+                   rep(u1.var.sample,length(u1.0)),
+                   rep(u2.var.sample,length(u2.0)),
+                   rep(u3.var.sample,length(u3.0)))
+```
+
+Non-informative priors for variance posteriors
+<<variance priors GEI>>=
+#nu.u2 <- b*(a-1)
+nu.u1 <- nu_u.ni
+nu.u2 <- nu_u.ni
+nu.u3 <- nu_u.ni
+
+hat.nu_s1 <- nu.u1 + length(u1.0)
+hat.nu_s2 <- nu.u2 + length(u2.0)
+hat.nu_s3 <- nu.u3 + length(u3.0)
+
+hat.s2_e = s2_e.ni
+hat.s2_u1 = s2_u.ni
+hat.s2_u2 = s2_u.ni
+hat.s2_u3 = s2_u.ni
+
+nu_e <- nu_e.ni
+hat.ne_e = nu_e + length(y)
+
+s2.u1 <- s2_u.ni
+s2.u2 <- s2_u.ni
+s2.u3 <- s2_u.ni
+s2_e <- s2_e.ni
+```
+
+<<homogeneous GEI indexing>>=
+u1.start <- 1+length(B0)
+u2.start <- u1.start + length(u1.0)
+u3.start <- u2.start + length(u2.0)
+```
+
+<<GEI chains>>=
+gei.theta.mat=matrix(0,ncol=length(theta.0),nrow=N)
+gei.se.mat=matrix(0,ncol=1,nrow=N)
+gei.var.mat=matrix(0,ncol=3,nrow=N)
+```
+
+<<Homogeneous GEI sampling>>=
+burn.count <- 0
+burn=0
+thin=1
+i=1
+while (i < 5) {
+  for (j in 1:thin) {
+     R <- I.r*se.r.sample
+     #D <- I.d*var.sample
+     D <- diag(var.sample)
+     
+     V <- v.mat(W,R,D)
+     v.inv <- ginv(v.mat(W,R,D))
+     t.hat <- theta.hat.fn(theta.0,W,R,D,y)
+
+     theta.sample=theta.sample.fn(t.hat,v.inv)
+     
+     #sample error variance
+      y.hat <- W %*% theta.sample
+      hat.s2_e <- hat.s2_e.fn(y.hat-y,nu_e,s2_e)
+      se.r.sample= sigma2_e.sample(hat.ne_e,hat.s2_e)
+      
+      #sample random effect variances
+      u1.sample <- theta.sample[u1.start:(u1.start+length(u1.0)-1)]
+      u2.sample <- theta.sample[u2.start:(u2.start+length(u2.0)-1)]
+      u3.sample <- theta.sample[u3.start:(u3.start+length(u3.0)-1)]
+ 
+      #hat.s2_u1 <- hat.s2_e.fn(u1.sample-mean(u1.sample),nu.u1,s2_e)
+      #hat.s2_u2 <- hat.s2_e.fn(u2.sample-mean(u2.sample),nu.u2,s2_e)
+      #hat.s2_u3 <- hat.s2_e.fn(u3.sample-mean(u3.sample),nu.u3,s2_e)
+           
+      hat.s2_u1 <- hat.s2_e.fn(u1.sample,nu.u1,s2_e)
+      hat.s2_u2 <- hat.s2_e.fn(u2.sample,nu.u2,s2_e)
+      hat.s2_u3 <- hat.s2_e.fn(u3.sample,nu.u3,s2_e)
+      
+      u1.var.sample <- sigma2_u.sample(hat.nu_s1,hat.s2_u1)
+      u2.var.sample <- sigma2_u.sample(hat.nu_s2,hat.s2_u2)
+      u3.var.sample <- sigma2_u.sample(hat.nu_s3,hat.s2_u3)
+      
+      var.sample <- c(sigma.0,
+                         rep(u1.var.sample,length(u1.0)),
+                         rep(u2.var.sample,length(u2.0)),
+                         rep(u3.var.sample,length(u3.0)))
+                         
+      burn.count <- burn.count+1
+  }
+  if(burn.count>burn) {
+     gei.theta.mat[i,]=theta.sample
+     gei.se.mat[i,]=se.r.sample
+     gei.var.mat[i,]=c(u1.var.sample,u2.var.sample,u3.var.sample)
+     i=i+1
+  } else {
+     i=1
+  }
+}
+```
+
+
+Take a simple mean of samples to be estimates of RCB parameters, and compare with arithmetic means and REML variances.
+```{r}
+gei.estimates <- apply(gei.theta.mat,2,mean)
+gei.estimates
+tapply(four.trials$GY, list(four.trials$entry),mean)
+summary(lmer(GY ~ entry + (1 + env) + (1 | env:entry) + (1 | env:bloc),data=four.trials))
+ranef(lmer(GY ~entry + (1 + env) + (1 | env:entry) + (1 | env:bloc),data=four.trials))
+```
+
+<<fig=TRUE,echo=FALSE>>=
+par(mfrow=c(3,2))
+truehist(gei.theta.mat[,1],xlab="sd97059-2")
+truehist(gei.theta.mat[,2],xlab="sd98102")
+truehist(gei.theta.mat[,3],xlab="Wesley")
+truehist(gei.var.mat[,1],xlab="Block Variance")
+truehist(rcb.se.mat[,1],xlab="Residual Variance")
+par(mfrow=c(1,1))
+```
+
+\subsection{Heterogeneous GEI}
+
+This section is incomplete
+<<Heterogeneous Interaction>>=
+N <- 100
+
+b.var.0 <- rep(1000,length(B0))
+
+#sigma0 <- 10^8
+
+#six elements to main diagonal
+
+s2.u1 <- s2_e
+s2.u2 <- s2_e
+s2.u3.m <- s2_e
+s2.u3.sd97 <- s2_e
+s2.u3.sd98 <- s2_e
+
+W <- cbind(X,Z1,Z2,Z3)
+```
+
+\section{Gibbs Appendix}
+The code I borrowed, from somewhere on the internet
+\begin{verbatim}
+gibbs<-function(N=50000,thin=1000)
+{
+    mat=matrix(0,ncol=2,nrow=N)
+    x=0
+    y=0
+    for (i in 1:N) {
+        for (j in 1:thin) {
+            x=rgamma(1,3,y*y+4)
+            y=rnorm(1,1/(x+1),1/sqrt(2*x+2))
+        }
+        mat[i,]=c(x,y)
+    }
+    names(mat)=c("x","y")
+    mat
+}
+\end{verbatim}
+
+%Stan Code
+
+%Fixed only model
+%To export, stan uses column major
+%y <- structure(c(1,2,3,4,5,6), .Dim = c(2,3))
+
+
+\section{Appendix}
+\subsection{MCMCglmm priors}
+\verb|MCMCglmm| allows specification of prior parameters, however, I've not gotten this to work for heterogenous models. Some attempts are below.
+
+```{r}
+#prior = list(R = list(V = diag(4), nu = 0, fix = 2), G = list(G1 = list(V = 1, nu = 0.002),G2 = list(V = 1, nu = 0.002),G3 = list(V = 1, nu = 0.002)))
+#hom.mcmc1 <- MCMCglmm(fixed=  GY ~ entry, random = ~ env + entry:env + env:bloc,data=four.trials,prior=prior)
+prior = list(R = list(V = diag(4), nu = 0, fix = 2), 
+             G = list(
+                G1 = list(V = 1, nu = 0.002),
+                G2 = list(V = 1, nu = 0.002),
+                G3 = list(V = 1, nu = 0.002),
+                G4 = list(V = 1, nu = 0.002),
+                G5 = list(V = 1, nu = 0.002)
+                )
+            )
+prior = list(R = list(V = diag(4), nu = 0, fix = 2), 
+             G = list(
+                 G1 = list(V = 1, nu = 0.002),
+                 G2 = list(V = diag(3), nu = diag(3)),
+                 G3 = list(V = 1, nu = 0.002)
+                 )
+             )
+
+prior = list(R = list(V = diag(4), nu = 0, fix = 2), 
+         G = list(G1 = list(V = 1, nu = 0.002)))
+
+#hom.mcmc1 <- MCMCglmm(fixed=  GY ~ entry, random = ~ env + entry:env + env:bloc,data=four.trials,prior=prior)
+#summary(MCMCglmm(fixed=  GY ~ entry, random = ~ env,data=four.trials,prior=prior))
+summary(MCMCglmm(fixed=  GY ~ entry, random = ~ env,data=four.trials,rcov=~idh(env):units,verbose=FALSE))
+
+
+prior = list(R = list(V = 1, nu = 0, fix = 1), 
+             G = list(G1 = list(V = 1, nu = 0.002)))
+summary(MCMCglmm(fixed=  GY ~ entry, random = ~ env,data=four.trials,prior=prior,verbose=FALSE))
+
+#prior = list(R = list(V = 1, nu = 0, fix = 1), 
+#         G = list(G1 = list(V = diag(3), nu = 0.002))
+#            )
+#summary(MCMCglmm(fixed=  GY ~ entry, random = ~ idh(entry):env,data=four.trials,prior=prior))
+```
+
+
+\subsection{nlme}
+The \verb|nlme| library offers an alternative mixed model analysis engine, one that preceded \verb|lmer|. It does allow for a structured residual covariance, but doesn't handle nested random effects.
+\section{nlme}
+
+```{r}
+detach("package:lme4")
+library(nlme)
+four.trials$gei <- four.trials$entry:four.trials$env
+four.trials$blocks <- four.trials$env:four.trials$bloc
+
+#lme doesnt like this
+#lme(fixed=  GY ~ entry, random = ~ 1 | env:entry, data=four.trials)
+lme(fixed=  GY ~ entry, random = ~ 1 | gei, data=four.trials)
+lme(fixed=  GY ~ entry, random = ~ 1 | gei, weights = varIdent(form = ~1 | env), data=four.trials)
+
+#fails to converge
+#lme(fixed=  GY ~ entry, random = ~ 0 + entry | env, weights = varIdent(form = ~1 | env), data=four.trials)
+
+lme(fixed=  GY ~ entry, random =list(entry = ~ 0 + entry | env, blocks = ~ 1 | env:bloc), weights = varIdent(form = ~1 | env), data=four.trials)
+
+lme(fixed=  GY ~ entry, random =list(gei = ~ 1 | entry:env, blocks = ~ 1 | env:bloc), weights = varIdent(form = ~1 | env), data=four.trials)
+```
+
+
+\bibliographystyle{plain}
+\bibliography{asa.bib}
