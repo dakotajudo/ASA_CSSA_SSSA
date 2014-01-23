@@ -1,0 +1,3 @@
+Implementing "Multiplicative Models for Specific Combining Ability in Half-diallels with Parents"
+==================================================================
+

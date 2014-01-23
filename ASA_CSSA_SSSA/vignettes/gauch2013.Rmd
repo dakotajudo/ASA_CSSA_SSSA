@@ -1,0 +1,2 @@
+Implementing "A Simple Protocol for AMMI Analysis of Yield Trials"
+==================================================================
