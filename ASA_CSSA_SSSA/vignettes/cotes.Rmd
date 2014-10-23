@@ -1,7 +1,7 @@
 Implementing "A Bayesian Approach for Assessing the Stability of Genotypes"
 ===========================================================================
 
-```{r echo='false'}
+```{r}
 library(lme4)
 library(ggplot2)
 ```
