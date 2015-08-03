@@ -1,0 +1,370 @@
+---
+title: "Decomposing Genotype-by-Environment Interaction"
+author: "Peter Claussen"
+date: "July 31, 2015"
+output: html_document
+---
+
+Yan and Tinker (2006), "Biplot analysis of multi-environment trial data:
+Principles and applications" describe analysis of the two-way table of genotype and environment means, with genotypes in rows and environments in colums, by
+$$
+y_{ij} = \mu + \alpha _i + \beta _j + \theta _{ij} + \epsilon_{ij}
+$$
+
+where $\mu$ is the overall mean, $\alpha$ is the main genotype effect, $\beta$ is the environment effect, $\theta$ is the genotype-environment interaction effect and $\epsilon$ is residual error. In general, $\mu, \alpha, \beta$ and $\gamma$ are modeled as fixed effects, while $\epsilon$ is random.
+
+Linear combinations of these variables provide a matrix, $P$ that is subject to singular value decomposition, of the form
+$$
+P = G_{m,r} L_{r,r} E^T_{n,r}
+$$
+where $G$ characterizes $m$ genotypes, $E$ characterizes $n$ environments and $L$ finds $r$ singular values, where $r$ is the minimum of $m,n$. 
+
+Yan and Tinker argue that there are five possible models for $P$, depending on which effects are of interest.
+
+$$
+\begin{align}
+P_1 = \{y_{ij}\} &= \{\mu + \alpha _i + \beta _j + \theta _{ij}\} \\
+P_2 = \{y_{ij} - \mu\} &= \{ \alpha _i + \beta _j + \theta _{ij}\} \\
+P_3 = \{y_{ij} - \mu - \alpha _i \} &= \{\beta _j + \theta _{ij}\} \\
+P_4 = \{y_{ij} - \mu - \beta _j \} &= \{ \alpha _i + \theta _{ij}\} \\
+P_5 = \{y_{ij} - \mu - \alpha _i - \beta _j \} &= \{\theta _{ij}\} \\
+\end{align}
+$$
+
+Yan and Tinker suggest that $P_4$, the GGE model, is best suited for genotype evaluation, since this includes boeth G and GE effects. They distinguish from analysis based on $P_1$, which they refer to as QQE biplots and genetic covariate by environment biplots.
+
+```{r}
+yan.dat <- matrix(
+   c(4.46,4.15,2.85,3.08,5.94,4.45,4.35,4.04,2.67,
+     4.42,4.77,2.91,3.51,5.70,5.15,4.96,4.39,2.94,
+     4.67,4.58,3.10,3.46,6.07,5.03,4.73,3.90,2.62,
+     4.73,4.75,3.38,3.90,6.22,5.34,4.23,4.89,3.45,
+     4.39,4.60,3.51,3.85,5.77,5.42,5.15,4.10,2.83,
+     5.18,4.48,2.99,3.77,6.58,5.05,3.99,4.27,2.78,
+     3.38,4.18,2.74,3.16,5.34,4.27,4.16,4.06,2.03,
+     4.85,4.66,4.43,3.95,5.54,5.83,4.17,5.06,3.57,
+     5.04,4.74,3.51,3.44,5.96,4.86,4.98,4.51,2.86,
+     5.20,4.66,3.60,3.76,5.94,5.35,3.90,4.45,3.30,
+     4.29,4.53,2.76,3.42,6.14,5.25,4.86,4.14,3.15,
+     3.15,3.04,2.39,2.35,4.23,4.26,3.38,4.07,2.10,
+     4.10,3.88,2.30,3.72,4.56,5.15,2.60,4.96,2.89,
+     3.34,3.85,2.42,2.78,4.63,5.09,3.28,3.92,2.56,
+     4.38,4.70,3.66,3.59,6.19,5.14,3.93,4.21,2.93,
+     4.94,4.70,2.95,3.90,6.06,5.33,4.30,4.30,3.03,
+     3.79,4.97,3.38,3.35,4.77,5.30,4.32,4.86,3.38,
+     4.24,4.65,3.61,3.91,6.64,4.83,5.01,4.36,3.11),
+   nrow=18,
+   byrow=TRUE)
+
+colnames(yan.dat) <- paste("E",1:9,sep="")
+rownames(yan.dat) <- paste("G",1:18,sep="")
+```
+
+I write a simple function to decompose this matrix into four components. This is algebraic, so assumes no missing cells.
+
+```{r}
+decompose.means.table <- function(means.matrix) {
+  # return a set of four matrices, one for
+  #  grand mean (mu)
+  #  row means (alpha)
+  #  col means (beta)
+  #  interactions (gamma)
+  rows <- dim(means.matrix)[1]
+  cols <- dim(means.matrix)[2]
+  grand.mean <- mean(unlist(means.matrix),na.rm=TRUE)
+  grand.matrix <- matrix(rep(grand.mean,rows*cols),nrow=rows)
+  col.effects <- colMeans(means.matrix,na.rm=TRUE) - grand.mean
+  row.effects <- rowMeans(means.matrix,na.rm=TRUE) - grand.mean
+  
+  col.matrix <- matrix(rep(1,rows)) %*% col.effects
+  row.matrix <- row.effects %*% t(matrix(rep(1,cols)))
+  
+  int.matrix <- means.matrix-(col.matrix+row.matrix+grand.mean)
+  
+  rownames(grand.matrix) <- rownames(int.matrix)
+  rownames(row.matrix) <- rownames(int.matrix)
+  rownames(col.matrix) <- rownames(int.matrix)
+  
+  colnames(grand.matrix) <- colnames(int.matrix)
+  colnames(row.matrix) <- colnames(int.matrix)
+  colnames(col.matrix) <- colnames(int.matrix)
+  
+  return(list(mu=grand.matrix,
+              alpha=row.matrix,
+              beta=col.matrix,
+              gamma=int.matrix))
+}
+```
+
+I then proceed to decompose the example from Yan, according to the five models, $P_1 ... P_5$.
+
+```{r}
+decomp <- decompose.means.table(yan.dat)
+```
+
+I like to visualize, so check the decomposition
+
+```{r}
+library(ggplot2)
+library(gridExtra)
+
+stack.mat <- function(mat) {
+  rowIdx <- 1:dim(mat)[1]
+  colIdx <- 1:dim(mat)[2]
+  rownames(mat) <- rowIdx
+  colnames(mat) <- colIdx
+  mat.stack <- stack(mat)
+  mat.stack$col <- mat.stack$ind
+  mat.stack$row <- rep(rowIdx,length(colIdx))
+  return(mat.stack)
+}
+
+ggplot.matrix <- function(mat, main="main") {
+  mat.stack<-stack.mat(mat)
+  return(ggplot(mat.stack, aes(x=col, y=row)) + geom_point(shape=15,size=6,aes(color=values)) + scale_colour_gradient(low="green",high="red")+ggtitle(main))
+}
+
+grid.arrange(arrangeGrob(ggplot.matrix(data.frame(yan.dat),main="Original"),
+             ggplot.matrix(data.frame(decomp$alpha),main="alpha"),
+             ggplot.matrix(data.frame(decomp$beta),main="beta"),
+             ggplot.matrix(data.frame(decomp$gamma),main="gamma"),
+             ncol=2))
+```
+
+Now, generate the five models described by Yan and Tinker.
+
+```{r}
+P1 <- decomp$mu + decomp$alpha + decomp$beta + decomp$gamma
+P2 <- decomp$alpha + decomp$beta + decomp$gamma
+P3 <- decomp$beta + decomp$gamma
+P4 <- decomp$alpha + decomp$gamma
+P5 <- decomp$gamma
+```
+
+And again, visualize the matrices
+
+```{r}
+grid.arrange(arrangeGrob(ggplot.matrix(data.frame(P2),main="P2"),
+             ggplot.matrix(data.frame(P3),main="P3"),
+             ggplot.matrix(data.frame(P4),main="P4"),
+             ggplot.matrix(data.frame(P5),main="P5"),
+             ncol=2))
+```
+
+Get the principal components using base R.
+
+```{r}
+P1.pca <- princomp(P1)
+P2.pca <- princomp(P2)
+P3.pca <- princomp(P3)
+P4.pca <- princomp(P4)
+P5.pca <- princomp(P5)
+```
+
+
+```{r,echo=FALSE}
+par(mfrow=c(1,3))
+biplot(P1.pca)
+biplot(P1.pca,choices = 2:3,main="P1 decomposition")
+biplot(P1.pca,choices = 3:4)
+par(mfrow=c(1,1))
+```
+
+```{r,echo=FALSE}
+par(mfrow=c(1,3))
+biplot(P2.pca)
+biplot(P2.pca,choices = 2:3,main="P2 decomposition")
+biplot(P2.pca,choices = 3:4)
+par(mfrow=c(1,1))
+```
+
+```{r,echo=FALSE}
+par(mfrow=c(1,3))
+biplot(P3.pca)
+biplot(P3.pca,choices = 2:3,main="P3 decomposition")
+biplot(P3.pca,choices = 3:4)
+par(mfrow=c(1,1))
+```
+
+```{r,echo=FALSE}
+par(mfrow=c(1,3))
+biplot(P4.pca)
+biplot(P4.pca,choices = 2:3,main="P4 decomposition")
+biplot(P4.pca,choices = 3:4)
+par(mfrow=c(1,1))
+```
+
+```{r,echo=FALSE}
+par(mfrow=c(1,3))
+biplot(P5.pca)
+biplot(P5.pca,choices = 2:3,main="P5 decomposition")
+biplot(P5.pca,choices = 3:4)
+par(mfrow=c(1,1))
+```
+
+
+It appears to me that using base R capabilities there are only 2 unique decompositions, not 5. I can rationalize some of these, I think. $P_1$ and $P_2$ only differ by a constant, $\mu$, so I would not expect different component scores, just centerings. Similarly, since $\alpha$ and $\beta$ are orthogonal, $P_2$ and $P_5$ should't differ in the principal component scores, just centerings.
+
+```{r}
+P1.pca$center
+P2.pca$center
+P3.pca$center
+P4.pca$center
+P5.pca$center
+```
+
+I note that the centerings for $P_2$ and $P_3$ are identical. This I can rationalize that these matrices differ by the $\alpha$ term, which is constant across rows, so the relationship among columns is preserved. Centerings in this case map to columns, since for this data there are more rows than columns.
+
+So, what happens with data that have more columns than rows? 
+
+So, I repeat with data from Yang, "Mixed-Model Analysis of Crossover Genotype--€“Environment Interactions"
+```{r}
+yang.dat <- data.frame(matrix(
+ c(4.13,3.87,4.04,4.75,3.87,4.44,
+   6.73,6.63,6.58,7.99,7.02,8.39,
+   10.18,8.73,9.66,11.05,9.71,11.20,
+   5.92,6.89,5.72,6.07,6.62,7.89,
+   4.31,4.50,4.41,4.88,4.71,4.46,
+   4.68,3.67,2.80,4.74,3.49,4.81,
+   7.64,7.57,6.91,8.16,7.91,8.10,
+   3.74,4.43,3.97,3.39,3.80,4.23,
+   3.55,2.71,3.12,2.66,2.67,3.26,
+   3.86,4.26,3.99,3.53,3.99,4.79,
+   2.38,1.72,2.41,2.67,2.24,2.57,
+   6.00,5.90,5.95,7.12,6.20,6.88,
+   4.35,4.58,4.43,4.54,3.79,5.15,
+   4.98,4.74,4.33,4.48,4.40,4.97,
+   6.15,6.45,6.07,6.96,6.30,6.78,
+   7.01,7.66,7.23,7.19,7.01,8.12,
+   3.43,2.80,2.93,2.57,3.07,3.30,
+   4.59,4.84,4.50,4.45,4.53,5.09),
+  nrow=18,ncol=6,byrow=TRUE))
+colnames(yang.dat) <- paste("G",1:6,sep="")
+rownames(yang.dat) <- paste("E",1:18,sep="")
+#since rows are by envirnment, we transpose to match yan
+yang.dat <- t(yang.dat)
+```
+
+```{r}
+decomp <- decompose.means.table(yang.dat)
+grid.arrange(arrangeGrob(ggplot.matrix(data.frame(yan.dat),main="Original"),
+             ggplot.matrix(data.frame(decomp$alpha),main="alpha"),
+             ggplot.matrix(data.frame(decomp$beta),main="beta"),
+             ggplot.matrix(data.frame(decomp$gamma),main="gamma"),
+             ncol=2))
+```
+
+
+```{r}
+P1 <- decomp$mu + decomp$alpha + decomp$beta + decomp$gamma
+P2 <- decomp$alpha + decomp$beta + decomp$gamma
+P3 <- decomp$beta + decomp$gamma
+P4 <- decomp$alpha + decomp$gamma
+P5 <- decomp$gamma
+```
+
+```{r}
+grid.arrange(arrangeGrob(ggplot.matrix(data.frame(P2),main="P2"),
+             ggplot.matrix(data.frame(P3),main="P3"),
+             ggplot.matrix(data.frame(P4),main="P4"),
+             ggplot.matrix(data.frame(P5),main="P5"),
+             ncol=2))
+```
+
+Now I have a problem with base R. princomp reports an error - ```'princcomp' can only be used with more units than variables'```, so I need to transpose.
+
+```{r}
+P1.pca <- princomp(t(P1))
+P2.pca <- princomp(t(P2))
+P3.pca <- princomp(t(P3))
+P4.pca <- princomp(t(P4))
+P5.pca <- princomp(t(P5))
+```
+
+
+```{r,echo=FALSE}
+par(mfrow=c(1,3))
+biplot(P1.pca)
+biplot(P1.pca,choices = 2:3,main="P1 decomposition")
+biplot(P1.pca,choices = 3:4)
+par(mfrow=c(1,1))
+```
+
+```{r,echo=FALSE}
+par(mfrow=c(1,3))
+biplot(P2.pca)
+biplot(P2.pca,choices = 2:3,main="P2 decomposition")
+biplot(P2.pca,choices = 3:4)
+par(mfrow=c(1,1))
+```
+
+```{r,echo=FALSE}
+par(mfrow=c(1,3))
+biplot(P3.pca)
+biplot(P3.pca,choices = 2:3,main="P3 decomposition")
+biplot(P3.pca,choices = 3:4)
+par(mfrow=c(1,1))
+```
+
+```{r,echo=FALSE}
+par(mfrow=c(1,3))
+biplot(P4.pca)
+biplot(P4.pca,choices = 2:3,main="P4 decomposition")
+biplot(P4.pca,choices = 3:4)
+par(mfrow=c(1,1))
+```
+
+```{r,echo=FALSE}
+par(mfrow=c(1,3))
+biplot(P5.pca)
+biplot(P5.pca,choices = 2:3,main="P5 decomposition")
+biplot(P5.pca,choices = 3:4)
+par(mfrow=c(1,1))
+```
+
+Again, $P_1$, $P_2$ are equivalent decompositions. However, in this case $P_4$ is equivalent to $P_5$, while in the prior case it was $P_3$ and $P_5$ that were equivalent. In the first case centerings for $P_2$ and $P_3$ are equal, while in this case the $P_2$ and $P_4$ centerings are equal; since we transpose the matrices these are two with equivalent columns.
+
+
+```{r}
+P1.pca$center
+P2.pca$center
+P3.pca$center
+P4.pca$center
+P5.pca$center
+```
+
+This leads me to think that AMMI and GGE analysis would be equivalent in certain conditions, depending on the dimensions of the interaction matrices. I don't find anything specifically suggesting this in the literature, but I do note that in "Statistical Analysis of Yield Trials by AMMI and GGE", Gauch argues that in a data set with 7 genotypes and 10 environments (more environments than genotypes), the first PC (of a GGE decomposition) is dominated by interaction effects, while the second PC is dominated by gentoype effects. In a second data set of 125 genotypes and 69 environments (more genotypes than environments), the first PC is dominated by genotype effects and the second PC dominated by interaction.
+
+
+I was initially thinking that AMMI analysis was based on the $P_5$ decomposition, but now I'm less confident about that. I'm also thinking that GGE isn't always GGE, depending on the dimensions of the data.
+
+So, what am I overlooking?
+
+
+I'll double-check using the AMMI function in agricolae. 
+```{r}
+yan.stack <- stack.mat(data.frame(yan.dat))
+yang.stack <- stack.mat(data.frame(yang.dat))
+library(agricolae)
+REP <- 3
+MSerror <- 1
+yan.model <- AMMI(yan.stack$row, yan.stack$col, REP, yan.stack$values, MSerror)
+plot(yan.model)
+yang.model <- AMMI(yang.stack$row, yang.stack$col, REP, yang.stack$values, MSerror)
+plot(yang.model)
+```
+
+It seems I can match these plots to the base R principal components.
+
+
+Playing with the plots here, I can get the tester-centered (symmetrical and no scaling) and double-centered plots to match the two unique R ```princcomp``` decompositions for the first data set. However,for the second data set, I can only match the double-centered biplot to PC ($P_5$) plots. The tester-centered plot confuses me. I think I might be able to work out a transformation (rotation and scaling) of the $P_4$ (which is equivalent to $P_5$ in this case) to match the ```GGEBiplot``` tester-centered plot. This represents the case where I think the GGE decomposition is not different than AMMI.
+
+```{r}
+#note - this library fails on my Mac (tcltk is not up to date)
+library(GGEBiplotGUI)
+data(Ontario)
+GGEBiplot(Data = yan.dat)
+GGEBiplot(Data = yang.dat)
+```
+
+
