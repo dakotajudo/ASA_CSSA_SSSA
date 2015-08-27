@@ -2,7 +2,10 @@
 title: "Decomposing Genotype-by-Environment Interaction"
 author: "Peter Claussen"
 date: "July 31, 2015"
-output: html_document
+output: 
+  html_document: 
+    highlight: textmate
+    theme: flatly
 ---
 
 Yan and Tinker (2006), "Biplot analysis of multi-environment trial data:
@@ -217,7 +220,7 @@ I note that the centerings for $P_2$ and $P_3$ are identical. This I can rationa
 
 So, what happens with data that have more columns than rows? 
 
-So, I repeat with data from Yang, "Mixed-Model Analysis of Crossover Genotype--€“Environment Interactions"
+So, I repeat with data from Yang, "Mixed-Model Analysis of Crossover Genotype--??Environment Interactions"
 ```{r}
 yang.dat <- data.frame(matrix(
  c(4.13,3.87,4.04,4.75,3.87,4.44,
@@ -361,10 +364,109 @@ Playing with the plots here, I can get the tester-centered (symmetrical and no s
 
 ```{r}
 #note - this library fails on my Mac (tcltk is not up to date)
-library(GGEBiplotGUI)
-data(Ontario)
-GGEBiplot(Data = yan.dat)
-GGEBiplot(Data = yang.dat)
+#library(GGEBiplotGUI)
+#data(Ontario)
+#GGEBiplot(Data = yan.dat)
+#GGEBiplot(Data = yang.dat)
 ```
 
+### prcomp
 
+An alternative to princomp is the ```prcomp``` function.
+
+```{r}
+par(mfrow=c(2,3))
+pc1 <- prcomp(P1,center = FALSE)
+plot(pc1$x[, 1], pc1$x[, 2], main = "P1", xlab = "PC1", ylab = "PC2")
+pc2 <- prcomp(P2,center = FALSE)
+plot(pc2$x[, 1], pc2$x[, 2], main = "P2", xlab = "PC1", ylab = "PC2")
+pc3 <- prcomp(P3,center = FALSE)
+plot(pc3$x[, 1], pc3$x[, 2], main = "P3", xlab = "PC1", ylab = "PC2")
+pc4 <- prcomp(P4,center = FALSE)
+plot(pc4$x[, 1], pc4$x[, 2], main = "P4", xlab = "PC1", ylab = "PC2")
+pc5 <- prcomp(P5,center = FALSE)
+plot(pc5$x[, 1], pc5$x[, 2], main = "P5", xlab = "PC1", ylab = "PC2")
+par(mfrow=c(1,1))
+```
+
+```{r}
+par(mfrow=c(2,3))
+pc1 <- prcomp(t(P1),center = FALSE)
+plot(pc1$x[, 1], pc1$x[, 2], main = "P1", xlab = "PC1", ylab = "PC2")
+pc2 <- prcomp(t(P2),center = FALSE)
+plot(pc2$x[, 1], pc2$x[, 2], main = "P2", xlab = "PC1", ylab = "PC2")
+pc3 <- prcomp(t(P3),center = FALSE)
+plot(pc3$x[, 1], pc3$x[, 2], main = "P3", xlab = "PC1", ylab = "PC2")
+pc4 <- prcomp(t(P4),center = FALSE)
+plot(pc4$x[, 1], pc4$x[, 2], main = "P4", xlab = "PC1", ylab = "PC2")
+pc5 <- prcomp(t(P5),center = FALSE)
+plot(pc5$x[, 1], pc5$x[, 2], main = "P5", xlab = "PC1", ylab = "PC2")
+par(mfrow=c(1,1))
+```
+
+Compare
+```{r}
+P5.svd <- svd(P5)
+
+P5.pca$scores
+pc5$x
+P5.svd$v
+
+P5.pca$loadings
+pc5$rotation
+P5.svd$u
+
+P5.pca$sdev
+pc5$sdev
+
+P5.pca$center
+pc5$center
+
+P5.pca$scale
+pc5$scale
+```
+
+```{r}
+decomp <- decompose.means.table(yan.dat)
+P1 <- decomp$mu + decomp$alpha + decomp$beta + decomp$gamma
+P2 <- decomp$alpha + decomp$beta + decomp$gamma
+P3 <- decomp$beta + decomp$gamma
+P4 <- decomp$alpha + decomp$gamma
+P5 <- decomp$gamma
+```
+
+```{r}
+par(mfrow=c(2,3))
+pc1 <- prcomp(P1,center = FALSE)
+plot(pc1$x[, 1], pc1$x[, 2], main = "P1", xlab = "PC1", ylab = "PC2")
+pc2 <- prcomp(P2,center = FALSE)
+plot(pc2$x[, 1], pc2$x[, 2], main = "P2", xlab = "PC1", ylab = "PC2")
+pc3 <- prcomp(P3,center = FALSE)
+plot(pc3$x[, 1], pc3$x[, 2], main = "P3", xlab = "PC1", ylab = "PC2")
+pc4 <- prcomp(P4,center = FALSE)
+plot(pc4$x[, 1], pc4$x[, 2], main = "P4", xlab = "PC1", ylab = "PC2")
+pc5 <- prcomp(P5,center = FALSE)
+plot(pc5$x[, 1], pc5$x[, 2], main = "P5", xlab = "PC1", ylab = "PC2")
+par(mfrow=c(1,1))
+```
+
+```{r}
+P5.svd <- svd(P5)
+
+P5.pca$scores
+pc5$x
+P5.svd$v
+
+P5.pca$loadings
+pc5$rotation
+P5.svd$u
+
+P5.pca$sdev
+pc5$sdev
+
+P5.pca$center
+pc5$center
+
+P5.pca$scale
+pc5$scale
+```
