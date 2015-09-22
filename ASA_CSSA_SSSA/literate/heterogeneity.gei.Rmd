@@ -1,0 +1,41 @@
+---
+title: "nonadditivity.gei"
+author: "Peter Claussen"
+date: "September 16, 2015"
+output: html_document
+---
+
+```{r}
+source("../R/gei.table.to.frame.R")
+source("../R/nonadditivity.gei.R")
+source("../R/heterogeneity.gei.R")
+```
+
+```{r}
+sorghum.mat <- matrix(
+  c(12.3, 19.6, 25.7, 30.4,
+    13.7, 16.9, 27.0, 31.5,
+    17.8, 20.0, 26.3, 35.9,
+    12.1, 17.4, 36.9, 43.4,
+    6.9, 18.8, 35.0, 53.0),
+  nrow=5, byrow=TRUE
+)
+rownames(sorghum.mat) <- paste("T",as.character(c(5:9)*10),sep="")
+colnames(sorghum.mat) <- paste("H",as.character(c(1:4)*20),sep="")
+
+sorghum.dat <- gei.table.to.frame(sorghum.mat,GinRows=TRUE,TreatmentName="Treatment",TrialName="Trial")
+```
+
+```{r}
+sorghum.het <- heterogeneity.gei(sorghum.dat,TreatmentName="Treatment",TrialName="Trial")
+print.heterogeneity.gei(sorghum.het)
+```
+
+```{r}
+options(contrasts = c("contr.SAS", "contr.poly"))
+sorghum.het <- heterogeneity.gei(sorghum.dat,TreatmentName="Treatment",TrialName="Trial")
+print.heterogeneity.gei(sorghum.het)
+options(contrasts = c("contr.treatment", "contr.poly"))
+```
+
+

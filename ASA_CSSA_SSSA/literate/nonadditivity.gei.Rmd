@@ -1,0 +1,131 @@
+---
+title: "nonadditivity.gei"
+author: "Peter Claussen"
+date: "September 16, 2015"
+output: html_document
+---
+
+```{r}
+source("../R/gei.table.to.frame.R")
+source("../R/nonadditivity.gei.R")
+```
+
+```{r}
+sorghum.mat <- matrix(
+  c(12.3, 19.6, 25.7, 30.4,
+    13.7, 16.9, 27.0, 31.5,
+    17.8, 20.0, 26.3, 35.9,
+    12.1, 17.4, 36.9, 43.4,
+    6.9, 18.8, 35.0, 53.0),
+  nrow=5, byrow=TRUE
+)
+rownames(sorghum.mat) <- paste("T",as.character(c(5:9)*10),sep="")
+colnames(sorghum.mat) <- paste("H",as.character(c(1:4)*20),sep="")
+
+sorghum.dat <- gei.table.to.frame(sorghum.mat,GinRows=TRUE,TreatmentName="Treatment",TrialName="Trial")
+gei.frame.to.table(sorghum.dat,GinRows=TRUE,TreatmentName="Treatment",TrialName="Trial")
+gei.frame.to.table(sorghum.dat,GinRows=FALSE,TreatmentName="Treatment",TrialName="Trial")
+```
+
+How do we extract $\alpha$ and $\beta$ estimates from the linear model? We want this to work independent of contrasts methods
+
+```{r}
+sorghum.lm <- lm(Plot.Mean ~ Trial + Treatment,data=sorghum.dat)
+```
+
+```{r}
+sorghum.lm$coefficients
+```
+
+The assign member tells us which coefficients belong to which effect. We use the term labels to index
+our effect names and extract those from the coefficients
+
+```{r}
+sorghum.lm$assign
+labels <- attr(sorghum.lm$terms, "term.labels")
+sorghum.lm$assign == which(labels=="Trial")
+sorghum.lm$coefficients
+trial.estimates <- sorghum.lm$coefficients[sorghum.lm$assign == which(labels=="Trial")]
+treatment.estimates <- sorghum.lm$coefficients[sorghum.lm$assign == which(labels=="Treatment")]
+```
+
+These estimates do not include an intercept, so do not sum to zero. We need add a term for the missing estimate
+and center. However, we need to do this base on the appropriate encoding. This information is part of the models contrasts; this is the name of the function used for contrasts. We use match.fun to find the contrast function, then apply that function to get a matrix for contrasts. Multiplying this matrix should return our estimates. We end by centering
+
+```{r}
+trt <- length(treatment.estimates)+1
+trl <- length(trial.estimates)+1
+trl.mat <- match.fun(sorghum.lm$contrasts[["Trial"]])(trl)
+trt.mat <- match.fun(sorghum.lm$contrasts[["Treatment"]])(trt)
+trl.mat %*% trial.estimates
+trl.effects <- trl.mat %*% trial.estimates - mean(trl.mat %*% trial.estimates)
+trt.effects <- trt.mat %*% treatment.estimates - mean(trt.mat %*% treatment.estimates)
+trl.effects
+trt.effects
+```
+
+Compare this with
+```{r}
+grand.mean <- mean(sorghum.mat)
+rowMeans(sorghum.mat) - grand.mean
+rowMeans(sorghum.mat) - grand.mean - trt.effects
+colMeans(sorghum.mat) - grand.mean
+colMeans(sorghum.mat) - grand.mean - trl.effects
+```
+
+So, we can append these estimates to our data table.
+```{r}
+sorghum.dat$a <- trt.effects[sorghum.dat[,"Treatment"]]
+sorghum.dat$b <- trl.effects[sorghum.dat[,"Trial"]]
+sorghum.ab.lm <- lm(Plot.Mean ~ Trial + Treatment + a:b,data=sorghum.dat)
+summary(sorghum.ab.lm)
+summary(aov(sorghum.ab.lm))
+```
+
+```{r}
+sorghum.1df <- nonadditivity.gei(sorghum.dat,TreatmentName="Treatment",TrialName="Trial")
+sorghum.1df$t
+sorghum.1df$e
+sum(sorghum.1df$t)
+sum(sorghum.1df$e)
+summary(sorghum.1df$additive.lm)
+summary(sorghum.1df$multiplicative.lm)
+```
+
+```{r}
+summary(aov(sorghum.1df$additive.lm))
+summary(aov(sorghum.1df$multiplicative.lm))
+```
+
+Make sure we get the same results with different contrasts
+```{r}
+options(contrasts = c("contr.SAS", "contr.poly"))
+sorghum.1df <- nonadditivity.gei(sorghum.dat,TreatmentName="Treatment",TrialName="Trial")
+sorghum.1df$t
+sorghum.1df$e
+summary(sorghum.1df$additive.lm)
+summary(sorghum.1df$multiplicative.lm)
+summary(aov(sorghum.1df$additive.lm))
+summary(aov(sorghum.1df$multiplicative.lm))
+
+options(contrasts = c("contr.helmert", "contr.poly"))
+sorghum.1df <- nonadditivity.gei(sorghum.dat,TreatmentName="Treatment",TrialName="Trial")
+sorghum.1df$t
+sorghum.1df$e
+summary(sorghum.1df$additive.lm)
+summary(sorghum.1df$multiplicative.lm)
+summary(aov(sorghum.1df$additive.lm))
+summary(aov(sorghum.1df$multiplicative.lm))
+
+options(contrasts = c("contr.sum", "contr.poly"))
+sorghum.1df <- nonadditivity.gei(sorghum.dat,TreatmentName="Treatment",TrialName="Trial")
+sorghum.1df$t
+sorghum.1df$e
+summary(sorghum.1df$additive.lm)
+summary(sorghum.1df$multiplicative.lm)
+summary(aov(sorghum.1df$additive.lm))
+summary(aov(sorghum.1df$multiplicative.lm))
+
+options(contrasts = c("contr.treatment", "contr.poly"))
+```
+
