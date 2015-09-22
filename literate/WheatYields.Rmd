@@ -1,0 +1,268 @@
+---
+title: "Changes in Wheat Yields"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(gridExtra)
+```
+
+We start our analysis centered on the USDA NAS data set at http://quickstats.nass.usda.gov
+
+Program : SURVEY
+Sector : CROPS
+Group : FIELD CROPS
+Commodity : WHEAT
+Category : YIELD
+Data Item : WHEAT, WINTER - YIELD, MEASURED in BU / ACRE
+Domain : TOTAL
+Location : COUNTY
+State : KANSAS, NEBRASKA, NORTH DAKOTA, OKLAHOMA, SOUTH DAKOTA, TEXAS
+Year: 1920-2010
+Period Type: ANNUAL
+Period: YEAR
+
+Note that there are data for insect damage, etc.
+
+all available years
+36000+ records
+
+Examine the raw data.
+```{r}
+county.yield.dat <- read.csv("./data/usda/69C9E26C-F285-325A-9443-6668747878F8.csv", header = TRUE)
+county.yield.plot <- ggplot(county.yield.dat, aes(Year,Value)) 
+county.yield.plot <- county.yield.plot + scale_colour_brewer(palette="Set1") 
+#county.yield.plot <- county.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+county.yield.plot <- county.yield.plot + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE)
+county.yield.plot
+```
+
+We have a county labelled OTHER (COMBINED) COUNTIES
+
+```{r}
+levels(county.yield.dat$County)
+```
+
+Note the number of missing years.
+
+Agricultural district, otherwise same as above
+```{r}
+district.yield.dat <- read.csv("./data/usda/D545A01D-F19A-3E58-AE85-E2D79BBBBCB5.csv", header = TRUE)
+district.yield.plot <- ggplot(district.yield.dat, aes(Year,Value)) 
+district.yield.plot <- district.yield.plot + scale_colour_brewer(palette="Set1") 
+#district.yield.plot <- district.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+district.yield.plot <- district.yield.plot + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE)
+district.yield.plot
+```
+
+and states, but from 1910 onward. Note this includes for later values actual and forecast yields
+
+
+```{r}
+state.yield.dat <- read.csv("./data/usda/B1926239-B043-3DBC-B92F-C4BB7F081392.csv", header = TRUE)
+state.yield.plot <- ggplot(state.yield.dat, aes(Year,Value)) 
+state.yield.plot <- state.yield.plot + scale_colour_brewer(palette="Set1") 
+#state.yield.plot <- state.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+state.yield.plot <- state.yield.plot + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE)
+state.yield.plot
+```
+
+Finally, all wheat, national level. This goes back to 1866-2010
+
+```{r}
+national.yield.dat <- read.csv("./data/usda/4C586F51-45F8-317B-A4AB-6792AB49A6A2.csv", header = TRUE)
+national.yield.plot <- ggplot(national.yield.dat, aes(Year,Value)) 
+national.yield.plot <- national.yield.plot + scale_colour_brewer(palette="Set1") 
+#national.yield.plot <- national.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+national.yield.plot <- national.yield.plot + geom_smooth(weight=10,se = FALSE)
+national.yield.plot
+```
+
+
+I've decided to compare early, mid and late century trends. I'll use functions to simplify this, so I might more easily shift ranges later. We'll use the most recent 30 years (2014-1984), the early period ends at 1944, and we'll skip 5 years on either side
+```{r}
+early.f <- function(year) {
+  return((year<1945)&(year>1923))
+}
+mid.f <- function(year) {
+  return((year<1980)&(year>1948))
+}
+late.f <- function(year) {
+  return((year<2020)&(year>1983))
+}
+county.early.dat <- subset(county.yield.dat,early.f(county.yield.dat$Year))
+county.mid.dat <- subset(county.yield.dat,mid.f(county.yield.dat$Year))
+county.late.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year))
+
+```
+
+```{r}
+grid.arrange(arrangeGrob(
+  ggplot(county.early.dat, aes(Year,Value)) + geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm"),
+  ggplot(county.mid.dat, aes(Year,Value)) + geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm"),
+  ggplot(county.late.dat, aes(Year,Value)) + geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+```
+
+
+For comparison, also downloaded spring wheat data. All data. 
+```{r}
+county.spring.dat <- read.csv("./data/usda/1F443E55-9EB0-3CF3-AFD0-E133A50C559C.csv", header = TRUE)
+county.spring.dat <- subset(county.spring.dat,county.spring.dat$State %in% levels(state.yield.dat$State))
+county.spring.plot <- ggplot(county.spring.dat, aes(Year,Value)) 
+county.spring.plot <- county.spring.plot + scale_colour_brewer(palette="Set1") 
+county.spring.plot <- county.spring.plot + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE)
+county.spring.plot
+```
+
+
+What about measurement? (Data Item)
+BU/ACRE
+
+```{r}
+county.basis.dat <- read.csv("./data/usda/DB386181-6DDC-335C-91A9-B79416FD69E3.csv", header = TRUE)
+county.basis.dat$ItemLevel <- as.factor(as.numeric(county.basis.dat$Data.Item))
+county.basis.plot <- ggplot(county.basis.dat, aes(Year,Value)) 
+county.basis.plot <- county.basis.plot + scale_colour_brewer(palette="Set1") 
+county.basis.plot <- county.basis.plot + geom_smooth(aes(group= ItemLevel,color=ItemLevel),weight=10,se = FALSE)
+county.basis.plot
+```
+
+Bushels per acre, different cropping systems
+
+```{r}
+county.system.dat <- read.csv("./data/usda/9534B497-6FB0-31CC-9521-0ABD4EF91ED0.csv", header = TRUE)
+county.system.dat$ItemLevel <- as.factor(as.numeric(county.system.dat$Data.Item))
+county.system.plot <- ggplot(county.system.dat, aes(Year,Value)) 
+county.system.plot <- county.system.plot + geom_smooth(aes(group= ItemLevel,color=ItemLevel),weight=10,se = FALSE)
+county.system.plot
+```
+
+Corn Yields, county level
+Downloaded 1910-1950
+1951-1973
+1974-1993
+1994-2014
+```{r}
+corn.1.dat <- read.csv("./data/usda/15E2ED32-1B74-36F1-BF5C-18FFD52C01A6.csv", header = TRUE)
+corn.2.dat <- read.csv("./data/usda/41C2B0E9-92AA-383A-8F18-9228883136FF.csv", header = TRUE)
+corn.3.dat <- read.csv("./data/usda/223AB7E9-B638-3E34-AA37-2EF5D68B07C8.csv", header = TRUE)
+corn.4.dat <- read.csv("./data/usda/AE02DC67-6AFC-33EA-AA72-10F9C1E34424.csv", header = TRUE)
+
+
+   #there are some counties not reporting in all sets, so to make the data more uniform, make sure names match.
+   #names5<-names(county5.dat)
+   #names1<-names(county1.dat)
+   #county5.dat<- county5.dat[,which(names5 %in% names1)]
+
+   corn.dat <- rbind(corn.1.dat,corn.2.dat,corn.3.dat,corn.4.dat)
+corn.dat <- subset(corn.dat,corn.dat$State %in% levels(state.yield.dat$State))
+   #remove county totals
+   #county.dat <- subset(county.dat, county.dat$CoFips<888)
+   #county.dat$YrFac <- as.factor(county.dat$Year)
+   #county.dat$HarvFac <- as.factor(floor(county.dat$Harvested/100000))
+   #county.dat$County <-tolower(county.dat$County)
+   #county.dat$State <-tolower(county.dat$State)
+
+county.corn.plot <- ggplot(corn.dat, aes(Year,Value)) 
+county.corn.plot <- county.corn.plot + geom_smooth(aes(group=State, color=State),weight=10,se = FALSE)
+county.corn.plot
+```
+
+Silage
+```{r}
+county.silage.dat <- read.csv("./data/usda/019AB500-C6C1-356C-B38D-C20D3255597E.csv", header = TRUE)
+county.silage.plot <- ggplot(county.silage.dat, aes(Year,Value)) 
+county.silage.plot <- county.silage.plot + geom_smooth(aes(group=State, color=State),weight=10,se = FALSE)
+county.silage.plot
+```
+
+Corn, State, Practices
+```{r}
+national.corn.dat <- read.csv("./usda/data/DEEB64CD-2FEF-350E-B849-51BA3534EEFF.csv", header = TRUE)
+national.corn.dat$ItemLevel <- as.factor(as.numeric(national.corn.dat$Data.Item))
+national.corn.plot <- ggplot(national.corn.dat, aes(Year,Value)) 
+national.corn.plot <- national.corn.plot + geom_smooth(aes(group=ItemLevel, color=ItemLevel),weight=10,se = FALSE)
+national.corn.plot
+```
+
+
+
+```{r}
+county.oats.dat <- read.csv("./data/usda/6CA6E5B0-6C1E-3044-81AE-1192F2F7B711.csv", header = TRUE)
+county.oats.plot <- ggplot(county.oats.dat, aes(Year,Value)) 
+county.oats.plot <- county.oats.plot + geom_smooth(aes(group=State, color=State),weight=10,se = FALSE)
+county.oats.plot
+```
+
+
+```{r}
+county.barley.dat <- read.csv("./data/usda/75E2DF19-A623-3649-960C-C04CFE12A241.csv", header = TRUE)
+county.barley.plot <- ggplot(county.barley.dat, aes(Year,Value)) 
+county.barley.plot <- county.barley.plot + geom_smooth(aes(group=State, color=State),weight=10,se = FALSE)
+county.barley.plot
+```
+
+```{r}
+county.soybeans.dat <- read.csv("./data/usda/0E8A3057-FB70-389B-B828-F132E7938F83.csv", header = TRUE)
+county.soybeans.plot <- ggplot(county.soybeans.dat, aes(Year,Value)) 
+county.soybeans.plot <- county.soybeans.plot + geom_smooth(aes(group=State, color=State),weight=10,se = FALSE)
+county.soybeans.plot
+```
+
+Plant Available Water from USDA NASS? See Clay's paper in Global Food Security
+
+### Quickstats Lite
+Gives different options, more columns at one time.
+
+http://www.nass.usda.gov/Quick_Stats/Lite/
+
+
+Weather 
+Climate Data Online
+http://www.ncdc.noaa.gov/cdo-web/
+
+Nutrients
+http://nugis.ipni.net/Applications/
+
+Aquifer Data
+ USGS High Plains Water-Level Monitoring Study
+http://ne.water.usgs.gov/ogw/hpwlms/data.html
+County and state level data, downloaded as individual files
+
+
+References
+
+ray.d-12-2012
+- yield unchanging, stagnating, collapsing, increasing.
+ray.d-2013
+cites yield increases in ND, SD, based on crop census reports 1989-2008
+
+
+clay.d-01-2014
+Show yield gaps w.r.t. corn in SD
+
+Wheat Yields
+graybosch.r-2014
+
+Wheat Yields in France
+brisson.n-10-2010
+
+Periods in yields
+thompson.l-01-1988
+
+Small yield gains in corn
+farfan.i-2013
+
+Europe
+moore.f-03-2015
+
+Open Data
+carolan.l-2015
+
+brklacich.m-1995
+CERES-wheat model in Canada
+
+
