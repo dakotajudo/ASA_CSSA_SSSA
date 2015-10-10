@@ -1,0 +1,58 @@
+Title
+========================================================
+
+from agridat
+```{r}
+library(agridat)
+data(mcconway.turnip)
+dat <- mcconway.turnip
+dat$densf <- factor(dat$density)
+
+# Table 3 of Piepho, using transformation
+m4 <- aov( yield^.235 ~ gen * date * densf + block, dat )
+summary(m4)
+```
+
+```{r}
+library(MASS)
+```
+```{r fig=TRUE,echo=FALSE}
+truehist(mcconway.turnip$yield)
+```
+```{r fig=TRUE,echo=FALSE}
+truehist(mcconway.turnip$yield^.235)
+```
+
+```{r}
+mean(mcconway.turnip$yield)
+m1 <- mean(mcconway.turnip$yield)
+m1
+m1^.235
+(m1^.235)^(1/.235)
+
+mt <- mean(mcconway.turnip$yield^.235)
+mt
+mt^(1/.235)
+
+d1 <- median(mcconway.turnip$yield)
+d1
+d1^.235
+(d1^.235)^(1/.235)
+
+dt <- median(mcconway.turnip$yield^.235)
+dt^(1/.235)
+```
+
+```{r}
+library(car)
+summary(p1 <- powerTransform(yield ~ gen * date * densf + block, dat))
+testTransform(p1)
+```
+
+
+
+```{r fig=TRUE,echo=FALSE}
+plot(p1)
+summary(a3 <- powerTransform(cbind(len, ADT, trks, sigs1) ~ hwy, Highway1))
+with(Highway1, plot(a3, z=rate, col=as.numeric(hwy)))
+```

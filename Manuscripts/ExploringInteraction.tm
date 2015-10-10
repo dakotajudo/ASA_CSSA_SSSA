@@ -119,11 +119,44 @@
     -<wide|\<alpha\>|\<bar\>>|)><around*|(|\<beta\><rsub|j>-<wide|\<beta\>|\<bar\>>|)>|]>>>>>
   </eqnarray*>
 
-  \;
+  The first term depends on rows only, the second on columns only. When we
+  analyze in terms of <math|f<around*|(|a|)>> instead of <math|a>, any
+  non-additivity arises from the third term. Since the third term is a
+  product, there is one degree of freedom associated with this term.
 
   See snee.r-09-1982
 
   Compare synergistic with antagonistic interactions.
+
+  Mandel (mandel.j-12-1961) includes Tukey's as a special case.
+
+  \;
+
+  Johnson and Graybill (johnson.d-06-1972,johnson.d-12-1972) generalize
+  Tukey's model from
+
+  <\equation*>
+    y<rsub|i j>=\<tau\><rsub|i>+\<beta\><rsub|j>+\<lambda\>\<tau\><rsub|i>\<beta\><rsub|j>+\<varepsilon\><rsub|i
+    j>
+  </equation*>
+
+  to
+
+  <\equation*>
+    y<rsub|i j>=\<tau\><rsub|i>+\<beta\><rsub|j>+\<lambda\>\<alpha\><rsub|i>\<gamma\><rsub|j>+\<varepsilon\><rsub|i
+    j>
+  </equation*>
+
+  where they are explicitly model interaction for treatments and blocks. They
+  argue the second model is more suitable when interaction is present, but
+  treatments are not significant; when interaction is present for only a few
+  outliers; when interaction is due to only one or two treatments; for
+  theoretical reasons or when data are observational and not experimental.
+  They go on to prove that maximum likelihood estimators of
+  <math|\<lambda\>,\<alpha\>> and <math|\<gamma\>> derive from the root and
+  characteristic vector of the matrix <math|Z Z<rprime|'>>, defining <math|Z>
+  to be a matrix of residuals from additivity, <math|Z=<around*|{|z<rsub|i
+  j>|}>=<around*|{|y<rsub|i j>-y<rsub|i .>-y<rsub|\<nosymbol\>j>+y<rsub|\<nosymbol\>\<nosymbol\>\<ldots\>>|}>>
 
   <paragraph|Bilinear Model>
 
@@ -206,6 +239,10 @@
   Do the treatment means diverge or converge as trial means get larger (which
   trials are more discriminating?).\ 
 
+  muir.w-01-1992 - heteregenous variance vs imperfect correlation
+
+  gauch.h-09-2013 - says that both Gollob and <math|F<rsub|R>> are used.
+
   <subsection|Cluster Identification>
 
   <\quote-env>
@@ -219,10 +256,15 @@
     experiments warrant biplot analysis?
   </quote-env>
 
-  johnson.d-12-1972 lay theoretical foundations for a model were interaction
+  johnson.d-12-1972 lay theoretical foundations for a model where interaction
   is not a function of main effects. They show an example where the 1 d.f.
   test suggests additivity, while their likelihood ratio test does suggest
   nonadditivity.
+
+  Mandel mandel.j-10-1969 also shows the application of principal component
+  decomposition
+
+  \;
 
   <subsection|Significant Pairs/Outliers>
 
@@ -249,6 +291,8 @@
     When are differences in groups between trial means and dendrogram
     distances an indication of significant interaction?
   </quotation>
+
+  We relate conventional clustering to crossa-1995.
 
   <subsubsection|Euclidean distance>
 
@@ -443,8 +487,8 @@
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-17>>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|4<space|2spc>Models>
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|4<space|2spc>Types
+      of interactions> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-18><vspace|0.5fn>
     </associate>
   </collection>

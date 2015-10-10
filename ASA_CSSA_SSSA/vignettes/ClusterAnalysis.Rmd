@@ -1,0 +1,156 @@
+Cluster analysis CPT
+===========================================================================
+
+```{r}
+library(lme4)
+library(ggplot2)
+library(ggdendro)
+library(graphics)
+library(gridExtra)
+library(lsmeans)
+```
+Example Data
+------------
+We use as an example data set results from the SDSU Winter Wheat project. These data come from Crop Performance Trials (CPT) grown during  2003-2006. This data set illustrates many of the problems associated with the analysis of multiple agronomic trials.
+
+I've added the data to a libary I use for testing, this is loaded by
+```{r CPT data}
+library(ASA.CSSA.SSSA)
+data(cpt)
+
+cpt.dat <- subset(cpt.dat,!(cpt.dat$entry=="fill"))
+cpt.dat$entry <- as.factor(as.character(cpt.dat$entry))
+
+cpt.dat <- subset(cpt.dat,!is.na(cpt.dat$GY))
+```
+
+```{r load processed data}
+data(cpt_data)
+cpt.pbal <- subset(cpt.pbal,!is.na(cpt.pbal$GY))
+cpt.pbal$year <- as.factor(cpt.pbal$year)
+cpt.bal <- subset(cpt.bal,!is.na(cpt.bal$GY))
+cpt.bal$year <- as.factor(cpt.bal$year)
+```
+
+Gross yield was record as bushels/acre, convert to Megagrams/hectare.
+```{r}
+#convert to Mg ha-1
+cpt.pbal$GY <- (cpt.pbal$TW * cpt.pbal$GY)*0.00112
+cpt.bal$GY <- (cpt.bal$TW * cpt.bal$GY)*0.00112
+```
+
+
+```{r}
+three.entries <- subset(cpt.pbal, cpt.pbal$entry %in% c("sd97059-2","wesley","sd98102"))
+four.trials <- subset(three.entries, three.entries$location == "Brookings")
+four.trials$entry <- as.factor(as.character(four.trials$entry))
+four.trials$env <- as.factor(as.character(four.trials$env))
+four.trials$bloc <- as.factor(as.character(four.trials$bloc))
+four.trials<-four.trials[order(four.trials$year),]
+```
+
+```{r}
+four.trials.dists <- tapply(four.trials$GY,list(four.trials$env,four.trials$entry),mean)
+four.trials.hc <- hclust(dist(four.trials.dists))
+ggdendrogram(four.trials.hc, rotate=FALSE)
+ggdendrogram(four.trials.hc, rotate=TRUE)
+```
+
+```{r}
+cpt.bal.dists <- tapply(cpt.bal$GY,list(cpt.bal$env,cpt.bal$entry),mean)
+cpt.bal.hc <- hclust(dist(cpt.bal.dists))
+ggdendrogram(cpt.bal.hc, rotate=FALSE)
+ggdendrogram(cpt.bal.hc, rotate=TRUE)
+```
+
+```{r}
+
+library(ARMR)
+source("../../../ARMR.git/ARMR/R/plot.interaction.ARMST.R")
+source("../../../ARMR.git/ARMR/R/lsmeans.ARMST.rcb.R")
+source("../../../ARMR.git/ARMR/R/expand.incidence.R")
+```
+
+```{r}
+base.lm <- lm(GY ~ entry*env + env:bloc,data=cpt.bal)
+ls.means <- lsmeans.ARMST.rcb(d=cpt.bal,base.lm=base.lm,response = "GY", TrtName = "entry",TrialName="env", RepName="bloc")
+  
+means.vector <- ls.means$trial
+
+#means.matrix <- tapply(cpt.bal$GY,list(cpt.bal$env,cpt.bal$entry),mean,na.rm=TRUE)
+tapply(cpt.bal$GY,list(cpt.bal$env,cpt.bal$entry),mean,na.rm=TRUE)
+means.matrix <- matrix(ls.means$txt,nrow=length(means.vector),byrow=TRUE)
+means.matrix 
+
+trial.names <- levels(as.factor(as.character(cpt.bal$env)))
+trial.names <- as.character(trial.names)
+rownames(means.matrix) <- trial.names
+names(means.vector) <- trial.names
+
+
+means.hc <- hclust(dist(means.matrix))
+#means.matrix
+means.vector
+```
+
+
+```{r, fig.width = 10, fig.height = 8}
+par(fig = c(0, 1, .4, 1), mar=(c(1, 5, 1, 1) + 0.1))
+plot.interaction.ARMST(means.matrix, means.vector, ylab= "Treatment in Trial Means",xlab="Grand Mean 2")
+par(fig=c(0,1,0,.4),mar=(c(4, 5, 0, 1) + 0.1), new=TRUE)
+plot.clusters.ARMST(means.matrix, means.vector, xlab="Complete",verbose=TRUE)
+par(fig = c(0, 1, 0, 1))
+```
+```{r, fig.width = 10, fig.height = 8}
+par(fig = c(0, 1, .4, 1), mar=(c(1, 5, 1, 1) + 0.1))
+plot.interaction.ARMST(means.matrix, means.vector, ylab= "Treatment in Trial Means",xlab="Grand Mean 2")
+par(fig=c(0,1,0,.4),mar=(c(4, 5, 0, 1) + 0.1), new=TRUE)
+plot.clusters.ARMST(means.matrix, means.vector, xlab="Single",verbose=TRUE,method="single")
+par(fig = c(0, 1, 0, 1))
+```
+
+
+
+```{r, fig.width = 10, fig.height = 8}
+par(fig = c(0, 1, .4, 1), mar=(c(1, 5, 1, 1) + 0.1))
+plot.interaction.ARMST(means.matrix, means.vector, ylab= "Treatment in Trial Means",xlab="Grand Mean")
+par(fig=c(0,1,0,.4),mar=(c(4, 5, 0, 1) + 0.1), new=TRUE)
+plot.clusters.ARMST(means.matrix, means.vector, xlab="Average",verbose=TRUE,method="average")
+par(fig = c(0, 1, 0, 1))
+```
+
+
+```{r, fig.width = 10, fig.height = 8}
+par(fig = c(0, 1, .4, 1), mar=(c(1, 5, 1, 1) + 0.1))
+plot.interaction.ARMST(means.matrix, means.vector, ylab= "Treatment in Trial Means",xlab="Grand Mean")
+par(fig=c(0,1,0,.4),mar=(c(4, 5, 0, 1) + 0.1), new=TRUE)
+plot.clusters.ARMST(means.matrix, means.vector, xlab="McQuitty",verbose=TRUE,method="mcquitty")
+par(fig = c(0, 1, 0, 1))
+```
+
+
+```{r, fig.width = 10, fig.height = 8}
+par(fig = c(0, 1, .4, 1), mar=(c(1, 5, 1, 1) + 0.1))
+plot.interaction.ARMST(means.matrix, means.vector, ylab= "Treatment in Trial Means",xlab="Grand Mean 2")
+par(fig=c(0,1,0,.4),mar=(c(4, 5, 0, 1) + 0.1), new=TRUE)
+plot.clusters.ARMST(means.matrix, means.vector, xlab="Ward",verbose=TRUE,method="ward")
+par(fig = c(0, 1, 0, 1))
+```
+
+
+```{r, fig.width = 10, fig.height = 8}
+par(fig = c(0, 1, .4, 1), mar=(c(1, 5, 1, 1) + 0.1))
+plot.interaction.ARMST(means.matrix, means.vector, ylab= "Treatment in Trial Means",xlab="Grand Mean 2")
+par(fig=c(0,1,0,.4),mar=(c(4, 5, 0, 1) + 0.1), new=TRUE)
+plot.clusters.ARMST(means.matrix, means.vector, xlab="Median",verbose=TRUE,method="median")
+par(fig = c(0, 1, 0, 1))
+```
+
+
+```{r, fig.width = 10, fig.height = 8}
+par(fig = c(0, 1, .4, 1), mar=(c(1, 5, 1, 1) + 0.1))
+plot.interaction.ARMST(means.matrix, means.vector, ylab= "Treatment in Trial Means",xlab="Grand Mean 2")
+par(fig=c(0,1,0,.4),mar=(c(4, 5, 0, 1) + 0.1), new=TRUE)
+plot.clusters.ARMST(means.matrix, means.vector, xlab="Centroid",verbose=TRUE,method="centroid")
+par(fig = c(0, 1, 0, 1))
+```

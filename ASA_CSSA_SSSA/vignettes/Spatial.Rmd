@@ -1,0 +1,260 @@
+Spatial Analysis
+========================================================
+
+Tests for spatial heterogeneity
+-------------------------------
+From http://www.unc.edu/courses/2007spring/enst/562/001/docs/lectures/lecture42.htm
+### Mantel test
+
+```{r}
+library(nlme)
+data(Wheat2)
+
+dist1<-dist(cbind(Wheat2$latitude, Wheat2$longitude))
+dist2<-dist(Wheat2$yield)
+
+library(vegan)
+mantel(dist1,dist2)
+```
+
+The Mantel test indicates spatial variance, but how is it to be modelled?
+
+From the web site above, we can fit the residual semivariogram. 
+```{r}
+library(geoR)
+
+gmodel2<-gls(yield~variety+Block, data=Wheat2, method='ML')
+newdat<-data.frame(Wheat2$latitude, Wheat2$longitude, residuals(gmodel2, type='n'))
+geodat<-as.geodata(newdat)
+geodat.v1 <- variog(geodat, uvec=1:50, max.dist=30, option='bin')
+plot(geodat.v1)
+```
+I'm not sure I like including Block, since it's not uniform.
+```{r}
+gmodel3<-gls(yield~variety, data=Wheat2, method='ML')
+newdat2<-data.frame(Wheat2$latitude, Wheat2$longitude, residuals(gmodel3, type='n'))
+geodat<-as.geodata(newdat2)
+geodat.v2 <- variog(geodat, uvec=1:50, max.dist=30, option='bin')
+plot(geodat.v2)
+```
+
+```{r}
+plot(geodat.v2)
+ols2<-variofit(geodat.v2, ini=c(.8,30), nugget=.4, cov.model='exponential')
+lines(ols2,col=2)
+ols3<-variofit(geodat.v2, ini=c(.8,30), nugget=.4, cov.model='gaussian')
+lines(ols3,col=4)
+ols4<-variofit(geodat.v2, ini=c(.8,30), nugget=.4, cov.model='spherical')
+lines(ols4,col=3)
+ols5<-variofit(geodat.v2, ini=c(.8,30), nugget=.4, cov.model='linear')
+lines(ols5,col='gray70')
+legend(18,.5, c('exponential', 'Gaussian', 'spherical', 'linear'), col=c(2:4, 'gray70'), lty=rep(1,4), cex=.8, bty='n')
+```
+
+```{r}
+library(agridat)
+data(stroup.nin) #same as nin89 from ASReml-R
+
+library(nlme)
+data(Wheat2) #same as above, with some minor differences
+
+
+stroup.nin <- subset(stroup.nin,!is.na(stroup.nin$yield))
+length(stroup.nin$yield)
+length(Wheat2$yield)
+
+plot.matrix <- function(x,colors=NULL, title="Matrix") {
+  if(is.null(colors)) {
+		col_fun<-colorRampPalette(colors=c('white','black'))
+		colors<-col_fun(256)
+	}
+	x.r <- nrow(x)
+	x.c <- ncol(x)
+	z <- array(x,dim=c(x.r,x.c))
+	image(1:x.r,1:x.c,z, main=title,col=colors,xlab="",ylab="")
+}
+```
+
+Note that lat and longitude are spaced differently.
+max long = 26.4, max lat = 47.3
+
+```{r fig.width=5.4, fig.height=9.6}
+plot(latitude~longitude, col=as.numeric(Block), data=Wheat2)
+```
+
+Note that Block is effectively usesless. We can create a couple dummy variables
+```{r}
+Wheat2$Row <- as.factor(Wheat2$latitude/4.3)
+Wheat2$Col <- as.factor(Wheat2$longitude/1.2)
+```
+
+
+```{r}
+lme(yield ~ variety, random = ~ 1 | Row, data = Wheat2)
+Wheat.ar1 <- lme(yield ~ variety, random = ~ 1 | latitude, data = Wheat2,corr = corAR1(form = ~ 1 | latitude))
+anova(Wheat.ar1)
+ranef(Wheat.ar1)
+```
+
+```{r fig.width=7, fig.height=6}
+ACF(Wheat.ar1)
+```
+
+```{r}
+Wheat.ar1.2 <- lme(yield ~ variety, random = ~ 1 | latitude, data = Wheat2,corr = corCAR1(form = ~ 1 | latitude))
+anova(Wheat.ar1.2)
+Wheat.ar1.2
+```
+
+```{r fig.width=7, fig.height=6}
+plot(ACF(Wheat.ar1.2))
+```
+
+Two-dimensional auto regressive.
+
+According to Pinheiro, p 233, we should be able to define a corStruct matrix of the form
+```
+form = ~ x + y
+```
+were x and y define a two-dimensional position vector.
+
+
+This form gives us a singular convergence.
+```
+Wheat.ar1.3 <- lme(yield ~ variety, random = ~ 1 | Block, data = Wheat2, corr = corCAR1(form = ~ latitude + longitude))
+```
+
+But not with
+```{r}
+Wheat.ar1.3a <- lme(yield ~ variety, random = ~ 1 | Row, data = Wheat2, corr = corCAR1(form = ~ latitude + longitude))
+```
+```{r fig.width=7, fig.height=6}
+plot(Variogram(Wheat.ar1.3a,form = ~ latitude + longitude | Block))
+```
+
+Similarly, AR1 works ok.
+```{r}
+#Wheat.ar1.3 <- lme(yield ~ variety, random = ~ 1 | Block, data = Wheat2, corr = corAR1(form = ~ latitude))
+#Wheat.ar1.3 <- lme(yield ~ variety, random = ~ 1 | Block, data = Wheat2, corr = corAR1(form = ~ latitude + longitude))
+```
+```{r fig.width=7, fig.height=6}
+#plot(Variogram(Wheat.ar1.3,form = ~ latitude + longitude))
+```
+
+```{r}
+#Wheat.ar1.3
+```
+
+However, we really want a distance between x,y pairs. corExp uses euclidean distance.
+
+```{r}
+wht.cor <- corAR1(form = ~ latitude + longitude)
+wht.cor <- Initialize(wht.cor,Wheat2)
+```
+```{r fig.width=7, fig.height=6}
+plot.matrix(corMatrix(wht.cor))
+```
+```{r}
+wht.cor <- corCAR1(form = ~ latitude + longitude)
+wht.cor <- Initialize(wht.cor,Wheat2)
+```
+```{r fig.width=7, fig.height=6}
+plot.matrix(corMatrix(wht.cor))
+
+```
+```{r}
+wht.cor <- corExp(1,form = ~ latitude + longitude)
+wht.cor <- Initialize(wht.cor,Wheat2)
+dim(corMatrix(wht.cor))
+```
+```{r fig.width=7, fig.height=6}
+plot.matrix(corMatrix(wht.cor))
+```
+```{r}
+wht.cor.2 <- corExp(1,form = ~ Row + Col)
+wht.cor.2 <- Initialize(wht.cor.2,Wheat2)
+#head(corMatrix(wht.cor.2))
+```
+```{r fig.width=7, fig.height=6}
+plot.matrix(corMatrix(wht.cor.2))
+```
+```{r}
+wht.cor.2 <- corGaus(1,form = ~ Row + Col)
+wht.cor.2 <- Initialize(wht.cor.2,Wheat2)
+```
+
+```{r fig.width=7, fig.height=6}
+plot.matrix(corMatrix(wht.cor.2))
+```
+```{r}
+wht.cor.2 <- corSpher(1,form = ~ Row + Col)
+wht.cor.2 <- Initialize(wht.cor.2,Wheat2)
+```
+```{r fig.width=7, fig.height=6}
+plot.matrix(corMatrix(wht.cor.2))
+```
+
+```{r}
+Wheat.ar1.4 <- lme(yield ~ variety, random = ~ 1 | Block, data = Wheat2, corr = corExp(form = ~ latitude + longitude))
+Wheat.ar1.4
+```
+
+```{r fig.width=7, fig.height=6}
+plot(Variogram(Wheat.ar1.4,form = ~ latitude + longitude | Block))
+```
+
+We can also define other spatial correlation structures. Littell cites a spherical covariance model.
+```{r}
+Wheat.ar1.5 <- lme(yield ~ variety, random = ~ 1 | Block, data = Wheat2, corr = corSpher(form = ~ longitude+ latitude))
+Wheat.ar1.5
+```
+```{r fig.width=7, fig.height=6}
+plot(Variogram(Wheat.ar1.5))
+```
+
+Littell report a range of 18.1 and a sill of 61.6. The data in the appendix use lat and lon
+```{r}
+stroup.ar1.5 <- lme(yield ~ gen, random = ~ 1 | rep, data = stroup.nin, corr = corSpher(form = ~ x + y))
+stroup.ar1.5
+```
+```{r fig.width=7, fig.height=6}
+plot(Variogram(stroup.ar1.5))
+```
+     
+```{r}
+Wheat.ar1.6 <- lme(yield ~ variety, random = ~ 1 | Block, data = Wheat2, corr = corGaus(form = ~ latitude + longitude,nugget=TRUE))
+
+Wheat.ar1.6
+Variogram(Wheat.ar1.6)
+```
+```{r fig.width=7, fig.height=6}
+plot(Variogram(Wheat.ar1.6))
+```
+```{r fig.width=7, fig.height=6}
+plot(Wheat.ar1.6)
+```
+```{r}
+ranef(Wheat.ar1.6)
+```
+
+```{r}
+Wheat.ar1.7.a <- lme(yield ~ variety, random = ~ 1 | Block, data = Wheat2, corr = corRatio(form = ~ latitude + longitude))
+Wheat.ar1.7.b <- lme(yield ~ variety, random = ~ 1 | Row, data = Wheat2, corr = corRatio(form = ~ latitude + longitude))
+```
+```{r fig.width=7, fig.height=6}
+plot(Variogram(Wheat.ar1.7.a))
+```
+```{r fig.width=7, fig.height=6}
+plot(Variogram(Wheat.ar1.7.b))
+```
+
+We should not that corLin does not work if we use Block as random effect
+```{r}
+Wheat.ar1.8 <- lme(yield ~ variety, random = ~ 1 | Row, data = Wheat2, corr = corLin(form = ~ latitude + longitude))
+Wheat.ar1.8
+```
+```{r fig.width=7, fig.height=6}
+plot(Variogram(Wheat.ar1.8))
+```
+
+

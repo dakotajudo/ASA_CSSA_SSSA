@@ -1,0 +1,36 @@
+"Statistical Analysis of Field Trials with Changing Treatment Variance"
+========================================================
+
+from agridat
+```{r}
+library(agridat)
+data(mcconway.turnip)
+dat <- mcconway.turnip
+dat$densf <- factor(dat$density)
+
+# Table 2 of Lee et al.
+m0 <- aov( yield ~ gen * densf * date + block, dat )
+summary(m0)
+
+# Boxplots suggest heteroskedasticity for date, density
+# require("HH")
+# interaction2wt(yield ~ gen + date + densf +block, dat)
+
+require(nlme)
+# Random block model
+m1 <- lme(yield ~ gen * date * densf, random= ~1|block, data=dat)
+summary(m1)
+anova(m1)
+
+# Multiplicative variance model over densities and dates
+m2 <- update(m1,
+             weights=varComb(varIdent(form=~1|densf),
+               varIdent(form=~1|date)))
+summary(m2)
+anova(m2)
+
+# Unstructured variance model over densities and dates
+m3 <- update(m1, weights=varIdent(form=~1|densf*date))
+summary(m3)
+anova(m3)
+```

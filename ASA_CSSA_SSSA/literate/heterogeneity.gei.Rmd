@@ -38,4 +38,29 @@ print.heterogeneity.gei(sorghum.het)
 options(contrasts = c("contr.treatment", "contr.poly"))
 ```
 
+### Test Statistic
 
+Use the lm residual and d.f.
+
+0.963562536*(sqrt((5-2)/(1-0.963562536)))
+summary(aov(sorghum.het$heterogeneous.lm))
+resid <- sorghum.het$heterogeneous.lm$residuals
+sorghum.het$heterogeneous.lm$df.residual
+var <- sum(resid*resid)
+het.sd <- sqrt(var/sorghum.het$heterogeneous.lm$df.residual)
+(het.sd/sqrt(sorghum.het$heterogeneous.lm$df.residual))
+#(het.sd/sqrt(5))/??? = 0.155380043
+
+2.23963177505/0.155380043
+crit.t <- qt(1-0.025,sorghum.het$heterogeneous.lm$df.residual)
+
+Let T= (mX - m0) / (S/sqrt(n)) where mX is the mean and S the sample standard deviation (sd) of X_1, X_2, …, X_n which are i.i.d.
+
+mX <- -1.042596098
+S <- het.sd
+-1.042596098/(het.sd/sqrt(sorghum.het$heterogeneous.lm$df.residual))
+TreatmentT50:eTrial  -1.042596098   0.155380043  -6.70997 0.00015114 ***
+TreatmentT60:eTrial  -0.989684221   0.155380043  -6.36944 0.00021607 ***
+TreatmentT70:eTrial  -1.023640287   0.155380043  -6.58798 0.00017152 ***
+TreatmentT80:eTrial  -0.430384159   0.155380043  -2.76988 0.02430116 *  
+  

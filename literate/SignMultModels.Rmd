@@ -1,0 +1,735 @@
+---
+title:, "Significance Tests, for, Multiplicative, Models"
+author:, "Peter, Claussen"
+date:, "August, 31, 2015"
+output:, html_document
+---
+
+We will validate our code using the data from p. 209
+
+```{r}
+library(ARMR)
+EVT16B.dat <- matrix(
+  c(2634, 2282, 1632, 3211, 3059, 2735, 2233, 3073, 3011,
+    3353, 2972, 3100, 2889, 2785, 2774, 2843, 2688, 3024,
+    3088, 2515, 2832, 3537, 3529, 3061, 2998, 3556, 3949,
+    4529, 3426, 3622, 3354, 3446, 3136, 3720, 3165, 4116,
+    4484, 5278, 6011, 4206, 4731, 3309, 2516, 2732, 2983,
+    3393, 3919, 3728, 4767, 4082, 4500, 4539, 4079, 4878,
+    2940, 4415, 3344, 5276, 4295, 5244, 5618, 4498, 5333,
+    4806, 4396, 4587, 4056, 5018, 4822, 4988, 5776, 5088,
+    5243, 4211, 4415, 3862, 4749, 4989, 5161, 5454, 5807,
+    4476, 5201, 4380, 4277, 4178, 5407, 5672, 5414, 5591,
+    4001, 4714, 4647, 4318, 5448, 5553, 4864, 5588, 5603,
+    4321, 4126, 4601, 4346, 4537, 4889, 6331, 6328, 5961,
+    5248, 4937, 5554, 5389, 5117, 3780, 4543, 6173, 5205,
+    4442, 4963, 4566, 4342, 5136, 5781, 6030, 5831, 5980,
+    3713, 4349, 4433, 5052, 4526, 6430, 7117, 5995, 6150,
+    4551, 5196, 5010, 5013, 5455, 5278, 6351, 6070, 5730,
+    5522, 5932, 5849, 5820, 5886, 6282, 6439, 6359, 6380,
+    4986, 6036, 6437, 6745, 6459, 5610, 6678, 6882, 6916,
+    4117, 5627, 6721, 5544, 6294, 6920, 7332, 7174, 7262,
+    5816, 7571, 6873, 7444, 7727, 8091, 8385, 8106, 7637),
+  nrow=20, byrow=TRUE
+)
+rownames(EVT16B.dat) <- paste("L",as.character(c(19,10,7,1,8,2,18,20,17,5,9,15,3,4,11,16,14,6,13,12)),sep="")
+colnames(EVT16B.dat) <- paste("T",as.character(c(8,2,1,7,3,9,4,5,6)),sep="")
+source("../../ARMR.git/ARMR/R/plot.interaction.ARMST.R")
+l.means <- rowMeans(EVT16B.dat)
+```
+
+```{r}
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 4, 1, 1) + 0.1))
+mn.table <- plot.interaction.ARMST(data.frame(EVT16B.dat), l.means, ylab='Treatment in Trial Mean',
+                      regression=TRUE, main='Yield', show.legend=TRUE,legend.pos=c(.01,.98),
+                      legend.columns=3,lwd = 1
+                      )
+par(fig=c(0,1,0,.4),mar=(c(5, 4, 0, 1) + 0.1), new=TRUE)
+mn.hc <- plot.clusters.ARMST(EVT16B.dat, l.means, xlab='Trial Mean', ylab='')
+
+
+par(fig = c(0, 1, 0, 1))
+```
+We’ll restrict our discussion to the AMMI model.
+
+Sequential sums of squares, SSk due to the kth multiplicative term for the AMMI is $SSk=n\lamba^2k$, where $\lambda_k$ is the kth eigen value from SVD of the interaction matrix. So, we decompose ...
+
+```{r}
+decomp <- decompose.means.table(EVT16B.dat)
+ammi.svd <- svd(decomp$gamma)
+ammi.svd$d
+## [1] 5.922595e+03 3.070185e+03 2.552583e+03 2.320229e+03 1.758364e+03
+## [6] 1.313367e+03 7.923616e+02 7.571147e+02 4.739120e-12
+We need p and q values for AMMI, where p=min(g−1,e−1) and q=max(g−1,e−1)
+
+g <- dim(EVT16B.dat)[2]
+e <- dim(EVT16B.dat)[1]
+p = min(dim(EVT16B.dat)-1)
+q = max(dim(EVT16B.dat)-1)
+p
+## [1] 8
+q
+## [1] 19
+```
+
+We need an estimate of σ2, Cornelius gives this as 602847.
+```{r}
+mn.table$data$TrtNo <- as.factor(mn.table$data$TrtNo)
+summary(aov(lm(values~TrtNo+Trial.ID,data=mn.table$data)))
+```
+
+Check that ∑λ2 matches residual.
+```
+sum(ammi.svd$d*ammi.svd$d)/152
+## [1] 410658.8
+k <- 1:length(ammi.svd$d)
+df.k <- (p-k+1)*(q-k+1)
+df.k
+## [1] 152 126 102  80  60  42  26  12   0
+These are the proper df for FR.
+
+We determine if the second term should be retained by computing residuals
+
+n <- 4
+squares <- ammi.svd$d*ammi.svd$d
+sum(squares)
+## [1] 62420142
+s1 <- squares[1]
+
+n*ammi.svd$d*ammi.svd$d/602847
+## [1] 2.327431e+02 6.254349e+01 4.323271e+01 3.572026e+01 2.051494e+01
+## [6] 1.144525e+01 4.165813e+00 3.803438e+00 1.490213e-28
+r1 <- n*sum(squares[(2:length(squares))])
+r2 <- n*sum(squares[(3:length(squares))])
+
+r1/df.k[1]
+## [1] 719553
+r2/df.k[2]
+## [1] 568792.9
+SS.k <- n*ammi.svd$d*ammi.svd$d
+SSa.k <- sum(ammi.svd$d*ammi.svd$d)
+
+MS.k <- SS.k/df.k
+MS.k[length(MS.k)]<-0
+MS.k
+## [1] 923082.3 299239.3 255516.8 269173.2 206122.9 164279.4  96590.3 191074.2
+## [9]      0.0
+From s.dias.c-2003
+
+m <- 1
+SS.GEI <- sum(n*ammi.svd$d*ammi.svd$d)
+SS.R1 <- SS.GEI - ammi.svd$d[1]*ammi.svd$d[1]
+(SS.R1)/(602847*(g-1-m)*(e-1-m))
+## [1] 2.825264
+(g-1-m)*(e-1-m)
+## [1] 126
+We are given formula for u1k and u1k
+
+u1k <- function(r, c, m1, m2) {
+  if(r > 99 || c > 19 || c < 2) {
+    return(NA)
+  } else {
+  return(-1.5262 + 1.060602*(r + c) + 0.01623859*r*c + (0.1765587e-5)*r*r*c*c - (0.669151e-4)*(r*r*c + r*c*c) + 0.39497*(m1+m2)+0.3817419*(m1*m1*m2 +m1*m2*m2) - 0.0935053*(m1*m1*m1+ m2*m2*m2) + 0.0782977*(m1*m1*m1*m2+m2*m2*m2*m1) - 0.0858762*(m1*m1+m2*m2)
+  )
+  }
+}
+u2k <- function(r, c, m1, m2) {
+    if(r > 99 || c > 19 || c < 2) {
+    return(NA)
+  } else {
+  return(0.065167*(r + c) - (0.251751e-6)*(r*r*r*c + r*c*c*c) + (1.075584e-6)*r*r*c*c - 0.26275*log(r*r + c*c) + 1.854934*log(r*r*c + r*c*c) - 1.64568*(m1 + m2) - 0.0061384*(m1*m1*m1*m2 + m2*m2*m2*m1))
+  }
+}
+Check the function
+
+From the appendix, put r=q−k+1, c=p−k+1, h=r/c, m1=loger and m2=logec
+
+r<-(q-k+1)
+c<-(p-k+1)
+h<- r/c
+m1 <- log(r)
+m2 <- log(c)
+h
+## [1]  2.375000  2.571429  2.833333  3.200000  3.750000  4.666667  6.500000
+## [8] 12.000000       Inf
+u1k(r,c,m1,m2)
+## [1] 44.95687 40.50329 36.01194 31.46526 26.83407 22.06511 17.04568 11.46279
+## [9]      NaN
+u2k(r,c,m1,m2)
+## [1] 6.854376 6.642178 6.415741 6.171082 5.902487 5.601064 5.251054 4.817039
+## [9]      NaN
+We can replicate the computations for this data, but we can attempt to duplicate the
+
+n <- 4
+ems <- 602847
+
+SS.GEI <- n*sum(ammi.svd$d*ammi.svd$d)
+SS.R1 <- SS.GEI - n*ammi.svd$d[1]*ammi.svd$d[1]
+m <- 1
+
+MS.R1 <- (SS.R1)/((g-1-m)*(e-1-m))
+MS.R1/602847
+## [1] 1.439888
+m <- 2
+SS.R2 <- SS.GEI - n*(ammi.svd$d[1]*ammi.svd$d[1]+ammi.svd$d[2]*ammi.svd$d[2])
+MS.R2 <- SS.R2/((g-1-m)*(e-1-m))
+
+MS.R2/ems
+## [1] 1.165514
+m <- 3
+SS.R3 <- SS.GEI - n*(ammi.svd$d[1]*ammi.svd$d[1]+ammi.svd$d[2]*ammi.svd$d[2]+ammi.svd$d[3]*ammi.svd$d[3])
+MS.R3 <- SS.R3/((g-1-m)*(e-1-m))
+
+MS.R3/ems
+## [1] 0.9456213
+Our target value is
+
+expected.F.R <- c(2.73,1.44,1.17,0.95,0.67,0.46,0.31,0.32) expected.F.R*602847
+
+res1 <- ammi.1df.ARMST(data=mn.table$data,test="G",AName="TrtNo",BName="Trial.ID",response="values",
+                            ErrorMS=602847,
+                            ErrorDF=480,
+                            r=4) 
+res1$pc1
+## Analysis of Variance Table
+## 
+## Response: values
+##            Df    Sum Sq  Mean Sq F value    Pr(>F)    
+## TrtNo       8  19960404  2495051 13.7788 6.555e-15 ***
+## Trial.ID   19 247399973 13021051 71.9079 < 2.2e-16 ***
+## PC1a:PC1b  26  35077126  1349120  7.4011 2.220e-16 ***
+## Residuals 150  27343016   182287                      
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+res1$pc2
+## Analysis of Variance Table
+## 
+## Response: values
+##            Df    Sum Sq  Mean Sq  F value    Pr(>F)    
+## TrtNo       8  19960404  2495051  20.8884 < 2.2e-16 ***
+## Trial.ID   19 247399973 13021051 109.0116 < 2.2e-16 ***
+## PC1a:PC1b  26  35077126  1349120  11.1442 < 2.2e-16 ***
+## PC2a:PC2b  24   9426038   746541   6.1667 6.444e-13 ***
+## Residuals 148  17916978   121061                       
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+Note the example from agridat
+
+library(agridat)
+data(cornelius.maize)
+dat <- cornelius.maize
+# dotplot(gen~yield|env,dat) # We cannot compare genotype yields easily
+# Subtract environment mean from each observation
+require(reshape2)
+## Loading required package: reshape2
+mat <- acast(dat, gen~env)
+## Using yield as value column: use value.var to override.
+mat <- scale(mat, scale=FALSE)
+dat2 <- melt(mat)
+names(dat2) <- c('gen','env','yield')
+require(lattice)
+## Loading required package: lattice
+bwplot(yield ~ gen, dat2,
+       main="cornelius.maize - environment centered yields")
+
+
+## Not run: 
+# This reproduces the analysis of Forkman and Piepho.
+
+test.pc <- function(Y0, type="AMMI", n.boot=10000, maxpc=6) {
+
+  # Test the significance of Principal Components in GGE/AMMI
+
+  # Singular value decomposition of centered/double-centered Y
+  Y <- sweep(Y0, 1, rowMeans(Y0)) # subtract environment means
+  if(type=="AMMI") {
+    Y <- sweep(Y, 2, colMeans(Y0)) # subtract genotype means
+    Y <- Y + mean(Y0)
+  }
+  lam <- svd(Y)$d
+
+  # Centering rows/columns reduces the rank by 1 in each direction.
+  I <- if(type=="AMMI") nrow(Y0)-1 else nrow(Y0)
+  J <- ncol(Y0)-1
+  M <- min(I, J) # rank of Y, maximum number of components
+  M <- min(M, maxpc) # Optional step: No more than 5 components
+
+  
+  # Observed value of test statistic.
+  # t.obs[k] is the proportion of variance explained by the kth term out of
+  # the k...M terms, e.g. t.obs[2] is lam[2]^2 / sum(lam[2:M]^2)
+  t.obs <- { lam^2/rev(cumsum(rev(lam^2))) } [1:(M-1)]
+  t.boot <- matrix(NA, nrow=n.boot, ncol=M-1)
+
+
+  for(K in 0:(M-2)){ # 'K' multiplicative components in the svd
+
+    for(bb in 1:n.boot){
+      E.b <- matrix(rnorm((I-K) * (J-K)), nrow = I-K, ncol = J-K)
+      lam.b <- svd(E.b)$d
+      t.boot[bb, K+1] <- lam.b[1]^2 / sum(lam.b^2)
+    }
+
+  }
+
+  # P-value for each additional multiplicative term in the SVD.
+  # P-value is the proportion of time bootstrap values exceed t.obs
+  colMeans(t.boot > matrix(rep(t.obs, n.boot), nrow=n.boot, byrow=TRUE))
+}
+
+dat <- cornelius.maize
+
+# Convert to matrix format
+require(reshape2)
+dat <- acast(dat, env~gen, value.var='yield')
+
+#test.pc(dat,"AMMI")
+#test.pc(dat,"GGE")
+CPT Data
+cpt.dat <- read.delim("CPT_2007Subset.txt",header=TRUE)
+cpt.dat <- subset(cpt.dat,!is.na(cpt.dat$Plot.Mean))
+cpt.dat$Expt.No. <- as.factor(cpt.dat$Expt.No.)
+TrtNames <- as.character(cpt.dat$Criteria.Entry.No.)
+TrtNames[cpt.dat$Criteria.Entry.No.<10] <- paste("0",TrtNames[cpt.dat$Criteria.Entry.No.<10],sep="")
+cpt.dat$Criteria.Entry.No. <- as.factor(TrtNames)
+cpt.dat$Rep.No. <- as.factor(cpt.dat$Rep.No.)
+gy.dat <- subset(cpt.dat,cpt.dat$Description=="GY")
+tw.dat <- subset(cpt.dat,cpt.dat$Description=="TW")
+hd.dat <- subset(cpt.dat,cpt.dat$Description=="HD")
+ht.dat <- subset(cpt.dat,cpt.dat$Description=="HT")
+
+gy.dat$Expt.No. <- as.factor(as.character(gy.dat$Expt.No.))
+tw.dat$Expt.No. <- as.factor(as.character(tw.dat$Expt.No.))
+hd.dat$Expt.No. <- as.factor(as.character(hd.dat$Expt.No.))
+ht.dat$Expt.No. <- as.factor(as.character(ht.dat$Expt.No.))
+
+#I'll need to index environments
+Bidx <- levels(as.factor(as.character(as.numeric(gy.dat$Expt.No.))))
+Bidx <- as.numeric(Bidx)
+library(lme4)
+## Loading required package: Matrix
+library(ARMR)
+head(gy.dat)
+##         Expt.No. Criteria.Entry.No. Trial.Trt.No Rep.No. Plot.No.
+## 1 CPT:2007:Bison                 01            2       1     1002
+## 2 CPT:2007:Bison                 02            4       1     1004
+## 3 CPT:2007:Bison                 03            6       1     1006
+## 4 CPT:2007:Bison                 04            7       1     1007
+## 5 CPT:2007:Bison                 05            9       1     1009
+## 6 CPT:2007:Bison                 06           10       1     1010
+##   Entry.Name ST.Criteria.Column Grand.Mean.Column Description Plot.Mean
+## 1      BUTEO                  1                 1          GY      43.0
+## 2 EXPEDITION                  1                 1          GY      50.9
+## 3    Hatcher                  1                 1          GY      54.6
+## 4   JAGALENE                  1                 1          GY      52.7
+## 5 MILLENNIUM                  1                 1          GY      55.8
+## 6   OVERLAND                  1                 1          GY      60.6
+gy.dat$Value <- gy.dat$Plot.Mean
+gy.dat$Treatment <- gy.dat$Criteria.Entry.No.
+gy.dat$Trial <- gy.dat$Expt.No.
+gy.dat$Replicate <- gy.dat$Rep.No.
+gy.fit <- standard.plot(gy.dat)
+
+
+#print.stdplot(gy.fit)
+gy.fit$ammi$u
+##               [,1]         [,2]        [,3]        [,4]        [,5]
+##  [1,]  0.368574527 -0.563655282  0.16450865 -0.43522300 -0.32999114
+##  [2,]  0.106147004 -0.090900593  0.48717172  0.03310284  0.36050105
+##  [3,] -0.384453439  0.164855555 -0.44644483 -0.20267822 -0.14290358
+##  [4,] -0.519904544 -0.005058963  0.38539447 -0.17043258  0.07574629
+##  [5,]  0.410289727  0.263790038 -0.23081222  0.06156663 -0.20976211
+##  [6,]  0.410676429  0.281641046 -0.05834119  0.10568367  0.46546223
+##  [7,] -0.112850227 -0.486843498 -0.29872058  0.62519621  0.13981856
+##  [8,] -0.251857658  0.198980552  0.22768938  0.19983360 -0.07727975
+##  [9,]  0.005107848  0.235075633  0.02834829  0.09466686 -0.50885940
+## [10,]  0.098809791  0.172358991  0.24688979  0.23302105 -0.21706574
+## [11,] -0.105954284 -0.331952195 -0.26677429 -0.06992557  0.07377934
+## [12,] -0.024585175  0.161708717 -0.23890920 -0.47481149  0.37055428
+##               [,6]        [,7]         [,8]         [,9]        [,10]
+##  [1,]  0.144454891 -0.23075107 -0.191784056  0.078285171  0.002343473
+##  [2,]  0.134744487  0.20663406  0.522421659  0.407960222 -0.029799634
+##  [3,]  0.531970348  0.05687863  0.056989813  0.341254074 -0.263896119
+##  [4,]  0.134581742 -0.18399232  0.044352740 -0.629146241 -0.085675163
+##  [5,]  0.255933774 -0.02618295  0.204478137 -0.304291728  0.364151490
+##  [6,]  0.177921878 -0.07106874 -0.149064139 -0.215810486 -0.155987215
+##  [7,] -0.074246575 -0.36354317  0.023683018  0.017003101 -0.110786228
+##  [8,]  0.004529067 -0.11208983 -0.346408382  0.309897489  0.672604502
+##  [9,] -0.466287518 -0.09515845  0.464195848 -0.004301325 -0.157853161
+## [10,] -0.105926124  0.32780702 -0.521583030  0.058875225 -0.467228995
+## [11,] -0.200830036  0.73523391  0.006388725 -0.222734486  0.239259169
+## [12,] -0.536845934 -0.24376710 -0.113670332  0.163008983 -0.007132121
+##             [,11]     [,12]
+##  [1,] -0.14390082 0.2886751
+##  [2,]  0.16627029 0.2886751
+##  [3,] -0.07280805 0.2886751
+##  [4,]  0.07699914 0.2886751
+##  [5,]  0.49444942 0.2886751
+##  [6,] -0.55464294 0.2886751
+##  [7,]  0.12830283 0.2886751
+##  [8,] -0.18675216 0.2886751
+##  [9,] -0.35465984 0.2886751
+## [10,]  0.31988886 0.2886751
+## [11,] -0.16108561 0.2886751
+## [12,]  0.28793888 0.2886751
+gy.fit$ammi$v
+##              [,1]        [,2]        [,3]        [,4]         [,5]
+##  [1,] -0.30901038  0.03110588 -0.04392645 -0.10090622  0.468718910
+##  [2,] -0.28043115  0.18144662  0.21557797 -0.19702491 -0.336400277
+##  [3,] -0.46616935 -0.06288740  0.06170852 -0.23384146  0.439023730
+##  [4,]  0.24336135  0.77739189 -0.26395964 -0.03891462 -0.006018559
+##  [5,]  0.12081050 -0.21347905 -0.02130434 -0.02101066  0.028219059
+##  [6,]  0.20948159 -0.16679757 -0.07023052  0.12507044 -0.034141729
+##  [7,]  0.15198032 -0.18553834  0.27456832  0.52606351 -0.022123176
+##  [8,] -0.24486489 -0.01137232  0.35867647  0.08624539 -0.456488761
+##  [9,] -0.03603645  0.17656295 -0.33970706  0.42106355  0.027293768
+## [10,] -0.20739094 -0.11852354 -0.16949507  0.33875248  0.013622307
+## [11,]  0.00575212 -0.02414599 -0.06264408 -0.42098680 -0.377765049
+## [12,]  0.27710190 -0.44724957 -0.47894191 -0.30504412 -0.080663339
+## [13,]  0.53541538  0.06348644  0.53967779 -0.17946659  0.336723117
+##              [,6]        [,7]          [,8]        [,9]       [,10]
+##  [1,] -0.27639430 -0.22413744  0.0546210224 -0.49009643  0.19049364
+##  [2,]  0.49505408  0.16203348  0.0005815153 -0.29439801  0.46599054
+##  [3,]  0.27970765 -0.04735351 -0.0875452700  0.52517387 -0.24218518
+##  [4,] -0.07357946 -0.21683040 -0.0942634088  0.15336754  0.03197715
+##  [5,] -0.34239183 -0.39063021 -0.0069675282 -0.04791536  0.17720419
+##  [6,]  0.43905696 -0.26241156 -0.0446977431 -0.45085811 -0.58359395
+##  [7,]  0.11990623 -0.22277086 -0.4341682751  0.26512822  0.31955651
+##  [8,] -0.29334292 -0.19174563  0.5151919728  0.16197355 -0.21498164
+##  [9,]  0.13592460  0.23068008  0.3409461920  0.10688656 -0.06870923
+## [10,] -0.30239543  0.57946929 -0.1997860246 -0.14629689 -0.05623110
+## [11,] -0.24415354  0.14333824 -0.5065019583  0.03718342 -0.26539172
+## [12,]  0.11179393  0.04711405  0.2802724314  0.19318608  0.29327361
+## [13,] -0.04918596  0.39324447  0.1823170741 -0.01333444 -0.04740281
+##              [,11]      [,12]
+##  [1,]  0.090549332 -0.1916430
+##  [2,]  0.008279781 -0.3092343
+##  [3,] -0.071764844 -0.3009869
+##  [4,] -0.319882323 -0.2742511
+##  [5,]  0.196596192 -0.4090779
+##  [6,] -0.145597623 -0.2781576
+##  [7,]  0.015981056 -0.2160625
+##  [8,] -0.174819272 -0.2409566
+##  [9,]  0.626963202 -0.2720493
+## [10,] -0.440980894 -0.3084175
+## [11,]  0.389459397 -0.2351001
+## [12,] -0.227197433 -0.2302391
+## [13,]  0.052413430 -0.2738002
+gy.fit$ammi$d
+##  [1] 5.533043e+01 2.842294e+01 2.317589e+01 1.392750e+01 1.135143e+01
+##  [6] 1.050565e+01 8.685591e+00 6.104378e+00 5.092274e+00 3.547723e+00
+## [11] 3.164739e-01 2.768790e-14
+levels(gy.dat$Criteria.Entry.No.)
+##  [1] "01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12"
+gy.dat$u1 <- gy.fit$ammi$u[as.numeric(gy.dat$Criteria.Entry.No.),1]
+gy.dat$u2 <- gy.fit$ammi$u[as.numeric(gy.dat$Criteria.Entry.No.),2]
+gy.dat$u3 <- gy.fit$ammi$u[as.numeric(gy.dat$Criteria.Entry.No.),3]
+gy.dat$v1 <- gy.fit$ammi$v[as.numeric(gy.dat$Expt.No.),1]
+gy.dat$v2 <- gy.fit$ammi$v[as.numeric(gy.dat$Expt.No.),2]
+gy.dat$v3 <- gy.fit$ammi$v[as.numeric(gy.dat$Expt.No.),3]
+tapply(gy.dat$u1,list(gy.dat$Criteria.Entry.No.),mean)
+##           01           02           03           04           05 
+##  0.368574527  0.106147004 -0.384453439 -0.519904544  0.410289727 
+##           06           07           08           09           10 
+##  0.410676429 -0.112850227 -0.251857658  0.005107848  0.098809791 
+##           11           12 
+## -0.105954284 -0.024585175
+tapply(gy.dat$u2,list(gy.dat$Criteria.Entry.No.),mean)
+##           01           02           03           04           05 
+## -0.563655282 -0.090900593  0.164855555 -0.005058963  0.263790038 
+##           06           07           08           09           10 
+##  0.281641046 -0.486843498  0.198980552  0.235075633  0.172358991 
+##           11           12 
+## -0.331952195  0.161708717
+tapply(gy.dat$u3,list(gy.dat$Criteria.Entry.No.),mean)
+##          01          02          03          04          05          06 
+##  0.16450865  0.48717172 -0.44644483  0.38539447 -0.23081222 -0.05834119 
+##          07          08          09          10          11          12 
+## -0.29872058  0.22768938  0.02834829  0.24688979 -0.26677429 -0.23890920
+tapply(gy.dat$v1,list(gy.dat$Expt.No.),mean)
+##     CPT:2007:Bison CPT:2007:Brookings CPT:2007:DLakesPea 
+##        -0.30901038        -0.28043115        -0.46616935 
+##     CPT:2007:Hayes  CPT:2007:Kennebec    CPT:2007:Martin 
+##         0.24336135         0.12081050         0.20948159 
+##     CPT:2007:Onida    CPT:2007:Platte     CPT:2007:Selby 
+##         0.15198032        -0.24486489        -0.03603645 
+##   CPT:2007:Sturgis      CPT:2007:Wall CPT:2007:Watertown 
+##        -0.20739094         0.00575212         0.27710190 
+##    CPT:2007:Winner 
+##         0.53541538
+tapply(gy.dat$v2,list(gy.dat$Expt.No.),mean)
+##     CPT:2007:Bison CPT:2007:Brookings CPT:2007:DLakesPea 
+##         0.03110588         0.18144662        -0.06288740 
+##     CPT:2007:Hayes  CPT:2007:Kennebec    CPT:2007:Martin 
+##         0.77739189        -0.21347905        -0.16679757 
+##     CPT:2007:Onida    CPT:2007:Platte     CPT:2007:Selby 
+##        -0.18553834        -0.01137232         0.17656295 
+##   CPT:2007:Sturgis      CPT:2007:Wall CPT:2007:Watertown 
+##        -0.11852354        -0.02414599        -0.44724957 
+##    CPT:2007:Winner 
+##         0.06348644
+tapply(gy.dat$v3,list(gy.dat$Expt.No.),mean)
+##     CPT:2007:Bison CPT:2007:Brookings CPT:2007:DLakesPea 
+##        -0.04392645         0.21557797         0.06170852 
+##     CPT:2007:Hayes  CPT:2007:Kennebec    CPT:2007:Martin 
+##        -0.26395964        -0.02130434        -0.07023052 
+##     CPT:2007:Onida    CPT:2007:Platte     CPT:2007:Selby 
+##         0.27456832         0.35867647        -0.33970706 
+##   CPT:2007:Sturgis      CPT:2007:Wall CPT:2007:Watertown 
+##        -0.16949507        -0.06264408        -0.47894191 
+##    CPT:2007:Winner 
+##         0.53967779
+gy.fit$aov
+## Analysis of Variance Table
+## 
+## Response: Value
+##                  Df Sum Sq Mean Sq  F value    Pr(>F)    
+## Treatment        11  17509  1591.7  93.5136 < 2.2e-16 ***
+## Trial            12  39698  3308.2 194.3594 < 2.2e-16 ***
+## Treatment:Trial 132  19964   151.2   8.8856 < 2.2e-16 ***
+## Trial:Replicate  39   3998   102.5   6.0232 < 2.2e-16 ***
+## Residuals       429   7302    17.0                       
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+pc.lm <- lm(Value ~ Treatment+Trial + Trial:Replicate + u1:v1 + u2:v2 + u3:v3, data=gy.dat)
+summary(aov(pc.lm))
+##                  Df Sum Sq Mean Sq F value   Pr(>F)    
+## Treatment        11  17509    1592  33.613  < 2e-16 ***
+## Trial            12  39698    3308  69.862  < 2e-16 ***
+## Trial:Replicate  39   3998     103   2.165 8.59e-05 ***
+## u1:v1             1     20      20   0.417  0.51855    
+## u2:v2             1    530     530  11.185  0.00088 ***
+## u3:v3             1    293     293   6.198  0.01308 *  
+## Residuals       558  26423      47                     
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+n <- 4
+sum(gy.fit$ammi$d)
+## [1] 166.4603
+g <- 12
+e <- 13
+#this number matches the Treatment:Trial SS
+SS.GEI <- n*sum(gy.fit$ammi$d*gy.fit$ammi$d)
+SS.R1 <- SS.GEI - gy.fit$ammi$d[1]*gy.fit$ammi$d[1]
+m <- 1
+
+MS.R1 <- (SS.R1)/((g-1-m)*(e-1-m))
+MS.R1/17
+## [1] 9.038711
+m <- 2
+SS.R2 <- SS.GEI - (gy.fit$ammi$d[1]*gy.fit$ammi$d[1]+gy.fit$ammi$d[2]*gy.fit$ammi$d[2])
+MS.R2 <- SS.R2/((g-1-m)*(e-1-m))
+
+MS.R2/17
+## [1] 10.5193
+Duplicating the correct code from above
+
+n <- 4
+ems <- 17.020893
+
+SS.GEI <- n*sum(gy.fit$ammi$d*gy.fit$ammi$d)
+SS.GEI
+## [1] 19963.85
+SS1 <- n*gy.fit$ammi$d[1]*gy.fit$ammi$d[1]
+SS1
+## [1] 12245.83
+SS1.df <- g-2 + e-2 +1
+SS1.df 
+## [1] 22
+SS1/SS1.df
+## [1] 556.6284
+#note this is about 3061.5*4, 3061 comes from the reduced AOV
+SS.R1 <- SS.GEI - n*gy.fit$ammi$d[1]*gy.fit$ammi$d[1]
+SS.R1 
+## [1] 7718.02
+m <- 1
+((g-1-m)*(e-1-m))
+## [1] 110
+MS.R1 <- (SS.R1)/((g-1-m)*(e-1-m))
+MS.R1
+## [1] 70.16382
+MS.R1/ems
+## [1] 4.122217
+m <- 2
+SS2 <- n*(gy.fit$ammi$d[1]*gy.fit$ammi$d[1]+gy.fit$ammi$d[2]*gy.fit$ammi$d[2])
+SS2
+## [1] 15477.28
+SS2.df <- SS1.df-2
+SS2/SS2.df
+## [1] 773.864
+SS.R2 <- SS.GEI - n*(gy.fit$ammi$d[1]*gy.fit$ammi$d[1]+gy.fit$ammi$d[2]*gy.fit$ammi$d[2])
+SS.R2 
+## [1] 4486.565
+((g-1-m)*(e-1-m))
+## [1] 90
+MS.R2 <- SS.R2/((g-1-m)*(e-1-m))
+MS.R2
+## [1] 49.85073
+MS.R2/ems
+## [1] 2.928796
+m <- 3
+SS.R3 <- SS.GEI - n*(gy.fit$ammi$d[1]*gy.fit$ammi$d[1]+gy.fit$ammi$d[2]*gy.fit$ammi$d[2]+gy.fit$ammi$d[3]*gy.fit$ammi$d[3])
+SS.R3
+## [1] 2338.078
+((g-1-m)*(e-1-m))
+## [1] 72
+MS.R3 <- SS.R3/((g-1-m)*(e-1-m))
+
+MS.R3/ems
+## [1] 1.90785
+From http://agrobiol.sggw.pl/biometria/pages/strona-glowna/programy-do-analiz-statystycznych/r-codes.php X – two-way table. This is the data set with genotypes names as row names and and environments names as column names. err.MS – Errom mean square that will be used for testing principal components of GE interaction. err.df – Error degree of freedom. test – (optional) the type of test. If “FR” then it will be used FR test (Cornellius 1993), if “F” then Gollob test (Gollob 1968).
+
+AMMI.table<-function(X, err.MS=NA, err.df=NA, test="FR", rounding=c(2,2,2,3))
+{
+   X<-as.matrix(X)
+   x.mean<-mean(X)
+   X.Ie<-scale(X-x.mean,center = TRUE, scale = FALSE)
+   X.Ie<-t(scale(t(X.Ie),center = TRUE, scale = FALSE))
+   SVD <- La.svd(X.Ie)
+
+   IPC.nb<-1:min(ncol(X)-1,nrow(X)-1)
+   if (test=="F") {
+     IPC.SS<-SVD$d[1:max(IPC.nb)]^2
+     IPC.df<-nrow(X)+ncol(X)-1-2*IPC.nb
+   }
+   if (test=="FR") {
+     IPC.SS<-rep(0,max(IPC.nb))
+     IPC.df<-nrow(X)+ncol(X)-1-2*IPC.nb
+     for (i in 1:max(IPC.nb))
+     {
+       IPC.SS[i]<-sum(SVD$d[i:max(IPC.nb)]^2)
+       IPC.df[i]<-sum(IPC.df[i:max(IPC.nb)])
+     }
+   }
+   IPC.MS<-IPC.SS/IPC.df
+   IPC.F<-IPC.MS/err.MS
+   IPC.pv<-pf(err.MS/IPC.MS,err.df, IPC.df)
+
+   IPC.SS<-round(IPC.SS,rounding[1])
+   IPC.MS<-round(IPC.MS,rounding[2])
+   IPC.F<-round(IPC.F,rounding[3])
+   IPC.pv<-round(IPC.pv,rounding[4])
+
+   table.AMMI<-data.frame(SS=IPC.SS, df=IPC.df, MS=IPC.MS, F=IPC.F, P.v=IPC.pv)
+   rownames(table.AMMI)<-paste("IPC",1:max(IPC.nb))
+   return(table.AMMI)
+}
+
+
+mplot.AMMI <-function(X, nbPC=1, ordering="mean", cex.axis=1, File=FALSE, plot.height=7, plot.width=10, plot.res=300, plot.units="in", ...)
+{
+   X<-as.matrix(X)
+   if (nbPC=="Full") {nbPC=min(ncol(X),nrow(X))-1}
+   x.mean<-mean(X)
+   X.Ie<-scale(X-x.mean,center = TRUE, scale = FALSE)
+   x.col.center<-attr(X.Ie,"scaled:center")
+   X.Ie<-t(scale(t(X.Ie),center = TRUE, scale = FALSE))
+   x.row.center<-attr(X.Ie,"scaled:center")
+
+   SVD <- La.svd(X.Ie)
+   Gen.scores<-SVD$u[,1:nbPC]
+   Env.scores<-SVD$vt[1:nbPC,]
+   lambda<-diag(SVD$d[1:nbPC],nrow=nbPC)
+   interaction.adj<-Gen.scores%*%lambda%*%Env.scores
+
+   row.eff<-matrix(x.row.center,nrow(X),ncol(X))
+   col.eff<-t(matrix(x.col.center,ncol(X),nrow(X)))
+   Gen.yield<-interaction.adj+row.eff+col.eff+x.mean
+   colnames(Gen.yield)<-colnames(X)
+   rownames(Gen.yield)<-rownames(X)
+
+   if (length(ordering)==ncol(X)) { ord.v<-ordering
+   } else {
+     if (ordering=="mean") { ord.v<-x.col.center }
+     if (ordering=="PC1") { ord.v<-SVD$vt[1,] }
+     if (ordering=="angle") { ord.v<-asin(SVD$v[2,]/ ((SVD$v[1,]^2+SVD$v[2,]^2)^0.5)) }
+     if (ordering==FALSE) { ord.v<-1:ncol(X) }
+   }
+   ord<-order(ord.v)
+  
+   if (File!=FALSE)
+   {
+     library(grDevices)
+     png(filename=File, width=plot.width, height=plot.height, res=plot.res, units=plot.units)
+   }
+
+   Environments<-1:ncol(X)
+   Yield<-t(Gen.yield[,ord])
+   matplot(x=Environments, y=Yield, type="b", pch=letters[1:nrow(Gen.yield)], xaxt="n", yaxt="n", col=1, lty=1, ...)
+   axis(1, at=1:ncol(X), labels=LETTERS[1:ncol(Gen.yield)], lwd=1, cex.axis=cex.axis)  
+   axis(2, cex.axis=cex.axis) 
+
+   if (File!=FALSE) { dev.off() }
+
+Env.symbols=data.frame(Env=colnames(Gen.yield)[ord], ordered.by=ord.v[ord])
+rownames(Env.symbols)<-LETTERS[1:ncol(Gen.yield)]
+Gen.symbols=data.frame(Gen=rownames(Gen.yield))
+rownames(Gen.symbols)<- letters[1:nrow(Gen.yield)]
+return(list( AMMI.adjusted.means=Gen.yield, Env.symbols=Env.symbols, Gen.symbols=Gen.symbols  ))
+}
+
+
+nominal.yield.plot<-function(X, mean.y=TRUE, mean.col="gray", mean.lty=3, mean.lwd=3, File=FALSE, plot.height=7, plot.width=10, plot.res=300, plot.units="in", ...)
+{
+   X<-as.matrix(X)
+   x.mean<-mean(X)
+   X.Ie<-scale(X-x.mean,center = TRUE, scale = FALSE)
+   x.col.center<-attr(X.Ie,"scaled:center")
+   X.Ie<-t(scale(t(X.Ie),center = TRUE, scale = FALSE))
+   x.row.center<-attr(X.Ie,"scaled:center")
+
+   SVD <- La.svd(X.Ie)
+   I.SS<-sum(SVD$d^2)
+   lambda<-SVD$d[1]
+   Gen.scores<-SVD$u[,1]
+   Env.scores<-SVD$v[1,]
+   interaction.adj<-lambda*(Gen.scores%*%t(Env.scores))
+   ord<-order(Env.scores) 
+
+   row.eff<-matrix(x.row.center,nrow(X),ncol(X))
+   col.eff<-t(matrix(x.col.center,ncol(X),nrow(X)))
+   Gen.yield<-row.eff+interaction.adj
+   if (mean.y!=FALSE) {Gen.yield<-Gen.yield+x.mean}
+   colnames(Gen.yield)<-colnames(X)
+   rownames(Gen.yield)<-rownames(X)
+
+   if (File!=FALSE)
+   {
+     library(grDevices)
+     png(filename=File, width=plot.width, height=plot.height, res=plot.res, units=plot.units)
+   }
+
+   Environment.range<-Env.scores[ord[c(1,NROW(ord))]]
+   nominal.yield<-t(Gen.yield[,ord[c(1,NROW(ord))]])
+   matplot(Environment.range, nominal.yield, type="b", pch=letters[1:nrow(Gen.yield)], lwd=2, lty=1, xaxt="n", col=1, ...)
+   axis(1,at=Env.scores[ord],labels=LETTERS[1:ncol(Gen.yield)],...)
+   axis(1,at=0,labels="0",...)
+
+   if (mean.y==TRUE) {mean.y<-x.mean}
+   if (!mean.y==FALSE) {abline(a=mean.y, b=0, col=mean.col, lty=mean.lty, lwd=mean.lwd)}
+
+   if (File!=FALSE) { dev.off() }
+
+   return(list( Env.symbols=data.frame(pch=LETTERS[1:ncol(Gen.yield)], Env=colnames(Gen.yield)[ord]), Gen.symbols=data.frame(pch=letters[1:nrow(Gen.yield)], Gen=rownames(Gen.yield)), Env.scores=data.frame(Env=colnames(Gen.yield)[ord], score=Env.scores[ord]), Gen.scores=data.frame(Gen=rownames(Gen.yield), score=Gen.scores*lambda), contained.part.of.SS=(lambda^2+sum(row.eff^2))/ (I.SS+sum(row.eff^2)) ))
+
+}
+AMMI.table(t(EVT16B.dat), err.MS=602847, err.df=480, test="FR")
+##               SS  df        MS    F   P.v
+## IPC 1 62420141.8 152 410658.83 0.68 0.997
+## IPC 2 27343015.9 126 217008.06 0.36 1.000
+## IPC 3 17916977.6 102 175656.64 0.29 1.000
+## IPC 4 11401299.6  80 142516.24 0.24 1.000
+## IPC 5  6017836.2  60 100297.27 0.17 1.000
+## IPC 6  2925993.2  42  69666.51 0.12 1.000
+## IPC 7  1201059.7  26  46194.60 0.08 1.000
+## IPC 8   573222.7  12  47768.56 0.08 1.000
+AMMI.table(t(EVT16B.dat), err.MS=602847, err.df=480, test="F")
+##               SS df         MS    F   P.v
+## IPC 1 35077125.9 26 1349120.23 2.24 0.001
+## IPC 2  9426038.3 24  392751.60 0.65 0.897
+## IPC 3  6515678.0 22  296167.18 0.49 0.976
+## IPC 4  5383463.4 20  269173.17 0.45 0.983
+## IPC 5  3091843.0 18  171769.06 0.28 0.999
+## IPC 6  1724933.5 16  107808.34 0.18 1.000
+## IPC 7   627837.0 14   44845.50 0.07 1.000
+## IPC 8   573222.7 12   47768.56 0.08 1.000

@@ -1,0 +1,16 @@
+---
+title: "ammi.gei"
+author: "Peter Claussen"
+date: "September 16, 2015"
+output: html_document
+---
+
+```{r}
+source("../R/gei.table.to.frame.R")
+source("../R/nonadditivity.gei.R")
+source("../R/heterogeneity.gei.R")
+source("../R/ammi.gei.R")
+```
+
+
+

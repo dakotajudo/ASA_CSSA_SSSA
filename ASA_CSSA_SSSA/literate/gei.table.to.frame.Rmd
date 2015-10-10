@@ -1,0 +1,386 @@
+---
+title: "gei.table.to.frame"
+author: "Peter Claussen"
+date: "October 1, 2015"
+output: html_document
+---
+
+Utility function for converting GEI tables to data frames and vice-versa.
+
+```{r}
+source("../R/gei.table.to.frame.R")
+```
+
+###  gei.table.to.frame
+This is a straighforward function to stack a table and enforce a naming convention on columns.
+
+### gei.frame.to.table
+If lsmeans are not required, this is a simple arithmetic means table. If lsmeans are needed, then
+``` gei.table.and.effects ``` is called.
+
+### gei.table.and.effects
+Given a data frame, we compute least square means. This assumes either CRD or RCB for the trials.
+
+
+We'll develop this with SAS multilocation
+```{r}
+library(SASmixed)
+data(Multilocation)
+response = "Adj"
+TreatmentName = "Trt"
+TrialName = "Location"
+BlockName = "Block"
+RepName = "Block"
+Multilocation$Block <- as.factor(Multilocation$Block)
+```
+
+```{r}
+mixed.lm <- lm(Adj ~ Location*Trt+Location:Block,data=Multilocation)
+```
+
+We'll assume a linear model of the form
+$$
+y = \mu + X_{t} \beta_{t} + X_{e} \beta_{e} + X_{te} \beta_{te} + X_{r(t)} \beta_{r(t)} + e
+$$
+
+where X_{t} \beta_{t} correspond to the treatments, $X_{e} \beta_{e}$ to trials, $X_{te} \beta_{te}$ to interaction and $X_{r(t)} \beta_{r(t)}$ are blocks in trials and may not be specified.
+
+The return value are a table of the least squares estimates of treatment by trial means and a list of effects, 
+$\beta_{t}, \beta_{e}, \beta_{te}$. The ```lm``` function returns the entire $\beta$ vector, but this may be a reduced encoding.
+
+
+```{r}
+mixed.lm$coefficients
+```
+
+R doesn't code all factor levels by default. There are many option for coding factors to ensure that the rank of the design matrix matches the number of columns. The default is to code the first level of each main effect as the intercept and reduce the number of associated $\beta$ columns by one. However, other contrast functions may be used. 
+
+We can extract the specific contrast function for each factor is saved with the linear model. First, we need to map factor names to position in the linear model.
+
+The assign member tells us which coefficients belong to which effect. We use the term labels to index
+our effect names and extract those from the coefficients.
+
+```{r}
+mixed.lm$assign
+labels <- attr(mixed.lm$terms, "term.labels")
+labels
+
+mixed.lm$assign == which(labels==TrialName)
+trialIdx <- which(labels==TrialName)
+treatmentIdx <- which(labels==TreatmentName)
+
+intName <- paste(TrialName,":",TreatmentName,sep="")
+interactionIdx <- which(labels==intName)
+
+blkName <- paste(TrialName,":",BlockName,sep="")
+blockIdx <- which(labels==blkName)
+```
+
+So, we can extract just the sections of $\beta$ that correspond to a specific effect.
+```{r}
+beta.e <- mixed.lm$coefficients[mixed.lm$assign == trialIdx]
+beta.e
+beta.t <- mixed.lm$coefficients[mixed.lm$assign == treatmentIdx]
+beta.t
+
+beta.te <- mixed.lm$coefficients[mixed.lm$assign == interactionIdx]
+length(beta.te)
+beta.b <- mixed.lm$coefficients[mixed.lm$assign == blockIdx]
+length(beta.b)
+```
+
+These estimates do not include an intercept, so do not sum to zero. We need add a term for the missing estimate
+and center. However, we need to do this base on the appropriate encoding. This information is part of the models contrasts; this is the name of the function used for contrasts. We use match.fun to find the contrast function, then apply that function to get a matrix for contrasts. Multiplying this matrix should return our estimates. We end by centering the estimates, so that they sum to 0.
+
+We'll denote the contrasts matrix that maps encoding to the normal values as $C_{t}, ...$
+
+```{r}
+treatments <- length(beta.t)+1
+trials <- length(beta.e)+1
+reps <- (length(beta.b)/trials)+1
+
+C.e <- match.fun(mixed.lm$contrasts[[TrialName]])(trials)
+C.t <- match.fun(mixed.lm$contrasts[[TreatmentName]])(treatments)
+C.b <- match.fun(mixed.lm$contrasts[[TrialName]])(reps)
+
+trl.effects <- C.e %*% beta.e
+trl.effect.m <- mean(trl.effects)
+trl.effects <-  trl.effects-mean(trl.effects)
+trt.effects <- C.t %*% beta.t
+trt.effect.m <- mean(trt.effects)
+trt.effects <- trt.effects - mean(trt.effects)
+trt.effects
+```
+
+```{r}
+L.te <- kronecker(C.t,C.e)
+C.te <- kronecker(C.t,C.e)
+#X %x% Y
+trl2.mat <- match.fun(mixed.lm$contrasts[[TrialName]])(trials,contrasts=FALSE)
+
+L.b <- kronecker(C.b,trl2.mat)
+
+rep2.mat <- matrix(rep(C.b,9),nrow=3)
+
+#rep2.mat %*% t(L.te)
+kronecker(C.t,C.b)
+kronecker(C.t,t(c(1,1,1)))
+```
+
+```{r}
+int.effects <- C.te %*% beta.te
+int.effects.m <- mean(int.effects)
+int.effects <- int.effects - int.effects.m
+blk.effects <- L.b %*% beta.b
+blk.effects.m <- mean(blk.effects)
+blk.effects <- blk.effects - blk.effects.m
+```
+
+We check that the model includes an explicit intercept.
+```{r}
+intercept <- 0
+if(mixed.lm$assign[1] == 0) {
+  intercept <- mixed.lm$coefficients[1]
+  intercept
+} else {
+  #not sure just yet
+}
+```
+
+
+Now we can create a set of matrices.
+```{r}
+int.mat <- matrix(int.effects,nrow=treatments,ncol=trials,byrow=TRUE)
+grand.matrix <- matrix(rep(intercept,trials*treatments),nrow=treatments)
+trl.matrix <- matrix(rep(1,treatments)) %*% t(trl.effects)
+trt.matrix <- trt.effects %*% t(matrix(rep(1,trials)))
+
+grand.matrix
+trl.matrix
+trt.matrix
+int.mat
+```
+
+The block matrix is a little more difficult. We need to map blocks to trials, then trials to means.
+
+```{r}
+blk.matrix <- matrix(blk.effects,nrow=reps,ncol=trials,byrow=TRUE)
+
+blk.matrix
+
+colMeans(matrix(blk.effects,nrow=reps,ncol=trials,byrow=TRUE))
+ls.matrix <- grand.matrix+trl.matrix+ trt.matrix+int.mat
+```
+
+Compare this with
+
+```{r}
+means.matrix <- gei.frame.to.table(Multilocation,response = response,TreatmentName=TreatmentName,TrialName=TrialName,GinRows=TRUE,lsmeans=FALSE)
+means.matrix
+means.matrix - ls.matrix
+rows <- dim(means.matrix)[1]
+  cols <- dim(means.matrix)[2]
+  grand.mean <- mean(unlist(means.matrix),na.rm=TRUE)
+  grand.matrix <- matrix(rep(grand.mean,rows*cols),nrow=rows)
+  col.effects <- colMeans(means.matrix,na.rm=TRUE) - grand.mean
+  row.effects <- rowMeans(means.matrix,na.rm=TRUE) - grand.mean
+  
+  
+  col.matrix <- matrix(rep(1,rows)) %*% col.effects
+  row.matrix <- row.effects %*% t(matrix(rep(1,cols)))
+  int.matrix <- means.matrix-(col.matrix+row.matrix+grand.mean)
+  
+  grand.matrix
+  col.matrix
+  row.matrix
+  int.matrix
+  
+  rownames(grand.matrix) <- rownames(int.matrix)
+  rownames(row.matrix) <- rownames(int.matrix)
+  rownames(col.matrix) <- rownames(int.matrix)
+  
+  colnames(grand.matrix) <- colnames(int.matrix)
+  colnames(row.matrix) <- colnames(int.matrix)
+  colnames(col.matrix) <- colnames(int.matrix)
+```
+
+
+
+Make sure we get the same results with different contrasts
+```{r}
+options(contrasts = c("contr.SAS", "contr.poly"))
+
+options(contrasts = c("contr.helmert", "contr.poly"))
+
+options(contrasts = c("contr.sum", "contr.poly"))
+
+options(contrasts = c("contr.treatment", "contr.poly"))
+```
+
+```{r}
+#Each row (or column) in A, expanded by multiplying by corresponding entry in B
+#added to support least square means for trials and treatment x trial (Feb 20 15, PMC)
+expand.incidence <- function(a, b, byRows=TRUE) {
+
+  m = dim(a)[1]
+  n = dim(a)[2]
+  p = dim(b)[1]
+  q = dim(b)[2]
+  ret = matrix(0,nrow=(m * p), ncol=(n * q))
+
+  #for each cell in b, create a block in the output matrix
+  for (outerP in 1:p) {
+    for (outerQ  in 1:q) {
+      currentB = b[outerP, outerQ]
+      for (innerM  in 1:m) {
+        for (innerN  in 1:n) {
+          val = a[innerM, innerN] * currentB
+          if (byRows) {
+            #row in the return is the current A block (where each A block has p rows)
+            #plus the current B row
+            i = ((innerM-1) * p) + outerP
+            #similarly, current column is the current A block (each with Q columns)
+            j = ((outerQ-1) * n) + innerN
+            ret[i, j] = val
+          } else {
+            #row in the return is the current A block (where each A block has p rows)
+            #plus the current B row
+            i = ((innerM-1) * p) + outerP
+            #similarly, current column is the current A block (each with Q columns)
+            j = ((innerN-1) * q) + outerQ
+            ret[i, j] = val
+          }
+        }
+      }
+    }
+  }
+  return (ret)
+}
+```
+
+```{r}
+notEstimable <- FALSE
+coeffs.1 <- mixed.lm$coefficients
+   
+   if(any(is.na(coeffs.1))) {
+     coeffs.1[is.na(coeffs.1)] <- 0
+     notEstimable <- TRUE
+   }
+   
+   #Treatment means.
+   X.treatments <- match.fun(mixed.lm$contrasts[[TreatmentName]])(treatments)
+   X.e <- matrix(1,ncol=(trials-1),nrow=treatments)
+   X.e <- X.e/trials
+   X.r <- matrix(1,nrow=treatments,ncol=((reps-1)*trials))
+   X.r <- X.r/(reps*trials)
+   X.te <- kronecker(C.t,t(rep(1,(trials-1))))#matrix(rep(X.treatments,(trl-1)),nrow=trt)
+   
+   X.te <- X.te/trials
+   
+   L.trt <- cbind(rep(1,treatments),X.e,X.treatments,X.te,X.r)
+   trt.lsmeans <- L.trt %*% coeffs.1
+   trt.lsmeans
+   rowMeans(means.matrix,na.rm=TRUE)
+   
+   #Trial Means
+   X.t <- matrix(1,ncol=(treatments-1),nrow=trials)
+   X.t <- X.t/treatments
+   X.e <- match.fun(mixed.lm$contrasts[[TrialName]])(trials)
+   X.reps <- contrasts(mixed.lm$model[[RepName]])
+   X.trial <- contrasts(mixed.lm$mode[[TrialName]],contrasts = FALSE)
+   X.r <- matrix(rep(X.trial,reps-1),nrow=trials)
+   X.r <- X.r/(reps)
+   #X.te <- rep.cols(X.e,(treatments-1))
+   X.te <- kronecker(C.e,t(rep(1,(treatments-1))))
+   X.te <- X.te/treatments
+   
+   L.trial <- cbind(rep(1,trials),X.e,X.t,X.te,X.r)
+   trial.lsmeans <- L.trial %*% coeffs.1
+   colMeans(means.matrix,na.rm=TRUE)
+   
+   
+   
+   #Trial effects
+   X.t <- matrix(0,ncol=(treatments-1),nrow=trials)
+   X.t <- X.t/treatments
+   X.e <- match.fun(mixed.lm$contrasts[[TrialName]])(trials)
+   X.reps <- contrasts(mixed.lm$model[[RepName]])
+   X.trial <- contrasts(mixed.lm$mode[[TrialName]],contrasts = FALSE)
+   X.r <- matrix(rep(X.trial,reps-1),nrow=trials)
+   X.r <- X.r/(reps)
+   X.t <- matrix(1,ncol=(treatments-1),nrow=trials)
+   X.t <- X.t/treatments
+``` 
+```{r}   
+   #X.te <- rep.cols(X.e,(trt-1))
+   X.te <- kronecker(t(c(1,1,1)),C.e)
+   X.te <- X.te/treatments
+   #X.te <- X.te*0
+   X.t <- matrix(0,ncol=(treatments-1),nrow=trials)
+   X.t <- X.t/treatments
+   
+   L.trial <- cbind(rep(0,trials),X.e,X.t,X.te,X.r)
+   trial.effects <- L.trial %*% coeffs.1
+   trial.effects
+   sum(trial.effects)
+   trial.effects<-trial.effects-mean(trial.effects)
+   col.effects
+   trial.effects-col.effects
+ ```
+ 
+ 
+ ```{r}
+   #Treatment by trial means
+   #X.t <- X.treatments
+   #for(i in 2:trials) {
+  #   X.t <- rbind(X.t,X.treatments)
+   #}
+   X.t <- kronecker(rep(1,(trials)),C.t)
+   X.trial <- contrasts(mixed.lm$mode[[TrialName]],contrasts = FALSE)
+   #X.e <- rep.rows(X.trial,treatments)
+   X.e <- kronecker(C.e,rep(1,treatments))
+   #X.r <- matrix(rep(X.trial,reps-1),nrow=trials)
+   X.r <- kronecker(t(rep(1,reps-1)),X.trial)
+   X.r <- kronecker(X.r,rep(1,treatments))
+   X.r <- X.r/(reps)
+   #X.r <- rep.rows(X.r,treatments)
+   
+   X.trial <- contrasts(mixed.lm$mode[[TrialName]])
+   #X.e <- rep.rows(X.trial,treatments)
+    #X.e <- kronecker(X.r,c(1,1,1,1))
+
+   #X.te <- expand.incidence(X.trial,X.treatments,byRows=FALSE)
+   X.te <- expand.incidence(C.e,C.t,byRows=TRUE)
+   #L.te <- kronecker(t(rep(1,treatments-1)),C.e)
+   #L.te <- kronecker(rep(1,treatments),L.te)
+    #kronecker(C.t,C.e)
+   #L.txt <- cbind(rep(1,trt*trl),X.t,X.e, X.te,X.r)
+    #dim(X.e)
+   L.txt <- cbind(rep(1,treatments*trials),X.e,X.t, X.te, X.r)
+   dim(L.txt)
+   length(coeffs.1)
+   txt.lsmeans <- L.txt %*% coeffs.1
+   trt.lsmeans.tbl <- matrix(txt.lsmeans,nrow=4)
+   trt.lsmeans.tbl
+   means.matrix
+   trt.lsmeans.tbl-means.matrix
+```
+
+
+```{r}
+tbl1 <- gei.table.and.effects(Multilocation,
+                         response =response,
+                         TreatmentName=TreatmentName,
+                         TrialName=TrialName,
+                         RepName=RepName,GinRows=TRUE)
+tbl2 <- gei.table.and.effects(Multilocation,
+                         response =response,
+                         TreatmentName=TreatmentName,
+                         TrialName=TrialName,
+                         GinRows=TRUE)
+```
+
+```{r}
+means.matrix-tbl1$means.table
+means.matrix-tbl2$means.table
+```   

@@ -1,0 +1,86 @@
+R examples for "Analysis of Generalized Linear Mixed Models in the Agricultural and Natural Resources Sciences"
+========================================================
+
+Table 4.1
+---------
+
+```{r}
+Gbur4.1 <- data.frame(
+  trt=as.factor(c(1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2)),
+rep=as.factor(c(1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10)),
+Plot=as.factor(c(101,202,301,402,501,602,701,802,901,1002,102,201,302,401,502,601,702,801,902,1001)),
+F=c(86,48,87,64,99,52,89,63,48,85,98,93,43,89,100,49,96,98,83,97),
+N=c(100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100),
+Y1=c(21.3,19.7,20.2,20,17.4,26,19.7,18.5,20.9,23,10,22,17.6,16,20.3,25.6,16.2,12.4,13.5,23.2),
+Y2=c(39.5,32.6,32.1,41.9,29.1,42.9,40.8,40.9,39.5,42,30.3,33.6,38.8,35.1,34.1,31.8,28.2,38.1,34.7,32.8)
+     )
+Gbur4.1
+```
+
+Does not duplicate Gbur
+```{r}
+library(lme4)
+gbur4.1.lmer <- lmer(Y1 ~ trt + (1 | rep), data=Gbur4.1)
+#gbur4.1.glm <- glmer(Y1 ~ trt + (1 | rep),family=gaussian(link = "identity"), data=Gbur4.1)
+gbur4.1.lmer
+```
+
+```{r}
+summary(gbur4.1.lmer)
+```
+
+Using lme, a positive-semi-definite with compound symmetry (constant main diagonal, constant off-diagonal) is constructed by calling
+```{r}
+library(nlme)
+pdCompSymm(diag(2))
+pdCompSymm(~trt-1,data=Gbur4.1)
+pdSymm(diag(3))
+
+pd1 <- pdCompSymm(4 * diag(3) + 1)
+pdFactor(pd1)
+pd1 <- pdBlocked(list(diag(1:2)+ .1, diag(c(0.1, 0.2, 0.3))+ .01),
+                 nam = list(c("A","B"), c("a1", "a2", "a3")))
+pd1
+```
+
+```{r}
+
+gbur4.1.a.lme <- lme(Y1~trt, data=Gbur4.1, random=list(rep=pdCompSymm(~trt-1)))
+gbur4.1.b.lme <- lme(Y1~trt, data=Gbur4.1, random=list(rep=pdSymm(~trt-1)))
+gbur4.1.c.lme <- lme(Y1~trt, data=Gbur4.1, random=list(rep=pdDiag(~trt-1)))
+gbur4.1.d.lme <- lme(Y1~trt, data=Gbur4.1, random=list(rep=pdNatural(~trt-1)))
+gbur4.1.e.lme <- lme(Y1~trt, data=Gbur4.1, random=list(rep=pdIdent(~trt-1)))
+#gbur4.1.f.lme <- lme(Y1~trt, data=Gbur4.1, random=list(rep=pdBlocked(~trt-1)))
+#gbur4.1.f.lme <- lme(Y1~trt, data=Gbur4.1, random=list(rep=pdFactor(pdCompSymm(~trt-1))))
+gbur4.1.lme <- lme(Y1~trt, data=Gbur4.1, random= ~ 1 | rep)
+gbur4.1.lme
+
+```
+F-test for treatments matches Gbur, fig 4.2
+```{r}
+anova(gbur4.1.lme)
+```
+```{r}
+cor(random.effects(gbur4.1.lme))
+cov(random.effects(gbur4.1.lme))
+cov(random.effects(gbur4.1.b.lme))
+cov(random.effects(gbur4.1.c.lme))
+cov(random.effects(gbur4.1.d.lme))
+cov(random.effects(gbur4.1.e.lme))
+```
+
+Matches fig 4.4
+```{r}
+gbur4.1.y2.lme <- lme(Y2~trt, data=Gbur4.1, random= ~ 1 | rep)
+gbur4.1.y2.lme
+anova(gbur4.1.y2.lme)
+```
+
+```{r}
+gbur4.1.y2.lme <- lme(Y2~trt, data=Gbur4.1, random=list(rep=pdCompSymm(~0 + trt)))
+gbur4.1.y2.lme
+anova(gbur4.1.y2.lme)
+#random.effects(gbur4.1.y2.lme)
+cor(random.effects(gbur4.1.y2.lme))
+cov(random.effects(gbur4.1.y2.lme))
+```

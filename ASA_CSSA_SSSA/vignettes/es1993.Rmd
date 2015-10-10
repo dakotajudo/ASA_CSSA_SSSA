@@ -1,0 +1,42 @@
+"Spatial Nature of Randomization and Its Effect on the Outcome of Field Experiments"
+========================================================
+
+Figure 2 is a realization of an RCB.
+
+```{r}
+fig2 <- data.frame(
+           trt=as.factor(c(4,1,3,2,1,3,4,2,3,2,4,1,2,3,4,1)),
+           blk=c(rep(1,4),rep(2,4),rep(3,4),rep(4,4)),
+           col=rep(1:4,4)
+        )
+```
+
+and Fig 3
+
+```{r}
+fig2 <- data.frame(
+           trt=as.factor(c(8,7,6,2,9,4,1,3,5,
+                           7,4,9,3,1,8,5,6,2,
+                           5,8,3,1,9,2,4,7,6,
+                           2,1,5,3,6,8,7,4,9)),
+           blk=c(rep(1,9),rep(2,9),rep(3,9),rep(4,9)),
+           col=rep(1:9,4)
+        )
+```
+
+Mercer Hall
+-----------
+```{r}
+library(agridat)
+#mercer.wheat.uniformity
+```
+
+```{r fig.width=5, fig.height=4}
+library(ggplot2)
+mercer.wheat.uniformity$diff <- mercer.wheat.uniformity$grain - mean(mercer.wheat.uniformity$grain)
+ggplot(mercer.wheat.uniformity, aes(col,row,color=diff,size=grain)) + geom_point() + scale_colour_gradient2()
+```
+
+```{r fig.width=5, fig.height=4}
+ggplot(mercer.wheat.uniformity, aes(col,row,color=diff,size=grain)) + geom_point() + scale_colour_gradientn(colours = terrain.colors(10))
+```

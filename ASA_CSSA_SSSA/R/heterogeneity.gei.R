@@ -11,7 +11,7 @@ heterogeneity.gei <- function(data=NULL,
                                 TrialName = TrialName,
                                 BlockName = BlockName
   )
-  return(update.for.heterogeneity(nonadditivity.res,heterogeneousEffect=TreatmentName,covariateEffect="Trial"))
+  return(update.for.heterogeneity(nonadditivity.res,heterogeneousEffect=TreatmentName,covariateEffect=TrialName))
 }
 
 update.for.heterogeneity <- function(nonadditivity.res,

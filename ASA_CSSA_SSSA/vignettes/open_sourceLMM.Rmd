@@ -1,0 +1,562 @@
+Comparison of open source mixed model packages for GEI
+======================================================
+
+http://glmm.wikidot.com/pkg-comparison
+
+Single RCB
+```{r}
+
+# example gls(..., corSpher ...)
+# Pinheiro and Bates, pp. 261, 263
+fm1Wheat2 <- gls(yield ~ variety - 1, Wheat2)
+# p. 262 
+fm2Wheat2 <- update(fm1Wheat2, corr =
+   corSpher(c(28, 0.2),
+     form = ~ latitude + longitude, nugget = TRUE))
+
+
+library(nlme)
+data(Wheat2)
+nin.aov <- aov(yield ~ variety + Block,data=Wheat2)
+nin.aov.tbl <- anova(nin.aov)
+nin.aov.tbl
+
+trts <- length(levels(Wheat2$variety))
+
+#residual
+sqrt(nin.aov.tbl[3,3])
+
+#rep in trial
+sqrt((nin.aov.tbl[2,3]-nin.aov.tbl[3,3])/trts)
+```
+
+### lme
+```{r}
+nin.1.lme <- lme(yield ~ variety,random = ~ 1 | Block,data=Wheat2)
+print(nin.1.lme,correlation=FALSE,digits=10)
+```
+
+```{r}
+library(ASA.CSSA.SSSA)
+data(cpt)
+library(SASmixed)
+data(Multilocation)
+
+#remove fill
+cpt.dat <- subset(cpt.dat,!(cpt.dat$entry=="fill"))
+cpt.dat$entry <- as.factor(as.character(cpt.dat$entry))
+#remove missing yield
+cpt.dat <- subset(cpt.dat,!is.na(cpt.dat$GY))
+
+#processed data
+data(cpt_data)
+cpt.pbal <- subset(cpt.pbal,!is.na(cpt.pbal$GY))
+cpt.pbal$year <- as.factor(cpt.pbal$year)
+cpt.bal <- subset(cpt.bal,!is.na(cpt.bal$GY))
+cpt.bal$year <- as.factor(cpt.bal$year)
+#convert to Mg ha-1
+cpt.pbal$GY <- (cpt.pbal$TW * cpt.pbal$GY)*0.00112
+cpt.bal$GY <- (cpt.bal$TW * cpt.bal$GY)*0.00112
+
+#create small data set
+three.entries <- subset(cpt.pbal, cpt.pbal$entry %in% c("sd97059-2","wesley","sd98102"))
+four.trials <- subset(three.entries, three.entries$location == "Brookings")
+four.trials$entry <- as.factor(as.character(four.trials$entry))
+four.trials$env <- as.factor(as.character(four.trials$env))
+four.trials$bloc <- as.factor(as.character(four.trials$bloc))
+four.trials<-four.trials[order(four.trials$year),]
+```
+
+
+Motivation
+----------
+R is most commonly used open source statistical package. Two mixed model packages commonly used. These packages do not allow for certain types of variance/covariance specifications.
+
+
+Models
+Standard
+Heterogeneous Interaction
+Heterogeneous Error
+
+### Cotes model
+
+
+Advantages over LM/AOV
+----------------------
+
+Parameters to estimate
+----------------------
+$$
+\mathbf{\theta}= \left(\begin{array}{c}
+        \mathbf{\beta}\\
+        \mathbf{u}_1\\
+        .\\
+        .\\
+        .\\
+        \mathbf{u}_{3 ( g)}
+      \end{array}\right), \mathbf{\theta}_0 \left(\begin{array}{c}
+        \mathbf{\beta}_0\\
+        \mathbf{0}\\
+        .\\
+        .\\
+        .\\
+        \mathbf{0}
+      \end{array}\right), \mathbf{D}= \left(\begin{array}{cccccc}
+        \mathbf{I}\mathbf{\sigma}_0^2 &  &  &  &  & \\
+        & \mathbf{I}\mathbf{\sigma}_{u_1}^2 &  &  &  & \\
+        &  & . &  &  & \\
+        &  &  & . &  & \\
+        &  &  &  & . & \\
+        &  &  &  &  & \mathbf{I}\mathbf{\sigma}_{u_{3 ( g)}}^2
+      \end{array}\right)
+$$
+
+
+Packages considered, illustrated with Steel Torrie and SAS multilocation
+-------------------
+```{r}
+data(SteelTorrie)
+data(Multilocation)
+```
+
+Expected MS for GEI data, assuming all effects random
+Source                   |     Mean square    |   EMS
+-------------------------|--------------------|-------------------
+Environment (E)          |           $MS_{E}$ | $\sigma ^2 _e + r \sigma ^2 _{GE} + g \sigma^2 _{R} + rg \sigma ^2 _{E}$
+Replicate in Environment |           $MS_{R}$ | $\sigma ^2 _e + g \sigma^2 _{R}$
+Genotype (G)             |           $MS_{G}$ | $\sigma ^2 _e + r \sigma ^2 _{GE} + rg \sigma ^2 _{G}$
+G x E                    |          $MS_{GE}$ | $\sigma ^2 _e + r \sigma ^2 _{GE}$
+Error                    |           $MS_{e}$ | $\sigma ^2 _e$
+
+http://www.knowledgebank.irri.org/ricebreedingcourse/Lesson_6__Multi-environment_trials___design_and_analysis_.htm (see also for table providing necessary replicates and predicted LSD)
+
+Thus, $\sigma ^2 _{GE} = (MS_{GE} - MS_{e})/r$ and $\sigma ^2 _{E} = (MS_{G} - MS_{GE})/rg$
+
+```{r}
+st.aov <- aov(Yield ~ Variety + Trial + Variety:Trial + Trial:Rep,data=p399)
+st.aov.tbl <- anova(st.aov)
+st.aov.tbl
+
+trts <- length(levels(p399$Variety))
+trials <- length(levels(p399$Variety))
+blocks <- length(levels(p399$Rep))
+
+#residual
+rms <- st.aov.tbl[5,3]
+
+#rep in trial
+msr <- st.aov.tbl[4,3]
+(msr-rms)/trts
+sr <- sqrt((msr-rms)/trts)
+#trt by trial
+msge <- st.aov.tbl[3,3]
+(msge-rms)/blocks
+sge <- sqrt((msge-rms)/blocks)
+
+#trials
+mse <- st.aov.tbl[2,3]
+(mse- msr - msge + rms)/(trts*blocks)
+se <- sqrt((mse- msr - msge + rms)/(trts*blocks))
+
+sqrt(rms)
+se 
+sr
+sge
+
+
+trts <- length(levels(Multilocation$Trt))
+trials <- length(levels(Multilocation$Location))
+blocks <- length(levels(p399$Rep))
+sas.aov <- aov(Adj ~ Trt + Location + Location:Trt + Location:Block,data=Multilocation)
+sas.aov.tbl <- anova(sas.aov)
+sas.aov.tbl
+
+#residual
+rms <- sas.aov.tbl[5,3]
+
+#rep in trial
+msr <- sas.aov.tbl[4,3]
+sr <- sqrt((msr-rms)/trts)
+#trt by trial
+msge <- sas.aov.tbl[3,3]
+sge <- sqrt((msge-rms)/blocks)
+
+#trials
+mse <- sas.aov.tbl[2,3]
+se <- sqrt((mse- msr - msge + rms)/(trts*blocks))
+
+sqrt(rms)
+se 
+sr
+sge
+
+
+```
+
+Fixed Effect model
+------------------
+Variety * Trial + 1 | Trial:Rep
+
+
+
+
+#### Homogenous
+```{r}
+hom.fix <- as.formula(Yield ~ Variety)
+hom.ran <- as.formula(~ Trial/Rep + Variety:Trial)
+hom.form <- as.formula(Yield ~ Variety + (1 | Trial/Rep) + (1 | Variety:Trial))
+```
+#### Heterogeneous model 1
+```{r}
+het1.fix <- as.formula(Yield ~ Variety)
+het1.ran <- as.formula(~ Trial/Rep + idh(Variety):Trial)
+het1.form <- as.formula(Yield ~ Variety + (1 | Trial/Rep) + (Variety | Trial))
+```
+#### Heterogeneous model 2
+```{r}
+het2.rcov <- as.formula(~idh(Trial):units)
+```
+
+#### Heterogeneous model 3
+
+### lme
+
+```{r}
+library(nlme)
+p399$Block <- p399$Trial:p399$Rep
+p399$GEI <- p399$Trial:p399$Variety
+p399.grp <- groupedData(Yield ~ 1 |Trial/Rep, data=p399)
+
+st.1.lme <- lme(Yield ~ Variety*Trial,random = ~ 1 | Block,data=p399.grp)
+print(st.1.lme,correlation=FALSE,digits=10)
+st.2.lme <- lme(Yield ~ Variety + Variety:Trial, random = ~ 1 | Trial/Rep, data = p399.grp)
+print(st.2.lme,correlation=FALSE,digits=10)
+
+st.3.lme <- lme(Yield ~ Variety, p399.grp, random=pdBlocked(list(pdIdent(~ Trial - 1),pdIdent(~ Variety - 1))))
+print(st.3.lme,correlation=FALSE,digits=10)
+
+Multilocation.grp <- groupedData(Adj ~ 1 |Location/Block, data=Multilocation)
+Multilocation.blocks <- groupedData(Adj ~ 1 |Block, data=Multilocation)
+sas.1.lme <- lme(Adj ~ Trt*Location,random = ~ 1 | Grp,data=Multilocation.grp)
+print(sas.1.lme,correlation=FALSE,digits=10)
+sas.2.lme <- lme(Adj ~ Trt + Trt:Location, random = ~ 1 | Location/Block, data = Multilocation.grp)
+print(sas.2.lme,correlation=FALSE,digits=10)
+
+#note - we need -1 so that we don't have duplicated column names
+sas.3.lme <- lme(Adj ~ Trt, Multilocation.grp, random=pdBlocked(list(pdIdent(~ Location-1),pdIdent(~ Trt-1))))
+print(sas.3.lme,correlation=FALSE,digits=10)
+lme(Adj ~ Trt, Multilocation.blocks, random=pdBlocked(list(pdIdent(~ Trt-1),pdIdent(~ Location-1))))
+lme(Adj ~ Trt, Multilocation.grp, random=pdIdent(~ Trt-1))
+#not quite
+#lme(Adj ~ Trt, Multilocation.grp, random=pdBlocked(list(pdIdent(~ 1),pdIdent(~ Location-1),pdIdent(~ Trt-1))))
+```
+
+lme allows specification of different correlation structures, corAR1, corCAR1, corCompSymm 
+
+### lmer
+```{r}
+library(lme4)
+```
+
+Homgenous random effects
+```{r}
+st.1.lmer <- lmer(Yield ~ Variety*Trial + (1 | Trial:Rep),data=p399)
+print(st.1.lmer,correlation=FALSE,digits=10)
+st.2.lmer <- lmer(Yield ~ Variety + Variety:Trial + (1 | Trial/Rep),data=p399)
+print(st.2.lmer,correlation=FALSE,digits=10)
+st.3.lmer <- lmer(Yield ~ Variety + (1 | Trial/Rep) + (1 | Trial:Variety),data=p399)
+print(st.3.lmer,correlation=FALSE,digits=10)
+st.4.lmer <- lmer(Yield ~ (1 | Variety) + (1 | Trial/Rep) + (1 | Trial:Variety),data=p399)
+print(st.3.lmer,correlation=FALSE,digits=10)
+```
+
+```{r}
+sas.1.lmer <- lmer(Adj ~ Trt*Location + (1 | Location:Block),data=Multilocation)
+print(sas.1.lmer,correlation=FALSE,digits=10)
+sas.2.lmer <- lmer(Adj ~ Trt + Trt:Location + (1 | Location/Block),data=Multilocation)
+print(sas.2.lmer,correlation=FALSE,digits=10)
+sas.3.lmer <- lmer(Adj ~ Trt + (1 | Location/Block) + (1 | Location:Trt),data=Multilocation)
+print(sas.3.lmer,correlation=FALSE,digits=10)
+```
+
+### MCMCglmm
+```{r}
+library(MCMCglmm)
+```
+
+```{n}
+nin.1.MCMCglmm <- MCMCglmm(fixed=yield ~ variety, random = ~ Block,data=Wheat2, verbose=FALSE)
+summary(nin.1.MCMCglmm)
+```
+
+```{r}
+st.1.MCMCglmm <- MCMCglmm(fixed=Yield ~ Variety*Trial, random = ~ Trial:Rep,data=p399, verbose=FALSE)
+summary(st.1.MCMCglmm)
+#Trial/Rep syntax does not work
+st.2.MCMCglmm <- MCMCglmm(fixed=Yield ~ Variety + Variety:Trial, random = ~ Trial + Trial:Rep,data=p399, verbose=FALSE)
+summary(st.2.MCMCglmm)
+st.3.MCMCglmm <- MCMCglmm(fixed=Yield ~ Variety, random = ~ Trial + Trial:Rep + Variety:Trial,data=p399, verbose=FALSE)
+summary(st.3.MCMCglmm)
+```
+
+### glmmADMB
+mcmc=FALSE -  default, true is to run MCMC after fitting.
+
+```{r}
+library(glmmADMB)
+
+nin.1.admb <- glmmadmb(yield ~ variety, random = ~ 1 | Block, family = "gaussian", data = Wheat2)
+summary(nin.1.admb)
+
+st.1.admb <-  glmmadmb(Yield ~ Variety*Trial, random = ~ 1 | Block, family = "gaussian", data = p399)
+summary(st.1.admb)
+st.2.admb <-  glmmadmb(Yield ~ Variety + Variety:Trial, random = ~ 1 | Trial/Rep, family = "gaussian", data = p399)
+summary(st.2.admb)
+
+sas.1.admb <-  glmmadmb(Adj ~ Trt*Location, random = ~ 1 | Grp, family = "gaussian", data = Multilocation)
+summary(sas.1.admb)
+sas.2.admb <-  glmmadmb(Adj ~ Trt + Trt:Location, random = ~ 1 | Location/Block, family = "gaussian", data = Multilocation)
+summary(sas.2.admb)
+```
+                            
+### glmmAK
+
+
+### glmmGS
+glmmGS only supports poisson and binomial families
+```{r}
+#library(glmmGS)
+#glmmGS(Yield ~ Variety + (1 | Trial/Rep), family = "gaussian",data = p399)
+```
+
+### glmmLasso
+```{r}
+library(glmmLasso)
+
+nin.1.glmmLasso <- glmmLasso(yield ~ variety, rnd = list(Block=~1), lambda=200, data = Wheat2)
+summary(nin.1.glmmLasso)
+
+lm1 <- glmmLasso(Yield ~ Variety, rnd = list(Rep=~1), lambda=200, data = p399)
+lm1
+#fails
+#glmmLasso(Yield ~ Variety, rnd = list(Trial=~1,GEI=~1), lambda=20, data = p399)
+```
+
+
+### glmmPQL
+glmmPQL works by repeated calls to lme
+
+```{r}
+library(MASS)
+
+nin.glmmPQL <- glmmPQL(yield ~ variety, random = ~ 1 | Block,family=gaussian, data = Wheat2)
+summary(nin.glmmPQL)
+
+hom.glmmPQL <- glmmPQL(Yield ~ Variety, random = ~ 1 | Trial/Rep,family=gaussian, data = p399)
+#het.glmmPQL <- glmmPQL(Yield ~ Variety, random = ~ 1 | Variety:Trial,family=gaussian, data = p399)
+hom.glmmPQL
+```
+
+
+### glmmML
+
+### fastrml
+
+
+```{r}
+#hom.MCMCglmm <- MCMCglmm(fixed=Yield ~ Variety, random = ~ Trial + Trial:Rep + Variety:Trial,data=p399, verbose=FALSE)
+#summary(hom.MCMCglmm)
+#het1.MCMCglmm <- MCMCglmm(fixed=Yield ~ Variety, random = ~ Trial + Trial:Rep + idh(Variety):Trial,data=p399, verbose=FALSE)
+#summary(het1.MCMCglmm)
+#het2.MCMCglmm <- MCMCglmm(fixed=Yield ~ Variety, random = ~ Trial + Trial:Rep + Variety:Trial,data=p399,rcov=as.formula(~idh(Trial):units), verbose=FALSE)
+#summary(het2.MCMCglmm)
+#het3.MCMCglmm <- MCMCglmm(fixed=Yield ~ Variety, random = ~ Trial + Trial:Rep + idh(Variety):Trial,data=p399,rcov=as.formula(~idh(Trial):units), verbose=FALSE)
+#summary(het3.MCMCglmm)
+```
+
+### regress
+regress: Gaussian linear models with linear covariance structure
+
+### pedigreemm
+
+Repeat Zhang
+------------
+http://www.admb-project.org/examples/r-stuff/lmer-comparison
+
+A note on terms. 
+---------------
+Mixed models are frequently described in the context of heirarchical models. Heirarchical models can be represented as nested linear (regression) models - each level of the heirarchy as a unique regression.  Within each level there are two options for regression
+### Varying-intercept
+### Varying-intercept, varying slope
+
+For most R packages, the first (for effect B nested in A) is denoted (1 | A/B), the second as (A | B)
+??? Is this accurate??
+
+
+### Matrix forms
+from nlme
+
+1. pdSymm
+   * general positive-definite matrix, with no additional structure
+2. pdLogChol
+   * general positive-definite matrix, with no additional structure, using a log-Cholesky parameterization
+3. pdDiag
+   * diagonal
+4. pdIdent
+   * multiple of an identity
+5. pdCompSymm
+   * compound symmetry structure (constant diagonal and constant off-diagonal elements)
+6. pdBlocked
+   * block-diagonal matrix, with diagonal blocks of any "atomic" pdMat class
+7. pdNatural
+   * general positive-definite matrix in natural parametrization (i.e. parametrized in terms of standard deviations and correlations). The underlying coefficients are not unrestricted, so this class should NOT be used for optimization.
+
+
+### Correlation Structures
+
+1. corAR1  
+   * autoregressive process of order 1.
+2. corARMA  
+   * autoregressive moving average process, with arbitrary orders for the autoregressive and moving average components.
+3. corCAR1	
+   * continuous autoregressive process (AR(1) process for a continuous time covariate).
+4. corCompSymm	
+   * compound symmetry structure corresponding to a constant correlation.
+5. corExp	
+   * exponential spatial correlation.
+6. corGaus	
+   * Gaussian spatial correlation.
+7. corLin	
+   * linear spatial correlation.
+8. corRatio	
+   * Rational quadratics spatial correlation.
+9. corSpher	
+   * spherical spatial correlation.
+10. corSymm	
+   * general correlation matrix, with no additional structure.
+
+\section{Interblock analysis}
+The interblock analysis provides least squares means using a mixed model estimate.
+
+interblock <- lm(Yield ~ Trt + Rep + BlockInRep:Rep + ColInRep:Rep,data=SlateHall)
+intrablock <- lmer(Yield ~ Trt + (1 | Rep) +  (1 | BlockInRep:Rep) +  (1 | ColInRep:Rep),data=SlateHall)
+intrablock.means <- lsmeans(intrablock, ~ Trt)
+
+
+We want to duplicate models of the form (from http://stats.stackexchange.com/questions/18709/lme4-or-other-open-source-r-package-code-equivalent-to-asreml-r)
+
+
+data(nin89)
+
+# Model 1: RCB analysis with G and R structure
+rcb.asr <- asreml(yield ~ Variety, random = ~ idv(Replicate), rcov = ~ idv(units), data = nin89)
+
+# Model 2: two-dimensional spatial model with correlation in one direction
+sp.asr <- asreml(yield ~ Variety, rcov = ~ Column:ar1(Row), data = nin89)
+
+# model 3: two-dimensional spatial model, error structure in both direction
+sp.asr <- asreml(yield ~ Variety, rcov = ~ ar1(Column):ar1(Row),  data = nin89)
+sp.asr <- asreml(yield ~ Variety, random = ~ units, rcov = ~ ar1(Column):ar1(Row), data = nin89)
+
+
+
+glmmADMB
+install.packages("glmmADMB", repos="http://r-forge.r-project.org",
+                      type="source")
+install.packages("glmmADMB",repos=c("http://glmmadmb.r-forge.r-project.org/repos", getOption("repos")),type="source")
+                                                       
+### glmmAK
+
+### glmmBUGS
+
+### glmmGS
+This project implements a block-wise Gauss-Seidel (GS) algorithm to fit Generalized Linear Mixed Models (GLMMs). The GS algorithm allows for a significant performance increase and memory saving.
+
+### glmmLasso
+An Algorithm for High-Dimensional Generalized Linear Mixed Models Using L1-Penalization
+
+### glmmPQL
+Schall, R. (1991) Estimation in generalized linear models with random effects. Biometrika 78, 719--727.
+Breslow, N. E. and Clayton, D. G. (1993) Approximate inference in generalized linear mixed models. Journal of the American Statistical Association 88, 9--25.
+Wolfinger, R. and O'Connell, M. (1993) Generalized linear mixed models: a pseudo-likelihood approach. Journal of Statistical Computation and Simulation 48, 233--243.
+Venables, W. N. and Ripley, B. D. (2002) Modern Applied Statistics with S. Fourth edition. Springer.
+
+summary(glmmPQL(y ~ trt + I(week > 2), random = ~ 1 | ID, family = binomial, data = bacteria))
+
+
+
+### glmmML
+Brostrm, G. and Holmberg, H. (2011). Generalized linear models with clustered data: Fixed and random effects models. Computational Statistics and Data Analysis 55:3123-3134.
+
+
+### minque
+
+```{r}
+library(minque)
+st.1.minque <- lmm(Yield ~ Variety*Trial | Trial:Rep,data=p399)
+print(st.1.minque,correlation=FALSE,digits=10)
+st.1.minque[[1]]$Var
+st.1.minque[[1]]$FixedEffect
+st.2.minque <- lmm(Yield ~ Variety + Variety:Trial | Trial/Rep,data=p399)
+print(st.2.minque,correlation=FALSE,digits=10)
+st.2.minque[[1]]$Var
+st.2.minque[[1]]$FixedEffect
+st.3.minque <- lmm(Yield ~ Variety| Trial/Rep + Trial:Variety,data=p399)
+st.3.minque[[1]]$Var
+st.3.minque[[1]]$FixedEffect
+st.4.minque <- lmm(Yield ~ 1 | Trial*Variety + Trial/Rep,data=p399)
+st.4.minque[[1]]$Var
+st.4.minque[[1]]$FixedEffect
+```
+
+```{r}
+data(ncii)
+ncii.lmer <- lmer(Yld ~ (1|Female) + (1|Male) + (1|Female:Male)+(1 | Rep),data=ncii)
+VarCorr(ncii.lmer)
+res=lmm(Yld~1|Female*Male+Rep,data=ncii,method=c("reml","minque"))
+res[[1]]$Var
+res[[1]]$FixedEffect
+res[[1]]$RandomEffect
+
+
+data(brate)
+brate$Geno=factor(brate$Geno)
+brate$Pos=factor(brate$Pos)
+brate$Rep=factor(brate$Rep)
+
+brate.lmer <- lmer(Brate ~ (1|Geno) + (1|Pos) + (1|Geno:Pos)+(1 | Rep),data=brate)
+VarCorr(brate.lmer)
+res=lmm(Brate~1|Geno*Pos+Rep,data=brate)
+
+res[[1]]$Var
+res[[1]]$FixedEffect
+#res[[1]]$RandomEffect
+res=lmm.jack(Brate~1|Geno*Pos+Rep,data=brate,JacNum=10,JacRep=1,ALPHA=0.05)
+res[[1]]$Var
+res[[1]]$PVar
+res[[1]]$FixedEffect
+#res[[1]]$RandomEffect
+
+
+data(cot)
+
+cot$Geno=factor(cot$Geno)
+cot$Loc=factor(cot$LOC)
+cot$Rep=factor(cot$REP)
+cot.lmer <- lmer(LY ~ (1|Geno) + (1|Loc) + (1|Geno:Loc)+(1 | Loc:Rep),data=cot)
+VarCorr(cot.lmer)
+res=lmm(LY~1|Geno*Loc+Loc:Rep,data=cot)
+res[[1]]$Var
+sqrt(res[[1]]$Var[[1]][,1])
+res[[1]]$FixedEffect
+#res[[1]]$RandomEffect
+res=lmm.jack(LY~1|Geno*Loc+Loc:Rep,data=cot,JacNum=10,JacRep=1,ALPHA=0.05)
+res[[1]]$Var
+res[[1]]$PVar
+res[[1]]$FixedEffect
+#res[[1]]$RandomEffect
+sqrt(res[[1]]$Var[[1]][,1])
+```
+
+Jackknife and Bootstrap methods
+Permutation

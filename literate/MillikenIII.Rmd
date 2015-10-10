@@ -1,0 +1,162 @@
+---
+title:, "Analysis of Messy Data 2"
+author:, "Peter, Claussen"
+date:, "August, 31, 2015"
+output:, html_document
+---
+
+```{r,echo=FALSE}
+source("../ASA_CSSA_SSSA/R/gei.table.to.frame.R")
+source("../ASA_CSSA_SSSA/R/nonadditivity.gei.R")
+source("../ASA_CSSA_SSSA/R/heterogeneity.gei.R")
+source("../../ARMR.git/ARMR/R/plot.interaction.ARMST.R")
+library(ARMR)
+sorghum.dat <- matrix(
+  c(12.3, 19.6, 25.7, 30.4,
+    13.7, 16.9, 27.0, 31.5,
+    17.8, 20.0, 26.3, 35.9,
+    12.1, 17.4, 36.9, 43.4,
+    6.9, 18.8, 35.0, 53.0),
+  nrow=5, byrow=TRUE
+)
+rownames(sorghum.dat) <- paste("T",as.character(c(5:9)*10),sep="")
+colnames(sorghum.dat) <- paste("H",as.character(c(1:4)*20),sep="")
+
+heuristic.dat <- matrix(
+  c(8,6,4,
+    4,8,6,
+    6,4,8),
+  nrow=3, byrow=TRUE
+)
+rownames(heuristic.dat) <- paste("T",as.character(1:3),sep="")
+colnames(heuristic.dat) <- paste("B",as.character(1:3),sep="")
+
+additive.dat <- matrix(
+  c(19,26,23,28,
+    26,33,30,35,
+    28,35,32,37,
+    24,31,28,33,
+    23,30,27,32),
+  nrow=5, byrow=TRUE
+)
+rownames(additive.dat) <- paste("T",as.character(1:5),sep="")
+colnames(additive.dat) <- paste("B",as.character(1:4),sep="")
+
+onecell.dat <- matrix(
+  c(19,26,23,28,
+    26,24,30,35,
+    28,35,32,37,
+    24,31,28,33,
+    23,30,27,32),
+  nrow=5, byrow=TRUE
+)
+rownames(onecell.dat) <- paste("T",as.character(1:5),sep="")
+colnames(onecell.dat) <- paste("B",as.character(1:4),sep="")
+
+onerow.dat <- matrix(
+  c(28,19,23,26,
+    26,24,30,35,
+    28,35,32,37,
+    24,31,28,33,
+    23,30,27,32),
+  nrow=5, byrow=TRUE
+)
+rownames(onerow.dat) <- paste("T",as.character(1:5),sep="")
+colnames(onerow.dat) <- paste("B",as.character(1:4),sep="")
+
+twocells.dat <- matrix(
+  c(19,26,23,28,
+    26,30,30,35,
+    28,35,38,37,
+    24,31,28,33,
+    23,30,27,32),
+  nrow=5, byrow=TRUE
+)
+rownames(twocells.dat) <- paste("T",as.character(1:5),sep="")
+colnames(twocells.dat) <- paste("B",as.character(1:4),sep="")
+
+tworows.dat <- matrix(
+  c(19,26,23,28,
+    33,30,35,26,
+    34,27,30,37,
+    24,31,28,33,
+    23,30,27,32),
+  nrow=5, byrow=TRUE
+)
+rownames(tworows.dat) <- paste("T",as.character(1:5),sep="")
+colnames(tworows.dat) <- paste("B",as.character(1:4),sep="")
+
+oneronec.dat <- matrix(
+  c(24,22,26,19,
+    24,33,30,36,
+    29,35,32,38,
+    26,31,28,34,
+    27,29,26,32),
+  nrow=5, byrow=TRUE
+)
+rownames(oneronec.dat) <- paste("T",as.character(1:5),sep="")
+colnames(oneronec.dat) <- paste("B",as.character(1:4),sep="")
+
+davies.dat <- matrix(
+  c(28.2, 23.5, 17.4, 10.1,
+    29.3, 24.8, 15.2, 11.5,
+    33.7, 24.1, 17.8, 15.6,
+    41.2, 34.7, 14.7, 9.9,
+    50.9, 32.8, 16.6, 4.7),
+  nrow=5, byrow=TRUE
+)
+rownames(davies.dat) <- paste("T",as.character(1:5),sep="")
+colnames(davies.dat) <- paste("B",as.character(1:4),sep="")
+```
+
+```{r}
+source("../../ARMR.git/ARMR/R/plot.interaction.ARMST.R")
+```
+
+
+```{r}
+sorghum.res <- standard.plot.reduced(sorghum.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot.reduced(sorghum.res)
+```
+
+
+```{r}
+additive.res <- standard.plot.reduced(additive.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot.reduced(additive.res)
+```
+
+### One Cell
+The combination of $T_2$ and $B_2$ is different than what would be expected with additivity.
+
+```{r}
+onecell.res <- standard.plot.reduced(onecell.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot.reduced(onecell.res)
+```
+
+### One Row
+The first row is different that would be expected from additive.
+
+```{r}
+onerow.res <- standard.plot.reduced(onerow.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot.reduced(onerow.res)
+```
+
+```{r}
+twocells.res <- standard.plot.reduced(twocells.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot.reduced(twocells.res)
+```
+
+```{r}
+tworows.res <- standard.plot.reduced(tworows.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot.reduced(tworows.res)
+```
+
+```{r}
+oneronec.res <- standard.plot.reduced(oneronec.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot.reduced(oneronec.res)
+```
+
+```{r}
+davies.res <- standard.plot.reduced(davies.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot.reduced(davies.res)
+```

@@ -1,0 +1,432 @@
+Comparing LMM packages
+========================================================
+
+```{r}
+library(ggplot2)
+library(ASA.CSSA.SSSA)
+#data(cpt)
+
+#remove fill
+#cpt.dat <- subset(cpt.dat,!(cpt.dat$entry=="fill"))
+#cpt.dat$entry <- as.factor(as.character(cpt.dat$entry))
+
+#convert to Mg ha-1
+#cpt.pbal$GY <- (cpt.pbal$TW * cpt.pbal$GY)*0.00112
+#cpt.bal$GY <- (cpt.bal$TW * cpt.bal$GY)*0.00112
+
+#remove missing yield
+#cpt.dat <- subset(cpt.dat,!is.na(cpt.dat$GY))
+
+#processed data
+data(cpt_data)
+cpt.pbal <- subset(cpt.pbal,!is.na(cpt.pbal$GY))
+
+#sum(is.na(cpt.pbal$GY))
+#cpt.pbal <- cpt.pbal[!is.na(cpt.pbal$GY),]
+cpt.pbal$year <- as.factor(cpt.pbal$year)
+#cpt.bal <- subset(cpt.bal,!is.na(cpt.bal$GY))
+#cpt.bal$year <- as.factor(cpt.bal$year)
+
+```
+
+some are better encoded this way
+from http://glmm.wikidot.com/faq
+
+Whether you explicitly specify a random effect as nested or not depends (in part) on the way the levels of the random effects are coded. If the 'lower-level' random effect is coded with unique levels, then the two syntaxes (1|a/b) (or (1|a+a:b)) and (1|a)+(1|b) are equivalent. If the lower-level random effect has the same labels within each larger group (e.g. blocks 1, 2, 3, 4 within sites A, B, and C) then the explicit nesting (1|a/b) is required. It seems to be considered best practice to code the nested level uniquely (e.g. A1, A2, …, B1, B2, …) so that confusion between nested and crossed effects is less likely.
+
+```{r}
+cpt.pbal$blocInEnv <- cpt.pbal$env:cpt.pbal$bloc
+
+#create small data set
+three.entries <- subset(cpt.pbal, cpt.pbal$entry %in% c("sd97059-2","wesley","sd98102"))
+four.trials <- subset(three.entries, three.entries$location == "Brookings")
+four.trials$entry <- as.factor(as.character(four.trials$entry))
+four.trials$env <- as.factor(as.character(four.trials$env))
+four.trials$bloc <- as.factor(as.character(four.trials$bloc))
+four.trials<-four.trials[order(four.trials$year),]
+```
+
+Range of estimates for RCB
+
+```{r}
+library(nlme)
+library(MCMCglmm)
+library(glmmADMB)
+library(glmmLasso)
+library(MASS)
+
+envs <- levels(cpt.pbal$env)
+
+if(!file.exists("table1.Rda")) {
+table1.lm <- data.frame(trial=envs,rep.var=rep(0,length(envs)),err.var=rep(0,length(envs)))
+table1.lme <- data.frame(trial=envs,rep.var=rep(0,length(envs)),err.var=rep(0,length(envs)))
+table1.MCMCglmm <- data.frame(trial=envs,rep.var=rep(0,length(envs)),err.var=rep(0,length(envs)))
+table1.glmmadmb <- data.frame(trial=envs,rep.var=rep(0,length(envs)),err.var=rep(0,length(envs)))
+table1.glmmLasso <- data.frame(trial=envs,rep.var=rep(0,length(envs)),err.var=rep(0,length(envs)))
+table1.glmmPQL <- data.frame(trial=envs,rep.var=rep(0,length(envs)),err.var=rep(0,length(envs)))
+for(idx in 1:length(table1.lm$trial)) {
+  env <- table1.lm$trial[idx]
+  current.trial <- cpt.pbal[(cpt.pbal$env == env),]
+  current.trial <- current.trial[!is.na(current.trial$GY),]
+  if(length(current.trial$GY>2)) {
+    current.lm <- lm(GY ~ entry + bloc,data=current.trial)
+    #manually compute variance
+    current.aov.tbl <- anova(current.lm)
+    
+    trts <- current.aov.tbl[1,1]+1
+    errordf <- current.aov.tbl[3,1]
+    #residual
+    rms <- current.aov.tbl[3,3]
+    table1.lm$err.var[idx] <- rms
+    
+    
+    #res.lm <- current.lm$fitted - current.trial$GY
+    #rms <- sum(res.lm^2)/errordf
+    
+    #rep in trial
+    rep.var <- (current.aov.tbl[2,3]-current.aov.tbl[3,3])/trts
+    table1.lm$rep.var[idx] <- rep.var
+    
+    #table1.lm <- rbind(table1.lm,res)
+    #extract rcb
+    current.lme <- lme(GY ~ entry,random = ~ 1 | bloc,data=current.trial)
+    rep.var <- as.numeric(VarCorr(current.lme)[1,1])
+    rms <- as.numeric(VarCorr(current.lme)[2,1])
+    table1.lme$err.var[idx] <- rms
+    table1.lme$rep.var[idx] <- rep.var
+    
+    #MCMC
+    current.MCMCglmm <- MCMCglmm(fixed=GY ~ entry, random = ~ bloc,data=current.trial, verbose=FALSE)
+    rms <- summary(current.MCMCglmm)$Rcovariances[1]
+    
+    rep.var <- summary(current.MCMCglmm)$Gcovariances[1,1]
+    table1.MCMCglmm$err.var[idx] <- rms
+    table1.MCMCglmm$rep.var[idx] <- rep.var
+    
+    current.glmmadmb <- glmmadmb(GY ~ entry, random = ~ 1 | bloc, family = "gaussian", data = current.trial)
+    rep.var <- VarCorr(current.glmmadmb)[[1]]
+    rms <- sum(current.glmmadmb$residuals^2)/errordf #var(current.glmmadmb$residuals)
+    table1.glmmadmb$err.var[idx] <- rms
+    table1.glmmadmb$rep.var[idx] <- rep.var
+    
+    current.glmmLasso <- glmmLasso(GY ~ entry, rnd = list(bloc=~1), lambda=1, data = current.trial)
+    rep.var <- current.glmmLasso$StdDev*current.glmmLasso$StdDev
+    res <- current.glmmLasso$fitted.values - current.trial$GY
+    rms <- sum(res^2)/errordf
+    rms <- var(res)
+    table1.glmmLasso$err.var[idx] <- rms
+    table1.glmmLasso$rep.var[idx] <- rep.var
+    
+    current.glmmPQL <- glmmPQL(GY ~ entry, random = ~ 1 | bloc,family=gaussian, data = current.trial)
+    rep.var <- as.numeric(VarCorr(current.glmmPQL)[1,1])
+    rms <- as.numeric(VarCorr(current.glmmPQL)[2,1])
+
+    table1.glmmPQL$err.var[idx] <- rms
+    table1.glmmPQL$rep.var[idx] <- rep.var
+  }
+}
+
+table1.lme$method <- "lme"
+table1.lm$method <- "lm"
+table1.MCMCglmm$method <- "MCMCglmm"
+table1.glmmadmb$method <- "glmmadmb"
+table1.glmmLasso$method <- "glmmLasso"
+table1.glmmPQL$method <- "glmmPQL"
+
+table1 <- rbind(table1.lm,table1.lme,table1.MCMCglmm,table1.glmmadmb,table1.glmmLasso,table1.glmmPQL)
+save(table1,file="table1.Rda")
+} else {
+  load(file="table1.Rda")
+  table1.lm = subset(table1,table1$method=="lm")  
+  table1.lme = subset(table1,table1$method=="lme")
+
+  table1.MCMCglmm = subset(table1,table1$method=="MCMCglmm")
+  table1.glmmadmb = subset(table1,table1$method=="glmmadmb")
+  table1.glmmLasso = subset(table1,table1$method=="glmmLasso")
+  table1.glmmPQL = subset(table1,table1$method=="glmmPQL")
+  
+}
+
+table1 <- subset(table1,table1$rep.var < 2*max(table1.lm$rep.var))
+
+```
+
+```{r fig=TRUE,echo=FALSE,width=9,height=5}
+#ggplot(table1, aes(x=rep.var, fill = method)) + geom_bar(position="dodge",binwidth = .1)
+ggplot(table1, aes(x=rep.var, fill = method)) + geom_bar(position="dodge",binwidth = 10)
+```
+
+```{r fig=TRUE,echo=FALSE,width=9,height=5}
+#ggplot(table1, aes(x=err.var, fill = method)) + geom_bar(position="dodge",binwidth = .05)
+ggplot(table1, aes(x=err.var, fill = method)) + geom_bar(position="dodge",binwidth = 20)
+```
+
+```{r fig=TRUE,echo=FALSE,width=9,height=5}
+corr.tbl <- data.frame(Expected=rep(table1.lm$rep.var,6),
+                       Predicted = c(table1.lm$rep.var,
+                                     table1.lme$rep.var,
+                                     table1.MCMCglmm$rep.var,
+                                     table1.glmmadmb$rep.var,
+                                     table1.glmmLasso$rep.var,
+                                     table1.glmmPQL$rep.var),
+                       Method =c(table1.lm$method,
+                                 table1.lme$method,
+                                     table1.MCMCglmm$method,
+                                     table1.glmmadmb$method,
+                                     table1.glmmLasso$method,
+                                     table1.glmmPQL$method) )
+corr.tbl <- subset(corr.tbl,corr.tbl$Predicted < 2*max(table1.lm$rep.var))
+ggplot(corr.tbl, aes(x=Expected, y=Predicted,color = Method)) + geom_point(size=3,aes(color=Method)) + geom_smooth(aes(group=Method,linetype=Method,color=Method),size=1,method="lm",se = FALSE) +
+  ggtitle("Replicate Variances")
+```
+
+```{r fig=TRUE,echo=FALSE,width=9,height=5}
+err.tbl <- data.frame(Expected=rep(table1.lm$err.var,6),
+                       Predicted = c(table1.lm$err.var,
+                                     table1.lme$err.var,
+                                     table1.MCMCglmm$err.var,
+                                     table1.glmmadmb$err.var,
+                                     table1.glmmLasso$err.var,
+                                     table1.glmmPQL$err.var),
+                       Method =c(table1.lm$method,
+                                 table1.lme$method,
+                                     table1.MCMCglmm$method,
+                                     table1.glmmadmb$method,
+                                     table1.glmmLasso$method,
+                                     table1.glmmPQL$method) )
+err.tbl <- subset(err.tbl,err.tbl$Predicted < 2*max(table1.lm$rep.var))
+ggplot(err.tbl, aes(x=Expected, y=Predicted,color = Method)) + geom_point(size=3,aes(color=Method)) + geom_smooth(aes(group=Method,linetype=Method,color=Method),size=1,method="lm",se = FALSE) +
+  ggtitle("Residual Variances")
+```
+
+Combined Trials
+---------------
+```{r}
+
+### lm
+combined.lm <- lm(GY ~ entry + env + env:bloc,data=cpt.pbal)
+combined.aov.tbl <- anova(combined.lm)
+trts <- combined.aov.tbl[1,1]+1
+reps <- combined.aov.tbl[3,1]+1
+errordf <- combined.aov.tbl[4,1]
+#residual
+lm.rms <- combined.aov.tbl[4,3]
+lm.rep.var <- (combined.aov.tbl[3,3]-combined.aov.tbl[4,3])/trts
+lm.env.var <- (combined.aov.tbl[2,3]-combined.aov.tbl[3,3])/(trts*reps)
+
+### lme
+combined.lme <- lme(GY ~ entry,random = ~ 1 | env/bloc,data=cpt.pbal)
+lme.env.var <- as.numeric(VarCorr(combined.lme)[[2]])
+lme.rep.var <- as.numeric(VarCorr(combined.lme)[[4]])
+lme.rms <- as.numeric(VarCorr(combined.lme)[[5]])
+
+#MCMC
+combined.MCMCglmm <- MCMCglmm(fixed=GY ~ entry, random = ~ env + env:bloc ,data=cpt.pbal, verbose=FALSE)
+mcmc.rms <- summary(combined.MCMCglmm)$Rcovariances[1]
+mcmc.rep.var <- summary(combined.MCMCglmm)$Gcovariances[2,1]
+mcmc.env.var <- summary(combined.MCMCglmm)$Gcovariances[1,1]
+
+combined.glmmadmb <- glmmadmb(GY ~ entry, random = ~ 1 | env/bloc, family = "gaussian", data = cpt.pbal)
+glmmadmb.env.var <- VarCorr(combined.glmmadmb)[[1]]
+glmmadmb.rep.var <- VarCorr(combined.glmmadmb)[[2]]
+glmmadmb.rms <- var(combined.glmmadmb$residuals)
+
+ #combined.glmmLasso <- glmmLasso(GY ~ entry, rnd = list(blocInEnv=~1 + env), lambda=20, data = cpt.pbal)   
+#combined.glmmLasso <- glmmLasso(GY ~ entry, rnd = list(bloc=~1 + env), lambda=1, data = cpt.pbal)
+#glmmadmb.rep.var <- combined.glmmLasso$StdDev*combined.glmmLasso$StdDev
+#glmmadmb.res <- combined.glmmLasso$fitted.values - cpt.pbal$GY
+#glmmadmb.rms <- sum(res^2)/errordf
+        
+combined.glmmPQL <- glmmPQL(GY ~ entry, random = ~ 1 | env/bloc,family=gaussian, data = cpt.pbal)
+glmmPQL.env.var <- as.numeric(VarCorr(combined.glmmPQL)[[2]])
+glmmPQL.rep.var <- as.numeric(VarCorr(combined.glmmPQL)[[4]])
+glmmPQL.rms <- as.numeric(VarCorr(combined.glmmPQL)[[5]])
+
+```
+
+```{r}
+if(!file.exists("table2.Rda")) {
+table2.lm <- data.frame(trial=envs,env.var=rep(0,length(envs)),rep.var=rep(0,length(envs)),err.var=rep(0,length(envs)))
+table2.lme <- data.frame(trial=envs,env.var=rep(0,length(envs)),rep.var=rep(0,length(envs)),err.var=rep(0,length(envs)))
+table2.MCMCglmm <- data.frame(trial=envs,env.var=rep(0,length(envs)),rep.var=rep(0,length(envs)),err.var=rep(0,length(envs)))
+table2.glmmadmb <- data.frame(trial=envs,env.var=rep(0,length(envs)),rep.var=rep(0,length(envs)),err.var=rep(0,length(envs)))
+table2.glmmLasso <- data.frame(trial=envs,env.var=rep(0,length(envs)),rep.var=rep(0,length(envs)),err.var=rep(0,length(envs)))
+table2.glmmPQL <- data.frame(trial=envs,env.var=rep(0,length(envs)),rep.var=rep(0,length(envs)),err.var=rep(0,length(envs)))
+for(idx in 1:length(envs)) {
+#for(idx in 1:2) {
+  env <- table2.lm$trial[idx]
+  current.trial <- cpt.pbal[(cpt.pbal$env != env),]
+  current.trial <- current.trial[!is.na(current.trial$GY),]
+  if(length(current.trial$GY>2)) {
+    #lm
+    current.lm <- lm(GY ~ entry + env + env:bloc,data=current.trial)
+    current.aov.tbl <- anova(current.lm)
+    trts <- current.aov.tbl[1,1]+1
+    reps <- current.aov.tbl[3,1]+1
+    errordf <- current.aov.tbl[4,1]
+  
+    lm.rms <- current.aov.tbl[4,3]
+    lm.rep.var <- (current.aov.tbl[3,3]-current.aov.tbl[4,3])/trts
+    lm.env.var <- (current.aov.tbl[2,3]-current.aov.tbl[3,3])/(trts*4)
+    table2.lm$env.var[idx] <- lm.env.var
+    table2.lm$err.var[idx] <- lm.rms
+    table2.lm$rep.var[idx] <- lm.rep.var 
+
+    #lme
+    current.lme <- lme(GY ~ entry,random = ~ 1 | env/bloc,data=current.trial)
+    lme.env.var <- as.numeric(VarCorr(current.lme)[[2]])
+    lme.rep.var <- as.numeric(VarCorr(current.lme)[[4]])
+    lme.rms <- as.numeric(VarCorr(current.lme)[[5]])
+    table2.lme$env.var[idx] <- lme.env.var 
+    table2.lme$rep.var[idx] <- lme.rep.var
+    table2.lme$err.var[idx] <- lme.rms
+    
+    
+    #MCMC
+    current.MCMCglmm <- MCMCglmm(fixed=GY ~ entry, random = ~ env + env:bloc ,data=current.trial, verbose=FALSE)
+    mcmc.rms <- summary(current.MCMCglmm)$Rcovariances[1]
+    mcmc.rep.var <- summary(current.MCMCglmm)$Gcovariances[2,1]
+    mcmc.env.var <- summary(current.MCMCglmm)$Gcovariances[1,1]
+    
+    table2.MCMCglmm$env.var[idx] <- mcmc.env.var
+    table2.MCMCglmm$rep.var[idx] <- mcmc.rep.var
+    table2.MCMCglmm$err.var[idx] <- mcmc.rms
+    
+    
+    #glmmadmb
+    current.glmmadmb <- glmmadmb(GY ~ entry, random = ~ 1 | env/bloc, family = "gaussian", data = current.trial)
+    glmmadmb.env.var <- VarCorr(current.glmmadmb)[[1]]
+    glmmadmb.rep.var <- VarCorr(current.glmmadmb)[[2]]
+    glmmadmb.rms <- var(current.glmmadmb$residuals)
+    table2.glmmadmb$env.var[idx] <- glmmadmb.env.var
+    table2.glmmadmb$rep.var[idx] <- glmmadmb.rep.var
+    table2.glmmadmb$err.var[idx] <- glmmadmb.rms
+    
+    
+    #glmmLasso
+    #this is what the help looks like, but does not work
+    #current.glmmLasso <- glmmLasso(GY ~ entry, rnd = list(bloc=~1 + env), lambda=1, data = current.trial)
+    #current.glmmLasso <- glmmLasso(GY ~ entry, rnd = list(blocInEnv=~1 + env), lambda=1, data = cpt.pbal)
+    #rep.var <- current.glmmLasso$StdDev*current.glmmLasso$StdDev
+    #res <- current.glmmLasso$fitted.values - current.trial$GY
+    #rms <- sum(res^2)/errord 
+    #table2.glmmLasso$err.var[idx] <- rms
+    #table2.glmmLasso$rep.var[idx] <- rep.var
+    
+    #glmmPQL
+    current.glmmPQL <- glmmPQL(GY ~ entry, random = ~ 1 | env/bloc,family=gaussian, data = current.trial)
+    glmmPQL.env.var <- as.numeric(VarCorr(current.glmmPQL)[[2]])
+    glmmPQL.rep.var <- as.numeric(VarCorr(current.glmmPQL)[[4]])
+    glmmPQL.rms <- as.numeric(VarCorr(current.glmmPQL)[[5]])
+
+    table2.glmmPQL$env.var[idx] <- glmmPQL.env.var
+    table2.glmmPQL$rep.var[idx] <- glmmPQL.rep.var
+    table2.glmmPQL$err.var[idx] <- glmmPQL.rms
+    
+  }
+}
+
+table2.lme$method <- "lme"
+table2.lm$method <- "lm"
+table2.MCMCglmm$method <- "MCMCglmm"
+table2.glmmadmb$method <- "ADMB"
+table2.glmmLasso$method <- "glmmLasso"
+table2.glmmPQL$method <- "glmmPQL"
+
+table2 <- rbind(table2.lm,
+                table2.lme,
+                table2.MCMCglmm,
+                table2.glmmadmb,
+                table2.glmmPQL)
+                #table2.glmmLasso,
+save(table2,file="table2.Rda")
+} else {
+   load(file="table2.Rda")
+   table2.lme = subset(table2,table2$method=="lme")
+  table2.lm = subset(table2,table2$method=="lm")
+  table2.MCMCglmm = subset(table2,table2$method=="MCMCglmm")
+  table2.glmmadmb = subset(table2,table2$method=="ADMB")
+  #table2.glmmLasso = subset(table2,table2$method=="glmmLasso")
+  table2.glmmPQL = subset(table2,table2$method=="glmmPQL")
+}
+```
+
+```{r fig=TRUE,echo=FALSE,width=9,height=5}
+ggplot(table2, aes(x=env.var, fill = method)) + geom_bar(position="dodge",binwidth = 10)
+```
+
+```{r fig=TRUE,echo=FALSE,width=9,height=5}
+ggplot(table2, aes(x=rep.var, fill = method)) + geom_bar(position="dodge",binwidth = 1)
+```
+
+```{r fig=TRUE,echo=FALSE,width=9,height=5}
+ggplot(table2, aes(x=err.var, fill = method)) + geom_bar(position="dodge",binwidth = 1)
+```
+
+```{r fig=TRUE,echo=FALSE,width=9,height=5}
+env.tbl.2 <- data.frame(Expected=rep(table2.lm$env.var,5),
+                       Predicted = c(table2.lm$env.var,
+                                     table2.lme$env.var,
+                                     table2.MCMCglmm$env.var,
+                                     table2.glmmadmb$env.var,
+                                     #table2.glmmLasso$env.var,
+                                     table2.glmmPQL$env.var),
+                       Method =c(table2.lm$method,
+                                 table2.lme$method,
+                                     table2.MCMCglmm$method,
+                                     table2.glmmadmb$method,
+                                     #table2.glmmLasso$method,
+                                     table2.glmmPQL$method) )
+ggplot(env.tbl.2, aes(x=Expected, y=Predicted,color = Method)) + geom_point(size=3,aes(color=Method)) + geom_smooth(aes(group=Method,linetype=Method,color=Method),size=1,method="lm",se = FALSE)
+```
+
+```{r fig=TRUE,echo=FALSE,width=9,height=5}
+rep.tbl.2 <- data.frame(Expected=rep(table2.lm$rep.var,5),
+                       Predicted = c(table2.lm$rep.var,
+                                     table2.lme$rep.var,
+                                     table2.MCMCglmm$rep.var,
+                                     table2.glmmadmb$rep.var,
+                                     #table2.glmmLasso$rep.var,
+                                     table2.glmmPQL$rep.var),
+                       Method =c(table2.lm$method,
+                                 table2.lme$method,
+                                     table2.MCMCglmm$method,
+                                     table2.glmmadmb$method,
+                                     #table2.glmmLasso$method,
+                                     table2.glmmPQL$method) )
+ggplot(rep.tbl.2, aes(x=Expected, y=Predicted,color = Method)) + geom_point(size=3,aes(color=Method)) + geom_smooth(aes(group=Method,linetype=Method,color=Method),size=1,method="lm",se = FALSE)
+```
+
+```{r fig=TRUE,echo=FALSE,width=9,height=5}
+err.tbl.2 <- data.frame(Expected=rep(table2.lm$err.var,5),
+                       Predicted = c(table2.lm$err.var,
+                                     table2.lme$err.var,
+                                     table2.MCMCglmm$err.var,
+                                     table2.glmmadmb$err.var,
+                                     #table2.glmmLasso$err.var,
+                                     table2.glmmPQL$err.var),
+                       Method =c(table2.lm$method,
+                                 table2.lme$method,
+                                     table2.MCMCglmm$method,
+                                     table2.glmmadmb$method,
+                                     #table2.glmmLasso$method,
+                                     table2.glmmPQL$method) )
+ggplot(err.tbl.2, aes(x=Expected, y=Predicted,color = Method)) + geom_point(size=3,aes(color=Method)) + geom_smooth(aes(group=Method,linetype=Method,color=Method),size=1,method="lm",se = FALSE)
+```
+
+
+
+
+
+(1|group)  random group intercept
+(x|group) = (1+x|group)	random slope of x within group with correlated intercept
+(0+x|group) = (-1+x|group)	random slope of x within group: no variation in intercept
+(1|group) + (0+x|group)	uncorrelated random intercept and random slope within group
+(1|site/block) = (1|site)+(1|site:block)	intercept varying among sites and among blocks within sites (nested random effects)
+site+(1|site:block)	fixed effect of sites plus random variation in intercept among blocks within sites
+(x|site/block) = (x|site)+(x|site:block) = (1 + x|site)+(1+x|site:block)	slope and intercept varying among sites and among blocks within sites
+(x1|site)+(x2|block)	two different effects, varying at different levels
+x*site+(x|site:block)	fixed effect variation of slope and intercept varying among sites and random variation of slope and intercept among blocks within sites
+(1|group1)+(1|group2)	intercept varying among crossed random effects (e.g. site, year)
+
+

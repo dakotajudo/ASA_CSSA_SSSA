@@ -1,0 +1,211 @@
+GEI models using lme
+========================================================
+
+```{r}
+library(ASA.CSSA.SSSA)
+data(SteelTorrie)
+```
+
+
+```{r}
+library(nlme)
+p399$GEI <- p399$Variety:p399$Trial
+p399$Block <- p399$Trial:p399$Rep
+
+#group by trails and replicates
+p399.grp <- groupedData(Yield ~ 1 |Trial/Rep, data=p399)
+
+#p399.grp <- groupedData(Yield ~ 0 + 1 | GEI, data=p399)
+plot(p399.grp)
+#This produces an estimate for Trial variance.
+#lme(Yield ~ Variety*Trial, random = ~ 1 | Trial/Rep, data = p399.grp)
+lme(Yield ~ Variety*Trial, random = ~ 1 | Block, data = p399.grp)
+
+hom.lme <- lme(Yield ~ Variety*Trial, random = ~ 1 | Block, data = p399)
+hom.lme
+```
+
+Grouping data
+```{r}
+#p399.grp <- groupedData(Yield ~ Variety | Trial, data=p399)
+#p399.grp2 <- groupedData(Yield ~ Variety | Trial/Rep, data=p399)
+```
+
+Based on Pinheiro and Bates
+```{r}
+lme(Yield ~ Variety*Trial, p399.grp, random=pdBlocked(list(pdIdent(~ 1),pdIdent(~ Trial - 1),pdIdent(~ Variety - 1))))
+```
+
+This requires grouped data, otherwise, 
+```
+Error in getGroups.data.frame(dataMix, groups) : 
+  invalid formula for groups
+```
+
+```{r}
+lme(Yield ~ Variety, random = ~ 1 | Trial/Rep, data = p399.grp)
+lme(Yield ~ Variety, random = ~ 1 | GEI, data = p399.grp2)
+#crashes
+#lme(Yield ~ Variety, random = ~ GEI | Trial/Rep, data = p399.grp2)
+
+hom.lme <- lme(Yield ~ Variety, random = ~ 1 | Trial/Rep, data = p399.grp)
+
+lme(Yield ~ Variety, random=list(Trial=~1,Variety=~Trial), data = p399.grp)
+
+#error
+#lme(Yield ~ Variety, random=list(Block=~1,Variety=~Trial), data = p399.grp)
+#hangs
+#lme(Yield ~ Variety, random=list(Trial=~1,Rep=~Variety), data = p399.grp)
+
+lme(Yield ~ Variety, random=list(~1|Trial,~1|Rep), data = p399.grp)
+
+
+#not quite
+#lme(Yield ~ Variety, random=list(~1|Trial,~1|Rep,~Trial|Variety), data = p399.grp)
+
+#hangs
+#lme(Yield ~ Variety, random=list(~Variety|Trial,~1|Rep), data = p399.grp)
+#lme(Yield ~ Variety, random=list(~1|Trial,~Variety|Rep), data = p399.grp)
+
+#Error in MEEM(object, conLin, control$niterEM) : 
+#  NAs in foreign function call (arg 2)
+#lme(Yield ~ Variety, random=list(~1|Trial/Rep,~1|GEI), data = p399.grp)
+
+#close
+lme(Yield ~ Variety, random=list(~1|GEI,~1|Block), data = p399.grp)
+lme(Yield ~ Variety, random=list(~1|Block,~1|GEI), data = p399.grp)
+
+# a trick from the web
+one <- rep(1,length(p399.grp$Yield))
+#a=~1,one=~b
+lme(Yield ~ Variety, random=list(Block=~1,one=~GEI), data = p399.grp)
+lme(Yield ~ Variety, random=list(one=pdSymm(~1|Block)), data = p399.grp)
+```
+
+Random block structure
+Note we need to remove intercept from the names
+```{r}
+blocks <- pdSymm(~ 0 + Block,data=p399.grp)
+gei <- pdSymm(~ 0 + GEI,data=p399.grp)
+
+blocks <- pdSymm(~ 0 + Block,data=p399)
+gei <- pdSymm(~ 0 + GEI,data=p399)
+blocks <- pdSymm(value=~ 0 + Block,data=p399)
+gei <- pdSymm(value=~ 0 + GEI,data=p399)
+
+blocks <- pdSymm(value=~ 0 + Block,data=p399.grp)
+gei <- pdSymm(value=~ 0 + GEI,data=p399.grp)
+
+pdConstruct(gei,data=p399)
+
+blocks <- pdSymm(~ 0 + 1 | Trial/Rep,data=p399)
+gei <- pdSymm(value=~0 + GEI,form=~ 0 + GEI,data=p399)
+
+gbnames <- c(attr(blocks, "Dimnames"),attr(gei, "Dimnames"))
+
+geiblocks <- pdBlocked(list(blocks,gei),data=p399.grp)
+geiblocks <- pdBlocked(list(blocks,gei))
+
+pdConstruct(geiblocks,data=p399)
+lme(Yield ~ Variety, random=geiblocks, data = p399.grp)
+
+
+
+pd1 <- pdBlocked(list(blocks,gei),nam=list(attr(blocks, "Dimnames")[[1]],attr(gei, "Dimnames")[[1]]),data=p399.grp)
+
+pd1 <- pdBlocked(list(blocks,gei),data=p399.grp)
+
+lme(Yield ~ Variety, random=pd1, data = p399.grp)
+
+#this fails to converge
+#lme.2 <- lme(Yield ~ Variety, random=pdBlocked(list(pdSymm(~ 0 + Block),pdSymm(~ 0 + GEI))), data = p399.grp)
+
+lme.2 <- lme(Yield ~ Variety, random=pdBlocked(list(pdSymm(~ 0 + Block),pdSymm(~ 0 + GEI))), data = p399)
+
+lme(Yield ~ Variety, random=list(one=pdBlocked(list(Blocks=pdSymm(~ 0 + 1|Trial/Rep), 
+            GEI=pdSymm(~0 + 1|GEI)))), data = p399.grp)
+            
+hom.lme
+
+het1.lme <- lme(Yield ~ Variety, random = ~ 1 | Trial/Rep, data = p399)
+#heterogenous variances does not converge for this data.
+#het2.lme <- lme(Yield ~ Variety, random = ~ Variety | Trial/Rep, data = p399)
+het3.lme <- lme(Yield ~ Variety, random = ~ 1 | Trial/Rep, weights=varIdent(form=~1|Trial), data = p399)
+het3.lme
+```
+
+```{r}
+
+
+#pdSymm(~Variety,data=p399.grp)
+
+#hom2.lme <- lme(Yield ~ Variety, random = pdBlocked(list(pdSymm(~Variety), pdSymm(~Trial))), data = p399)
+#hom2.lme
+
+#het1.lme <- lme(Yield ~ Variety, random = ~ Variety | Trial/Rep, weights=varIdent(form=~1|Trial), data = p399)
+#het1.lme 
+
+#het1.lme <- lme(Yield ~ Variety, random = ~ Variety | Trial/Rep, data = p399)
+#het1.lme 
+
+#list(~ Variety | Trial, ~ 1 | Trial/Rep)
+hom.lme <- lme(Yield ~ Variety, random = list(~ 1 | GEI,~ 1 | Trial,~ 1 | Block), data = p399)
+hom.lme
+
+#het2.lme <- lme(Yield ~ Variety, random = ~ 1 | Trial/Rep, weights=varIdent(form=~1|Trial), data = p399)
+#het2.lme
+
+```
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
+
+
+Multilocation example
+```{r}
+library(SASmixed)
+data(Multilocation)
+
+options( contrasts = c(factor = "contr.SAS", ordered = "contr.poly") )
+formula( Multilocation )
+names( Multilocation )
+### Create a Block %in% Location factor
+Multilocation$Grp <-
+  getGroups( Multilocation, form = ~ Location/Block, level = 2 )
+fm1Mult <- lme( Adj ~ Location * Trt, data = Multilocation, ~ 1 | Grp,
+               method = "ML")
+summary( fm1Mult )
+fm2Mult <- update( fm1Mult, Adj ~ Location + Trt )
+fm3Mult <- update( fm1Mult, Adj ~ Location )
+fm4Mult <- update( fm1Mult, Adj ~ Trt )
+fm5Mult <- update( fm1Mult, Adj ~ 1 )
+anova( fm1Mult, fm2Mult, fm3Mult, fm5Mult )
+anova( fm1Mult, fm2Mult, fm4Mult, fm5Mult )
+### AIC, BIC, and likelihood ratio tests all prefer model fm2Mult
+summary( fm2Mult )
+fm2RMult <- update( fm2Mult, method = "REML" ) # get REML estimates
+summary( fm2RMult )
+### Treating the location as a random effect
+fm1MultR <- lme( Adj ~ Trt, data = Multilocation, method = "ML",
+  random = list( Location = pdCompSymm( ~ Trt - 1 ), Block = ~ 1 ) )
+summary( fm1MultR )
+fm2MultR <- update( fm1MultR, random = list( Location = ~ Trt-1, Block = ~ 1 ))
+anova( fm1MultR, fm2MultR )
+## No indication that a general variance-covariance is preferred to
+## a compound symmetry structure.
+fm1RMultR <- update( fm1MultR, method = "REML" )
+summary( fm1RMultR )
+c( 0.34116, 0.07497, 0.18596)^2  # compare with estimates, p. 84
+```
+
+
+update( fm1MultR, random = list( Trt = ~ Location-1, Block = ~ 1 ))
+
+ getGroups( Multilocation, form = ~ Location:Trt)
+Multilocation$GEI <-Multilocation$Location:Multilocation$Trt
+Multilocation$Grp <-Multilocation$Location:Multilocation$Block
+  getGroups( Multilocation, form = ~ Location:Trt)
+
+lme(Adj ~ Trt, random=pdBlocked(list(pdSymm(~ 0 + Grp),pdSymm(~ 0 + GEI))), data = Multilocation)
+
