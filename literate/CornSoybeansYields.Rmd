@@ -1,0 +1,95 @@
+---
+title: "Changes in Wheat Yields"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(gridExtra)
+```
+
+
+Corn Yields, county level
+Downloaded 1910-1950
+1951-1973
+1974-1993
+1994-2014
+```{r}
+corn.1.dat <- read.csv("./data/usda/15E2ED32-1B74-36F1-BF5C-18FFD52C01A6.csv", header = TRUE)
+corn.2.dat <- read.csv("./data/usda/41C2B0E9-92AA-383A-8F18-9228883136FF.csv", header = TRUE)
+corn.3.dat <- read.csv("./data/usda/223AB7E9-B638-3E34-AA37-2EF5D68B07C8.csv", header = TRUE)
+corn.4.dat <- read.csv("./data/usda/AE02DC67-6AFC-33EA-AA72-10F9C1E34424.csv", header = TRUE)
+
+
+   #there are some counties not reporting in all sets, so to make the data more uniform, make sure names match.
+   #names5<-names(county5.dat)
+   #names1<-names(county1.dat)
+   #county5.dat<- county5.dat[,which(names5 %in% names1)]
+
+   corn.dat <- rbind(corn.1.dat,corn.2.dat,corn.3.dat,corn.4.dat)
+corn.dat <- subset(corn.dat,corn.dat$State %in% levels(state.yield.dat$State))
+   #remove county totals
+   #county.dat <- subset(county.dat, county.dat$CoFips<888)
+   #county.dat$YrFac <- as.factor(county.dat$Year)
+   #county.dat$HarvFac <- as.factor(floor(county.dat$Harvested/100000))
+   #county.dat$County <-tolower(county.dat$County)
+   #county.dat$State <-tolower(county.dat$State)
+
+county.corn.plot <- ggplot(corn.dat, aes(Year,Value)) 
+county.corn.plot <- county.corn.plot + geom_smooth(aes(group=State, color=State),weight=10,se = FALSE)
+county.corn.plot
+```
+
+Silage
+```{r}
+county.silage.dat <- read.csv("./data/usda/019AB500-C6C1-356C-B38D-C20D3255597E.csv", header = TRUE)
+county.silage.plot <- ggplot(county.silage.dat, aes(Year,Value)) 
+county.silage.plot <- county.silage.plot + geom_smooth(aes(group=State, color=State),weight=10,se = FALSE)
+county.silage.plot
+```
+
+Corn, State, Practices
+```{r}
+#national.corn.dat <- read.csv("./usda/data/DEEB64CD-2FEF-350E-B849-51BA3534EEFF.csv", header = TRUE)
+#national.corn.dat$ItemLevel <- as.factor(as.numeric(national.corn.dat$Data.Item))
+#national.corn.plot <- ggplot(national.corn.dat, aes(Year,Value)) 
+#national.corn.plot <- national.corn.plot + geom_smooth(aes(group=ItemLevel, color=ItemLevel),weight=10,se = FALSE)
+#national.corn.plot
+```
+
+
+
+```{r}
+county.oats.dat <- read.csv("./data/usda/6CA6E5B0-6C1E-3044-81AE-1192F2F7B711.csv", header = TRUE)
+county.oats.plot <- ggplot(county.oats.dat, aes(Year,Value)) 
+county.oats.plot <- county.oats.plot + geom_smooth(aes(group=State, color=State),weight=10,se = FALSE)
+county.oats.plot
+```
+
+
+```{r}
+county.barley.dat <- read.csv("./data/usda/75E2DF19-A623-3649-960C-C04CFE12A241.csv", header = TRUE)
+county.barley.plot <- ggplot(county.barley.dat, aes(Year,Value)) 
+county.barley.plot <- county.barley.plot + geom_smooth(aes(group=State, color=State),weight=10,se = FALSE)
+county.barley.plot
+```
+
+```{r}
+county.soybeans.dat <- read.csv("./data/usda/0E8A3057-FB70-389B-B828-F132E7938F83.csv", header = TRUE)
+county.soybeans.plot <- ggplot(county.soybeans.dat, aes(Year,Value)) 
+county.soybeans.plot <- county.soybeans.plot + geom_smooth(aes(group=State, color=State),weight=10,se = FALSE)
+county.soybeans.plot
+```
+
+
+What about measurement? (Data Item)
+BU/ACRE
+
+```{r}
+county.basis.dat <- read.csv("./data/usda/DB386181-6DDC-335C-91A9-B79416FD69E3.csv", header = TRUE)
+county.basis.dat$ItemLevel <- as.factor(as.numeric(county.basis.dat$Data.Item))
+county.basis.plot <- ggplot(county.basis.dat, aes(Year,Value)) 
+county.basis.plot <- county.basis.plot + scale_colour_brewer(palette="Set1") 
+county.basis.plot <- county.basis.plot + geom_smooth(aes(group= ItemLevel,color=ItemLevel),weight=10,se = FALSE)
+county.basis.plot
+```
