@@ -1,0 +1,244 @@
+\documentclass{report}
+\usepackage{amsmath}
+
+\begin{document}
+
+
+<<echo=false>>=
+library(ggplot2)
+library(maps)
+source("../../../ASA_CSSA_SSSA/R/map_functions.R")
+@
+
+I've found the weather data from \verb|http://wonder.cdc.gov/EnvironmentalData.html| to be the easiest to use for a reasonable estimate of county level weather values.
+
+The web site gives these datasets.
+
+Daily Air Temperatures and Heat Index (1979-2011) from North America Land Data Assimilation System (NLDAS) 
+Data Request More information
+Fine Particulate Matter (PM2.5) ($\mu g/m^3$) (2003-2011) 
+Data Request More information
+Land Surface Temperature (LST) (2003-2008) from Moderate Resolution Imaging Spectroradiometer (MODIS) 
+Data Request More information
+Daily Sunlight ($KJ/m^2$) (1979-2011) from North America Land Data Assimilation System (NLDAS) 
+Data Request More information
+Daily Precipitation (mm) (1979-2011) from North America Land Data Assimilation System (NLDAS) 
+Data Request More information
+Number of Heat Wave Days in May-September (1981-2010) 
+Data Request More information
+
+
+I've downloaded climate data from \verb|http://wonder.cdc.gov/EnvironmentalData.html|. We need to process the files. This is a time consuming process, so we'll simply produce a set of linear models, save the models and extract means and slopes. We'll leave examining the fits in detail to another file.
+
+<<>>=
+weather.base <- read.csv("temp.csv", header = TRUE)
+    weather.base$Year <- as.numeric(weather.base$Year)
+    weather.base$Year.Code <- as.numeric(weather.base$Year.Code)
+    weather.base$County.Code <- as.numeric(weather.base$County.Code)
+    weather.base$Avg.Daily.Max.Air.Temperature..C. <- as.numeric(weather.base$Avg.Daily.Max.Air.Temperature..C.)
+    weather.base$Avg.Daily.Min.Air.Temperature..C. <- as.numeric(weather.base$Avg.Daily.Min.Air.Temperature..C.)
+    weather.base$Avg.Daily.Max.Heat.Index..C. <- as.numeric(weather.base$Avg.Daily.Max.Heat.Index..C.)
+    weather.base$County <- tolower(as.character(weather.base$County))
+    weather.base$State <- tolower(as.character(weather.base$State))
+    weather.base$statecounty <- paste(weather.base$State,weather.base$County,sep=",")
+    weather.base$statecounty <- as.factor(weather.base$statecounty)
+weather.dat <- subset(weather.base,weather.base$Year>1983)
+@
+    
+<<>>=
+if(!file.exists("min.lm.Rda")) {
+
+  weather2.dat <- subset(weather.base,late.f(weather.base$Year+2))
+  weather4.dat <- subset(weather.base,late.f(weather.base$Year+4))
+  weather6.dat <- subset(weather.base,late.f(weather.base$Year+6))
+
+
+  max.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
+  min.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
+  heat.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
+  
+  max2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat)
+  min2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat)
+  heat2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat)
+  
+  max4.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat)
+  min4.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat)
+  heat4.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat)
+  
+  max6.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
+  min6.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
+  heat6.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
+  
+  precip.base <- read.csv("data/wonder/precip.csv", header = TRUE)
+  precip.base$County <- tolower(as.character(precip.base$County))
+  precip.base$State <- tolower(as.character(precip.base$State))
+  precip.base$statecounty <- paste(precip.base$State,precip.base$County,sep=",")
+  
+  precip.dat <- subset(precip.base,precip.base$Year>1983)
+  precip2.dat <- subset(precip.dat,late.f(precip.dat$Year+2))
+  precip4.dat <- subset(precip.dat,late.f(precip.dat$Year+4))
+  precip6.dat <- subset(precip.dat,late.f(precip.dat$Year+6))
+  
+  precip.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip.dat)
+  precip2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip2.dat)
+  precip4.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip4.dat)
+  precip6.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip6.dat)
+  
+  sunlight.base <- read.csv("data/wonder/sunlight.csv", header = TRUE)
+
+  
+  sunlight.base$County <- tolower(as.character(sunlight.base$County))
+  sunlight.base$State <- tolower(as.character(sunlight.base$State))
+  sunlight.base$statecounty <- paste(sunlight.base$State,sunlight.base$County,sep=",")
+  
+  
+  sunlight.dat <- subset(sunlight.base,sunlight.base$Year>1983)
+  sunlight2.dat <- subset(sunlight.dat,late.f(sunlight.dat$Year+2))
+  sunlight4.dat <- subset(sunlight.dat,late.f(sunlight.dat$Year+4))
+  sunlight6.dat <- subset(sunlight.dat,late.f(sunlight.dat$Year+6))
+  
+  sun.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight.dat)
+  sun2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight2.dat)
+  sun4.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight4.dat)
+  sun6.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight6.dat)
+  
+  save(min.lm, file="min.lm.Rda")
+  save(max.lm, file="max.lm.Rda")
+  save(heat.lm, file="heat.lm.Rda")
+  save(precip.lm, file="precip.lm.Rda")
+  save(sun.lm, file="sun.lm.Rda")
+   
+   save(min2.lm, file="min2.lm.Rda")
+   save(max2.lm, file="max2.lm.Rda")
+   save(heat2.lm, file="heat2.lm.Rda")
+   save(precip2.lm, file="precip2.lm.Rda")
+   save(sun2.lm, file="sun2.lm.Rda")
+
+   save(min4.lm, file="min4.lm.Rda")
+   save(max4.lm, file="max4.lm.Rda")
+   save(heat4.lm, file="heat4.lm.Rda")
+   save(precip4.lm, file="precip4.lm.Rda")
+   save(sun4.lm, file="sun4.lm.Rda")
+
+   save(min6.lm, file="min6.lm.Rda")
+   save(max6.lm, file="max6.lm.Rda")
+   save(heat6.lm, file="heat6.lm.Rda")
+   save(precip6.lm, file="precip6.lm.Rda")
+   save(sun6.lm, file="sun6.lm.Rda")
+} else {
+
+}
+@
+
+
+
+
+Don't forget to map "Month Code.
+
+
+Fine particulate data and surface temperatures have different numbers of observations, we
+need to process these separately.
+
+<<>>=
+if(!file.exists("fine.lm.Rda")) {
+   fine.dat <- read.csv("fine.csv", header = TRUE)
+   surface.dat <- read.csv("surface.csv", header = TRUE)
+
+   fine.dat$County <- as.character(fine.dat$County)
+
+   fine.dat$State <- tolower(as.character(fine.dat$State))
+
+   surface.dat$County <- as.character(surface.dat$County)
+
+   surface.dat$State <- tolower(as.character(surface.dat$State))
+
+   fine.dat$statecounty <- paste(fine.dat$State,fine.dat$County,sep=",")
+   surface.dat$statecounty <- paste(surface.dat$State,surface.dat$County,sep=",")
+
+   fine.lm <- lm(Avg.Fine.Particulate.Matter~ 0 + statecounty + statecounty:Year,data=fine.dat)
+   day.lm <- lm(Avg.Day.Land.Surface.Temperature~ 0 + statecounty + statecounty:Year,data=surface.dat)
+   night.lm <- lm(Avg.Night.Land.Surface.Temperature~ 0 + statecounty + statecounty:Year,data=surface.dat)
+
+   save(fine.lm, file="fine.lm.Rda")
+   save(day.lm, file="day.lm.Rda")
+   save(night.lm, file="night.lm.Rda")
+} else {
+
+}
+@
+
+\section{Avg Daily Min Air Temperature C}
+
+load(file="max.lm.Rda")
+load(file="heat.lm.Rda")
+load(file="precip.lm.Rda")
+load(file="sun.lm.Rda")
+
+load(file="min2.lm.Rda")
+load(file="max2.lm.Rda")
+load(file="heat2.lm.Rda")
+load(file="precip2.lm.Rda")
+load(file="sun2.lm.Rda")
+
+load(file="min4.lm.Rda")
+load(file="max4.lm.Rda")
+load(file="heat4.lm.Rda")
+load(file="precip4.lm.Rda")
+load(file="sun4.lm.Rda")
+
+load(file="min6.lm.Rda")
+load(file="max6.lm.Rda")
+load(file="heat6.lm.Rda")
+load(file="precip6.lm.Rda")
+load(file="sun6.lm.Rda")
+
+<<>>=
+midpoint <- min(weather.dat$Year) + (max(weather.dat$Year)-min(weather.dat$Year))/2
+@
+
+<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
+
+ggplot(weather.dat, aes(Year,Avg.Daily.Min.Air.Temperature..C.)) + 
+   geom_point(aes(color=statecounty),size=2,alpha = 0.2) + gg.default.theme +
+   geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm")
+@
+
+<<fig=TRUE,echo=false>>=
+load(file="min.lm.Rda")
+values.a <- extract.county.estimates(min.lm,term=1)
+values.b <- extract.county.estimates(min.lm,term=2)
+map.values(values.b,names(values.b))
+@
+
+<<fig=TRUE,echo=false>>=
+estimate.mean <- values.a + midpoint*values.b
+map.values(estimate.mean,names(values.a))
+@
+
+<<fig=TRUE,echo=false>>=
+values <- tapply(weather.dat$Avg.Daily.Min.Air.Temperature..C.,list(weather.dat$statecounty),mean, na.rm=TRUE)
+common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
+plot(values[common.names],estimate.mean[common.names])
+@
+
+<<>>=
+names(values)[!names(values)%in%names(estimate.mean)]
+names(estimate.mean)[!names(estimate.mean)%in%names(values)]
+@
+
+<<fig=TRUE,echo=false>>=
+par(mfrow = c(2, 2)) 
+plot(min.lm)
+par(mfrow = c(1,1)) 
+@
+
+<<>>=
+#summary(aov(min.lm))
+min.lm = NA
+@
+
+load(file="fine.lm.Rda")
+load(file="day.lm.Rda")
+load(file="night.lm.Rda")
+
+\end{document}

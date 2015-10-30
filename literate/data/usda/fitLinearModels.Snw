@@ -1,0 +1,383 @@
+\documentclass{report}
+\usepackage{amsmath}
+
+\begin{document}
+We start our analysis centered on the USDA NAS data set at \verb|http://quickstats.nass.usda.gov|. The parameters for this query is
+
+   \begin{verbatim}
+   Program : SURVEY
+   Sector : CROPS
+   Group : FIELD CROPS
+   Commodity : WHEAT
+   Category : YIELD
+   Data Item : WHEAT, WINTER - YIELD, MEASURED in BU / ACRE
+   Domain : TOTAL
+   Location : COUNTY
+   State : KANSAS, NEBRASKA, NORTH DAKOTA, OKLAHOMA, SOUTH DAKOTA, TEXAS
+   Period Type: ANNUAL
+   Period: YEAR
+   \end{verbatim}
+
+   Note that there are data for insect damage, etc.
+
+   all available years
+   36000+ records
+
+   Examine the raw data.
+
+<<echo=false>>=
+source("../../../ASA_CSSA_SSSA/R/map_functions.R")
+library(ggplot2)
+library(gridExtra)
+library(maps)
+@
+
+This document drives the final analysis, so we save a template for covariates
+
+<<>>=
+yield.field <- "WHEAT, WINTER - YIELD, MEASURED IN BU / ACRE"
+production.field <- "WHEAT, WINTER - PRODUCTION, MEASURED IN BU"
+
+county.yield.dat <- read.csv("69C9E26C-F285-325A-9443-6668747878F8.csv", header = TRUE)
+
+min.count <- 8
+@
+
+
+<<>>=
+if(!file.exists("county.harvested.dat.Rda")) {
+   county.harvested.dat <- read.csv("F9E14802-255A-3F02-B398-A6AA997592E2.csv", header = TRUE)
+   county.harvested.dat$Value <- as.character(county.harvested.dat$Value)
+   for(idx in 1:length(county.harvested.dat$Value)) {
+      tmp <- county.harvested.dat$Value[idx]
+      tmp <- paste(strsplit(tmp,",")[[1]],collapse="")
+      county.harvested.dat$Value[idx] <- tmp
+   }
+   county.harvested.dat$Value <- as.numeric(county.harvested.dat$Value)
+   save(county.harvested.dat, file="county.harvested.dat.Rda")
+}
+if(!file.exists("county.acres.dat.Rda")) {
+   county.acres.dat <- read.csv("6C846F60-83DB-3172-B899-A3AD38C8258D.csv", header = TRUE)
+   county.acres.dat$Value <- as.character(county.acres.dat$Value)
+   for(idx in 1:length(county.acres.dat$Value)) {
+      tmp <- county.acres.dat$Value[idx]
+      tmp <- paste(strsplit(tmp,",")[[1]],collapse="")
+      county.acres.dat$Value[idx] <- tmp
+   }
+   county.acres.dat$Value <- as.numeric(county.acres.dat$Value)
+   save(county.acres.dat, file="county.acres.dat.Rda")
+} else {
+  load(file="county.acres.dat.Rda")
+}
+
+if(!file.exists("county.production.dat.Rda")) {
+   county.production.dat <- read.csv("C7366A74-7233-3E12-ADBD-22B83C7316DE.csv", header = TRUE)
+   county.production.dat$Value <- as.character(county.production.dat$Value)
+   for(idx in 1:length(county.production.dat$Value)) {
+      tmp <- county.production.dat$Value[idx]
+      tmp <- paste(strsplit(tmp,",")[[1]],collapse="")
+      county.production.dat$Value[idx] <- tmp
+   }
+   county.production.dat$Value <- as.numeric(county.production.dat$Value)
+   save(county.production.dat, file="county.production.dat.Rda")
+} else {
+  load(file="county.production.dat.Rda")
+}
+
+if(!file.exists("income.total.dat.Rda")) {
+   income.dat <- read.csv("3F1461DC-1B65-3644-92E4-B4A7876551B5.csv", header = TRUE)
+   income.dat$Value <- as.character(income.dat$Value)
+   income.dat$statecounty <- create.index(income.dat)
+   for(idx in 1:length(income.dat$Value)) {
+      tmp <- income.dat$Value[idx]
+      tmp <- paste(strsplit(tmp,",")[[1]],collapse="")
+      income.dat$Value[idx] <- tmp
+   }
+   income.dat$Value <- as.numeric(income.dat$Value)
+   income.total.dat <- subset(income.dat,income.dat$Data.Item=="INCOME, NET CASH FARM, OF OPERATIONS - NET INCOME, MEASURED IN $")
+   income.relative.dat <- subset(income.dat,income.dat$Data.Item=="INCOME, NET CASH FARM, OF OPERATIONS - NET INCOME, MEASURED IN $ / OPERATION")
+
+   save(income.total.dat, file="income.total.dat.Rda")
+   save(income.relative.dat, file="income.relative.dat.Rda")
+} else {
+
+}
+@
+
+Trial maps use lower case state names, so we manipulate to create a single state-county index.
+<<>>=
+county.yield.dat$statecounty <- create.index(county.yield.dat)
+county.yield.dat$County <- as.factor(county.yield.dat$County)
+county.yield.dat$State <- as.factor(county.yield.dat$State)
+
+county.production.dat$statecounty <- create.index(county.production.dat)
+county.acres.dat$statecounty <- create.index(county.acres.dat)
+county.harvested.dat$statecounty <- create.index(county.harvested.dat)
+@
+
+We note that there are a few counties in Texas that have yield values of O. I'm not sure crop failures are part of what we want to measure, so I'm excluding these.
+
+<<>>=
+county.yield.dat <- subset(county.yield.dat,county.yield.dat$Value>1)
+@
+
+<<>>=
+if(!file.exists("late.county.lm.Rda")) {
+   county.early.dat <- subset(county.yield.dat,early.f(county.yield.dat$Year))
+   county.mid.dat <- subset(county.yield.dat,mid.f(county.yield.dat$Year))
+   county.late.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year))
+
+   late.counts <- tapply(county.late.dat$Value,list(county.late.dat$statecounty),length)
+   county.late.dat$Count <- late.counts[county.late.dat$statecounty]
+   county.late.dat <- subset(county.late.dat,county.late.dat$Count>(min.count-1))
+
+   late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.late.dat)
+   
+   mid.counts <- tapply(county.mid.dat$Value,list(county.mid.dat$statecounty),length)
+   county.mid.dat$Count <- mid.counts[county.mid.dat$statecounty]
+   county.mid.dat <- subset(county.mid.dat,county.mid.dat$Count>9)
+   mid.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.mid.dat)
+   #summary(mid.lm)
+
+   early.counts <- tapply(county.early.dat$Value,list(county.early.dat$statecounty),length)
+   county.early.dat$Count <- early.counts[county.early.dat$statecounty]
+   county.early.dat <- subset(county.early.dat,county.early.dat$Count>9)
+   early.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.early.dat)
+
+   save(county.yield.dat, file="county.yield.dat.Rda")
+   save(county.early.dat, file="county.early.dat.Rda")
+   save(county.mid.dat, file="county.mid.dat.Rda")
+   save(county.late.dat, file="county.late.dat.Rda")
+   save(late.county.lm, file="late.county.lm.Rda")
+   save(early.lm, file="early.lm.Rda")
+   save(mid.lm, file="mid.lm.Rda")
+} else {
+
+}
+
+@
+
+
+I've decided to compare early, mid and late century trends. I'll use functions to simplify this, so I might more easily shift ranges later. We'll use the most recent 30 years (2014-1984).
+Base on inspection of the state level curves, the inflection point is about 1978 and the upswing starts in the early 40s.
+
+
+
+<<fig=TRUE>>=
+load(file="county.early.dat.Rda")
+load(file="county.mid.dat.Rda")
+load(file="county.late.dat.Rda")
+grid.arrange(arrangeGrob(
+  ggplot(county.early.dat, aes(Year,Value)) + geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm"),
+  ggplot(county.mid.dat, aes(Year,Value)) + geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm"),
+  ggplot(county.late.dat, aes(Year,Value)) + geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+For completeness, examine each data column.
+
+We have a county labelled OTHER (COMBINED) COUNTIES. Take this out.
+<<fig=TRUE>>=
+  
+county.yield.dat <- subset(county.yield.dat, county.yield.dat$County != "OTHER (COMBINED) COUNTIES")
+county.yield.plot <- ggplot(county.yield.dat, aes(Year,Value)) 
+county.yield.plot <- county.yield.plot + scale_colour_brewer(palette="Set1") 
+#county.yield.plot <- county.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+county.yield.plot <- county.yield.plot + geom_point(aes(color=State),size=1,alpha = 0.3)
+county.yield.plot <- county.yield.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.7)
+county.yield.plot
+@
+
+
+<<fig=TRUE>>=
+load(file="county.harvested.dat.Rda")
+county.harvested.dat <- subset(county.harvested.dat, county.harvested.dat$County != "OTHER (COMBINED) COUNTIES")
+county.harvested.plot <- ggplot(county.harvested.dat, aes(Year,Value)) 
+county.harvested.plot <- county.harvested.plot + scale_colour_brewer(palette="Set1") 
+county.harvested.plot <- county.harvested.plot + geom_point(aes(color=State),size=1,alpha = 0.3)
+county.harvested.plot <- county.harvested.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.7)
+county.harvested.plot
+county.harvested.dat=NA
+@
+
+<<fig=TRUE>>=
+county.acres.dat <- subset(county.acres.dat, county.acres.dat$County != "OTHER (COMBINED) COUNTIES")
+county.acres.plot <- ggplot(county.acres.dat, aes(Year,Value)) 
+county.acres.plot <- county.acres.plot + scale_colour_brewer(palette="Set1") 
+#county.acres.plot <- county.acres.plot + geom_point(aes(color=State),size=1,alpha = 0.3)
+county.acres.plot <- county.acres.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.7)
+county.acres.plot
+@
+
+<<fig=TRUE>>=
+county.production.dat <- subset(county.production.dat, county.production.dat$County != "OTHER (COMBINED) COUNTIES")
+county.production.plot <- ggplot(county.production.dat, aes(Year,Value)) 
+county.production.plot <- county.production.plot + scale_colour_brewer(palette="Set1") 
+#county.yield.plot <- county.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+#county.production.plot <- county.production.plot + geom_point(aes(color=State),size=1,alpha = 0.3)
+county.production.plot <- county.production.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.7)
+county.production.plot
+@
+
+<<fig=TRUE>>=
+county.income.dat <- subset(income.relative.dat, income.relative.dat$County != "OTHER (COMBINED) COUNTIES")
+county.income.plot <- ggplot(county.income.dat, aes(Year,Value)) 
+county.income.plot <- county.income.plot + scale_colour_brewer(palette="Set1") 
+#county.yield.plot <- county.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+#county.production.plot <- county.production.plot + geom_point(aes(color=State),size=1,alpha = 0.3)
+county.income.plot <- county.income.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.7)
+county.income.plot
+@
+
+
+Note the number of missing years. If we use locations other than county, we may have larger data set. This is documented in supplementary literate code.
+
+
+\section{county yield}
+
+<<>>=
+load(file="late.county.lm.Rda")
+@
+
+<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
+gg.default.theme <- theme_bw()
+gg.default.theme$legend.position = "none"
+	
+ggplot(late.county.lm$model, aes(Year,Value)) + 
+   geom_point(aes(color=statecounty),size=2,alpha = 0.2) + gg.default.theme +
+   geom_smooth(aes(group=statecounty,color=statecounty),weight=10,se = FALSE,method="lm")
+@
+
+
+<<>>=
+yield.a.estimates <- extract.county.estimates(late.county.lm,term=1)
+yield.b.estimates <- extract.county.estimates(late.county.lm,term=2)
+covariates.dat <- data.frame(
+   statecounty=names(yield.a.estimates),
+   yield.a=yield.a.estimates,
+   yield.b=yield.b.estimates
+)
+save(covariates.dat, file="covariates.dat.Rda")
+@
+
+<<fig=TRUE,echo=false>>=
+map.values(yield.b.estimates,names(yield.b.estimates))
+@
+
+<<fig=TRUE,echo=false>>=
+minyear <- min(late.county.lm$model$Year)
+maxyear <- max(late.county.lm$model$Year)
+midpoint <- minyear + (maxyear-minyear)/2
+estimate.mean <- yield.a.estimates + midpoint*yield.b.estimates
+map.values(estimate.mean,names(yield.a.estimates))
+@
+
+<<fig=TRUE,echo=false>>=
+values <- tapply(late.county.lm$model$Value,list(late.county.lm$model$statecounty),mean, na.rm=TRUE)
+common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
+plot(values[common.names],estimate.mean[common.names])
+@
+
+<<>>=
+names(values)[!names(values)%in%names(estimate.mean)]
+names(estimate.mean)[!names(estimate.mean)%in%names(values)]
+@
+
+<<fig=TRUE,echo=false>>=
+par(mfrow = c(2, 2)) 
+plot(late.county.lm)
+par(mfrow = c(1,1)) 
+@
+
+<<>>=
+summary(aov(late.county.lm))
+@
+
+<<>>=
+if(!file.exists("production.late.county.lm.Rda")) {
+   production.late.dat <- subset(county.production.dat,late.f(county.production.dat$Year))
+   production.late.counts <- tapply(production.late.dat$Value,list(production.late.dat$statecounty),length)
+   production.late.dat$Count <- production.late.counts[production.late.dat$statecounty]
+   production.late.dat <- subset(county.production.dat,production.late.dat$Count>(min.count-1))
+
+production.late.lm <- lm(Value ~ Year,data=production.late.dat)
+production.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=production.late.dat)
+production.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=production.late.dat)
+
+
+acres.late.dat <- subset(county.acres.dat,late.f(county.acres.dat$Year))
+acres.late.counts <- tapply(acres.late.dat$Value,list(acres.late.dat$statecounty),length)
+acres.late.dat$Count <- acres.late.counts[acres.late.dat$statecounty]
+acres.late.dat <- subset(county.acres.dat,acres.late.dat$Count>(min.count-1))
+
+acres.late.lm <- lm(Value ~ Year,data=acres.late.dat)
+acres.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=acres.late.dat)
+acres.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=acres.late.dat)
+
+harvested.late.dat <- subset(county.harvested.dat,late.f(county.harvested.dat$Year))
+harvested.late.counts <- tapply(harvested.late.dat$Value,list(harvested.late.dat$statecounty),length)
+harvested.late.dat$Count <- harvested.late.counts[harvested.late.dat$statecounty]
+harvested.late.dat <- subset(county.harvested.dat,harvested.late.dat$Count>(min.count-1))
+
+harvested.late.lm <- lm(Value ~ Year,data=harvested.late.dat)
+harvested.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=harvested.late.dat)
+harvested.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=harvested.late.dat)
+
+income.late.lm <- lm(Value ~ Year,data=income.relative.dat)
+income.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=income.relative.dat)
+income.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=income.relative.dat)
+
+   save(production.late.county.lm, file="production.late.county.lm.Rda")
+   save(harvested.late.county.lm, file="harvested.late.county.lm.Rda")
+   save(acres.late.county.lm, file="acres.late.county.lm.Rda")
+   save(income.late.county.lm, file="income.late.county.lm.Rda")
+} 
+@
+
+<<>>=
+if(!file.exists("late2.county.lm.Rda")) {
+   late2.counts <- tapply(county.late2.dat$Value,list(county.late2.dat$statecounty),length)
+   county.late2.dat$Count <- late2.counts[county.late2.dat$statecounty]
+   county.late2.dat <- subset(county.late2.dat,county.late2.dat$Count>9)
+   
+   late4.counts <- tapply(county.late4.dat$Value,list(county.late4.dat$statecounty),length)
+   county.late4.dat$Count <- late4.counts[county.late4.dat$statecounty]
+   county.late4.dat <- subset(county.late4.dat,county.late4.dat$Count>9)
+   
+   late6.counts <- tapply(county.late6.dat$Value,list(county.late6.dat$statecounty),length)
+   county.late6.dat$Count <- late2.counts[county.late6.dat$statecounty]
+   county.late6.dat <- subset(county.late6.dat,county.late6.dat$Count>9)
+   
+   late2.county.lm <-update(late.county.lm,data=county.late2.dat)
+   late4.county.lm <-update(late.county.lm,data=county.late4.dat)
+   late6.county.lm <-update(late.county.lm,data=county.late6.dat)
+   
+   save(late2.county.lm, file="late2.county.lm.Rda")
+   save(late4.county.lm, file="late4.county.lm.Rda")
+   save(late6.county.lm, file="late6.county.lm.Rda")
+} else {
+
+}
+@
+
+load(file="early.lm.Rda")
+load(file="mid.lm.Rda")
+
+
+load(file="late2.county.lm.Rda")
+load(file="late4.county.lm.Rda")
+load(file="late6.county.lm.Rda")
+
+load(file="production.late.county.lm.Rda")
+load(file="harvested.late.county.lm.Rda")
+load(file="acres.late.county.lm.Rda")
+load(file="income.late.county.lm.Rda")
+
+<<>>=
+summary(lm(Value ~ Year,data=subset(county.late.dat,county.late.dat$statecounty=="kansas,allen")))
+summary(lm(Value ~ Year,data=subset(county.late.dat,county.late.dat$statecounty=="kansas,anderson")))
+summary(lm(Value ~ Year,data=subset(county.late.dat,county.late.dat$statecounty=="kansas,atchison")))
+@
+
+\end{document}

@@ -1,0 +1,203 @@
+\documentclass{report}
+\usepackage{amsmath}
+
+\begin{document}
+
+
+<<echo=false>>=
+source("../../../ASA_CSSA_SSSA/R/map_functions.R")
+library(ggplot2)
+library(maps)
+@
+
+<<>>=
+rpn.dat <- read.csv("Statistics.csv", header = TRUE)
+rpn.dat <- subset(rpn.dat,rpn.dat$Assessment=="GY")
+rpn.dat <- subset(rpn.dat,rpn.dat$Statistic=="Mean")
+rpn.dat$Value <- as.numeric(as.character(rpn.dat$Value))
+rpn.dat$Trial <- as.factor(rpn.dat$Trial)
+head(rpn.dat)
+
+#convert to bu/acre
+#Wheat/soybeans (60# bu)
+#1 kilogram/hectare (kg/ha) = .0149 (.015) 
+#bushels/acre
+#1 bushel/acre = 67.25 (67) kilograms/hectare
+rpn.dat$Value <- rpn.dat$Value * 0.0149
+
+state.abbr <- c("ND","SD","NE","KS","OK","TX")
+state.abbr.map <- c("north dakota","south dakota","nebraska","kansas","oklahoma","texas")
+names(state.abbr.map) <- state.abbr 
+
+
+#subset by state
+locations.dat <- read.csv("Locations.csv", header = TRUE)
+locations.dat <- subset(locations.dat, locations.dat$State %in% c("ND","SD","NE","KS","OK","TX"))
+locations.dat$State <- as.character(locations.dat$State)
+locations.dat$State <- state.abbr.map[locations.dat$State]
+
+# this lets us map location name to a county and state
+statecounty.map <- as.character(paste(locations.dat$State,locations.dat$County,sep=","))
+locations.dat$statecounty <- statecounty.map
+names(statecounty.map) <- as.character(locations.dat$Name)
+#statecounty.map <- as.character(locations.dat$Name)
+#names(statecounty.map) <- as.character(paste(locations.dat$State,locations.dat$County,sep=", "))
+@
+
+Now, generate an index
+<<>>=
+
+yield.gap.dat <- subset(county.yield.dat,county.yield.dat$statecounty %in% statecounty.map)
+head(county.yield.dat)
+head(yield.gap.dat)
+@
+
+Map nursery yield means to county means
+<<>>=
+rpn.dat$statecounty <- statecounty.map[as.character(rpn.dat$Location)]
+yield.gap.dat$statecountyyear <- paste(yield.gap.dat$statecounty,yield.gap.dat$Year)
+rpn.dat$statecountyyear <- paste(rpn.dat$statecounty,rpn.dat$Cycle)
+actual <- yield.gap.dat$Value
+names(actual) <- as.character(yield.gap.dat$statecountyyear)
+rpn.dat$Actual <- actual[rpn.dat$statecountyyear]
+
+rpn.dat$Actual <- as.numeric(as.character(rpn.dat$Actual))
+rpn.dat$Value <- as.numeric(as.character(rpn.dat$Value))
+rpn.dat <- subset(rpn.dat,!is.na(rpn.dat$Actual))
+
+rpn.dat$Year <- as.factor(rpn.dat$Cycle)
+
+rpn.dat$Location <- as.factor(rpn.dat$Location)
+
+yield.gap.plot <- ggplot(rpn.dat, aes(Value,Actual),xlab="Nursery Average",ylab="County Average")
+yield.gap.plot <- yield.gap.plot + geom_point(aes(color=Year)) + geom_smooth(aes(group= Year,color=Year),se = FALSE,method="lm")
+yield.gap.plot
+
+gap.frame <- data.frame(
+  Year =  c(rpn.dat$Cycle,rpn.dat$Cycle),
+  Source = c(rep("Nursery",length(rpn.dat$Value)),rep("County",length(rpn.dat$Value))),
+  Yield = c(rpn.dat$Value,rpn.dat$Actual)
+)
+gap.frame$Source <- as.factor(gap.frame$Source)
+yield.gap2.plot <- ggplot(gap.frame, aes(Year,Yield))
+#yield.gap2.plot <- yield.gap2.plot + geom_point(aes(color=Source)) + geom_smooth(aes(group=Source,color=Source),se = FALSE,method="lm")
+yield.gap2.plot <- yield.gap2.plot + geom_point(aes(color=Source)) + geom_smooth(aes(group=Source,color=Source),se = FALSE)
+yield.gap2.plot
+@
+
+Compute the gap
+<<>>=
+nursery.counts <- tapply(rpn.dat$Value,list(rpn.dat$Location),length)
+rpn.dat$Gap <- rpn.dat$Value - rpn.dat$Actual
+rpn.dat$GapPercent <- 100*rpn.dat$Actual/rpn.dat$Value
+rpn.dat$Count <- nursery.counts[rpn.dat$Location]
+@
+
+Some of the nurseries are irrigated; remove those
+<<>>=
+rpn.dat$Irrigated <- FALSE
+irrigated <- c("Bushland (Irr)","Goodwell","Goodwell (Irr)","Hugoton (Irr)","Imperial (Irr)")
+
+rpn.dat$Irrigated[rpn.dat$Location%in%irrigated] <- TRUE
+
+rpn.dat$Location <- as.factor(as.character(rpn.dat$Location))
+levels(rpn.dat$Location)
+
+rpndry.dat <- subset(rpn.dat, !rpn.dat$Irrigated)
+
+rpndry.dat$Location <- as.factor(as.character(rpndry.dat$Location))
+levels(rpndry.dat$Location)
+
+yield.gap3.plot <- ggplot(rpndry.dat, aes(Value,Actual),xlab="Nursery Average",ylab="County Average")
+yield.gap3.plot <- yield.gap3.plot + geom_point(aes(color=Year)) + geom_smooth(aes(group= Year,color=Year),se = FALSE,method="lm")
+yield.gap3.plot
+
+gap.frame <- data.frame(
+  Year =  c(rpndry.dat$Cycle,rpndry.dat$Cycle),
+  Source = c(rep("Nursery",length(rpndry.dat$Value)),rep("County",length(rpndry.dat$Value))),
+  Yield = c(rpndry.dat$Value,rpndry.dat$Actual)
+)
+gap.frame$Source <- as.factor(gap.frame$Source)
+@
+
+<<fig=TRUE>>=
+yield.gap4.plot <- ggplot(gap.frame, aes(Year,Yield))
+#yield.gap2.plot <- yield.gap2.plot + geom_point(aes(color=Source)) + geom_smooth(aes(group=Source,color=Source),se = FALSE,method="lm")
+yield.gap4.plot <- yield.gap4.plot + geom_point(aes(color=Source)) + geom_smooth(aes(group=Source,color=Source),se = FALSE,method="lm")
+yield.gap4.plot
+@
+
+<<fig=TRUE>>=
+yield.gap3a.plot <- ggplot(rpndry.dat, aes(Value,Actual),xlab="Nursery Average",ylab="County Average")
+yield.gap3a.plot <- yield.gap3a.plot + geom_point(aes(color=Trial)) + geom_smooth(aes(group= Trial,color=Trial),se = FALSE,method="lm")
+yield.gap3a.plot
+@
+
+
+Plot the actual gap by year
+
+<<>>=
+rpndry.dat <- subset(rpndry.dat,rpndry.dat$Count>10)
+summary(lm(Gap ~ Location + Cycle, data=rpndry.dat))
+summary(lm(GapPercent ~ Location + Cycle, data=rpndry.dat))
+
+summary(lm(Gap ~ Trial + Cycle, data=rpndry.dat))
+summary(lm(GapPercent ~ Trial + Cycle, data=rpndry.dat))
+@
+<<fig=TRUE>>=
+yield.gap5.plot <- ggplot(rpndry.dat, aes(Cycle,Gap),xlab="Year",ylab="Gap")
+yield.gap5.plot <- yield.gap5.plot + geom_point(aes(color=Location)) + geom_smooth(aes(group= Location,color=Location),se = FALSE,method="lm")
+yield.gap5.plot
+@
+
+<<fig=TRUE>>=
+yield.gap6.plot <- ggplot(rpndry.dat, aes(Cycle,GapPercent),xlab="Year",ylab="Gap Percent")
+yield.gap6.plot <- yield.gap6.plot + geom_point(aes(color=Location)) + geom_smooth(aes(group= Location,color=Location),se = FALSE,method="lm")
+yield.gap6.plot
+@
+
+<<fig=TRUE>>=
+yield.gap6b.plot <- ggplot(rpndry.dat, aes(Cycle,GapPercent),xlab="Year",ylab="Gap Percent")
+yield.gap6b.plot <- yield.gap6b.plot + geom_point(aes(color=Trial)) + geom_smooth(aes(group=Trial,color=Trial),se = FALSE,method="lm")
+yield.gap6b.plot
+@
+
+<<>>=
+gap.lm <- lm(Gap ~ 0 + Location + Location:Cycle, data=rpndry.dat)
+gapper.lm <- lm(GapPercent ~ 0 + Location + Location:Cycle, data=rpndry.dat)
+summary(gap.lm)
+summary(gapper.lm)
+@
+
+Get the coefficients so we can map regression estimates
+<<>>=
+labels <- attr(gap.lm$terms, "term.labels")
+rpn.estimates <- gap.lm$coefficients[gap.lm$assign == 1]
+rpn.year.estimates <- gap.lm$coefficients[gap.lm$assign == 2]
+length(rpn.estimates)
+length(rpn.year.estimates)
+names(rpn.estimates) <- gap.lm$xlevels[[1]]
+names(rpn.year.estimates) <- gap.lm$xlevels[[1]]
+locations.dat$gapintercept <- rpn.estimates[as.character(locations.dat$Name)]
+locations.dat$gapslope <- rpn.year.estimates[as.character(locations.dat$Name)]
+@
+
+<<fig=TRUE>>=
+gapplot.dat <- subset(locations.dat, !is.na(locations.dat$gapslope))
+norm.slopes <- gapplot.dat$gapslope/max(abs(1.05*gapplot.dat$gapslope))
+pos.slopes <- norm.slopes
+neg.slopes <- -norm.slopes
+neg.slopes[neg.slopes<0] <- 0
+pos.slopes[pos.slopes<0] <- 0
+
+gapplot.dat$statecounty <- as.character(gapplot.dat$statecounty)
+
+map.colors <- colorRampPalette(c('lightblue','darkblue'))(100)[floor(pos.slopes*100)+1]
+neg.colors <- colorRampPalette(c('pink','red'))(100)[floor(neg.slopes*100)+1]
+map.colors[norm.slopes<0] <-neg.colors[norm.slopes<0] 
+map("county", regions = gapplot.dat$statecounty, col = map.colors, fill = TRUE, lty = 1, lwd= 1)
+#map("county", regions = counties.dat$statecounty, col = "black", fill = FALSE, lty = 1, lwd = 1, add=TRUE)
+@
+
+
+\end{document}

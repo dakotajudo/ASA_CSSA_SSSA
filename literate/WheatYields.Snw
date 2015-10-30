@@ -9,613 +9,167 @@
 
 <<>>=
 source("../ASA_CSSA_SSSA/R/map_functions.R")
-library(ggplot2)
-library(gridExtra)
-library(maps)
-
-mapstates <- c("texas","oklahoma","kansas","nebraska","south dakota","north dakota")
-
-
 @
 
-We start our analysis centered on the USDA NAS data set at \verb|http://quickstats.nass.usda.gov|. The parameters for this query is
+We drive the analysis from the USDA data set for yield. These data are in the \verb\usda| directory.
+The majority of files are fit with code in that directory, and we will store our covariate data there as well.
 
-
-\begin{verbatim}
-Program : SURVEY
-Sector : CROPS
-Group : FIELD CROPS
-Commodity : WHEAT
-Category : YIELD
-Data Item : WHEAT, WINTER - YIELD, MEASURED in BU / ACRE
-Domain : TOTAL
-Location : COUNTY
-State : KANSAS, NEBRASKA, NORTH DAKOTA, OKLAHOMA, SOUTH DAKOTA, TEXAS
-Period Type: ANNUAL
-Period: YEAR
-\end{verbatim}
-
-Note that there are data for insect damage, etc.
-
-all available years
-36000+ records
-
-Examine the raw data.
+The various \verb|fitLinearModels.Snw| will follow a general structure. Each covariate will be fit to a simple linear model by year, and the result saved
+as an Rda file. If a file (or controlling file) is not present, the appropriate data set is read. In some cases, the data are processed (i.e. to remove commas as thousand separators), and the resulting Rda file may be read instead. This in general speeds analysis, since in many cases fitting linear models is time consuming. In this controlling code, we save the intermediate covariate files and load linear models only when certain covariate heaers are not found.
 
 <<>>=
-yield.field <- "WHEAT, WINTER - YIELD, MEASURED IN BU / ACRE"
-production.field <- "WHEAT, WINTER - PRODUCTION, MEASURED IN BU"
-#county.dat <- read.csv("./data/usda/15Oct2015.csv", header = TRUE)
-#county.dat$Value <- as.character(county.dat$Value)
-#for(idx in 1:length(county.dat$Value)) {
-#   tmp <- county.dat$Value[idx]
-#   tmp <- paste(strsplit(county.dat$Value,",")[[1]],collapse="")
-#   county.dat$Value[idx] <- tmp
-#}
-#county.dat$Value <- paste(strsplit(county.dat$Value,",")[[1]],collapse="")
-#county.dat$Value <- as.numeric(county.dat$Value)
-
-#county.yield.dat <- subset(county.dat,county.dat$Data.Item == yield.field)
-county.yield.dat <- read.csv("./data/usda/69C9E26C-F285-325A-9443-6668747878F8.csv", header = TRUE)
-
-if(!file.exists("county.harvested.dat.Rda")) {
-   county.harvested.dat <- read.csv("./data/usda/F9E14802-255A-3F02-B398-A6AA997592E2.csv", header = TRUE)
-   county.harvested.dat$Value <- as.character(county.harvested.dat$Value)
-   for(idx in 1:length(county.harvested.dat$Value)) {
-      tmp <- county.harvested.dat$Value[idx]
-      tmp <- paste(strsplit(tmp,",")[[1]],collapse="")
-      county.harvested.dat$Value[idx] <- tmp
-   }
-   county.harvested.dat$Value <- as.numeric(county.harvested.dat$Value)
-   save(county.harvested.dat, file="county.harvested.dat.Rda")
+current.wd <- getwd()
+covariateFileName <- "data/usda/covariates.dat.Rda"
+if(!file.exists(covariateFileName)) {
+   setwd('data/usda')
+   Sweave("fitLinearModels.Snw")
+   setwd(current.wd)
 } else {
-  load(file="county.harvested.dat.Rda")
-}
-if(!file.exists("county.acres.dat.Rda")) {
-   county.acres.dat <- read.csv("./data/usda/6C846F60-83DB-3172-B899-A3AD38C8258D.csv", header = TRUE)
-   county.acres.dat$Value <- as.character(county.acres.dat$Value)
-   for(idx in 1:length(county.acres.dat$Value)) {
-      tmp <- county.acres.dat$Value[idx]
-      tmp <- paste(strsplit(tmp,",")[[1]],collapse="")
-      county.acres.dat$Value[idx] <- tmp
-   }
-   county.acres.dat$Value <- as.numeric(county.acres.dat$Value)
-   save(county.acres.dat, file="county.acres.dat.Rda")
-} else {
-  load(file="county.acres.dat.Rda")
-}
-
-if(!file.exists("county.production.dat.Rda")) {
-   county.production.dat <- read.csv("./data/usda/C7366A74-7233-3E12-ADBD-22B83C7316DE.csv", header = TRUE)
-   county.production.dat$Value <- as.character(county.production.dat$Value)
-   for(idx in 1:length(county.production.dat$Value)) {
-      tmp <- county.production.dat$Value[idx]
-      tmp <- paste(strsplit(tmp,",")[[1]],collapse="")
-      county.production.dat$Value[idx] <- tmp
-   }
-   county.production.dat$Value <- as.numeric(county.production.dat$Value)
-   save(county.production.dat, file="county.production.dat.Rda")
-} else {
-  load(file="county.production.dat.Rda")
-}
-
-
-#levels(county.yield.dat$County)
-@
-
-
-We have a county labelled OTHER (COMBINED) COUNTIES. Take this out.
-<<fig=TRUE>>=
-county.yield.dat <- subset(county.yield.dat, county.yield.dat$County != "OTHER (COMBINED) COUNTIES")
-county.yield.plot <- ggplot(county.yield.dat, aes(Year,Value)) 
-county.yield.plot <- county.yield.plot + scale_colour_brewer(palette="Set1") 
-#county.yield.plot <- county.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
-county.yield.plot <- county.yield.plot + geom_point(aes(color=State),size=1,alpha = 0.3)
-county.yield.plot <- county.yield.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.7)
-county.yield.plot
-@
-
-
-<<fig=TRUE>>=
-county.harvested.dat <- subset(county.harvested.dat, county.harvested.dat$County != "OTHER (COMBINED) COUNTIES")
-county.harvested.plot <- ggplot(county.harvested.dat, aes(Year,Value)) 
-county.harvested.plot <- county.harvested.plot + scale_colour_brewer(palette="Set1") 
-county.harvested.plot <- county.harvested.plot + geom_point(aes(color=State),size=1,alpha = 0.3)
-county.harvested.plot <- county.harvested.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.7)
-county.harvested.plot
-@
-
-<<fig=TRUE>>=
-county.acres.dat <- subset(county.acres.dat, county.acres.dat$County != "OTHER (COMBINED) COUNTIES")
-county.acres.plot <- ggplot(county.acres.dat, aes(Year,Value)) 
-county.acres.plot <- county.acres.plot + scale_colour_brewer(palette="Set1") 
-#county.acres.plot <- county.acres.plot + geom_point(aes(color=State),size=1,alpha = 0.3)
-county.acres.plot <- county.acres.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.7)
-county.acres.plot
-@
-
-<<fig=TRUE>>=
-county.production.dat <- subset(county.production.dat, county.production.dat$County != "OTHER (COMBINED) COUNTIES")
-county.production.plot <- ggplot(county.production.dat, aes(Year,Value)) 
-county.production.plot <- county.production.plot + scale_colour_brewer(palette="Set1") 
-#county.yield.plot <- county.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
-#county.production.plot <- county.production.plot + geom_point(aes(color=State),size=1,alpha = 0.3)
-county.production.plot <- county.production.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.7)
-county.production.plot
-@
-
-
-Note the number of missing years. If we use locations other than county, we may have larger data set. This is documented in supplementary literate code.
-
-
-Trial maps use lower case state names, so we manipulate to create a single state-county index.
-<<>>=
-county.yield.dat$statecounty <- create.index(county.yield.dat)
-county.yield.dat$County <- as.factor(county.yield.dat$County)
-county.yield.dat$State <- as.factor(county.yield.dat$State)
-
-county.production.dat$statecounty <- create.index(county.production.dat)
-county.acres.dat$statecounty <- create.index(county.acres.dat)
-county.harvested.dat$statecounty <- create.index(county.harvested.dat)
-@
-
-
-
-I've decided to compare early, mid and late century trends. I'll use functions to simplify this, so I might more easily shift ranges later. We'll use the most recent 30 years (2014-1984).
-Base on inspection of the state level curves, the inflection point is about 1978 and the upswing starts in the early 40s.
-
-<<>>=
-early.f <- function(year) {
-  return((year<1943)&(year>1923))
-}
-mid.f <- function(year) {
-  return((year<1978)&(year>1942))
-}
-late.f <- function(year) {
-  return((year<2015)&(year>1983))
-}
-county.early.dat <- subset(county.yield.dat,early.f(county.yield.dat$Year))
-county.mid.dat <- subset(county.yield.dat,mid.f(county.yield.dat$Year))
-county.late.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year))
-@
-
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(county.early.dat, aes(Year,Value)) + geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm"),
-  ggplot(county.mid.dat, aes(Year,Value)) + geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm"),
-  ggplot(county.late.dat, aes(Year,Value)) + geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<>>=
-county.early.dat <- subset(county.yield.dat,early.f(county.yield.dat$Year))
-county.mid.dat <- subset(county.yield.dat,mid.f(county.yield.dat$Year))
-county.late.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year))
-
-late.counts <- tapply(county.late.dat$Value,list(county.late.dat$statecounty),length)
-county.late.dat$Count <- late.counts[county.late.dat$statecounty]
-county.late.dat <- subset(county.late.dat,county.late.dat$Count>9)
-
-late.lm <- lm(Value ~ Year,data=county.late.dat)
-
-late.state.lm <- lm(Value ~ 0 + State + State:Year,data=county.late.dat)
-#summary(late.state.lm)
-
-late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.late.dat)
-#summary(late.county.lm)
-if(!file.exists("covariates.dat.Rda")) {
-yield.a.estimates <- extract.county.estimates(late.county.lm,term=1)
-yield.b.estimates <- extract.county.estimates(late.county.lm,term=2)
-covariates.dat <- data.frame(
-   statecounty=names(yield.a.estimates),
-   yield.a=yield.a.estimates,
-   yield.b=yield.b.estimates
-)
-   save(covariates.dat, file="covariates.dat.Rda")
-} else {
-   load(file="covariates.dat.Rda")
+   load(file=covariateFileName)
 }
 @
-
-
 
 \section{Covariates}
 
 \subsection{Weather}
-I've found the weather data from \verb|http://wonder.cdc.gov/EnvironmentalData.html| to be the easiest to use for a reasonable estimate of county level weather values.
 
-The web site gives these datasets.
-
-Daily Air Temperatures and Heat Index (1979-2011) from North America Land Data Assimilation System (NLDAS) 
-Data Request More information
-Fine Particulate Matter (PM2.5) ($\mu g/m^3$) (2003-2011) 
-Data Request More information
-Land Surface Temperature (LST) (2003-2008) from Moderate Resolution Imaging Spectroradiometer (MODIS) 
-Data Request More information
-Daily Sunlight ($KJ/m^2$) (1979-2011) from North America Land Data Assimilation System (NLDAS) 
-Data Request More information
-Daily Precipitation (mm) (1979-2011) from North America Land Data Assimilation System (NLDAS) 
-Data Request More information
-Number of Heat Wave Days in May-September (1981-2010) 
-Data Request More information
-
-
-I've downloaded climate data from \verb|http://wonder.cdc.gov/EnvironmentalData.html|. We need to process the files. This is a time consuming process, so we'll simply produce a set of linear models, save the models and extract means and slopes. We'll leave examining the fits in detail to another file.
-
-I'll use a utility function to extract linear model parameters
-<<>>=
-extract.county.estimates <- function(fitted.model,term=1) {
-  labels <- attr(fitted.model$terms, "term.labels")
-  estimates <- fitted.model$coefficients[fitted.model$assign == term]
-  names(estimates) <- fitted.model$xlevels[[1]]
-  return(estimates)
-}
-@
 
 <<echo=false>>=
 if(!("min.a" %in% names(covariates.dat))) {
-  if(!file.exists("min.lm.Rda")) {
-  weather.dat <- read.csv("data/wonder/temp.csv", header = TRUE)
-  weather.dat$Year <- as.numeric(weather.dat$Year)
-  weather.dat$Year.Code <- as.numeric(weather.dat$Year.Code)
-  weather.dat$County.Code <- as.numeric(weather.dat$County.Code)
-  
-  weather.dat <- subset(weather.dat,weather.dat$Year>1983)
-  
-  weather.dat$Avg.Daily.Max.Air.Temperature..C. <- as.numeric(weather.dat$Avg.Daily.Max.Air.Temperature..C.)
-  weather.dat$Avg.Daily.Min.Air.Temperature..C. <- as.numeric(weather.dat$Avg.Daily.Min.Air.Temperature..C.)
-  weather.dat$Avg.Daily.Max.Heat.Index..C. <- as.numeric(weather.dat$Avg.Daily.Max.Heat.Index..C.)
-  weather.dat$County <- tolower(as.character(weather.dat$County))
-  weather.dat$State <- tolower(as.character(weather.dat$State))
-  weather.dat$statecounty <- paste(weather.dat$State,weather.dat$County,sep=",")
-
-  weather.dat$statecounty <- as.factor(weather.dat$statecounty)
-
-  max.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
-  min.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
-  heat.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
-  
-  precip.dat <- read.csv("data/wonder/precip.csv", header = TRUE)
-  precip.dat$County <- tolower(as.character(precip.dat$County))
-  precip.dat$State <- tolower(as.character(precip.dat$State))
-  precip.dat$statecounty <- paste(precip.dat$State,precip.dat$County,sep=",")
-  precip.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip.dat)
-
-  sunlight.dat <- read.csv("data/wonder/sunlight.csv", header = TRUE)
-  sunlight.dat$County <- tolower(as.character(sunlight.dat$County))
-  sunlight.dat$State <- tolower(as.character(sunlight.dat$State))
-  sunlight.dat$statecounty <- paste(sunlight.dat$State,sunlight.dat$County,sep=",")
-  sun.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight.dat)
-  
-  save(min.lm, file="min.lm.Rda")
-  save(max.lm, file="max.lm.Rda")
-  save(heat.lm, file="heat.lm.Rda")
-  save(precip.lm, file="precip.lm.Rda")
-  save(sun.lm, file="sun.lm.Rda")
    
-  } else {
-    load(file="min.lm.Rda")
-    load(file="max.lm.Rda")
-    load(file="heat.lm.Rda")
-    load(file="precip.lm.Rda")
-    load(file="sun.lm.Rda")
-   }
-
-      covariates.dat$min.a=extract.county.estimates(min.lm,term=1)[covariates.dat$statecounty]
-      covariates.dat$min.b=extract.county.estimates(min.lm,term=2)[covariates.dat$statecounty]
+   setwd('data/wonder/')
+   if(!file.exists("min.lm.Rda")) {
+      Sweave("fitLinearModels.Snw")
+   } 
+   
+   load(file="min.lm.Rda")
+   covariates.dat$min.a=extract.county.estimates(min.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$min.b=extract.county.estimates(min.lm,term=2)[covariates.dat$statecounty]
+   min.lm = NA
+   
+   
+      load(file="max.lm.Rda")
       covariates.dat$max.a=extract.county.estimates(max.lm,term=1)[covariates.dat$statecounty]
       covariates.dat$max.b=extract.county.estimates(max.lm,term=2)[covariates.dat$statecounty]
-      covariates.dat$heat.a=extract.county.estimates(heat.lm,term=1)[covariates.dat$statecounty]
-      covariates.dat$heat.b=extract.county.estimates(heat.lm,term=2)[covariates.dat$statecounty]
-      covariates.dat$precip.a=extract.county.estimates(precip.lm,term=1)[covariates.dat$statecounty]
-      covariates.dat$precip.b=extract.county.estimates(precip.lm,term=2)[covariates.dat$statecounty]
-      covariates.dat$sun.a=extract.county.estimates(sun.lm,term=1)[covariates.dat$statecounty]
-      covariates.dat$sun.b=extract.county.estimates(sun.lm,term=2)[covariates.dat$statecounty]
+      max.lm = NA
+      load(file="heat.lm.Rda")
+      load(file="precip.lm.Rda")
+      load(file="sun.lm.Rda")
+      load(file="fine.lm.Rda")
+      load(file="day.lm.Rda")
+      load(file="night.lm.Rda")
 
-   save(covariates.dat, file="covariates.dat.Rda")
-} 
-@
+   setwd(current.wd)
 
-
-Don't forget to map "Month Code.
-
-
-Fine particulate data and surface temperatures have different numbers of observations, we
-need to process these separately.
-
-<<echo=false>>=
-if(!("fine.a" %in% names(covariates.dat))) {
-   fine.dat <- read.csv("data/wonder/fine.csv", header = TRUE)
-   surface.dat <- read.csv("data/wonder/surface.csv", header = TRUE)
-
-   fine.dat$County <- as.character(fine.dat$County)
-
-   fine.dat$State <- tolower(as.character(fine.dat$State))
-
-   surface.dat$County <- as.character(surface.dat$County)
-
-   surface.dat$State <- tolower(as.character(surface.dat$State))
-
-   fine.dat$statecounty <- paste(fine.dat$State,fine.dat$County,sep=",")
-   surface.dat$statecounty <- paste(surface.dat$State,surface.dat$County,sep=",")
-
-   fine.lm <- lm(Avg.Fine.Particulate.Matter~ 0 + statecounty + statecounty:Year,data=fine.dat)
-   day.lm <- lm(Avg.Day.Land.Surface.Temperature~ 0 + statecounty + statecounty:Year,data=surface.dat)
-   night.lm <- lm(Avg.Night.Land.Surface.Temperature~ 0 + statecounty + statecounty:Year,data=surface.dat)
-
-  save(fine.lm, file="fine.lm.Rda")
-  save(day.lm, file="day.lm.Rda")
-  save(night.lm, file="night.lm.Rda")
-  
-  fine.a=extract.county.estimates(fine.lm,term=1)
-  fine.b=extract.county.estimates(fine.lm,term=2)
-  day.a=extract.county.estimates(day.lm,term=1)
-  day.b=extract.county.estimates(day.lm,term=2)
-  night.a=extract.county.estimates(night.lm,term=1)
-  night.b=extract.county.estimates(night.lm,term=2)
-  
-  covariates.dat$fine.a <- fine.a[covariates.dat$statecounty]
-  covariates.dat$fine.b <- fine.b[covariates.dat$statecounty]
-  covariates.dat$day.a <- day.a[covariates.dat$statecounty]
-  covariates.dat$day.b <- day.b[covariates.dat$statecounty]
-  covariates.dat$night.a <- night.a[covariates.dat$statecounty]
-  covariates.dat$night.b <- night.b[covariates.dat$statecounty]
-  save(covariates.dat, file="covariates.dat.Rda")
-  
+   
+   
+   
+   covariates.dat$heat.a=extract.county.estimates(heat.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$heat.b=extract.county.estimates(heat.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$precip.a=extract.county.estimates(precip.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$precip.b=extract.county.estimates(precip.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$sun.a=extract.county.estimates(sun.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$sun.b=extract.county.estimates(sun.lm,term=2)[covariates.dat$statecounty]   
+   covariates.dat$fine.a <- extract.county.estimates(fine.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$fine.b <- extract.county.estimates(fine.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$day.a <- extract.county.estimates(day.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$day.b <- extract.county.estimates(day.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$night.a <- extract.county.estimates(night.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$night.b <- extract.county.estimates(night.lm,term=2)[covariates.dat$statecounty]
+   
+   save(covariates.dat, file=covariateFileName)
 } 
 @
 
 
 \section{Nutrients} 
-Excel file downloaded from \verb|http://nugis.ipni.net/Applications/|
-This file had commas as thousand separator, this needed some manipulation 
 
-We can use \verb|STATE_NAME|, \verb|GEO| to match to statecounty
+See \verb|data\IPNI| for more discussion of this data.
 
 <<echo=false>>=
 if(!("Farm_TonsN.a" %in% names(covariates.dat))) {
-   if(!file.exists("Farm_TonsN.lm.Rda")) {
+  #Sweave("data/ipni/fitLinearModels.Snw")
+   setwd('data/ipni')
+   Sweave("fitLinearModels.Snw")
+   setwd(current.wd)
    
-   ipni.dat <- read.csv("data/ipni/county_data_20120106_4_18.csv", header = TRUE)
-   ipni.dat$State <- tolower(as.character(ipni.dat$STATE_NAME))
+   covariates.dat$Farm_TonsN.a <- extract.county.estimates(Farm_TonsN.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Farm_TonsN.b <- extract.county.estimates(Farm_TonsN.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Farm_TonsP.a <- extract.county.estimates(Farm_TonsP.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Farm_TonsP.b <- extract.county.estimates(Farm_TonsP.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Farm_TonsK.a <- extract.county.estimates(Farm_TonsK.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Farm_TonsK.b <- extract.county.estimates(Farm_TonsK.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Tons_N_Exc.a <- extract.county.estimates(Tons_N_Exc.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Tons_N_Exc.b <- extract.county.estimates(Tons_N_Exc.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Tons_P2O5_Exc.a <- extract.county.estimates(Tons_P2O5_Exc.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Tons_P2O5_Exc.b <- extract.county.estimates(Tons_P2O5_Exc.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Tons_K2O_Exc.a <- extract.county.estimates(Tons_K2O_Exc.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Tons_K2O_Exc.b <- extract.county.estimates(Tons_K2O_Exc.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Tons_N_Recovered.a <- extract.county.estimates(Tons_N_Recovered.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Tons_N_Recovered.b <- extract.county.estimates(Tons_N_Recovered.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Tons_P2O5_Recovered.a <- extract.county.estimates(Tons_P2O5_Recovered.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Tons_P2O5_Recovered.b <- extract.county.estimates(Tons_P2O5_Recovered.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Tons_K2O_Recovered.a <- extract.county.estimates(Tons_K2O_Recovered.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Tons_K2O_Recovered.b <- extract.county.estimates(Tons_K2O_Recovered.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Tons_N_Fixed_Legumes.a <- extract.county.estimates(Tons_N_Fixed_Legumes.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Tons_N_Fixed_Legumes.b <- extract.county.estimates(Tons_N_Fixed_Legumes.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Tons_N_Rem.a <- extract.county.estimates(Tons_N_Rem.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Tons_N_Rem.b <- extract.county.estimates(Tons_N_Rem.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Tons_P2O5_Rem.a <- extract.county.estimates(Tons_P2O5_Rem.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Tons_P2O5_Rem.b <- extract.county.estimates(Tons_P2O5_Rem.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Tons_K2O_Rem.a <- extract.county.estimates(Tons_K2O_Rem.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Tons_K2O_Rem.b <- extract.county.estimates(Tons_K2O_Rem.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$BalanceN_Tons.a <- extract.county.estimates(BalanceN_Tons.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$BalanceN_Tons.b <- extract.county.estimates(BalanceN_Tons.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$BalanceP2O5_Tons.a <- extract.county.estimates(BalanceP2O5_Tons.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$BalanceP2O5_Tons.b <- extract.county.estimates(BalanceP2O5_Tons.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$BalanceK2O_Tons.a <- extract.county.estimates(BalanceK2O_Tons.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$BalanceK2O_Tons.b <- extract.county.estimates(BalanceK2O_Tons.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$RatioN.a <- extract.county.estimates(RatioN.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$RatioN.b <- extract.county.estimates(RatioN.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$RatioP2O5.a <- extract.county.estimates(RatioP2O5.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$RatioP2O5.b <- extract.county.estimates(RatioP2O5.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$RatioK2O.a <- extract.county.estimates(RatioK2O.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$RatioK2O.b <- extract.county.estimates(RatioK2O.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$N_PPCA.a <- extract.county.estimates(N_PPCA.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$N_PPCA.b <- extract.county.estimates(N_PPCA.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$P2O5_PPCA.a <- extract.county.estimates(P2O5_PPCA.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$P2O5_PPCA.b <- extract.county.estimates(P2O5_PPCA.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$K2O_PPCA.a <- extract.county.estimates(K2O_PPCA.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$K2O_PPCA.b <- extract.county.estimates(K2O_PPCA.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$FarmNPPCA.a <- extract.county.estimates(FarmNPPCA.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$FarmNPPCA.b <- extract.county.estimates(FarmNPPCA.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$FarmPPPCA.a <- extract.county.estimates(FarmPPPCA.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$FarmPPPCA.b <- extract.county.estimates(FarmPPPCA.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$FarmKPPCA.a <- extract.county.estimates(FarmKPPCA.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$FarmKPPCA.b <- extract.county.estimates(FarmKPPCA.lm,term=2)[covariates.dat$statecounty]
+
+   covariates.dat$X21Crop_TotalPlantedAc.a <- extract.county.estimates(X21Crop_TotalPlantedAc.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$X21Crop_TotalPlantedAc.b <- extract.county.estimates(X21Crop_TotalPlantedAc.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$X21Crop_TotalHarvestAc.a <- extract.county.estimates(X21Crop_TotalHarvestAc.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$X21Crop_TotalHarvestAc.b <- extract.county.estimates(X21Crop_TotalHarvestAc.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$Total_Harvested_Cropland_Acres.a <- extract.county.estimates(Total_Harvested_Cropland_Acres.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$Total_Harvested_Cropland_Acres.b <- extract.county.estimates(Total_Harvested_Cropland_Acres.lm,term=2)[covariates.dat$statecounty]
+   covariates.dat$TotalCropland.a <- extract.county.estimates(TotalCropland.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$TotalCropland.b <- extract.county.estimates(TotalCropland.lm,term=2)[covariates.dat$statecounty]
+
+   save(covariates.dat, file=covariateFileName)
    
-   ipni.dat$County <- tolower(as.character(ipni.dat$GEO))
-   ipni.dat$statecounty <- paste(ipni.dat$State,ipni.dat$County,sep=",")
-   #head(ipni.dat)
-   ipni.dat <- subset(ipni.dat,ipni.dat$statecounty %in% covariates.dat$statecounty)
-   
-   ipni.dat$Farm_TonsN <- as.numeric(ipni.dat$Farm_TonsN)
-   ipni.dat$Farm_TonsP <- as.numeric(ipni.dat$Farm_TonsP)
-   ipni.dat$Farm_TonsK <- as.numeric(ipni.dat$Farm_TonsK)
-   ipni.dat$Tons_N_Exc <- as.numeric(ipni.dat$Tons_N_Exc)
-   ipni.dat$Tons_P2O5_Exc <- as.numeric(ipni.dat$Tons_P2O5_Exc)
-   ipni.dat$Tons_K2O_Exc <- as.numeric(ipni.dat$Tons_K2O_Exc)
-   ipni.dat$Tons_N_Recovered <- as.numeric(ipni.dat$Tons_N_Recovered)
-   ipni.dat$Tons_P2O5_Recovered <- as.numeric(ipni.dat$Tons_P2O5_Recovered)
-   ipni.dat$Tons_K2O_Recovered <- as.numeric(ipni.dat$Tons_K2O_Recovered)
-   ipni.dat$Tons_N_Fixed_Legumes <- as.numeric(ipni.dat$Tons_N_Fixed_Legumes)
-   ipni.dat$Tons_N_Rem <- as.numeric(ipni.dat$Tons_N_Rem)
-   ipni.dat$Tons_P2O5_Rem <- as.numeric(ipni.dat$Tons_P2O5_Rem)
-   ipni.dat$Tons_K2O_Rem <- as.numeric(ipni.dat$Tons_K2O_Rem)
-   ipni.dat$BalanceN_Tons <- as.numeric(ipni.dat$BalanceN_Tons)
-   ipni.dat$BalanceP2O5_Tons <- as.numeric(ipni.dat$BalanceP2O5_Tons)
-   ipni.dat$BalanceK2O_Tons <- as.numeric(ipni.dat$BalanceK2O_Tons)
-   ipni.dat$RatioN <- as.numeric(ipni.dat$RatioN)
-   ipni.dat$RatioP2O5 <- as.numeric(ipni.dat$RatioP2O5)
-   ipni.dat$RatioK2O <- as.numeric(ipni.dat$RatioK2O)
-   ipni.dat$N_PPCA <- as.numeric(ipni.dat$N_PPCA)
-   ipni.dat$P2O5_PPCA <- as.numeric(ipni.dat$P2O5_PPCA)
-   ipni.dat$K2O_PPCA <- as.numeric(ipni.dat$K2O_PPCA)
-   ipni.dat$FarmNPPCA <- as.numeric(ipni.dat$FarmNPPCA)
-   ipni.dat$FarmPPPCA <- as.numeric(ipni.dat$FarmPPPCA)
-   ipni.dat$FarmKPPCA <- as.numeric(ipni.dat$FarmKPPCA)
-   ipni.dat$X21Crop_TotalPlantedAc <- as.numeric(ipni.dat$X21Crop_TotalPlantedAc)
-   ipni.dat$X21Crop_TotalHarvestAc <- as.numeric(ipni.dat$X21Crop_TotalHarvestAc)
-   ipni.dat$Total_Harvested_Cropland_Acres <- as.numeric(ipni.dat$Total_Harvested_Cropland_Acres )
-   ipni.dat$TotalCropland <- as.numeric(ipni.dat$TotalCropland)
-   
-  Farm_TonsN.lm <- lm(Farm_TonsN ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Farm_TonsP.lm <- lm(Farm_TonsP  ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Farm_TonsK.lm <- lm(Farm_TonsK ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Tons_N_Exc.lm <- lm(Tons_N_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Tons_P2O5_Exc.lm <- lm(Tons_P2O5_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Tons_K2O_Exc.lm <- lm(Tons_K2O_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Tons_N_Recovered.lm <- lm(Tons_N_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Tons_P2O5_Recovered.lm <- lm(Tons_P2O5_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Tons_K2O_Recovered.lm <- lm(Tons_K2O_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Tons_N_Fixed_Legumes.lm <- lm(Tons_N_Fixed_Legumes ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Tons_N_Rem.lm <- lm(Tons_N_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Tons_P2O5_Rem.lm <- lm(Tons_P2O5_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Tons_K2O_Rem.lm <- lm(Tons_K2O_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  BalanceN_Tons.lm <- lm(BalanceN_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  BalanceP2O5_Tons.lm <- lm(BalanceP2O5_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  BalanceK2O_Tons.lm <- lm(BalanceK2O_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  RatioN.lm <- lm(RatioN ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  RatioP2O5.lm <- lm(RatioP2O5 ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  RatioK2O.lm <- lm(RatioK2O ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  N_PPCA.lm <- lm(N_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  P2O5_PPCA.lm <- lm(P2O5_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  K2O_PPCA.lm <- lm(K2O_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  FarmNPPCA.lm <- lm(FarmNPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  FarmPPPCA.lm <- lm(FarmPPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  FarmKPPCA.lm <- lm(FarmKPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  X21Crop_TotalPlantedAc.lm <- lm(X21Crop_TotalPlantedAc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  X21Crop_TotalHarvestAc.lm <- lm(X21Crop_TotalHarvestAc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  Total_Harvested_Cropland_Acres.lm <- lm(Total_Harvested_Cropland_Acres ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  TotalCropland.lm <- lm(TotalCropland ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-  
-  save(Farm_TonsN.lm, file="Farm_TonsN.lm.Rda")
-  save(Farm_TonsP.lm, file="Farm_TonsP.lm.Rda")
-  save(Farm_TonsK.lm, file="Farm_TonsK.lm.Rda")
-  save(Tons_N_Exc.lm, file="Tons_N_Exc.lm.Rda")
-  save(Tons_P2O5_Exc.lm, file="Tons_P2O5_Exc.lm.Rda")
-  save(Tons_K2O_Exc.lm, file="Tons_K2O_Exc.lm.Rda")
-  save(Tons_N_Recovered.lm, file="Tons_N_Recovered.lm.Rda")
-  save(Tons_P2O5_Recovered.lm, file="Tons_P2O5_Recovered.lm.Rda")
-  save(Tons_K2O_Recovered.lm, file="Tons_K2O_Recovered.lm.Rda")
-  save(Tons_N_Fixed_Legumes.lm, file="Tons_N_Fixed_Legumes.lm.Rda")
-  save(Tons_N_Rem.lm, file="Tons_N_Rem.lm.Rda")
-  save(Tons_P2O5_Rem.lm, file="Tons_P2O5_Rem.lm.Rda")
-  save(Tons_K2O_Rem.lm, file="Tons_K2O_Rem.lm.Rda")
-  save(BalanceN_Tons.lm, file="BalanceN_Tons.lm.Rda")
-  save(BalanceP2O5_Tons.lm, file="BalanceP2O5_Tons.lm.Rda")
-  save(BalanceK2O_Tons.lm, file="BalanceK2O_Tons.lm.Rda")
-  save(RatioN.lm, file="RatioN.lm.Rda")
-  save(RatioP2O5.lm, file="RatioP2O5.lm.Rda")
-  save(RatioK2O.lm, file="RatioK2O.lm.Rda")
-  save(N_PPCA.lm, file="N_PPCA.lm.Rda")
-  save(P2O5_PPCA.lm, file="P2O5_PPCA.lm.Rda")
-  save(K2O_PPCA.lm, file="K2O_PPCA.lm.Rda")
-  save(FarmNPPCA.lm, file="FarmNPPCA.lm.Rda")
-  save(FarmPPPCA.lm, file="FarmPPPCA.lm.Rda")
-  save(FarmKPPCA.lm, file="FarmKPPCA.lm.Rda")
-  save(X21Crop_TotalPlantedAc.lm, file="X21Crop_TotalPlantedAc.lm.Rda")
-  save(X21Crop_TotalHarvestAc.lm, file="X21Crop_TotalHarvestAc.lm.Rda")
-  save(Total_Harvested_Cropland_Acres.lm, file="Total_Harvested_Cropland_Acres.lm.Rda")
-  save(TotalCropland.lm, file="TotalCropland.lm.Rda")
-
-  } else {
-    
-     load(file="Farm_TonsN.lm.Rda")
-    load(file="Farm_TonsP.lm.Rda")
-    load(file="Farm_TonsK.lm.Rda")
-    load(file="Tons_N_Exc.lm.Rda")
-    load(file="Tons_P2O5_Exc.lm.Rda")
-    load(file="Tons_K2O_Exc.lm.Rda")
-    load(file="Tons_N_Recovered.lm.Rda")
-    load(file="Tons_P2O5_Recovered.lm.Rda")
-    load(file="Tons_K2O_Recovered.lm.Rda")
-    load(file="Tons_N_Fixed_Legumes.lm.Rda")
-    load(file="Tons_N_Rem.lm.Rda")
-    load(file="Tons_P2O5_Rem.lm.Rda")
-    load(file="Tons_K2O_Rem.lm.Rda")
-    load(file="BalanceN_Tons.lm.Rda")
-    load(file="BalanceP2O5_Tons.lm.Rda")
-    load(file="BalanceK2O_Tons.lm.Rda")
-    load(file="RatioN.lm.Rda")
-    load(file="RatioP2O5.lm.Rda")
-    load(file="RatioK2O.lm.Rda")
-    load(file="N_PPCA.lm.Rda")
-    load(file="P2O5_PPCA.lm.Rda")
-    load(file="K2O_PPCA.lm.Rda")
-    load(file="FarmNPPCA.lm.Rda")
-    load(file="FarmPPPCA.lm.Rda")
-    load(file="FarmKPPCA.lm.Rda")
-    load(file="X21Crop_TotalPlantedAc.lm.Rda")
-    load(file="X21Crop_TotalHarvestAc.lm.Rda")
-    load(file="Total_Harvested_Cropland_Acres.lm.Rda")
-    load(file="TotalCropland.lm.Rda")
- }
-
-covariates.dat$Farm_TonsN.a <- extract.county.estimates(Farm_TonsN.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Farm_TonsN.b <- extract.county.estimates(Farm_TonsN.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Farm_TonsP.a <- extract.county.estimates(Farm_TonsP.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Farm_TonsP.b <- extract.county.estimates(Farm_TonsP.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Farm_TonsK.a <- extract.county.estimates(Farm_TonsK.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Farm_TonsK.b <- extract.county.estimates(Farm_TonsK.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Tons_N_Exc.a <- extract.county.estimates(Tons_N_Exc.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Tons_N_Exc.b <- extract.county.estimates(Tons_N_Exc.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Tons_P2O5_Exc.a <- extract.county.estimates(Tons_P2O5_Exc.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Tons_P2O5_Exc.b <- extract.county.estimates(Tons_P2O5_Exc.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Tons_K2O_Exc.a <- extract.county.estimates(Tons_K2O_Exc.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Tons_K2O_Exc.b <- extract.county.estimates(Tons_K2O_Exc.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Tons_N_Recovered.a <- extract.county.estimates(Tons_N_Recovered.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Tons_N_Recovered.b <- extract.county.estimates(Tons_N_Recovered.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Tons_P2O5_Recovered.a <- extract.county.estimates(Tons_P2O5_Recovered.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Tons_P2O5_Recovered.b <- extract.county.estimates(Tons_P2O5_Recovered.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Tons_K2O_Recovered.a <- extract.county.estimates(Tons_K2O_Recovered.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Tons_K2O_Recovered.b <- extract.county.estimates(Tons_K2O_Recovered.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Tons_N_Fixed_Legumes.a <- extract.county.estimates(Tons_N_Fixed_Legumes.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Tons_N_Fixed_Legumes.b <- extract.county.estimates(Tons_N_Fixed_Legumes.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Tons_N_Rem.a <- extract.county.estimates(Tons_N_Rem.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Tons_N_Rem.b <- extract.county.estimates(Tons_N_Rem.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Tons_P2O5_Rem.a <- extract.county.estimates(Tons_P2O5_Rem.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Tons_P2O5_Rem.b <- extract.county.estimates(Tons_P2O5_Rem.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Tons_K2O_Rem.a <- extract.county.estimates(Tons_K2O_Rem.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Tons_K2O_Rem.b <- extract.county.estimates(Tons_K2O_Rem.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$BalanceN_Tons.a <- extract.county.estimates(BalanceN_Tons.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$BalanceN_Tons.b <- extract.county.estimates(BalanceN_Tons.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$BalanceP2O5_Tons.a <- extract.county.estimates(BalanceP2O5_Tons.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$BalanceP2O5_Tons.b <- extract.county.estimates(BalanceP2O5_Tons.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$BalanceK2O_Tons.a <- extract.county.estimates(BalanceK2O_Tons.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$BalanceK2O_Tons.b <- extract.county.estimates(BalanceK2O_Tons.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$RatioN.a <- extract.county.estimates(RatioN.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$RatioN.b <- extract.county.estimates(RatioN.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$RatioP2O5.a <- extract.county.estimates(RatioP2O5.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$RatioP2O5.b <- extract.county.estimates(RatioP2O5.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$RatioK2O.a <- extract.county.estimates(RatioK2O.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$RatioK2O.b <- extract.county.estimates(RatioK2O.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$N_PPCA.a <- extract.county.estimates(N_PPCA.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$N_PPCA.b <- extract.county.estimates(N_PPCA.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$P2O5_PPCA.a <- extract.county.estimates(P2O5_PPCA.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$P2O5_PPCA.b <- extract.county.estimates(P2O5_PPCA.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$K2O_PPCA.a <- extract.county.estimates(K2O_PPCA.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$K2O_PPCA.b <- extract.county.estimates(K2O_PPCA.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$FarmNPPCA.a <- extract.county.estimates(FarmNPPCA.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$FarmNPPCA.b <- extract.county.estimates(FarmNPPCA.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$FarmPPPCA.a <- extract.county.estimates(FarmPPPCA.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$FarmPPPCA.b <- extract.county.estimates(FarmPPPCA.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$FarmKPPCA.a <- extract.county.estimates(FarmKPPCA.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$FarmKPPCA.b <- extract.county.estimates(FarmKPPCA.lm,term=2)[covariates.dat$statecounty]
-
-covariates.dat$X21Crop_TotalPlantedAc.a <- extract.county.estimates(X21Crop_TotalPlantedAc.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$X21Crop_TotalPlantedAc.b <- extract.county.estimates(X21Crop_TotalPlantedAc.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$X21Crop_TotalHarvestAc.a <- extract.county.estimates(X21Crop_TotalHarvestAc.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$X21Crop_TotalHarvestAc.b <- extract.county.estimates(X21Crop_TotalHarvestAc.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$Total_Harvested_Cropland_Acres.a <- extract.county.estimates(Total_Harvested_Cropland_Acres.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$Total_Harvested_Cropland_Acres.b <- extract.county.estimates(Total_Harvested_Cropland_Acres.lm,term=2)[covariates.dat$statecounty]
-covariates.dat$TotalCropland.a <- extract.county.estimates(TotalCropland.lm,term=1)[covariates.dat$statecounty]
-covariates.dat$TotalCropland.b <- extract.county.estimates(TotalCropland.lm,term=2)[covariates.dat$statecounty]
-
-save(covariates.dat, file="covariates.dat.Rda")
 }
 @
 
 Other measures
 <<>>=
 if(!("harvested.a" %in% names(covariates.dat))) {
-if(!file.exists("production.late.county.lm.Rda")) {
-production.late.dat <- subset(county.production.dat,late.f(county.production.dat$Year))
-production.late.counts <- tapply(production.late.dat$Value,list(production.late.dat$statecounty),length)
-production.late.dat$Count <- production.late.counts[production.late.dat$statecounty]
-production.late.dat <- subset(county.production.dat,production.late.dat$Count>9)
-
-production.late.lm <- lm(Value ~ Year,data=production.late.dat)
-production.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=production.late.dat)
-production.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=production.late.dat)
-
-
-acres.late.dat <- subset(county.acres.dat,late.f(county.acres.dat$Year))
-acres.late.counts <- tapply(acres.late.dat$Value,list(acres.late.dat$statecounty),length)
-acres.late.dat$Count <- acres.late.counts[acres.late.dat$statecounty]
-acres.late.dat <- subset(county.acres.dat,acres.late.dat$Count>9)
-
-acres.late.lm <- lm(Value ~ Year,data=acres.late.dat)
-acres.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=acres.late.dat)
-acres.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=acres.late.dat)
-
-harvested.late.dat <- subset(county.harvested.dat,late.f(county.harvested.dat$Year))
-harvested.late.counts <- tapply(harvested.late.dat$Value,list(harvested.late.dat$statecounty),length)
-harvested.late.dat$Count <- harvested.late.counts[harvested.late.dat$statecounty]
-harvested.late.dat <- subset(county.harvested.dat,harvested.late.dat$Count>9)
-
-harvested.late.lm <- lm(Value ~ Year,data=harvested.late.dat)
-harvested.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=harvested.late.dat)
-harvested.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=harvested.late.dat)
-
-
- save(production.late.county.lm, file="production.late.county.lm.Rda")
- save(harvested.late.county.lm, file="harvested.late.county.lm.Rda")
- save(acres.late.county.lm, file="acres.late.county.lm.Rda")
-
-} else {
-   load(file="production.late.county.lm.Rda")
-   load(file="harvested.late.county.lm.Rda")
-   load(file="acres.late.county.lm.Rda")
-}
-   
+   setwd('data/usda/')
+   if(!file.exists("harvested.late.county.lm.Rda")) {
+      Sweave("fitLinearModels.Snw")
+   } else {
+      load(file="harvested.late.county.lm.Rda")
+      load(file="acres.late.county.lm.Rda")
+      load(file="income.late.county.lm.Rda")
+   }
+   setwd(current.wd)
    harvested.late.estimates <- extract.county.estimates(harvested.late.county.lm,term=1)
    harvested.late.year.estimates <- extract.county.estimates(harvested.late.county.lm,term=2)
    covariates.dat$harvested.a <- harvested.late.estimates[covariates.dat$statecounty]
@@ -628,22 +182,26 @@ harvested.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=h
 
    production.late.estimates <- extract.county.estimates(production.late.county.lm,term=1)
    production.late.year.estimates <- extract.county.estimates(production.late.county.lm,term=2)
-   covariates.dat$production.a <- production.late.estimates[covariates.dat$statecounty]
-   covariates.dat$production.b <- production.late.year.estimates[covariates.dat$statecounty]
+  # covariates.dat$production.a <- production.late.estimates[covariates.dat$statecounty]
+#   covariates.dat$production.b <- production.late.year.estimates[covariates.dat$statecounty]
    
-   save(covariates.dat, file="covariates.dat.Rda")
+   save(covariates.dat, file=covariateFileName)
 }
 @
 
-\section{Income}
-<<>>=
-income.dat <- read.csv("data/usda/3F1461DC-1B65-3644-92E4-B4A7876551B5.csv", header = TRUE)
+\verb|"INCOME, NET CASH FARM, OF OPERATIONS - NET INCOME, MEASURED IN $ / OPERATION"|
 
-income.dat$statecounty <- create.index(income.dat)
-income.total.dat <- subset(income.dat,income.dat$Data.Item=="INCOME, NET CASH FARM, OF OPERATIONS - NET INCOME, MEASURED IN $")
-income.relative.dat <- subset(income.dat,income.dat$Data.Item=="INCOME, NET CASH FARM, OF OPERATIONS - NET INCOME, MEASURED IN $ / OPERATION")
-mean.total.income <- tapply(income.total.dat$Value,list(income.total.dat$statecounty),mean.na.rm=TRUE)
-mean.relative.income <- tapply(income.relative.dat$Value,list(income.relative.dat$statecounty),mean.na.rm=TRUE)
+<<>>=
+if(!file.exists("data/usda/income.total.dat.Rda")) {
+   setwd('data/usda/')
+   Sweave("fitLinearModels.Snw")
+   setwd(current.wd)
+} else {
+   load(file="data/usda/income.relative.dat.Rda")
+   load(file="data/usda/income.total.dat.Rda")
+}
+mean.relative.income <- tapply(income.relative.dat$Value,list(income.relative.dat$statecounty),mean,na.rm=TRUE)
+mean.total.income <- tapply(income.total.dat$Value,list(income.total.dat$statecounty),mean,na.rm=TRUE)
 @
 
 \section{Covariate Analysis}
@@ -663,14 +221,14 @@ covariates.dat[,intercept.columns] <- covariates.dat[,intercept.columns]+ covari
 yield.idx <- 2
 col <- 2
 
-
 covariates.dat$wheat_frac.a <- covariates.dat$acres.a/covariates.dat$Total_Harvested_Cropland_Acres.a
 covariates.dat$wheat_frac.b <- covariates.dat$acres.b/covariates.dat$Total_Harvested_Cropland_Acres.b
 covariates.dat$average.income <- mean.relative.income[covariates.dat$statecounty]
-#covariates.dat$total.income <- mean.total.income[covariates.dat$statecounty]
+covariates.dat$total.income <- mean.total.income[covariates.dat$statecounty]
 #use all but the first and last two columns
 covariate.terms <- names(covariates.dat)[4:dim(covariates.dat)[2]]
 @
+
 <<>>=
 form3 <- paste(names(covariates.dat)[yield.idx]," ~ ",covariate.terms[1])
 form4 <- paste(names(covariates.dat)[yield.idx+1]," ~ ",covariate.terms[1])
@@ -680,23 +238,26 @@ for(idx in 2:length(covariate.terms) ) {
    form4<-paste(form4,"+",covariate.terms[idx])
 }
 cov3.lm <- lm(form3,data=na.omit(covariates.dat))
-
 cov4.lm <- lm(form4,data=covariates.dat)
-
-summary(cov3.lm)
-summary(aov(cov3.lm))
-summary(cov4.lm)
-summary(aov(cov4.lm))
 @
 
 <<results=hide>>=
-best3 <- step(cov3.lm)
-best4 <- step(cov4.lm)
+best3 <- step(cov3.lm,direction = "both")
+best4 <- step(cov4.lm,direction = "both")
 @
 
+\section{Yield Average Covariates}
 <<>>=
+summary(cov3.lm)
+summary(aov(cov3.lm))
 summary(best3)
 summary(aov(best3))
+@
+
+\section{Yield Average Covariates}
+<<>>=
+summary(cov4.lm)
+summary(aov(cov4.lm))
 summary(best4)
 summary(aov(best4))
 @
@@ -726,574 +287,26 @@ map.values(plot.dat$yield.b,plot.names,main="Yield Change")
 subploth.dat <- subset(plot.dat,!is.na(plot.dat$harvested.a))
 map.values(subploth.dat$harvested.a,as.character(subploth.dat$statecounty),main="Harvested Average")
 @
+
 <<fig=TRUE>>=
 map.values(subploth.dat$harvested.b,as.character(subploth.dat$statecounty),main="Harvested Change")
 @
 
-<<fig=TRUE>>=
-subplotp.dat <- subset(plot.dat,!is.na(plot.dat$production.a))
-map.values(subplotp.dat$production.a,as.character(subplotp.dat$statecounty),main="Production Average")
-@
-
-
-
-<<fig=TRUE>>=
-map.values(subplotp.dat$production.b,as.character(subplotp.dat$statecounty),main="Production Change")
-@
-
-
-\subsection{Significant Covariates, Yield Change}
-
-<<fig=TRUE>>=
-map.values(plot.dat$precip.a,plot.names,main="Precipitation Average")
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(precip.a,yield.b)) + geom_point(aes(color=state),weight=6) + geom_smooth(aes(group=state,color=state),weight=10,se = FALSE,method="lm") + geom_smooth(aes(color="black"),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(precip.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state,color=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-map.values(plot.dat$precip.b,plot.names,main="Precipitation Change")
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(precip.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(precip.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$min.a,plot.names,main="Minimum Temp")
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(min.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(min.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-map.values(plot.dat$max.b,plot.names,main="Maximum Temp Change")
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(max.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(max.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-map.values(plot.dat$heat.b,plot.names,main="Heat Change")
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(heat.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(heat.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$sun.b,plot.names,main="Sun Change")
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(sun.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(sun.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-map.values(plot.dat$sun.a,plot.names,main="Sun Average")
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(sun.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(sun.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-map.values(plot.dat$day.a,plot.names,main="Day Average")
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(day.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(day.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-map.values(plot.dat$night.b,plot.names,main="Night Change")
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(night.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(night.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$fine.a,plot.names,main="Fine Average")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(fine.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(fine.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$Farm_TonsP.a,plot.names,main="Farm Tons P Average")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(Farm_TonsP.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(Farm_TonsP.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$Farm_TonsP.b,plot.names,main="Farm Tons P Change")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(Farm_TonsP.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(Farm_TonsP.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$Farm_TonsK.b,plot.names,main="Farm Tons K Change")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(Farm_TonsK.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(Farm_TonsK.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$Tons_P2O5_Recovered.a,plot.names,main="Tons P2O5 Recovered Average")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(Tons_P2O5_Recovered.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(Tons_P2O5_Recovered.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-map.values(plot.dat$Tons_K2O_Recovered.a,plot.names,main="Tons K2O Recovered Average")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(Tons_K2O_Recovered.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(Tons_K2O_Recovered.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$Tons_K2O_Recovered.b,plot.names,main="Tons K2O Recovered Change")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(Tons_K2O_Recovered.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(Tons_K2O_Recovered.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$Tons_K2O_Rem.a,plot.names,main="Tons K2O Rem Average")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(Tons_K2O_Rem.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(Tons_K2O_Rem.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$Tons_N_Fixed_Legumes.b,plot.names,main="Tons N Fixed Legumes Change")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(Tons_N_Fixed_Legumes.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(Tons_N_Fixed_Legumes.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$BalanceN_Tons.a,plot.names,main="Balance N Tons Average")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(BalanceN_Tons.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(BalanceN_Tons.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$RatioN.b,plot.names,main="Ratio N Change")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(RatioN.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(RatioN.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$RatioK2O.a,plot.names,main="Ratio K2O Average")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(RatioK2O.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(RatioK2O.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-map.values(plot.dat$RatioK2O.b,plot.names,main="Ratio K2O Change")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(RatioK2O.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(RatioK2O.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$RatioP2O5.b,plot.names,main="Ratio P2O5 Change")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(RatioP2O5.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(RatioP2O5.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$K2O_PPCA.a,plot.names,main="K2O PPCA Average")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(K2O_PPCA.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(K2O_PPCA.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$X21Crop_TotalHarvestAc.a,plot.names,main="Crop Total Harvest Ac Average")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(X21Crop_TotalHarvestAc.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(X21Crop_TotalHarvestAc.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
-
-<<fig=TRUE>>=
-map.values(plot.dat$Total_Harvested_Cropland_Acres.b,plot.names,main="Total Harvested Cropland Acres")
-@
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(plot.dat, aes(Total_Harvested_Cropland_Acres.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(plot.dat, aes(Total_Harvested_Cropland_Acres.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
 
 \section{HWW Nursery}
-<<>>=
-rpn.dat <- read.csv("./data/wwheat/Statistics.csv", header = TRUE)
-rpn.dat <- subset(rpn.dat,rpn.dat$Assessment=="GY")
-rpn.dat <- subset(rpn.dat,rpn.dat$Statistic=="Mean")
-rpn.dat$Value <- as.numeric(as.character(rpn.dat$Value))
-rpn.dat$Trial <- as.factor(rpn.dat$Trial)
-head(rpn.dat)
 
-#convert to bu/acre
-#Wheat/soybeans (60# bu)
-#1 kilogram/hectare (kg/ha) = .0149 (.015) 
-#bushels/acre
-#1 bushel/acre = 67.25 (67) kilograms/hectare
-rpn.dat$Value <- rpn.dat$Value * 0.0149
-
-state.abbr <- c("ND","SD","NE","KS","OK","TX")
-state.abbr.map <- c("north dakota","south dakota","nebraska","kansas","oklahoma","texas")
-names(state.abbr.map) <- state.abbr 
-
-
-#subset by state
-locations.dat <- read.csv("./data/wwheat/Locations.csv", header = TRUE)
-locations.dat <- subset(locations.dat, locations.dat$State %in% c("ND","SD","NE","KS","OK","TX"))
-locations.dat$State <- as.character(locations.dat$State)
-locations.dat$State <- state.abbr.map[locations.dat$State]
-
-# this lets us map location name to a county and state
-statecounty.map <- as.character(paste(locations.dat$State,locations.dat$County,sep=","))
-locations.dat$statecounty <- statecounty.map
-names(statecounty.map) <- as.character(locations.dat$Name)
-#statecounty.map <- as.character(locations.dat$Name)
-#names(statecounty.map) <- as.character(paste(locations.dat$State,locations.dat$County,sep=", "))
-@
-
-Now, generate an index
-<<>>=
-
-yield.gap.dat <- subset(county.yield.dat,county.yield.dat$statecounty %in% statecounty.map)
-head(county.yield.dat)
-head(yield.gap.dat)
-@
-
-Map nursery yield means to county means
-<<>>=
-rpn.dat$statecounty <- statecounty.map[as.character(rpn.dat$Location)]
-yield.gap.dat$statecountyyear <- paste(yield.gap.dat$statecounty,yield.gap.dat$Year)
-rpn.dat$statecountyyear <- paste(rpn.dat$statecounty,rpn.dat$Cycle)
-actual <- yield.gap.dat$Value
-names(actual) <- as.character(yield.gap.dat$statecountyyear)
-rpn.dat$Actual <- actual[rpn.dat$statecountyyear]
-
-rpn.dat$Actual <- as.numeric(as.character(rpn.dat$Actual))
-rpn.dat$Value <- as.numeric(as.character(rpn.dat$Value))
-rpn.dat <- subset(rpn.dat,!is.na(rpn.dat$Actual))
-
-rpn.dat$Year <- as.factor(rpn.dat$Cycle)
-
-rpn.dat$Location <- as.factor(rpn.dat$Location)
-
-yield.gap.plot <- ggplot(rpn.dat, aes(Value,Actual),xlab="Nursery Average",ylab="County Average")
-yield.gap.plot <- yield.gap.plot + geom_point(aes(color=Year)) + geom_smooth(aes(group= Year,color=Year),se = FALSE,method="lm")
-yield.gap.plot
-
-gap.frame <- data.frame(
-  Year =  c(rpn.dat$Cycle,rpn.dat$Cycle),
-  Source = c(rep("Nursery",length(rpn.dat$Value)),rep("County",length(rpn.dat$Value))),
-  Yield = c(rpn.dat$Value,rpn.dat$Actual)
-)
-gap.frame$Source <- as.factor(gap.frame$Source)
-yield.gap2.plot <- ggplot(gap.frame, aes(Year,Yield))
-#yield.gap2.plot <- yield.gap2.plot + geom_point(aes(color=Source)) + geom_smooth(aes(group=Source,color=Source),se = FALSE,method="lm")
-yield.gap2.plot <- yield.gap2.plot + geom_point(aes(color=Source)) + geom_smooth(aes(group=Source,color=Source),se = FALSE)
-yield.gap2.plot
-@
-
-Compute the gap
-<<>>=
-nursery.counts <- tapply(rpn.dat$Value,list(rpn.dat$Location),length)
-rpn.dat$Gap <- rpn.dat$Value - rpn.dat$Actual
-rpn.dat$GapPercent <- 100*rpn.dat$Actual/rpn.dat$Value
-rpn.dat$Count <- nursery.counts[rpn.dat$Location]
-@
-
-Some of the nurseries are irrigated; remove those
-<<>>=
-rpn.dat$Irrigated <- FALSE
-irrigated <- c("Bushland (Irr)","Goodwell","Goodwell (Irr)","Hugoton (Irr)","Imperial (Irr)")
-
-rpn.dat$Irrigated[rpn.dat$Location%in%irrigated] <- TRUE
-
-rpn.dat$Location <- as.factor(as.character(rpn.dat$Location))
-levels(rpn.dat$Location)
-
-rpndry.dat <- subset(rpn.dat, !rpn.dat$Irrigated)
-
-rpndry.dat$Location <- as.factor(as.character(rpndry.dat$Location))
-levels(rpndry.dat$Location)
-
-yield.gap3.plot <- ggplot(rpndry.dat, aes(Value,Actual),xlab="Nursery Average",ylab="County Average")
-yield.gap3.plot <- yield.gap3.plot + geom_point(aes(color=Year)) + geom_smooth(aes(group= Year,color=Year),se = FALSE,method="lm")
-yield.gap3.plot
-
-gap.frame <- data.frame(
-  Year =  c(rpndry.dat$Cycle,rpndry.dat$Cycle),
-  Source = c(rep("Nursery",length(rpndry.dat$Value)),rep("County",length(rpndry.dat$Value))),
-  Yield = c(rpndry.dat$Value,rpndry.dat$Actual)
-)
-gap.frame$Source <- as.factor(gap.frame$Source)
-@
-
-<<fig=TRUE>>=
-yield.gap4.plot <- ggplot(gap.frame, aes(Year,Yield))
-#yield.gap2.plot <- yield.gap2.plot + geom_point(aes(color=Source)) + geom_smooth(aes(group=Source,color=Source),se = FALSE,method="lm")
-yield.gap4.plot <- yield.gap4.plot + geom_point(aes(color=Source)) + geom_smooth(aes(group=Source,color=Source),se = FALSE,method="lm")
-yield.gap4.plot
-@
-
-<<fig=TRUE>>=
-yield.gap3a.plot <- ggplot(rpndry.dat, aes(Value,Actual),xlab="Nursery Average",ylab="County Average")
-yield.gap3a.plot <- yield.gap3a.plot + geom_point(aes(color=Trial)) + geom_smooth(aes(group= Trial,color=Trial),se = FALSE,method="lm")
-yield.gap3a.plot
-@
-
-
-Plot the actual gap by year
-
-<<>>=
-rpndry.dat <- subset(rpndry.dat,rpndry.dat$Count>10)
-summary(lm(Gap ~ Location + Cycle, data=rpndry.dat))
-summary(lm(GapPercent ~ Location + Cycle, data=rpndry.dat))
-
-summary(lm(Gap ~ Trial + Cycle, data=rpndry.dat))
-summary(lm(GapPercent ~ Trial + Cycle, data=rpndry.dat))
-@
-<<fig=TRUE>>=
-yield.gap5.plot <- ggplot(rpndry.dat, aes(Cycle,Gap),xlab="Year",ylab="Gap")
-yield.gap5.plot <- yield.gap5.plot + geom_point(aes(color=Location)) + geom_smooth(aes(group= Location,color=Location),se = FALSE,method="lm")
-yield.gap5.plot
-@
-
-<<fig=TRUE>>=
-yield.gap6.plot <- ggplot(rpndry.dat, aes(Cycle,GapPercent),xlab="Year",ylab="Gap Percent")
-yield.gap6.plot <- yield.gap6.plot + geom_point(aes(color=Location)) + geom_smooth(aes(group= Location,color=Location),se = FALSE,method="lm")
-yield.gap6.plot
-@
-
-<<fig=TRUE>>=
-yield.gap6b.plot <- ggplot(rpndry.dat, aes(Cycle,GapPercent),xlab="Year",ylab="Gap Percent")
-yield.gap6b.plot <- yield.gap6b.plot + geom_point(aes(color=Trial)) + geom_smooth(aes(group=Trial,color=Trial),se = FALSE,method="lm")
-yield.gap6b.plot
-@
-
-<<>>=
-gap.lm <- lm(Gap ~ 0 + Location + Location:Cycle, data=rpndry.dat)
-gapper.lm <- lm(GapPercent ~ 0 + Location + Location:Cycle, data=rpndry.dat)
-summary(gap.lm)
-summary(gapper.lm)
-@
-
-Get the coefficients so we can map regression estimates
-<<>>=
-labels <- attr(gap.lm$terms, "term.labels")
-rpn.estimates <- gap.lm$coefficients[gap.lm$assign == 1]
-rpn.year.estimates <- gap.lm$coefficients[gap.lm$assign == 2]
-length(rpn.estimates)
-length(rpn.year.estimates)
-names(rpn.estimates) <- gap.lm$xlevels[[1]]
-names(rpn.year.estimates) <- gap.lm$xlevels[[1]]
-locations.dat$gapintercept <- rpn.estimates[as.character(locations.dat$Name)]
-locations.dat$gapslope <- rpn.year.estimates[as.character(locations.dat$Name)]
-@
-
-<<fig=TRUE>>=
-gapplot.dat <- subset(locations.dat, !is.na(locations.dat$gapslope))
-norm.slopes <- gapplot.dat$gapslope/max(abs(1.05*gapplot.dat$gapslope))
-pos.slopes <- norm.slopes
-neg.slopes <- -norm.slopes
-neg.slopes[neg.slopes<0] <- 0
-pos.slopes[pos.slopes<0] <- 0
-
-gapplot.dat$statecounty <- as.character(gapplot.dat$statecounty)
-
-map.colors <- colorRampPalette(c('lightblue','darkblue'))(100)[floor(pos.slopes*100)+1]
-neg.colors <- colorRampPalette(c('pink','red'))(100)[floor(neg.slopes*100)+1]
-map.colors[norm.slopes<0] <-neg.colors[norm.slopes<0] 
-map("county", regions = gapplot.dat$statecounty, col = map.colors, fill = TRUE, lty = 1, lwd= 1)
-#map("county", regions = counties.dat$statecounty, col = "black", fill = FALSE, lty = 1, lwd = 1, add=TRUE)
-@
 
 <<>>=
 common.scale <- max(abs(1.05*covariates.dat$yield.b))
 @
 
-A quick double check on the model, compare with individual lm
 <<>>=
-summary(lm(Value ~ Year,data=subset(county.late.dat,county.late.dat$statecounty=="kansas,allen")))
-summary(lm(Value ~ Year,data=subset(county.late.dat,county.late.dat$statecounty=="kansas,anderson")))
-summary(lm(Value ~ Year,data=subset(county.late.dat,county.late.dat$statecounty=="kansas,atchison")))
-
-county.late.sum <- summary(late.county.lm)
-@
-Good.
-
-<<>>=
-mid.counts <- tapply(county.mid.dat$Value,list(county.mid.dat$statecounty),length)
-county.mid.dat$Count <- mid.counts[county.mid.dat$statecounty]
-county.mid.dat <- subset(county.mid.dat,county.mid.dat$Count>9)
-mid.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.mid.dat)
-#summary(mid.lm)
-
-
+load(file="data/usda/early.lm.Rda")
+load(file="data/usda/mid.lm.Rda")
 rpn.mid.estimates <- extract.county.estimates(mid.lm,term=1)
 rpn.mid.year.estimates <- extract.county.estimates(mid.lm,term=2)
 common.scale <- max(c(common.scale, max(abs(1.05*rpn.mid.year.estimates))))
-@
 
-<<>>=
-early.counts <- tapply(county.early.dat$Value,list(county.early.dat$statecounty),length)
-county.early.dat$Count <- early.counts[county.early.dat$statecounty]
-county.early.dat <- subset(county.early.dat,county.early.dat$Count>9)
-early.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.early.dat)
 rpn.early.estimates <- extract.county.estimates(early.lm,term=1)
 rpn.early.year.estimates <- extract.county.estimates(early.lm,term=2)
 common.scale <- max(c(common.scale, max(abs(1.05*rpn.early.year.estimates))))
@@ -1313,6 +326,7 @@ map.values(rpn.early.year.estimates,names(rpn.early.year.estimates),1/common.sca
 
 \section{Offset}
 <<>>=
+load(file="data/usda/county.yield.dat.Rda")
 county.late2.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year+2))
 county.late4.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year+3))
 county.late6.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year+6))
@@ -1342,127 +356,12 @@ county.yield6.plot <- county.yield6.plot + geom_point(aes(color=State),size=1,al
 county.yield6.plot <- county.yield6.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="lm",span = 0.7)
 county.yield6.plot
 @
+
 <<>>=
-if(!file.exists("covariates2.dat.Rda")) {
-if(!file.exists("min2.lm.Rda")) {
-weather.base <- read.csv("data/wonder/temp.csv", header = TRUE)
-  weather.base$Year <- as.numeric(weather.base$Year)
-  weather.base$Year.Code <- as.numeric(weather.base$Year.Code)
-  weather.base$County.Code <- as.numeric(weather.base$County.Code)
-  weather.base$Avg.Daily.Max.Air.Temperature..C. <- as.numeric(weather.base$Avg.Daily.Max.Air.Temperature..C.)
-  weather.base$Avg.Daily.Min.Air.Temperature..C. <- as.numeric(weather.base$Avg.Daily.Min.Air.Temperature..C.)
-  weather.base$Avg.Daily.Max.Heat.Index..C. <- as.numeric(weather.base$Avg.Daily.Max.Heat.Index..C.)
-  weather.base$County <- tolower(as.character(weather.base$County))
-  weather.base$State <- tolower(as.character(weather.base$State))
-  weather.base$statecounty <- paste(weather.base$State,weather.base$County,sep=",")
-  weather.base$statecounty <- as.factor(weather.base$statecounty)
-  
-  
-  weather2.dat <- subset(weather.base,late.f(weather.base$Year+2))
-  weather4.dat <- subset(weather.base,late.f(weather.base$Year+4))
-  weather6.dat <- subset(weather.base,late.f(weather.base$Year+6))
-  
-
-  max2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat)
-  min2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat)
-  heat2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat)
-  
-  max4.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat)
-  min4.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat)
-  heat4.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat)
-  
-  max6.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
-  min6.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
-  heat6.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
-  
-  precip.dat <- read.csv("data/wonder/precip.csv", header = TRUE)
-  precip.dat$County <- tolower(as.character(precip.dat$County))
-  precip.dat$State <- tolower(as.character(precip.dat$State))
-  precip.dat$statecounty <- paste(precip.dat$State,precip.dat$County,sep=",")
-  precip2.dat <- subset(precip.dat,late.f(precip.dat$Year+2))
-  precip4.dat <- subset(precip.dat,late.f(precip.dat$Year+4))
-  precip6.dat <- subset(precip.dat,late.f(precip.dat$Year+6))
-  
-  precip2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip2.dat)
-  precip4.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip4.dat)
-  precip6.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip6.dat)
-  
-  sunlight.dat <- read.csv("data/wonder/sunlight.csv", header = TRUE)
-  sunlight.dat$County <- tolower(as.character(sunlight.dat$County))
-  sunlight.dat$State <- tolower(as.character(sunlight.dat$State))
-  sunlight.dat$statecounty <- paste(sunlight.dat$State,sunlight.dat$County,sep=",")
-  sunlight2.dat <- subset(sunlight.dat,late.f(sunlight.dat$Year+2))
-  sunlight4.dat <- subset(sunlight.dat,late.f(sunlight.dat$Year+4))
-  sunlight6.dat <- subset(sunlight.dat,late.f(sunlight.dat$Year+6))
-  
-  sun2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight2.dat)
-  sun4.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight4.dat)
-  sun6.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight6.dat)
- 
- 
-  save(min2.lm, file="min2.lm.Rda")
-  save(max2.lm, file="max2.lm.Rda")
-  save(heat2.lm, file="heat2.lm.Rda")
-  save(precip2.lm, file="precip2.lm.Rda")
-  save(sun2.lm, file="sun2.lm.Rda")
-  
-  save(min4.lm, file="min4.lm.Rda")
-  save(max4.lm, file="max4.lm.Rda")
-  save(heat4.lm, file="heat4.lm.Rda")
-  save(precip4.lm, file="precip4.lm.Rda")
-  save(sun4.lm, file="sun4.lm.Rda")
-  
-  save(min6.lm, file="min6.lm.Rda")
-  save(max6.lm, file="max6.lm.Rda")
-  save(heat6.lm, file="heat6.lm.Rda")
-  save(precip6.lm, file="precip6.lm.Rda")
-  save(sun6.lm, file="sun6.lm.Rda")
-  
-} else {
- load(file="min2.lm.Rda")
- load(file="max2.lm.Rda")
- load(file="heat2.lm.Rda")
- load(file="precip2.lm.Rda")
- load(file="sun2.lm.Rda")
- 
- load(file="min4.lm.Rda")
- load(file="max4.lm.Rda")
- load(file="heat4.lm.Rda")
- load(file="precip4.lm.Rda")
- load(file="sun4.lm.Rda")
- 
- load(file="min6.lm.Rda")
- load(file="max6.lm.Rda")
- load(file="heat6.lm.Rda")
- load(file="precip6.lm.Rda")
- load(file="sun6.lm.Rda")
-}
-
-if(!file.exists("late2.county.lm.Rda")) {
-   late2.counts <- tapply(county.late2.dat$Value,list(county.late2.dat$statecounty),length)
-   county.late2.dat$Count <- late2.counts[county.late2.dat$statecounty]
-   county.late2.dat <- subset(county.late2.dat,county.late2.dat$Count>9)
+if(!file.exists("data/usda/covariates2.dat.Rda")) {
+   setwd('data/usda')
+   Sweave("fitLinearModels.Snw")
    
-   late4.counts <- tapply(county.late4.dat$Value,list(county.late4.dat$statecounty),length)
-   county.late4.dat$Count <- late4.counts[county.late4.dat$statecounty]
-   county.late4.dat <- subset(county.late4.dat,county.late4.dat$Count>9)
-   
-   late6.counts <- tapply(county.late6.dat$Value,list(county.late6.dat$statecounty),length)
-   county.late6.dat$Count <- late2.counts[county.late6.dat$statecounty]
-   county.late6.dat <- subset(county.late6.dat,county.late6.dat$Count>9)
-   
-   late2.county.lm <-update(late.county.lm,data=county.late2.dat)
-   late4.county.lm <-update(late.county.lm,data=county.late4.dat)
-   late6.county.lm <-update(late.county.lm,data=county.late6.dat)
-   
-   save(late2.county.lm, file="late2.county.lm.Rda")
-   save(late4.county.lm, file="late4.county.lm.Rda")
-   save(late6.county.lm, file="late6.county.lm.Rda")
-} else {
-   load(file="late2.county.lm.Rda")
-   load(file="late4.county.lm.Rda")
-   load(file="late6.county.lm.Rda")
-}
 
 yield.a.late2 <- extract.county.estimates(late2.county.lm,term=1)
 yield.b.late2 <- extract.county.estimates(late2.county.lm,term=2)
@@ -1518,11 +417,14 @@ covariates6.dat$sun.b=extract.county.estimates(sun6.lm,term=2)[covariates6.dat$s
    save(covariates2.dat, file="covariates2.dat.Rda")
    save(covariates4.dat, file="covariates4.dat.Rda")
    save(covariates6.dat, file="covariates6.dat.Rda")
+   setwd(current.wd)
 
 } else {
+    setwd('data/usda')
    load(file="covariates2.dat.Rda")
    load(file="covariates4.dat.Rda")
    load(file="covariates6.dat.Rda")
+   setwd(current.wd)
 }
 #ref <- 2014
 ref2 <- ref-2
@@ -1554,7 +456,7 @@ covariates6.dat$total.income <- mean.total.income[covariates6.dat$statecounty]
 covariates6.dat$average.income <- mean.relative.income[covariates6.dat$statecounty]
 
 
-cov3.2.lm <- lm(form3,data=na.omit(covariates2.dat))
+#cov3.2.lm <- lm(form3,data=na.omit(covariates2.dat))
 cov4.2.lm <- lm(form4,data=na.omit(covariates2.dat))
 
 #summary(aov(cov3.2.lm))
@@ -1562,40 +464,40 @@ cov4.2.lm <- lm(form4,data=na.omit(covariates2.dat))
 @
 
 <<results=hide>>=
-best3.2 <- step(cov3.2.lm)
-best4.2 <- step(cov4.2.lm)
+#best3.2 <- step(cov3.2.lm,direction = "both")
+best4.2 <- step(cov4.2.lm,direction = "both")
 @
 
 <<>>=
-summary(aov(best3.2))
+#summary(aov(best3.2))
 summary(aov(best4.2))
 
-cov3.4.lm <- lm(form3,data=na.omit(covariates4.dat))
+#cov3.4.lm <- lm(form3,data=na.omit(covariates4.dat))
 cov4.4.lm <- lm(form4,data=na.omit(covariates4.dat))
 
 #summary(aov(cov3.4.lm))
 #summary(aov(cov4.4.lm))
 @
 <<results=hide>>=
-best3.4 <- step(cov3.4.lm)
-best4.4 <- step(cov4.4.lm)
+#best3.4 <- step(cov3.4.lm,direction = "both")
+best4.4 <- step(cov4.4.lm,direction = "both")
 @
 <<>>=
 summary(aov(best3.4))
 summary(aov(best4.4))
 
-cov3.6.lm <- lm(form3,data=na.omit(covariates6.dat))
+#cov3.6.lm <- lm(form3,data=na.omit(covariates6.dat))
 cov4.6.lm <- lm(form4,data=na.omit(covariates6.dat))
 
 #summary(aov(cov3.6.lm))
 #summary(aov(cov4.6.lm))
 @
 <<results=hide>>=
-best3.6 <- step(cov3.6.lm)
-best4.6 <- step(cov4.6.lm)
+#best3.6 <- step(cov3.6.lm,direction = "both")
+best4.6 <- step(cov4.6.lm,direction = "both")
 @
 <<>>=
-summary(aov(best3.6))
+#summary(aov(best3.6))
 summary(aov(best4.6))
 @
 
@@ -1679,13 +581,248 @@ points(covariates.dat$yield.b,yield.b.4[covariates.dat$statecounty],col="blue")
 points(covariates.dat$yield.b,yield.b.6[covariates.dat$statecounty],col="green")
 @
 
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(precip.a,yield.b)) + geom_point(aes(color=state),weight=6) + geom_smooth(aes(group=state,color=state),weight=10,se = FALSE,method="lm") + geom_smooth(aes(color="black"),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(precip.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state,color=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(precip.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(precip.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(min.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(min.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(max.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(max.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(heat.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(heat.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(sun.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(sun.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(sun.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(sun.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(day.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(day.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(night.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(night.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(fine.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(fine.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(Farm_TonsP.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(Farm_TonsP.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(Farm_TonsP.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(Farm_TonsP.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(Farm_TonsK.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(Farm_TonsK.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(Tons_P2O5_Recovered.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(Tons_P2O5_Recovered.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(Tons_K2O_Recovered.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(Tons_K2O_Recovered.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(Tons_K2O_Recovered.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(Tons_K2O_Recovered.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(Tons_K2O_Rem.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(Tons_K2O_Rem.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(Tons_N_Fixed_Legumes.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(Tons_N_Fixed_Legumes.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(BalanceN_Tons.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(BalanceN_Tons.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(RatioN.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(RatioN.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(RatioK2O.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(RatioK2O.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(RatioK2O.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(RatioK2O.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(RatioP2O5.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(RatioP2O5.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(K2O_PPCA.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(K2O_PPCA.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(X21Crop_TotalHarvestAc.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(X21Crop_TotalHarvestAc.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(plot.dat, aes(Total_Harvested_Cropland_Acres.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(plot.dat, aes(Total_Harvested_Cropland_Acres.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+
 \section{PCA}
 <<>>=
 frm.pca.a <- paste("~ yield.a")
 for(trm in attr(best3$terms,"term.labels")) {
    frm.pca.a <- paste(frm.pca.a,trm,sep=" + ")
 }
-best3.pca<-princomp(as.formula(frm.pca.a),data=na.omit(covariates.dat))
+best3.pca<-princomp(as.formula(frm.pca.a),data=na.omit(covariates.dat),cor=TRUE)
 summary(best3.pca)
 best3.pca$loadings
 @
@@ -1695,9 +832,26 @@ frm.pca.b <- paste("~ yield.b")
 for(trm in attr(best4$terms,"term.labels")) {
    frm.pca.b <- paste(frm.pca.b,trm,sep=" + ")
 }
-best4.pca<-princomp(as.formula(frm.pca.b),data=na.omit(covariates.dat))
+best4.pca<-princomp(as.formula(frm.pca.b),data=na.omit(covariates.dat),cor=TRUE)
 summary(best4.pca)
 best4.pca$loadings
+@
+
+<<fig=TRUE,width=6,height=4>>=
+PClabels <- c("Yield","Wa","Wb","Wc","Wd","We","Wf","Wg","Ia","Ib","Ic","Id","Ie","If","Ig","Ih","Ii","Ij","Ik","Il","Im","In","Ua","Ub","Uc","Ud")
+xnames <- attr(best4.pca$scores,"dimnames")[[1]]
+for(idx in 1:length(xnames)) {
+   xnames[idx] = substr(xnames[idx], 1, 2)
+}
+xnames[xnames=="so"] <- "SD"
+xnames[xnames=="ka"] <- "KS"
+xnames[xnames=="no"] <- "ND"
+xnames[xnames=="te"] <- "TX"
+
+xnames[xnames=="ne"] <- "NE"
+xnames[xnames=="ok"] <- "OK"
+
+biplot(best4.pca,xlabs=xnames,ylabs=PClabels,cex=c(.4,1),col=cbPalette[1:2])
 @
 
 Climate Data Online
