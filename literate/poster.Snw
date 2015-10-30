@@ -46,8 +46,8 @@
 \newlength{\onecolwid}
 \newlength{\twocolwid}
 \newlength{\threecolwid}
-\setlength{\paperwidth}{48in} % A0 width: 46.8in
-\setlength{\paperheight}{36in} % A0 height: 33.1in
+\setlength{\paperwidth}{42.5in} % A0 width: 46.8in
+\setlength{\paperheight}{42.5in} % A0 height: 33.1in
 \setlength{\sepwid}{0.024\paperwidth} % Separation width (white space) between columns
 \setlength{\onecolwid}{0.22\paperwidth} % Width of one column
 \setlength{\twocolwid}{0.464\paperwidth} % Width of two columns
@@ -72,11 +72,13 @@
 %----------------------------------------------------------------------------------------
 
 \begin{document}
+   
 <<echo=false>>=
-source("../ASA_CSSA_SSSA/R/map_functions.R")
 library(ggplot2)
 library(gridExtra)
 library(maps)
+library(xtable)
+source("../ASA_CSSA_SSSA/R/map_functions.R")
 @
 
 \addtobeamertemplate{block end}{}{\vspace*{2ex}} % White space under blocks
@@ -89,7 +91,7 @@ library(maps)
 
 \begin{columns}[t] % The whole poster consists of three major columns, the second of which is split into two columns twice - the [t] option aligns each column's content to the top
 
-\begin{column}{\sepwid}\end{column} % Empty spacer column
+%\begin{column}{\sepwid}\end{column} % Empty spacer column
 
 \begin{column}{\onecolwid} % The first column
 
@@ -175,11 +177,15 @@ library(maps)
 
 \begin{column}{\sepwid}\end{column} % Empty spacer column
 
-\begin{column}{\twocolwid} % Begin a column which is two columns wide (column 2)
+%\begin{column}{\twocolwid} % Begin a column which is two columns wide (column 2)
 
-\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column
+%\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column
+   
+<<echo=false>>=
+load(file="data/usda/covariates.dat.Rda")
+@
 
-\begin{column}{\onecolwid}\vspace{-.6in} % The first column within column 2 (column 2.1)
+%\begin{column}{\onecolwid}\vspace{-.6in} % The first column within column 2 (column 2.1)
 
 %----------------------------------------------------------------------------------------
 %	MATERIALS
@@ -189,26 +195,27 @@ library(maps)
 
 %----------------------------------------------------------------------------------------
 
-\end{column} % End of column 2.1
+%\end{column} % End of column 2.1
 
-\begin{column}{\onecolwid}\vspace{-.6in} % The second column within column 2 (column 2.2)
+%\begin{column}{\onecolwid}\vspace{-.6in} % The second column within column 2 (column 2.2)
 
 %----------------------------------------------------------------------------------------
 %	METHODS
 %----------------------------------------------------------------------------------------
-
+\begin{column}
 \begin{block}{Methods}
 
 <<echo=false>>=
+
+load(file="data/usda/income.relative.dat.Rda")
+load(file="data/usda/income.total.dat.Rda")
+mean.relative.income <- tapply(income.relative.dat$Value,list(income.relative.dat$statecounty),mean,na.rm=TRUE)
+mean.total.income <- tapply(income.total.dat$Value,list(income.total.dat$statecounty),mean,na.rm=TRUE)
+
 yield.field <- "WHEAT, WINTER - YIELD, MEASURED IN BU / ACRE"
 production.field <- "WHEAT, WINTER - PRODUCTION, MEASURED IN BU"
 county.yield.dat <- read.csv("./data/usda/69C9E26C-F285-325A-9443-6668747878F8.csv", header = TRUE)
 county.late.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year))
-
-late.counts <- tapply(county.late.dat$Value,list(county.late.dat$statecounty),length)
-county.late.dat$Count <- late.counts[county.late.dat$statecounty]
-county.late.dat <- subset(county.late.dat,county.late.dat$Count>9)
-late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.late.dat)
 
 covariates.base <- covariates.dat
 
@@ -237,24 +244,11 @@ for(idx in 2:length(covariate.terms) ) {
    form3<-paste(form3,"+",covariate.terms[idx])
    form4<-paste(form4,"+",covariate.terms[idx])
 }
-cov3.lm <- lm(form3,data=na.omit(covariates.dat))
-
-cov4.lm <- lm(form4,data=covariates.dat)
-
 @
 
 
-<<results=hide>>=
-best3 <- step(cov3.lm)
-best4 <- step(cov4.lm)
-@
 
-<<>>=
-summary(best3)
-summary(aov(best3))
-summary(best4)
-summary(aov(best4))
-@
+
 
 \end{block}
 
@@ -262,7 +256,7 @@ summary(aov(best4))
 
 \end{column} % End of column 2.2
 
-\end{columns} % End of the split of column 2 - any content after this will now take up 2 columns width
+%\end{columns} % End of the split of column 2 - any content after this will now take up 2 columns width
 
 %----------------------------------------------------------------------------------------
 %	IMPORTANT RESULT
@@ -295,48 +289,20 @@ map.values(plot.dat$yield.b,plot.names,main="Yield Change")
 
 %----------------------------------------------------------------------------------------
 
-\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column again
+%\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column again
 
-\begin{column}{\onecolwid} % The first column within column 2 (column 2.1)
-
-%----------------------------------------------------------------------------------------
-%	MATHEMATICAL SECTION
-%----------------------------------------------------------------------------------------
-
-\begin{block}{Mathematical Section}
-
-Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
-  
-\begin{equation}
-E = mc^{2}
-\label{eqn:Einstein}
-\end{equation}
-
-Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
-
-\begin{equation}
-\cos^3 \theta =\frac{1}{4}\cos\theta+\frac{3}{4}\cos 3\theta
-\label{eq:refname}
-\end{equation}
-
-Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
-
-\begin{equation}
-\kappa =\frac{\xi}{E_{\mathrm{max}}} %\mathbb{ZNR}
-\end{equation}
-
-\end{block}
+%\begin{column}{\onecolwid} % The first column within column 2 (column 2.1)
 
 %----------------------------------------------------------------------------------------
 
-\end{column} % End of column 2.1
+%\end{column} % End of column 2.1
 
-\begin{column}{\onecolwid} % The second column within column 2 (column 2.2)
+%\begin{column}{\onecolwid} % The second column within column 2 (column 2.2)
 
 %----------------------------------------------------------------------------------------
 %	RESULTS
 %----------------------------------------------------------------------------------------
-
+\begin{column}
 \begin{block}{Results}
 
    \begin{figure}
@@ -353,115 +319,62 @@ Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sol
       
    \caption{County-level yields (bu/acre) by year}
    \end{figure}
+\end{block}
 
-Nunc tempus venenatis facilisis. Curabitur suscipit consequat eros non porttitor. Sed a massa dolor, id ornare enim:
+\end{column}
 
+\begin{column}
+   \begin{block}
 \begin{table}
 \vspace{2ex}
 \begin{tabular}{l l l}
 \toprule
-\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
+\textbf{Covariate} & \textbf{Coefficient} & \textbf{P}\\
 \midrule
-Treatment 1 & 0.0003262 & 0.562 \\
-Treatment 2 & 0.0015681 & 0.910 \\
-Treatment 3 & 0.0009271 & 0.296 \\
+max.a &  -6.037e-02    & 0.012567 *    \\
+max.b  & -3.643e+00   & 0.000539 **    \\
+sun.a  &  -1.799e-04  &     0.000114 *** \\
+fine.a   & -2.676e-02  & 0.120097    \\
+day.a  &  3.73 & 0.007721 ** \\
+day.b   & 2.500e-01  & 0.052297 . \\
+night.a   &  5.843e-02 & 0.002761 ** \\
+Farm TonsP.b &   &  0.006714 ** \\
+Farm TonsK.b    &   & 0.068946 . \\
+Tons P2O5 Exc.a  &   &  0.071401 .  \\
+Tons K2O Recovered.b &   &  0.042019 * \\
+Tons K2O Rem.a 2.463e-05 &   & 0.047570 * \\
+BalanceN Tons.a  &   & 0.049110 * \\
+BalanceP2O5 Tons.a  &   & 0.091725 . \\
+BalanceP2O5 Tons.b & -6.491e-04  & 0.033346 * \\
+RatioN.b &  2.915e+00  &  0.001623 **  \\
+RatioP2O5.b & -1.293e+00  & 0.061174 . \\
+RatioK2O.a 2.223e-02 &   & 0.038865 * \\
+P2O5 PPCA.b 1.297e-03  &   & 0.086724 . \\
+K2O PPCA.b -1.694e-03 &   & 0.023666 * \\
+FarmKPPCA.b 1.242e-03 &   &    \\ 0.157052
+harvested.a -1.927e-06 &   &  0.003775 ** \\ 
+harvested.b -5.877e-05 &   &    \\ 0.085112 .
+acres.a 1.256e-06 &   &  0.025653 *   \\
+total.income 1.273e-09 &   & 0.156915
 \bottomrule
 \end{tabular}
 \caption{Table caption}
 \end{table}
 
-\end{block}
+   \end{block}
+\end{column}
 
 %----------------------------------------------------------------------------------------
 
-\end{column} % End of column 2.2
+%\end{column} % End of column 2.2
 
-\end{columns} % End of the split of column 2
+%\end{columns} % End of the split of column 2
 
-\end{column} % End of the second column
+%\end{column} % End of the second column
 
-\begin{column}{\sepwid}\end{column} % Empty spacer column
+---------------------------------------------------------------------
 
-\begin{column}{\onecolwid} % The third column
-
-%----------------------------------------------------------------------------------------
-%	CONCLUSION
-%----------------------------------------------------------------------------------------
-
-\begin{block}{Conclusion}
-
-Nunc tempus venenatis facilisis. \textbf{Curabitur suscipit} consequat eros non porttitor. Sed a massa dolor, id ornare enim. Fusce quis massa dictum tortor \textbf{tincidunt mattis}. Donec quam est, lobortis quis pretium at, laoreet scelerisque lacus. Nam quis odio enim, in molestie libero. Vivamus cursus mi at \textit{nulla elementum sollicitudin}.
-
-\end{block}
-
-%----------------------------------------------------------------------------------------
-%	ADDITIONAL INFORMATION
-%----------------------------------------------------------------------------------------
-
-\begin{block}{Additional Information}
-
-Maecenas ultricies feugiat velit non mattis. Fusce tempus arcu id ligula varius dictum. 
-\begin{itemize}
-\item Curabitur pellentesque dignissim
-\item Eu facilisis est tempus quis
-\item Duis porta consequat lorem
-\end{itemize}
-
-\end{block}
-
-%----------------------------------------------------------------------------------------
-%	REFERENCES
-%----------------------------------------------------------------------------------------
-
-\begin{block}{References}
-
-\nocite{*} % Insert publications even if they are not cited in the poster
-\small{\bibliographystyle{unsrt}
-\bibliography{sample}\vspace{0.75in}}
-
-\end{block}
-
-%----------------------------------------------------------------------------------------
-%	ACKNOWLEDGEMENTS
-%----------------------------------------------------------------------------------------
-
-\setbeamercolor{block title}{fg=red,bg=white} % Change the block title color
-
-\begin{block}{Acknowledgements}
-
-\small{\rmfamily{Nam mollis tristique neque eu luctus. Suspendisse rutrum congue nisi sed convallis. Aenean id neque dolor. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.}} \\
-
-\end{block}
-
-%----------------------------------------------------------------------------------------
-%	CONTACT INFORMATION
-%----------------------------------------------------------------------------------------
-
-\setbeamercolor{block alerted title}{fg=black,bg=norange} % Change the alert block title colors
-\setbeamercolor{block alerted body}{fg=black,bg=white} % Change the alert block body colors
-
-\begin{alertblock}{Contact Information}
-
-\begin{itemize}
-\item Web: \href{http://www.university.edu/smithlab}{http://www.university.edu/smithlab}
-\item Email: \href{mailto:john@smith.com}{john@smith.com}
-\item Phone: +1 (000) 111 1111
-\end{itemize}
-
-\end{alertblock}
-
-\begin{center}
-\begin{tabular}{ccc}
-\includegraphics[width=0.4\linewidth]{logo.png} & \hfill & \includegraphics[width=0.4\linewidth]{logo.png}
-\end{tabular}
-\end{center}
-
-%----------------------------------------------------------------------------------------
-
-\end{column} % End of the third column
-
-\end{columns} % End of all the columns in the poster
-
+\end{columns}
 \end{frame} % End of the enclosing frame
 
 \end{document}
