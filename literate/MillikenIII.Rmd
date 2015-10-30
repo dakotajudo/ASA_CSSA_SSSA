@@ -9,8 +9,12 @@ output:, html_document
 source("../ASA_CSSA_SSSA/R/gei.table.to.frame.R")
 source("../ASA_CSSA_SSSA/R/nonadditivity.gei.R")
 source("../ASA_CSSA_SSSA/R/heterogeneity.gei.R")
-source("../../ARMR.git/ARMR/R/plot.interaction.ARMST.R")
-library(ARMR)
+source("../ASA_CSSA_SSSA/R/standard.sensitivity.plot.R")
+source("../ASA_CSSA_SSSA/R/expand.incidence.R")
+source("../ASA_CSSA_SSSA/R/decompose.means.table.R")
+source("../ASA_CSSA_SSSA/R/interaction.outliers.R")
+source("../ASA_CSSA_SSSA/R/plot.interaction.ARMST.R")
+
 sorghum.dat <- matrix(
   c(12.3, 19.6, 25.7, 30.4,
     13.7, 16.9, 27.0, 31.5,
@@ -109,54 +113,108 @@ rownames(davies.dat) <- paste("T",as.character(1:5),sep="")
 colnames(davies.dat) <- paste("B",as.character(1:4),sep="")
 ```
 
+
 ```{r}
-source("../../ARMR.git/ARMR/R/plot.interaction.ARMST.R")
+response = "Plot.Mean"
+TreatmentName = "Treatment"
+TrialName = "Trial"
+RepName=NULL
+sorghum.tbl <- gei.table.to.frame(sorghum.dat)
+sorghum.tbl$Trial <- as.factor(sorghum.tbl$Trial)
+sorghum.tbl$Treatment <- as.factor(sorghum.tbl$Treatment)
+sorghum.res <- standard.sensitivity.plot(sorghum.tbl,
+                                     response = response,
+                          TreatmentName = TreatmentName,
+                          TrialName = TrialName,
+                          dual.dendrogram=TRUE,
+                          plot.outliers=TRUE,legend.columns=2)
+sorghum.means <- gei.table.and.effects(sorghum.tbl,
+                                     response = response,
+                          TreatmentName = TreatmentName,
+                          TrialName = TrialName)
+sorghum.means$trial.means
+colMeans(sorghum.means$means.table)
+
+print.stdplot(sorghum.res)
 ```
 
 
 ```{r}
-sorghum.res <- standard.plot.reduced(sorghum.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
-print.stdplot.reduced(sorghum.res)
-```
-
-
-```{r}
-additive.res <- standard.plot.reduced(additive.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
-print.stdplot.reduced(additive.res)
+additive.tbl <- gei.table.to.frame(additive.dat)
+additive.tbl$Trial <- as.factor(additive.tbl$Trial)
+additive.tbl$Treatment <- as.factor(additive.tbl$Treatment)
+additive.res <- standard.sensitivity.plot(additive.tbl,
+                                          response = response,
+                          TreatmentName = TreatmentName,
+                          TrialName = TrialName,
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot(additive.res)
 ```
 
 ### One Cell
 The combination of $T_2$ and $B_2$ is different than what would be expected with additivity.
 
 ```{r}
-onecell.res <- standard.plot.reduced(onecell.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
-print.stdplot.reduced(onecell.res)
+onecell.tbl <- gei.table.to.frame(onecell.dat)
+#additive.tbl$Trial <- as.factor(additive.tbl$Trial)
+#additive.tbl$Treatment <- as.factor(additive.tbl$Treatment)
+onecell.res <- standard.sensitivity.plot(onecell.tbl,
+                                          response = response,
+                          TreatmentName = TreatmentName,
+                          TrialName = TrialName,
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot(onecell.res)
 ```
 
 ### One Row
 The first row is different that would be expected from additive.
 
 ```{r}
-onerow.res <- standard.plot.reduced(onerow.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
-print.stdplot.reduced(onerow.res)
+onerow.tbl <- gei.table.to.frame(onerow.dat)
+onerow.res <- standard.sensitivity.plot(onecell.tbl,
+                                          response = response,
+                          TreatmentName = TreatmentName,
+                          TrialName = TrialName,
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot(onerow.res)
 ```
 
 ```{r}
-twocells.res <- standard.plot.reduced(twocells.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
-print.stdplot.reduced(twocells.res)
+twocells.tbl <- gei.table.to.frame(twocells.dat)
+twocells.res <- standard.sensitivity.plot(twocells.tbl,
+                                          response = response,
+                          TreatmentName = TreatmentName,
+                          TrialName = TrialName,
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot(twocells.res)
 ```
 
 ```{r}
-tworows.res <- standard.plot.reduced(tworows.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
-print.stdplot.reduced(tworows.res)
+tworows.tbl <- gei.table.to.frame(tworows.dat)
+tworows.res <- standard.sensitivity.plot(tworows.tbl,
+                                          response = response,
+                          TreatmentName = TreatmentName,
+                          TrialName = TrialName,
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot(tworows.res)
 ```
 
 ```{r}
-oneronec.res <- standard.plot.reduced(oneronec.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
-print.stdplot.reduced(oneronec.res)
+oneronec.tbl <- gei.table.to.frame(oneronec.dat)
+oneronec.res <- standard.sensitivity.plot(oneronec.tbl,
+                                          response = response,
+                          TreatmentName = TreatmentName,
+                          TrialName = TrialName,
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot(oneronec.res)
 ```
 
 ```{r}
-davies.res <- standard.plot.reduced(davies.dat,dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
-print.stdplot.reduced(davies.res)
+davies.tbl <- gei.table.to.frame(davies.dat)
+davies.res <- standard.sensitivity.plot(davies.tbl,
+                                          response = response,
+                          TreatmentName = TreatmentName,
+                          TrialName = TrialName,
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+print.stdplot(davies.res)
 ```

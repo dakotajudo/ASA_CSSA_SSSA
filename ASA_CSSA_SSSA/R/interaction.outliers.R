@@ -2,23 +2,23 @@ interaction.outliers <- function(means.matrix,
                                  means.vector,
                                  fixed=FALSE,
                                  multiplicative=TRUE,
-                                 sigma=1.96) {
+                                 sigma=1.96,
+                                 rms=NA) {
   
-  grand.mean <- mean(unlist(means.matrix),na.rm=TRUE)
-  treatment.effects <- colMeans(means.matrix,na.rm=TRUE) - grand.mean
-  trial.effects <- rowMeans(means.matrix,na.rm=TRUE) - grand.mean
-  means.effects <- unlist(means.matrix)
+  decomp <- decompose.means.table(means.matrix)
+  #decomp$mu
+
+  treatment.matrix <- decomp$alpha
+  trial.matrix <- decomp$beta
+  txt.matrix <- decomp$gamma
   
-  treatment.matrix <- matrix(rep(treatment.effects,length(trial.effects)),nrow=length(treatment.effects))
-  trial.matrix <- matrix(rep(trial.effects,length(treatment.effects)),nrow=length(treatment.effects),byrow=TRUE)
-  txt.matrix <- means.matrix-t(treatment.matrix+trial.matrix+grand.mean)
   txt.effects <- unlist(txt.matrix)
   
   add.matrix <- treatment.matrix+trial.matrix
   add.effects <- unlist(add.matrix)
   
   #mult.matrix <- t(treatment.matrix*trial.matrix)
-  mult.matrix <- t(treatment.matrix*trial.matrix + add.matrix)
+  mult.matrix <- treatment.matrix*trial.matrix + add.matrix
   mult.effects <- unlist(mult.matrix)
   
   z.mult <- mult.matrix/sd(mult.effects,na.rm=TRUE)
@@ -28,8 +28,8 @@ interaction.outliers <- function(means.matrix,
   #z.mult <- mult.matrix/sd(mult.effects,na.rm=TRUE)
   #z.txt <- txt.matrix/sd(txt.effects,na.rm=TRUE)
   
-  trt.names <- colnames(means.matrix)
-  trial.names <- rownames(means.matrix)
+  #trt.names <- colnames(means.matrix)
+  #trial.names <- rownames(means.matrix)
   norm.mat = NA
   crit = sigma
   trt = c()
@@ -41,11 +41,21 @@ interaction.outliers <- function(means.matrix,
   actual = c()
   
   pairs <- list()
+  mat.dim <- dim(txt.matrix)
+  int.sd <- sqrt(sum(txt.effects*txt.effects)/((mat.dim[1]-1)*(mat.dim[2]-1)-1))
   
+  err.sd <- sqrt(rms)
   if(!fixed) {
-    max <- sd(txt.effects,na.rm=TRUE)
-    norm.mat <- abs(txt.matrix)
-    crit <- sigma*max
+    if(is.na(rms)) {
+      max <- int.sd
+      norm.mat <- abs(txt.matrix)
+      crit <- sigma*max
+      int.sd <- max
+    } else {
+      max=err.sd
+      norm.mat <- abs(txt.matrix)
+      crit <- sigma*max
+    }
     #outliers=txt.effects[abs(txt.effects) > sigma*max]
   } else {
     if(multiplicative) {
@@ -77,8 +87,8 @@ interaction.outliers <- function(means.matrix,
     for (j in 1:dim(norm.mat)[2]) {
       if(!is.na(norm.mat[i,j])) {
         if(norm.mat[i,j]>crit) {
-          trt <- c(trt,trt.names[j])
-          trial <- c(trial,trial.names[i])
+          #trt <- c(trt,trt.names[j])
+          #trial <- c(trial,trial.names[i])
           i.vec = c(i.vec,i)
           j.vec = c(j.vec,j)
           if(!fixed) {
@@ -93,12 +103,13 @@ interaction.outliers <- function(means.matrix,
       }
     }
   }
-  return(list(outliers=data.frame(treatment=trt,
-                                  trial=trial,
-                                  trt.no=j.vec,
+  return(list(outliers=data.frame(trt.no=j.vec,
                                   trial.no=i.vec,
                                   expected=expected,
                                   actual=actual),
+              crit=crit,
+              int.sd=int.sd,
+              err.sd=err.sd,
               pairs=pairs,
               z.mult=z.mult,
               z.txt=z.txt,

@@ -61,8 +61,8 @@ gei.frame.to.table <- function(frame,response = "Plot.Mean",TreatmentName="Treat
 ###
 # Compute a least squares means table and provide the estimated effects.
 # 
-gei.table.and.effects <- function(frame,response = "Plot.Mean",TreatmentName="Treatment",TrialName="Trial",RepName=NA,GinRows=TRUE){
-  blocked <- !is.na(RepName)
+gei.table.and.effects <- function(frame,response = "Plot.Mean",TreatmentName="Treatment",TrialName="Trial",RepName=NULL,GinRows=TRUE){
+  blocked <- !is.null(RepName)
   frm <- paste(response, "~",TrialName,"*",TreatmentName)
   if(blocked) {
     frm <- paste(frm,"+",TrialName,":",RepName)
@@ -84,7 +84,7 @@ gei.table.and.effects <- function(frame,response = "Plot.Mean",TreatmentName="Tr
   beta.b <- NA
   
   if(blocked) {
-    blkName <- paste(TrialName,":",BlockName,sep="")
+    blkName <- paste(TrialName,":",RepName,sep="")
     blockIdx <- which(labels==blkName)
     beta.b <- base.lm$coefficients[base.lm$assign == blockIdx]
   }

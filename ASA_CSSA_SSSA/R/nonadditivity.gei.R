@@ -19,9 +19,10 @@ nonadditivity.gei <- function(data=NULL,
                             BlockName = NULL
                             ) {
   
+  blocked <- !is.null(BlockName)
   #create a local data frame so we can append ab estimates if necessary
   if(is.null(data)) {
-    if(is.null((BlockName))) {
+    if(!blocked) {
       data <- data.frame(get(response),as.factor(get(TreatmentName)),as.factor(get(TrialName)))
       names(data) <- c(response,TreatmentName,TrialName)
     } else {
@@ -36,7 +37,7 @@ nonadditivity.gei <- function(data=NULL,
   #fit additive model
   additive.lm <- NULL
   modelString <- paste(response," ~ ",TreatmentName," + ",TrialName)
-  if(!is.null((BlockName))) {
+  if(blocked) {
     modelString <- paste(modelString, " + ",TrialName,":",BlockName)
   }
   additive.lm <- lm(as.formula(modelString),data=data)
