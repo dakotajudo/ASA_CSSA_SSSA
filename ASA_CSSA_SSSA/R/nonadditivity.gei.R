@@ -82,6 +82,29 @@ nonadditivity.gei <- function(data=NULL,
   return(list(additive.lm=additive.lm,multiplicative.lm=multiplicative.lm,t=t.effects,e=e.effects))
 }
 
+recompute.tdf.aov <- function(tdf.tbl,aov.tbl) {
+  # assume the tdf table has full aov residuals, while the second to last row in aov.tbl
+  # is assumed to be treatment by trial interaction
+  #we append the residual row
+  last = dim(aov.tbl)[1]
+  last.row <- aov.tbl[last,]
+  tdf.last <- dim(tdf.tbl)[1]
+  colnames(last.row) <- colnames(tdf.tbl)
+  tdf.tbl <- rbind(tdf.tbl,last.row)
+  #compute interaction residuals by subtracting 1df row from txt row
+  tdf.tbl[tdf.last,] <- aov.tbl[last-1,] - tdf.tbl[tdf.last-1,]
+  #recompute residuals
+  tdf.tbl[tdf.last,3] <- tdf.tbl[tdf.last,2]/tdf.tbl[tdf.last,1]
+  #test treatment:trial against interaction residual
+  tdf.tbl[tdf.last-1,4] <- tdf.tbl[tdf.last-1,3]/tdf.tbl[tdf.last,3]
+  tdf.tbl[tdf.last-1,5] <- 1-pf(tdf.tbl[tdf.last-1,4],tdf.tbl[tdf.last-1,1],tdf.tbl[tdf.last,1])
+  
+  #test interaction residual against experimental residual
+  tdf.tbl[tdf.last,4] <- tdf.tbl[tdf.last,3]/last.row[3]
+  tdf.tbl[tdf.last,5] <- 1-pf(tdf.tbl[tdf.last,4],tdf.tbl[tdf.last,1],as.numeric(last.row[1]))
+  return(tdf.tbl)
+}
+
 print.nonadditivity.gei <- function(res) {
   print("One d.f. test for non-additivity",quote = FALSE)
   print("",quote = FALSE)

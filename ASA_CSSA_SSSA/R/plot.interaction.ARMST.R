@@ -81,11 +81,11 @@ plot.interaction.ARMST <- function(means.matrix,
     Treatment = 1:trts,
     Slope = rep(NA,trts),
     Intercept = rep(NA,trts),
-    R2 = rep(NA,trts),
-    AdjR2 = rep(NA,trts),
+    #R2 = rep(NA,trts),
+    #AdjR2 = rep(NA,trts),
     Mean = rep(NA,trts),
     SD = rep(NA,trts),
-    PSlope = rep(NA,trts),
+    #PSlope = rep(NA,trts),
     b = rep(NA,trts),
     Pb = rep(NA,trts),
     bR2 = rep(NA,trts)
@@ -231,9 +231,9 @@ plot.interaction.ARMST <- function(means.matrix,
       abline(trt.coef[1],trt.coef[2],lty=1,lwd=plot.lwd,col=trt.colors[1])
       ret.fit$Slope[1] = trt.coef[2]
       ret.fit$Intercept[1] = trt.coef[1,1]
-      ret.fit$R2[1] = sum.lm$r.squared
-      ret.fit$AdjR2[1] = sum.lm$adj.r.squared
-      ret.fit$PSlope[1] = sum.lm$coefficients[2,4]
+      #ret.fit$R2[1] = sum.lm$r.squared
+      #ret.fit$AdjR2[1] = sum.lm$adj.r.squared
+      #ret.fit$PSlope[1] = sum.lm$coefficients[2,4]
       
       #fit trial adjusted means
       fw.lm <- lm(centered ~ trial.mean, trt.data)
@@ -250,8 +250,8 @@ plot.interaction.ARMST <- function(means.matrix,
       #abline(trt.coef[1],trt.coef[2],lty=1,lwd=plot.lwd,col=trt.colors[1])
       ret.fit$Slope[1] = trt.coef[2]
       ret.fit$Intercept[1] = trt.coef[1]
-      ret.fit$R2[1] = sum.lm$r.squared
-      ret.fit$AdjR2[1] = sum.lm$adj.r.squared 
+      #ret.fit$R2[1] = sum.lm$r.squared
+      #ret.fit$AdjR2[1] = sum.lm$adj.r.squared 
     }
     
     if(inverse.regression) {
@@ -298,9 +298,9 @@ plot.interaction.ARMST <- function(means.matrix,
         abline(trt.coef[1],trt.coef[2],lty=as.numeric(trt),col=trt.colors[trt],lwd=plot.lwd)
         ret.fit$Slope[trt] = trt.coef[2,1]
         ret.fit$Intercept[trt] = trt.coef[1,1]
-        ret.fit$R2[trt] = sum.lm$r.squared
-        ret.fit$AdjR2[trt] = sum.lm$adj.r.squared
-        ret.fit$PSlope[trt] = sum.lm$coefficients[2,4]
+        #ret.fit$R2[trt] = sum.lm$r.squared
+        #ret.fit$AdjR2[trt] = sum.lm$adj.r.squared
+        #ret.fit$PSlope[trt] = sum.lm$coefficients[2,4]
         
         #fit trial adjusted means
         fw.lm <- lm(centered ~ trial.mean, trt.data)
@@ -318,9 +318,9 @@ plot.interaction.ARMST <- function(means.matrix,
         #abline(trt.coef[1],trt.coef[2],lty=1,lwd=plot.lwd,col=trt.colors[1])
         ret.fit$Slope[trt] = trt.coef[2,1]
         ret.fit$Intercept[trt] = trt.coef[1,1]
-        ret.fit$R2[trt] = sum.lm$r.squared
-        ret.fit$AdjR2[trt] = sum.lm$adj.r.squared 
-        ret.fit$PSlope[trt] = sum.lm$coefficients[2,4]
+        #ret.fit$R2[trt] = sum.lm$r.squared
+        #ret.fit$AdjR2[trt] = sum.lm$adj.r.squared 
+        #ret.fit$PSlope[trt] = sum.lm$coefficients[2,4]
       }
     }
     if(inverse.regression) {
@@ -368,6 +368,14 @@ plot.interaction.ARMST <- function(means.matrix,
       abline(tukey.coeffs[2]*mean(ret.fit$Mean), (1 + tukey.coeffs[2]*min.a),col="gray",lwd=2,lty="dotted")
     }
   }
+
+  #tdf=nonadditivity.gei(means.table,response="values",
+  #                      TreatmentName="TrtNo",
+  #                      TrialName="Trial.ID")
+  #het=heterogeneity.gei(means.table,response="values",
+  #                      TreatmentName="TrtNo",
+  #                      TrialName="Trial.ID")
+  #return(list(data=means.table,fit=ret.fit,tdf=tdf,het=het))
   return(list(data=means.table,fit=ret.fit))
 }
 
@@ -394,10 +402,13 @@ plot.clusters.ARMST <- function(means.matrix,
                                 method="complete",
                                 fixed.prop=FALSE,
                                 cld=c(),
+                                trt.colors=c(),
                                 leaf.colors=c(),
+                                use.colors=FALSE,
                                 plot.names=c(),
                                 add=FALSE,
                                 reference=NULL,
+                                mark.nodes=FALSE,
                                 cutoff=1.25) {
   
   means.hc <- hclust(dist(means.matrix),method=method)
@@ -424,8 +435,11 @@ plot.clusters.ARMST <- function(means.matrix,
   clusters <- cutree(means.hc,h=x.clfl[length(extra)-1])
   
   if(length(leaf.colors)==0) {
-    cols <- rainbow(max(clusters))
-    leaf.colors = cols[clusters]
+    if(length(trt.colors)<max(clusters)) {
+      trt.colors <- c(trt.colors,rainbow(max(clusters)-length(trt.colors)))
+    }
+    #trt.colors <- rainbow(max(clusters))
+    leaf.colors = trt.colors[clusters]
   } else if (length(leaf.colors)<length(clusters)) {
     leaf.colors = leaf.colors[clusters]
   }
@@ -480,7 +494,12 @@ plot.clusters.ARMST <- function(means.matrix,
       if(length(plot.names)>0) {
         n.text <- plot.names[trial]
       }
-      text(means.vector[trial],base+0.08*required.height,n.text,col=leaf.colors[trial],family=family.axis,cex=label.cex)
+      if(use.colors) {
+        text(means.vector[trial],base+0.08*required.height,n.text,col=leaf.colors[trial],family=family.axis,cex=label.cex)
+      } else {
+        text(means.vector[trial],base+0.08*required.height,n.text,family=family.axis,cex=label.cex)
+      }
+      
     }
     if(length(cld)>0) {
       for(l in 1:length(cld)) {
@@ -520,10 +539,12 @@ plot.clusters.ARMST <- function(means.matrix,
         
         #ratio = x.score #means.hc$height[row]/ref.hc$height[matched.idx[row]]
         #if((ratio>3) || (ratio<0.3)) {
-        if(x.score>cutoff) {
-          mid <- c(x[1]+(x[2]-x[1])/2,y[1])
-          #points(xy.coords(x,y))
-          plot.xy(xy.coords(mid[1],mid[2]),type="p",lwd=wt,col=fg)
+        if(mark.nodes) {
+          if(x.score>cutoff) {
+            mid <- c(x[1]+(x[2]-x[1])/2,y[1])
+            #points(xy.coords(x,y))
+            plot.xy(xy.coords(mid[1],mid[2]),type="p",lwd=wt,col=fg)
+          }
         }
       }
       #means.hc$height

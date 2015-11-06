@@ -37,6 +37,16 @@ update.for.heterogeneity <- function(nonadditivity.res,
               e=nonadditivity.res$e))
 }
 
+extract.slopes <- function(het0.tbl,df) {
+  rows <- dim(het0.tbl)[1]
+  trts <- rows/2
+  ret.tbl <- het0.tbl[(trts+1):rows,]
+  ret.tbl[,3] <- (ret.tbl[,1]-1)/ret.tbl[,2]
+  ret.tbl[,4] <- pt(abs(ret.tbl[,3]),df,lower.tail=FALSE)
+  return(ret.tbl)
+} 
+
+
 print.heterogeneity.gei <- function(res) {
   print.nonadditivity.gei(res)
   print("",quote = FALSE)
