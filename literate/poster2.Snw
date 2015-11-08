@@ -1,0 +1,289 @@
+
+<<echo=false>>=
+library(ggplot2)
+library(gridExtra)
+library(maps)
+library(xtable)
+source("../ASA_CSSA_SSSA/R/map_functions.R")
+@
+
+<<echo=false,results=hide>>=
+load(file="data/usda/covariates.dat.Rda")
+
+   state.yield.dat <- read.csv("./data/usda/B1926239-B043-3DBC-B92F-C4BB7F081392.csv", header = TRUE)
+   state.yield.plot <- ggplot(state.yield.dat, aes(Year,Value)) + theme_bw()
+   state.yield.plot <- state.yield.plot + scale_fill_manual(values=cbPalette) + scale_colour_manual(values=cbPalette)
+   state.yield.plot <- state.yield.plot + geom_point(aes(color=State),size=2,alpha = 0.2)
+   state.yield.plot <- state.yield.plot + geom_smooth(aes(group= State,color=State),weight=16,se = FALSE,method="loess")
+
+load(file="data/usda/income.relative.dat.Rda")
+load(file="data/usda/income.total.dat.Rda")
+mean.relative.income <- tapply(income.relative.dat$Value,list(income.relative.dat$statecounty),mean,na.rm=TRUE)
+mean.total.income <- tapply(income.total.dat$Value,list(income.total.dat$statecounty),mean,na.rm=TRUE)
+
+yield.field <- "WHEAT, WINTER - YIELD, MEASURED IN BU / ACRE"
+production.field <- "WHEAT, WINTER - PRODUCTION, MEASURED IN BU"
+county.yield.dat <- read.csv("./data/usda/69C9E26C-F285-325A-9443-6668747878F8.csv", header = TRUE)
+county.late.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year))
+
+covariates.base <- covariates.dat
+
+#ref <- 2014
+ref <- 1984+(2014-1984)/2
+
+cols <- dim(covariates.dat)[2]
+intercept.columns <- 2*(1:((dim(covariates.dat)[2]/2)-1))+1
+covariates.dat[,intercept.columns] <- covariates.dat[,intercept.columns]+ covariates.dat[,intercept.columns+1]*ref
+
+county.yield.dat <- subset(county.yield.dat, county.yield.dat$County != "OTHER (COMBINED) COUNTIES")
+county.yield.plot <- ggplot(county.yield.dat, aes(Year,Value)) 
+county.yield.plot <- county.yield.plot + scale_fill_manual(values=cbPalette) + scale_colour_manual(values=cbPalette)
+#county.yield.plot <- county.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+county.yield.plot <- county.yield.plot + geom_point(aes(color=State),size=1,alpha = 0.1)
+county.yield.plot <- county.yield.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess")
+@
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% baposter Portrait Poster
+% LaTeX Template
+% Version 1.0 (15/5/13)
+%
+% Created by:
+% Brian Amberg (baposter@brian-amberg.de)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+%\documentclass[a0paper,portrait]{baposter}
+
+\documentclass[paperwidth=42in,paperheight=44in]{baposter}
+\usepackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
+\usepackage{booktabs} % Horizontal rules in tables
+\usepackage{relsize} % Used for making text smaller in some places
+
+\graphicspath{{figures/}} % Directory in which figures are stored
+
+\definecolor{bordercol}{RGB}{40,40,40} % Border color of content boxes
+\definecolor{headercol1}{RGB}{186,215,230} % Background color for the header in the content boxes (left side)
+\definecolor{headercol2}{RGB}{80,80,80} % Background color for the header in the content boxes (right side)
+\definecolor{headerfontcol}{RGB}{0,0,0} % Text color for the header text in the content boxes
+\definecolor{boxcolor}{RGB}{186,215,230} % Background color for the content in the content boxes
+
+\begin{document}
+
+\begin{poster}{
+grid=false,
+borderColor=bordercol, % Border color of content boxes
+headerColorOne=headercol1, % Background color for the header in the content boxes (left side)
+headerColorTwo=headercol2, % Background color for the header in the content boxes (right side)
+headerFontColor=headerfontcol, % Text color for the header text in the content boxes
+boxColorOne=boxcolor, % Background color for the content in the content boxes
+headershape=roundedright, % Specify the rounded corner in the content box headers
+headerfont=\Large\sf\bf, % Font modifiers for the text in the content box headers
+textborder=rectangle,
+%background=user,
+headerborder=open, % Change to closed for a line under the content box headers
+boxshade=plain
+}
+{}
+%
+%----------------------------------------------------------------------------------------
+%	TITLE AND AUTHOR NAME
+%----------------------------------------------------------------------------------------
+%
+
+%\institute{Gylling Data Management} % Institution(s)
+{\sf\bf Temporal and Spatial Trends in Winter Wheat Yields Monitored Via Multiple Online Data Sources} % Poster title
+%{\vspace{1em} Peter Claussen} % Author names
+%{\smaller Pete@gdmdata.com} % Author email addresses
+%{\includegraphics[scale=0.15]{logo}} % University/lab logo
+
+%----------------------------------------------------------------------------------------
+%	INTRODUCTION
+%----------------------------------------------------------------------------------------
+
+\headerbox{Introduction}{name=introduction,column=0,row=0}{
+
+Donec feugiat sagittis \textbf{neque}, nec ultrices risus vestibulum at. Suspendisse enim purus, tempus sed malesuada et, aliquam non nulla. Cras vel tortor justo. Vestibulum viverra purus id risus lacinia quis malesuada lorem mattis. \textbf{Nullam ornare egestas} metus vel posuere. In hac habitasse platea dictumst. In malesuada aliquet nulla, quis iaculis mauris accumsan ac.
+
+Maecenas placerat hendrerit mollis. Nunc fringilla sollicitudin pulvinar. Vestibulum a odio arcu. \textit{Ut tristique enim ut odio pulvinar non dignissim risus dignissim.} Nullam nibh augue.
+}
+
+%----------------------------------------------------------------------------------------
+%	MATERIALS AND METHODS
+%----------------------------------------------------------------------------------------
+
+\headerbox{Materials and Methods}{name=methods,column=0,below=introduction}{
+
+\begin{itemize}
+\item USDA NASS (National Agricultural Statistics Service)
+   %\begin{itemize}
+   %   \item \texttt{WHEAT, WINTER - YIELD, MEASURED IN BU / ACRE}
+   %\end{itemize}
+\item IPNI International Plant Nutrition Institute \cite{nuGIS}
+   %\begin{itemize}
+   %   \item Farm 
+   %      TonsN TonsP TonsK
+   %   \item Tons Exc
+   %      N Exc P2O5 Exc K2O 
+   %   \item Tons Recovered
+   %      N P2O5 K2O
+   %   \item Tons N Fixed Legumes
+   %   \item Tons Rem
+   %         N P2O5 K2O
+   %   \item Balance
+   %         N P2O5 K2O
+   %   \item Ratio
+   %         N P2O5 K2O
+   %   \item PPCA
+   %         N P2O5 K2O
+   %   \item Farm PPCA
+   %         N P2O5 K2O
+   %   \item TotalPlantedAc
+   %   \item TotalHarvestAc
+   %   \item Total Harvested Cropland Acres
+   %   \item Cropland
+   %\end{itemize}
+\item CDC Centers for Disease Control and Prevention
+   \texttt{http://wonder.cdc.gov/EnvironmentalData.html}
+   %\begin{itemize}
+   %   \item Daily Air Temperatures and Heat Index (1979-2011) 
+   %      from North America Land Data Assimilation System (NLDAS) 
+   %   \item Fine Particulate Matter (PM2.5) ($\mu g/m^3$) (2003-2011) 
+   %   \item Land Surface Temperature (LST) (2003-2008) 
+   %      from Moderate Resolution Imaging Spectroradiometer (MODIS) 
+   %   \item Daily Sunlight ($KJ/m^2$) (1979-2011) 
+   %      from North America Land Data Assimilation System (NLDAS) 
+   %   \item Daily Precipitation (mm) (1979-2011) 
+   %      from North America Land Data Assimilation System (NLDAS) 
+   %   \item Number of Heat Wave Days in May-September (1981-2010)
+   %\end{itemize}
+\item HWW RPN Hard Winter Wheat Performance Nursery 
+\end{itemize}
+}
+
+%----------------------------------------------------------------------------------------
+%	CONCLUSION
+%----------------------------------------------------------------------------------------
+
+\headerbox{Conclusion}{name=conclusion,column=0,below=methods}{
+\begin{center}
+\begin{tabular}{l l l}
+\toprule
+\textbf{Covariate} & \textbf{Response 1} & \textbf{Response 2}\\
+\midrule
+(Intercept)          & 67.4445069  & < 2e-16 *** \\
+max.a                 &  -0.3760550  &  0.000860 *** \\
+sun.a                 &  -0.0024894  &  9.71e-07 *** \\
+day.a                &    0.5058657  &  1.49e-07 *** \\
+Farm TonsK.a          &  -0.0006035  &  0.032522 * \\
+Tons P2O5 Exc.a     &   0.0011845  &  0.000118 *** \\
+Tons K2O Exc.a        &  -0.0008145 &  0.005341 ** \\ 
+Tons N Fixed Legumes.a & -0.0003769 &  0.104493    \\
+Tons K2O Rem.a       &    0.0007905  &  1.42e-05 ***\\
+P2O5 PPCA.a           &  -0.0023263  &  0.004439 ** \\
+K2O PPCA.a            &  -0.0022599  &  0.022173 *  \\
+FarmNPPCA.a          &    0.0033189  &  0.000237 ***\\
+wheat frac.a            & 0.0749893  &  0.000319 ***\\
+\bottomrule
+\end{tabular}
+\captionof{table}{Table caption}
+\end{center}
+}
+
+%----------------------------------------------------------------------------------------
+%	REFERENCES
+%----------------------------------------------------------------------------------------
+
+\headerbox{References}{name=references,column=0,below=conclusion}{
+
+\smaller % Reduce the font size in this block
+\renewcommand{\section}[2]{\vskip 0.05em} % Get rid of the default "References" section title
+\nocite{*} % Insert publications even if they are not cited in the poster
+
+\bibliographystyle{unsrt}
+\bibliography{sample} % Use sample.bib as the bibliography file
+}
+
+%----------------------------------------------------------------------------------------
+%	ACKNOWLEDGEMENTS
+%----------------------------------------------------------------------------------------
+
+\headerbox{Acknowledgements}{name=acknowledgements,column=0,below=references, above=bottom}{
+
+\smaller % Reduce the font size in this block
+Fusce mattis tellus ac odio imperdiet lobortis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus commodo blandit euismod. Ut porttitor cursus magna. Mauris adipiscing pellentesque ipsum nec facilisis. Cras ornare bibendum bibendum. Ut a elit purus, vel adipiscing.
+} 
+
+%----------------------------------------------------------------------------------------
+%	RESULTS 1
+%----------------------------------------------------------------------------------------
+
+%\headerbox{Results Heading}{name=results1,span=2,column=1,row=0}{ % To reduce this block to 1 column width, remove 'span=2'
+\headerbox{Results Heading}{name=results1,column=1,row=0}{ % To reduce this block to 1 column width, remove 'span=2'
+%------------------------------------------------
+
+<<fig=TRUE,echo=false,width=5,height=3>>=
+state.yield.plot
+@
+}
+
+\headerbox{Results Heading}{name=results3,column=2,row=0}{ % To reduce this block to 1 column width, remove 'span=2'
+%------------------------------------------------
+<<fig=TRUE,echo=false,width=5,height=3>>=
+   county.yield.plot
+@
+}
+
+%----------------------------------------------------------------------------------------
+%	RESULTS 2
+%----------------------------------------------------------------------------------------
+
+\headerbox{Results Heading 2}{name=results2,span=2,column=1,below=results1,above=bottom}{ % To reduce this block to 1 column width, remove 'span=2'
+
+Nunc sit amet sem ut nulla tincidunt mattis vel nec mauris. Vestibulum odio tellus, lobortis. Vel adipiscing, Aliquam dictum, ligula egestas commodo posuere, lectus lectus congue ligula, sed posuere urna lectus at nisi. Aenean commodo risus ut dolor (viverra scelerisque). Nullam varius, lacus et interdum hendrerit, odio orci ultrices mauris, id interdum eros mauris at urna. Fusce in nisi eros, sit amet volutpat turpis, \textbf{porttior magna} (commodo blandit euismod) \textbf{facilisis ornate magnis} (dis magnis). 
+
+%------------------------------------------------
+
+\begin{center}
+
+<<fig=TRUE,echo=false,width=8,height=3.5>>=
+   grid.arrange(arrangeGrob(
+        ggmap.values(covariates.dat$yield.a,covariates.dat$statecounty,main="Average Yield",legend="mean",palette=cbPalette[3:4]),
+        ggmap.values(covariates.dat$yield.b,covariates.dat$statecounty,main="Yield Change",legend="slope",palette=cbPalette[3:4]),
+         as.table=TRUE,
+         ncol=2))
+@
+\captionof{figure}{Figure caption 1 (left); Figure County-level yields (bu/acre) by year (right)}
+\end{center}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+
+%------------------------------------------------
+
+}
+
+%----------------------------------------------------------------------------------------
+
+\end{poster}
+
+\end{document}
+
+
+

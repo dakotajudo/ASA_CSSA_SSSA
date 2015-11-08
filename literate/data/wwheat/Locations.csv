@@ -5,22 +5,22 @@ Brookings,SD,brookings,,44.306389,-96.788056
 Pierre,SD,hughes,,44.368056,-100.336389
 Winner,SD,tripp,,43.373889,-99.857778
 Hettinger,ND,adams,,46.000833,-102.633333
-Waseca,MN,,,,
-Rosemount,MN,,,,
-SidneyMT,MT,,,,
-Mocassin,MT,,,,
-Bozeman,MT,,,,
+Waseca,MN,waseca,44.078889,-93.506389
+Rosemount,MN,dakota,44.741111,-93.119722
+SidneyMT,MT,richland,47.7125,-104.161389
+Moccasin,MT,judith basin,47.053333,-109.910556
+Bozeman,MT,gallatin,45.677778,-111.047222
 Lethbridge,AB,,,,
-Loma,MT,,,,
+Loma,MT,chouteau,47.937222,-110.499722
 Saskatoon,SK,,,,
-Ames,IA,,,,
+Ames,IA,story,42.034722,-93.62
 Lincoln,NE,lancaster,,40.810556,-96.680278
 North Platte,NE,lincoln,,41.135833,-100.770556
-Archer,WY,,,,
-Lind,WA,,,,
-Clovis (Irr),NM,,,,
-Clovis (Dry),NM,,,,
-Farmington,NM,,,,
+Archer,WY,laramie,41.0928,-104.3958
+Lind,WA,adams,46.9725,-118.616389
+Clovis (Irr),NM,curry,34.4125,-103.204722
+Clovis (Dry),NM,curry,34.4125,-103.204722
+Farmington,NM,san juan,36.751667,-108.189722
 Bushland (Irr),TX,potter,,35.191944,-102.064722
 Bushland (Dry),TX,potter,,35.191944,-102.064722
 Chillicothe,TX,hardeman,,34.255278,-99.512222
@@ -36,24 +36,24 @@ Garden City,KS,finney,,37.975278,-100.864167
 Wichita,KS,sedgwick,,37.688889,-97.336111
 Winfield,KS,cowley,,37.239722,-96.995556
 Hugoton (Irr),KS,stevens,,37.176389,-101.345556
-Fort Collins,CO,,,,
-Akron,CO,,,,
-Burlington,CO,,,,
+Fort Collins,CO,larimar,40.559167,-105.078056
+Akron,CO,washington,40.164382,-103.220685
+Burlington,CO,kit carson,39.304491,-102.271463
 Imperial (Irr),NE,chase,,40.518333,-101.6425
-Columbia,MO,,,,
-Crawfordsville,IA,,,,
+Columbia,MO,boone,38.951389,-92.328333
+Crawfordsville,IA,washington,41.215278,-91.537778
 Altus,OK,jackson,,34.643889,-99.326667
 Goodwell,OK,texas,,36.593333,-101.629722
 WichitaI,KS,sedgwick,,37.688889,-97.336111
 WichitaII,KS,sedgwick,,37.688889,-97.336111
 Salinas,KS,saline,,38.840278,-97.611389
-Julesburg,CO,,,,
-Walsh,CO,,,,
+Julesburg,CO,sedwick,40.988333,-102.266667
+Walsh,CO,baca,37.386667,-102.278611
 Clay Center,NE,clay,,40.522222,-98.055
 Alliance,NE,box butte,,42.101389,-102.870278
 Dakota Lakes,SD,hughes,,44.368056,-100.336389
 Williston,ND,williams,,48.156389,-103.628056
-Billings,MT,,,,
+Billings,MT,yellowstone,45.786667,-108.537222
 Grant,NE,perkins,,40.844444,-101.726111
 McGregor,TX,coryell,,31.431944,-97.416944
 Beeville,TX,bee,,28.405556,-97.750833
@@ -63,18 +63,16 @@ Belfield,ND,stark,,46.886111,-103.198611
 Granite,OK,greer,,34.9625,-99.381389
 Hildreth,NE,franklin,,40.336389,-99.044167
 Minot,ND,ward,,48.233056,-101.292222
-Clarkton,MO,,,,
+Clarkton,MO,dunklin,36.450833,-89.967778
 Presho,SD,lyman,,43.905833,-100.058056
 Dallas,TX,dallas,,32.775833,-96.796667
-Lafeyette,ID,,,,
+Lafeyette,IN,,,,
 Wooster,OH,,,,
 Palmer,KS,washington,,39.632778,-97.14
 Ft Cobb,OK,caddo,,35.099444,-98.438611
 Flora,IL,,,,
 Goodland,KS,sherman,,39.348611,-101.711111
-Pine Bluff,WY,,,,
-Pullman,WA,,,,
+Pine Bluff,WY,laramie,41.179444,-104.068611
+Pullman,WA,whitman,46.733333,-117.166667
 Hobbart,OK,kiowa,,35.026389,-99.090833
 Larned,KS,pawnee,,38.182222,-99.101667
-,,,,,
-,,,,,

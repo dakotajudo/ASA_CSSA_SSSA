@@ -31,7 +31,8 @@ Data Request More information
 I've downloaded climate data from \verb|http://wonder.cdc.gov/EnvironmentalData.html|. We need to process the files. This is a time consuming process, so we'll simply produce a set of linear models, save the models and extract means and slopes. We'll leave examining the fits in detail to another file.
 
 <<>>=
-weather.base <- read.csv("temp.csv", header = TRUE)
+if(!file.exists("weather.base.Rda")) {
+   weather.base <- read.csv("temp.csv", header = TRUE)
     weather.base$Year <- as.numeric(weather.base$Year)
     weather.base$Year.Code <- as.numeric(weather.base$Year.Code)
     weather.base$County.Code <- as.numeric(weather.base$County.Code)
@@ -42,9 +43,13 @@ weather.base <- read.csv("temp.csv", header = TRUE)
     weather.base$State <- tolower(as.character(weather.base$State))
     weather.base$statecounty <- paste(weather.base$State,weather.base$County,sep=",")
     weather.base$statecounty <- as.factor(weather.base$statecounty)
+    save(weather.base, file="weather.base.Rda")
+} else {
+   load(file="weather.base.Rda")
+}
 weather.dat <- subset(weather.base,weather.base$Year>1983)
 @
-    
+
 <<>>=
 if(!file.exists("min.lm.Rda")) {
 
@@ -52,24 +57,57 @@ if(!file.exists("min.lm.Rda")) {
   weather4.dat <- subset(weather.base,late.f(weather.base$Year+4))
   weather6.dat <- subset(weather.base,late.f(weather.base$Year+6))
 
-
-  max.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
   min.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
+  save(min.lm, file="min.lm.Rda")
+  min.lm = NA
+  
+  max.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
+  save(max.lm, file="max.lm.Rda")
+  max.lm = NA
+  
   heat.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
+  save(heat.lm, file="heat.lm.Rda")
+  heat.lm = NA
   
   max2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat)
+  save(max2.lm, file="max2.lm.Rda")
+  max2.lm = NA
+  
   min2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat)
+  save(min2.lm, file="min2.lm.Rda")
+  min2.lm = NA
+  
   heat2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat)
+  save(heat2.lm, file="heat2.lm.Rda")
+  heat2.lm = NA
   
   max4.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat)
+  save(max4.lm, file="max4.lm.Rda")
+  max4.lm = NA
+  
   min4.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat)
+  save(min4.lm, file="min4.lm.Rda")
+  min4.lm = NA
+  
   heat4.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat)
+  save(heat4.lm, file="heat4.lm.Rda")
+  heat4.lm = NA
   
   max6.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
-  min6.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
-  heat6.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
+  save(max6.lm, file="max6.lm.Rda")
+  max6.lm = NA
   
-  precip.base <- read.csv("data/wonder/precip.csv", header = TRUE)
+  min6.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
+  save(min6.lm, file="min6.lm.Rda")
+  min6.lm = NA
+  
+  heat6.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
+  save(heat6.lm, file="heat6.lm.Rda")
+  heat6.lm = NA
+}
+
+if(!file.exists("precip.lm.Rda")) {
+  precip.base <- read.csv("precip.csv", header = TRUE)
   precip.base$County <- tolower(as.character(precip.base$County))
   precip.base$State <- tolower(as.character(precip.base$State))
   precip.base$statecounty <- paste(precip.base$State,precip.base$County,sep=",")
@@ -80,17 +118,28 @@ if(!file.exists("min.lm.Rda")) {
   precip6.dat <- subset(precip.dat,late.f(precip.dat$Year+6))
   
   precip.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip.dat)
+  save(precip.lm, file="precip.lm.Rda")
+  precip.lm = NA
+  
   precip2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip2.dat)
+  save(precip2.lm, file="precip2.lm.Rda")
+  precip2.lm = NA
+  
   precip4.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip4.dat)
+  save(precip4.lm, file="precip4.lm.Rda")
+  precip4.lm = NA
+  
   precip6.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip6.dat)
-  
-  sunlight.base <- read.csv("data/wonder/sunlight.csv", header = TRUE)
+  save(precip6.lm, file="precip6.lm.Rda")
+  precip6.lm = NA
+}
 
-  
+if(!file.exists("sun.lm.Rda")) {
+  sunlight.base <- read.csv("sunlight.csv", header = TRUE)
+
   sunlight.base$County <- tolower(as.character(sunlight.base$County))
   sunlight.base$State <- tolower(as.character(sunlight.base$State))
   sunlight.base$statecounty <- paste(sunlight.base$State,sunlight.base$County,sep=",")
-  
   
   sunlight.dat <- subset(sunlight.base,sunlight.base$Year>1983)
   sunlight2.dat <- subset(sunlight.dat,late.f(sunlight.dat$Year+2))
@@ -98,35 +147,20 @@ if(!file.exists("min.lm.Rda")) {
   sunlight6.dat <- subset(sunlight.dat,late.f(sunlight.dat$Year+6))
   
   sun.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight.dat)
-  sun2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight2.dat)
-  sun4.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight4.dat)
-  sun6.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight6.dat)
-  
-  save(min.lm, file="min.lm.Rda")
-  save(max.lm, file="max.lm.Rda")
-  save(heat.lm, file="heat.lm.Rda")
-  save(precip.lm, file="precip.lm.Rda")
   save(sun.lm, file="sun.lm.Rda")
-   
-   save(min2.lm, file="min2.lm.Rda")
-   save(max2.lm, file="max2.lm.Rda")
-   save(heat2.lm, file="heat2.lm.Rda")
-   save(precip2.lm, file="precip2.lm.Rda")
-   save(sun2.lm, file="sun2.lm.Rda")
-
-   save(min4.lm, file="min4.lm.Rda")
-   save(max4.lm, file="max4.lm.Rda")
-   save(heat4.lm, file="heat4.lm.Rda")
-   save(precip4.lm, file="precip4.lm.Rda")
-   save(sun4.lm, file="sun4.lm.Rda")
-
-   save(min6.lm, file="min6.lm.Rda")
-   save(max6.lm, file="max6.lm.Rda")
-   save(heat6.lm, file="heat6.lm.Rda")
-   save(precip6.lm, file="precip6.lm.Rda")
-   save(sun6.lm, file="sun6.lm.Rda")
-} else {
-
+  sun.lm = NA
+  
+  sun2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight2.dat)
+  save(sun2.lm, file="sun2.lm.Rda")
+  sun2.lm = NA
+  
+  sun4.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight4.dat)
+  save(sun4.lm, file="sun4.lm.Rda")
+  sun4.lm = NA
+  
+  sun6.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight6.dat)
+  save(sun6.lm, file="sun6.lm.Rda")
+  sun6.lm = NA
 }
 @
 
@@ -156,15 +190,17 @@ if(!file.exists("fine.lm.Rda")) {
    surface.dat$statecounty <- paste(surface.dat$State,surface.dat$County,sep=",")
 
    fine.lm <- lm(Avg.Fine.Particulate.Matter~ 0 + statecounty + statecounty:Year,data=fine.dat)
-   day.lm <- lm(Avg.Day.Land.Surface.Temperature~ 0 + statecounty + statecounty:Year,data=surface.dat)
-   night.lm <- lm(Avg.Night.Land.Surface.Temperature~ 0 + statecounty + statecounty:Year,data=surface.dat)
-
    save(fine.lm, file="fine.lm.Rda")
+   fine.lm=NA
+   
+   day.lm <- lm(Avg.Day.Land.Surface.Temperature~ 0 + statecounty + statecounty:Year,data=surface.dat)
    save(day.lm, file="day.lm.Rda")
+   day.lm=NA
+   
+   night.lm <- lm(Avg.Night.Land.Surface.Temperature~ 0 + statecounty + statecounty:Year,data=surface.dat)
    save(night.lm, file="night.lm.Rda")
-} else {
-
-}
+   night.lm=NA
+} 
 @
 
 \section{Avg Daily Min Air Temperature C}
@@ -197,7 +233,6 @@ midpoint <- min(weather.dat$Year) + (max(weather.dat$Year)-min(weather.dat$Year)
 @
 
 <<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
-
 ggplot(weather.dat, aes(Year,Avg.Daily.Min.Air.Temperature..C.)) + 
    geom_point(aes(color=statecounty),size=2,alpha = 0.2) + gg.default.theme +
    geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm")
@@ -226,11 +261,63 @@ names(values)[!names(values)%in%names(estimate.mean)]
 names(estimate.mean)[!names(estimate.mean)%in%names(values)]
 @
 
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(min.lm)
-par(mfrow = c(1,1)) 
+%<<fig=TRUE,echo=false>>=
+%par(mfrow = c(2, 2)) 
+%plot(min.lm)
+%par(mfrow = c(1,1)) 
+%@
+
+<<>>=
+current.wd <- getwd()
+setwd('../usda')
+load.if.needed("covariates.dat")
+setwd(current.wd)
+if(!("min.a" %in% names(covariates.dat))) {
+      
+   load(file="min.lm.Rda")
+   covariates.dat$min.a=extract.county.estimates(min.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$min.b=extract.county.estimates(min.lm,term=2)[covariates.dat$statecounty]
+   min.lm = NULL
+   
+   load(file="max.lm.Rda")
+   covariates.dat$max.a=extract.county.estimates(max.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$max.b=extract.county.estimates(max.lm,term=2)[covariates.dat$statecounty]
+   max.lm = NULL
+   
+   load(file="heat.lm.Rda")
+   covariates.dat$heat.a=extract.county.estimates(heat.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$heat.b=extract.county.estimates(heat.lm,term=2)[covariates.dat$statecounty]
+   heat.lm = NULL
+   
+   load(file="precip.lm.Rda")
+   covariates.dat$precip.a=extract.county.estimates(precip.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$precip.b=extract.county.estimates(precip.lm,term=2)[covariates.dat$statecounty]
+   precip.lm = NULL
+   
+   load(file="sun.lm.Rda")
+   covariates.dat$sun.a=extract.county.estimates(sun.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$sun.b=extract.county.estimates(sun.lm,term=2)[covariates.dat$statecounty]
+   sun.lm = NULL
+   
+   load(file="fine.lm.Rda")
+   covariates.dat$fine.a <- extract.county.estimates(fine.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$fine.b <- extract.county.estimates(fine.lm,term=2)[covariates.dat$statecounty]
+   fine.lm = NULL
+   
+   load(file="day.lm.Rda")
+   covariates.dat$day.a <- extract.county.estimates(day.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$day.b <- extract.county.estimates(day.lm,term=2)[covariates.dat$statecounty]
+   day.lm = NULL
+   
+   load(file="night.lm.Rda")
+   covariates.dat$night.a <- extract.county.estimates(night.lm,term=1)[covariates.dat$statecounty]
+   covariates.dat$night.b <- extract.county.estimates(night.lm,term=2)[covariates.dat$statecounty]
+   night.lm = NULL
+
+   save(covariates.dat, file="./usda/covariates.dat")
+}
 @
+
 
 <<>>=
 #summary(aov(min.lm))
@@ -240,5 +327,96 @@ min.lm = NA
 load(file="fine.lm.Rda")
 load(file="day.lm.Rda")
 load(file="night.lm.Rda")
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(covariates.dat, aes(precip.a,yield.a)) + geom_point(aes(color=state),weight=6) + geom_smooth(aes(group=state,color=state),weight=10,se = FALSE,method="lm") + geom_smooth(aes(color="black"),weight=10,se = FALSE,method="lm"),
+  ggplot(covariates.dat, aes(precip.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state,color=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(covariates.dat, aes(precip.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(covariates.dat, aes(precip.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(covariates.dat, aes(min.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(covariates.dat, aes(min.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(covariates.dat, aes(max.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(covariates.dat, aes(max.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(covariates.dat, aes(heat.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(covariates.dat, aes(heat.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(covariates.dat, aes(sun.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+  ggplot(covariates.dat, aes(sun.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(covariates.dat, aes(sun.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+  ggplot(covariates.dat, aes(sun.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(covariates.dat, aes(day.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+  ggplot(covariates.dat, aes(day.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(covariates.dat, aes(night.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+  ggplot(covariates.dat, aes(night.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=6,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
+
+
+<<fig=TRUE>>=
+grid.arrange(arrangeGrob(
+  ggplot(covariates.dat, aes(fine.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+  ggplot(covariates.dat, aes(fine.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+@
 
 \end{document}

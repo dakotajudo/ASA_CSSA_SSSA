@@ -8,6 +8,10 @@
 source("../../../ASA_CSSA_SSSA/R/map_functions.R")
 library(ggplot2)
 library(maps)
+local.wd <- getwd()
+setwd('../usda')
+load.if.needed("covariates.dat")
+setwd(local.wd)
 @
 
 <<>>=
@@ -46,9 +50,11 @@ names(statecounty.map) <- as.character(locations.dat$Name)
 
 Now, generate an index
 <<>>=
-
-yield.gap.dat <- subset(county.yield.dat,county.yield.dat$statecounty %in% statecounty.map)
-head(county.yield.dat)
+setwd('../usda/')
+load.if.needed("county.late.dat")
+setwd(local.wd)
+yield.gap.dat <- subset(county.late.dat,county.late.dat$statecounty %in% statecounty.map)
+head(county.late.dat)
 head(yield.gap.dat)
 @
 
@@ -184,20 +190,143 @@ locations.dat$gapslope <- rpn.year.estimates[as.character(locations.dat$Name)]
 
 <<fig=TRUE>>=
 gapplot.dat <- subset(locations.dat, !is.na(locations.dat$gapslope))
-norm.slopes <- gapplot.dat$gapslope/max(abs(1.05*gapplot.dat$gapslope))
-pos.slopes <- norm.slopes
-neg.slopes <- -norm.slopes
-neg.slopes[neg.slopes<0] <- 0
-pos.slopes[pos.slopes<0] <- 0
-
-gapplot.dat$statecounty <- as.character(gapplot.dat$statecounty)
-
-map.colors <- colorRampPalette(c('lightblue','darkblue'))(100)[floor(pos.slopes*100)+1]
-neg.colors <- colorRampPalette(c('pink','red'))(100)[floor(neg.slopes*100)+1]
-map.colors[norm.slopes<0] <-neg.colors[norm.slopes<0] 
-map("county", regions = gapplot.dat$statecounty, col = map.colors, fill = TRUE, lty = 1, lwd= 1)
-#map("county", regions = counties.dat$statecounty, col = "black", fill = FALSE, lty = 1, lwd = 1, add=TRUE)
+ggmap.values(locations.dat$gapslope,locations.dat$statecounty,main="gap slope",legend="slope",palette=cbPalette[3:4])
 @
 
+<<fig=TRUE>>=
+yield.rpn.lm <- lm(Value ~ 0 + statecounty + statecounty:Cycle, data=rpndry.dat)
+yield.rpn.a <- extract.county.estimates(yield.rpn.lm,term=1)
+yield.rpn.b <- extract.county.estimates(yield.rpn.lm,term=2)
+nursery.dat <- data.frame(
+   statecounty=names(yield.rpn.a),
+   yield.a=yield.rpn.a,
+   yield.b=yield.rpn.b)
+   
+ggmap.values(yield.rpn.a,names(yield.rpn.a),main="Yield Average, RPN",legend="slope",palette=cbPalette[3:4])
+ggmap.values(yield.rpn.b,names(yield.rpn.b),main="Yield Change, RPN",legend="slope",palette=cbPalette[3:4])
+@
+
+Now, determine distance to test locations
+
+<<>>=
+library(maptools)
+library(spdep)
+
+nursery.map <- map("county", regions = rpndry.dat$statecounty, fill = TRUE, plot=FALSE)
+nursery.names <- as.character(nursery.map$names)
+nursery.poly <- map2SpatialPolygons(nursery.map, nursery.map$names)
+nursery.coords <- coordinates(nursery.poly)
+
+nursery.dat$Latitude <- NA
+nursery.dat$Longitude <- NA
+nursery.dat$coordname <- NA
+coordnames <- rownames(nursery.coords)
+for(idx in coordnames) {
+   mask <- idx == nursery.dat$statecounty
+   nursery.dat$Longitude[mask] <- nursery.coords[idx,1]
+   nursery.dat$Latitude[mask] <- nursery.coords[idx,2]
+   nursery.dat$coordname[mask] <- idx
+}
+
+covariates.map <- map("county", regions = covariates.dat$statecounty, fill = TRUE, plot=FALSE)
+covariates.poly <- map2SpatialPolygons(covariates.map, covariates.map$names)
+covariates.coords <- coordinates(covariates.poly)
+
+
+covariates.dat$Latitude <- NA
+covariates.dat$Longitude <- NA
+covariates.dat$coordname <- NA
+coordnames <- rownames(covariates.coords)
+for(idx in coordnames) {
+   mask <- idx == covariates.dat$statecounty
+   covariates.dat$Longitude[mask] <- covariates.coords[idx,1]
+   covariates.dat$Latitude[mask] <- covariates.coords[idx,2]
+   covariates.dat$coordname[mask] <- idx
+}
+
+covariates.dat$statecounty[covariates.dat$statecounty!=covariates.dat$coordname]
+covariates.dat$coordname[covariates.dat$statecounty!=covariates.dat$coordname]
+
+@
+
+Check our coordinates
+<<fig=TRUE>>=
+par(mfrow=c(1,3))
+plot(covariates.dat$Longitude,covariates.dat$Latitude)
+points(nursery.coords[,1],nursery.coords[,2],col="blue",pch=19)
+plot(nursery.coords[,1],nursery.coords[,2],col="blue",pch=19)
+par(mfrow=c(1,1))
+@
+
+Spatial autocorrelation
+
+<<fig=TRUE>>=
+covariates.nb <- poly2nb(covariates.poly)
+covariates.wt <- nb2listw(covariates.nb,zero.policy=TRUE)
+moran.values <- rep(NA,length(covariates.dat$yield.b))
+actual.values <- covariates.dat$yield.b
+names(actual.values) <- as.character(covariates.dat$statecounty)
+
+moran.values <- actual.values[covariates.map$names]
+names(moran.values) <- covariates.map$names
+
+moran.test(moran.values,covariates.wt,na.action=na.exclude,zero.policy=TRUE)
+
+recent.moran <- localmoran(moran.values,covariates.wt,na.action=na.exclude,zero.policy=TRUE)
+covariates.dat$I <- recent.moran[covariates.dat$statecounty,1]
+ggmap.values(covariates.dat$I,covariates.dat$statecounty,main="Local Autocorrelation",legend="Moran's I",palette=cbPalette[3:4])
+@
+
+Compute distances
+<<>>=
+covariates.dat$NearestStation <- NA
+covariates.dat$Distance <- NA
+covariates.dat$DistanceGPS <- NA
+for(i in 1:dim(covariates.dat)[1]) {
+   if(!is.na(covariates.dat$Longitude[i])) {
+      current.coord <- c(covariates.dat$Longitude[i],covariates.dat$Latitude[i])
+      nearest.idx <- 1
+      site.coord.gps <- c(nursery.dat$Longitude[1],nursery.dat$Latitude[1])
+      site.coord <- c(nursery.coords[1,1],nursery.coords[1,2])
+      min.distance <- sqrt(sum((current.coord-site.coord)^2))
+      min.distance.gps <- sqrt(sum((current.coord-site.coord.gps)^2))
+
+      for(j in 2:dim(nursery.coords)[1]) {
+      #for(j in 2:length(counties)) {
+         site.coord.gps <- c(nursery.dat$Longitude[j],nursery.dat$Latitude[j])
+         site.coord <- c(nursery.coords[j,1],nursery.coords[j,2])
+         current.distance <- sqrt(sum((current.coord-site.coord)^2))
+         current.distance.gps <- sqrt(sum((current.coord-site.coord.gps)^2))
+         if(current.distance<min.distance) {
+            min.distance <- current.distance
+            nearest.idx <- j
+         }
+         if(current.distance.gps<min.distance.gps) {
+            min.distance.gps <- current.distance.gps
+            nearest.idx <- j
+         }
+      }
+      covariates.dat$NearestStation[i] = paste(nursery.dat$statecounty[nearest.idx],sep=",")
+      covariates.dat$Distance[i] <-  min.distance
+      covariates.dat$DistanceGPS[i] <-  min.distance.gps
+   }
+}
+@
+
+<<fig=TRUE>>=
+distance.a.plot <- ggplot(covariates.dat, aes(Distance,yield.a)) + 
+geom_point(aes(color=state)) + geom_smooth(aes(group=state,color=state),method="lm",se = FALSE)
+distance.a.plot
+@
+<<fig=TRUE>>=
+distance.b.plot <- ggplot(covariates.dat, aes(Distance,yield.b)) + 
+geom_point(aes(color=state)) + geom_smooth(aes(group=state,color=state),method="lm",se = FALSE)
+distance.b.plot
+setwd(local.wd)
+@
+
+<<fig=TRUE>>=
+ggmap.values(covariates.dat$Distance,covariates.dat$statecounty,main="Distance to RPN Station",legend="Distance",palette=cbPalette[3:4])
+@
 
 \end{document}

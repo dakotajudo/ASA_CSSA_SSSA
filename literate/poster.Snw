@@ -1,3 +1,79 @@
+
+<<echo=false>>=
+library(ggplot2)
+library(gridExtra)
+library(maps)
+library(xtable)
+source("../ASA_CSSA_SSSA/R/map_functions.R")
+@
+
+<<echo=false>>=
+load(file="data/usda/covariates.dat.Rda")
+
+   state.yield.dat <- read.csv("./data/usda/B1926239-B043-3DBC-B92F-C4BB7F081392.csv", header = TRUE)
+   state.yield.plot <- ggplot(state.yield.dat, aes(Year,Value)) 
+   state.yield.plot <- state.yield.plot + scale_fill_manual(values=cbPalette) + scale_colour_manual(values=cbPalette)
+   state.yield.plot <- state.yield.plot + geom_point(aes(color=State),size=2,alpha = 0.2)
+   state.yield.plot <- state.yield.plot + geom_smooth(aes(group= State,color=State),weight=16,se = FALSE,method="loess")
+
+load(file="data/usda/income.relative.dat.Rda")
+load(file="data/usda/income.total.dat.Rda")
+mean.relative.income <- tapply(income.relative.dat$Value,list(income.relative.dat$statecounty),mean,na.rm=TRUE)
+mean.total.income <- tapply(income.total.dat$Value,list(income.total.dat$statecounty),mean,na.rm=TRUE)
+
+yield.field <- "WHEAT, WINTER - YIELD, MEASURED IN BU / ACRE"
+production.field <- "WHEAT, WINTER - PRODUCTION, MEASURED IN BU"
+county.yield.dat <- read.csv("./data/usda/69C9E26C-F285-325A-9443-6668747878F8.csv", header = TRUE)
+county.late.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year))
+
+covariates.base <- covariates.dat
+
+#ref <- 2014
+ref <- 1984+(2014-1984)/2
+cols <- dim(covariates.dat)[2]
+yield.idx <- cols
+col <- 2
+while(col < cols) {
+   tmp <- covariates.dat[,col]
+   covariates.dat[,col] <- tmp + covariates.dat[,col+1]*ref
+   col <- col+2
+}
+
+covariates.dat$wheat_frac.a <- covariates.dat$acres.a/covariates.dat$Total_Harvested_Cropland_Acres.a
+covariates.dat$wheat_frac.b <- covariates.dat$acres.b/covariates.dat$Total_Harvested_Cropland_Acres.b
+covariates.dat$average.income <- mean.relative.income[covariates.dat$statecounty]
+#covariates.dat$total.income <- mean.total.income[covariates.dat$statecounty]
+#use all but the first and last two columns
+covariate.terms <- names(covariates.dat)[c(2:(yield.idx-4),((yield.idx+1):(yield.idx+3)))]
+
+form3 <- paste(names(covariates.dat)[yield.idx-1]," ~ ",covariate.terms[1])
+form4 <- paste(names(covariates.dat)[yield.idx]," ~ ",covariate.terms[1])
+
+for(idx in 2:length(covariate.terms) ) {
+   form3<-paste(form3,"+",covariate.terms[idx])
+   form4<-paste(form4,"+",covariate.terms[idx])
+}
+
+county.yield.dat <- subset(county.yield.dat, county.yield.dat$County != "OTHER (COMBINED) COUNTIES")
+county.yield.plot <- ggplot(county.yield.dat, aes(Year,Value)) 
+county.yield.plot <- county.yield.plot + scale_fill_manual(values=cbPalette) + scale_colour_manual(values=cbPalette)
+#county.yield.plot <- county.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+county.yield.plot <- county.yield.plot + geom_point(aes(color=State),size=1,alpha = 0.1)
+county.yield.plot <- county.yield.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess")
+
+plot.dat <- subset(covariates.dat,!is.na(covariates.dat$yield.a))
+plot.names <- as.character(plot.dat$statecounty)
+plot.dat$state <- plot.names
+for(i in 1:length(plot.names)) {
+   current <- plot.names[i]
+   tmp <- strsplit(current,",")
+   current <- tolower(tmp[[1]][1])
+   plot.dat$state[i] <- current
+}
+
+
+@
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Jacobs Landscape Poster
 % LaTeX Template
@@ -25,6 +101,7 @@
 \documentclass[final]{beamer}
 
 \usepackage[scale=1.24]{beamerposter} % Use the beamerposter package for laying out the poster
+%\usepackage[scale=1.1]{beamerposter} % Use the beamerposter package for laying out the poster
 
 \usetheme{confposter} % Use the confposter theme supplied with this template
 
@@ -46,8 +123,8 @@
 \newlength{\onecolwid}
 \newlength{\twocolwid}
 \newlength{\threecolwid}
-\setlength{\paperwidth}{42.5in} % A0 width: 46.8in
-\setlength{\paperheight}{42.5in} % A0 height: 33.1in
+\setlength{\paperwidth}{42in} % A0 width: 46.8in
+\setlength{\paperheight}{44in} % A0 height: 33.1in
 \setlength{\sepwid}{0.024\paperwidth} % Separation width (white space) between columns
 \setlength{\onecolwid}{0.22\paperwidth} % Width of one column
 \setlength{\twocolwid}{0.464\paperwidth} % Width of two columns
@@ -72,14 +149,6 @@
 %----------------------------------------------------------------------------------------
 
 \begin{document}
-   
-<<echo=false>>=
-library(ggplot2)
-library(gridExtra)
-library(maps)
-library(xtable)
-source("../ASA_CSSA_SSSA/R/map_functions.R")
-@
 
 \addtobeamertemplate{block end}{}{\vspace*{2ex}} % White space under blocks
 \addtobeamertemplate{block alerted end}{}{\vspace*{2ex}} % White space under highlighted (alert) blocks
@@ -91,7 +160,7 @@ source("../ASA_CSSA_SSSA/R/map_functions.R")
 
 \begin{columns}[t] % The whole poster consists of three major columns, the second of which is split into two columns twice - the [t] option aligns each column's content to the top
 
-%\begin{column}{\sepwid}\end{column} % Empty spacer column
+\begin{column}{\sepwid}\end{column} % Empty spacer column
 
 \begin{column}{\onecolwid} % The first column
 
@@ -99,7 +168,16 @@ source("../ASA_CSSA_SSSA/R/map_functions.R")
 %	OBJECTIVES
 %----------------------------------------------------------------------------------------
 
-\begin{alertblock}{Abstract}
+\begin{alertblock}{Objectives}
+
+Lorem ipsum dolor sit amet, consectetur, nunc tellus pulvinar tortor, commodo eleifend risus arcu sed odio:
+\begin{itemize}
+\item Mollis dignissim, magna augue tincidunt dolor, interdum vestibulum urna
+\item Sed aliquet luctus lectus, eget aliquet leo ullamcorper consequat. Vivamus eros sem, iaculis ut euismod non, sollicitudin vel orci.
+\item Nascetur ridiculus mus.  
+\item Euismod non erat. Nam ultricies pellentesque nunc, ultrices volutpat nisl ultrices a.
+\end{itemize}
+
 \end{alertblock}
 
 %----------------------------------------------------------------------------------------
@@ -108,18 +186,6 @@ source("../ASA_CSSA_SSSA/R/map_functions.R")
 
 \begin{block}{Introduction}
 
-<<fig=TRUE,echo=false,width=7,height=4>>=
-   state.yield.dat <- read.csv("./data/usda/B1926239-B043-3DBC-B92F-C4BB7F081392.csv", header = TRUE)
-   state.yield.plot <- ggplot(state.yield.dat, aes(Year,Value)) 
-   state.yield.plot <- state.yield.plot + scale_fill_manual(values=cbPalette) + scale_colour_manual(values=cbPalette)
-   state.yield.plot <- state.yield.plot + geom_point(aes(color=State),size=2,alpha = 0.2)
-   state.yield.plot <- state.yield.plot + geom_smooth(aes(group= State,color=State),weight=16,se = FALSE,method="loess")
-   state.yield.plot
-@
-
-\end{block}
-
-\begin{block}{Data Sources}
 
 \begin{itemize}
 \item USDA NASS (National Agricultural Statistics Service)
@@ -166,10 +232,16 @@ source("../ASA_CSSA_SSSA/R/map_functions.R")
    \end{itemize}
 \item HWW RPN Hard Winter Wheat Performance Nursery 
 \end{itemize}
-
 \end{block}
 
 %------------------------------------------------
+
+\begin{figure}
+<<fig=TRUE,echo=false,width=7,height=4>>=
+state.yield.plot
+@
+\caption{Figure caption}
+\end{figure}
 
 %----------------------------------------------------------------------------------------
 
@@ -177,78 +249,51 @@ source("../ASA_CSSA_SSSA/R/map_functions.R")
 
 \begin{column}{\sepwid}\end{column} % Empty spacer column
 
-%\begin{column}{\twocolwid} % Begin a column which is two columns wide (column 2)
+\begin{column}{\twocolwid} % Begin a column which is two columns wide (column 2)
 
-%\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column
-   
-<<echo=false>>=
-load(file="data/usda/covariates.dat.Rda")
-@
+\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column
 
-%\begin{column}{\onecolwid}\vspace{-.6in} % The first column within column 2 (column 2.1)
+\begin{column}{\onecolwid}\vspace{-.6in} % The first column within column 2 (column 2.1)
 
 %----------------------------------------------------------------------------------------
 %	MATERIALS
 %----------------------------------------------------------------------------------------
 
+\begin{block}{Materials}
 
+The following materials were required to complete the research:
+
+\begin{itemize}
+\item Curabitur pellentesque dignissim
+\item Eu facilisis est tempus quis
+\item Duis porta consequat lorem
+\item Eu facilisis est tempus quis
+\end{itemize}
+
+The materials were prepared according to the steps outlined below:
+
+\begin{enumerate}
+\item Curabitur pellentesque dignissim
+\item Eu facilisis est tempus quis
+\item Duis porta consequat lorem
+\item Curabitur pellentesque dignissim
+\end{enumerate}
+
+\end{block}
 
 %----------------------------------------------------------------------------------------
 
-%\end{column} % End of column 2.1
+\end{column} % End of column 2.1
 
-%\begin{column}{\onecolwid}\vspace{-.6in} % The second column within column 2 (column 2.2)
+\begin{column}{\onecolwid}\vspace{-.6in} % The second column within column 2 (column 2.2)
 
 %----------------------------------------------------------------------------------------
 %	METHODS
 %----------------------------------------------------------------------------------------
-\begin{column}
+
 \begin{block}{Methods}
 
-<<echo=false>>=
-
-load(file="data/usda/income.relative.dat.Rda")
-load(file="data/usda/income.total.dat.Rda")
-mean.relative.income <- tapply(income.relative.dat$Value,list(income.relative.dat$statecounty),mean,na.rm=TRUE)
-mean.total.income <- tapply(income.total.dat$Value,list(income.total.dat$statecounty),mean,na.rm=TRUE)
-
-yield.field <- "WHEAT, WINTER - YIELD, MEASURED IN BU / ACRE"
-production.field <- "WHEAT, WINTER - PRODUCTION, MEASURED IN BU"
-county.yield.dat <- read.csv("./data/usda/69C9E26C-F285-325A-9443-6668747878F8.csv", header = TRUE)
-county.late.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year))
-
-covariates.base <- covariates.dat
-
-#ref <- 2014
-ref <- 1984+(2014-1984)/2
-cols <- dim(covariates.dat)[2]
-yield.idx <- cols
-col <- 2
-while(col < cols) {
-   tmp <- covariates.dat[,col]
-   covariates.dat[,col] <- tmp + covariates.dat[,col+1]*ref
-   col <- col+2
-}
-
-covariates.dat$wheat_frac.a <- covariates.dat$acres.a/covariates.dat$Total_Harvested_Cropland_Acres.a
-covariates.dat$wheat_frac.b <- covariates.dat$acres.b/covariates.dat$Total_Harvested_Cropland_Acres.b
-covariates.dat$average.income <- mean.relative.income[covariates.dat$statecounty]
-#covariates.dat$total.income <- mean.total.income[covariates.dat$statecounty]
-#use all but the first and last two columns
-covariate.terms <- names(covariates.dat)[c(2:(yield.idx-4),((yield.idx+1):(yield.idx+3)))]
-
-form3 <- paste(names(covariates.dat)[yield.idx-1]," ~ ",covariate.terms[1])
-form4 <- paste(names(covariates.dat)[yield.idx]," ~ ",covariate.terms[1])
-
-for(idx in 2:length(covariate.terms) ) {
-   form3<-paste(form3,"+",covariate.terms[idx])
-   form4<-paste(form4,"+",covariate.terms[idx])
-}
-@
-
-
-
-
+Lorem ipsum dolor \textbf{sit amet}, consectetur adipiscing elit. Sed laoreet accumsan mattis. Integer sapien tellus, auctor ac blandit eget, sollicitudin vitae lorem. Praesent dictum tempor pulvinar. Suspendisse potenti. Sed tincidunt varius ipsum, et porta nulla suscipit et. Etiam congue bibendum felis, ac dictum augue cursus a. \textbf{Donec} magna eros, iaculis sit amet placerat quis, laoreet id est. In ut orci purus, interdum ornare nibh. Pellentesque pulvinar, nibh ac malesuada accumsan, urna nunc convallis tortor, ac vehicula nulla tellus eget nulla. Nullam lectus tortor, \textit{consequat tempor hendrerit} quis, vestibulum in diam. Maecenas sed diam augue.
 
 \end{block}
 
@@ -256,7 +301,7 @@ for(idx in 2:length(covariate.terms) ) {
 
 \end{column} % End of column 2.2
 
-%\end{columns} % End of the split of column 2 - any content after this will now take up 2 columns width
+\end{columns} % End of the split of column 2 - any content after this will now take up 2 columns width
 
 %----------------------------------------------------------------------------------------
 %	IMPORTANT RESULT
@@ -264,117 +309,193 @@ for(idx in 2:length(covariate.terms) ) {
 
 \begin{alertblock}{Important Result}
 
-<<echo=false>>=
-
-plot.dat <- subset(covariates.dat,!is.na(covariates.dat$yield.a))
-plot.names <- as.character(plot.dat$statecounty)
-plot.dat$state <- plot.names
-for(i in 1:length(plot.names)) {
-   current <- plot.names[i]
-   tmp <- strsplit(current,",")
-   current <- tolower(tmp[[1]][1])
-   plot.dat$state[i] <- current
-}
+<<fig=TRUE,echo=false,width=7,height=4>>=
+grid.arrange(arrangeGrob(
+     ggmap.values(plot.dat$yield.a,plot.names,main="Average Yield",legend="mean",palette=cbPalette[3:4]),
+     ggmap.values(plot.dat$yield.b,plot.names,main="Yield Change",legend="slope",palette=cbPalette[3:4]),
+      as.table=TRUE,
+      ncol=2))
 @
-
-<<fig=TRUE>>=
-map.values(plot.dat$yield.a,plot.names,main="Average Yield")
-@
-
-<<fig=TRUE>>=
-map.values(plot.dat$yield.b,plot.names,main="Yield Change")
-@
-
 \end{alertblock} 
 
 %----------------------------------------------------------------------------------------
 
-%\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column again
+\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column again
 
-%\begin{column}{\onecolwid} % The first column within column 2 (column 2.1)
+\begin{column}{\onecolwid} % The first column within column 2 (column 2.1)
+
+%----------------------------------------------------------------------------------------
+%	MATHEMATICAL SECTION
+%----------------------------------------------------------------------------------------
+
+\begin{block}{Mathematical Section}
+
+   \begin{table}
+   \vspace{2ex}
+   \begin{tabular}{l l l}
+   %\toprule
+   \textbf{Covariate} & \textbf{Coefficient} & \textbf{P}\\
+   %\midrule
+   max.a &  -6.037e-02    & 0.012567 *    \\
+   max.b  & -3.643e+00   & 0.000539 **    \\
+   sun.a  &  -1.799e-04  &     0.000114 *** \\
+   fine.a   & -2.676e-02  & 0.120097    \\
+   day.a  &  3.73 & 0.007721 ** \\
+   day.b   & 2.500e-01  & 0.052297 . \\
+   night.a   &  5.843e-02 & 0.002761 ** \\
+   Farm TonsP.b &   &  0.006714 ** \\
+   Farm TonsK.b    &   & 0.068946 . \\
+   Tons P2O5 Exc.a  &   &  0.071401 .  \\
+   Tons K2O Recovered.b &   &  0.042019 * \\
+   Tons K2O Rem.a 2.463e-05 &   & 0.047570 * \\
+   BalanceN Tons.a  &   & 0.049110 * \\
+   BalanceP2O5 Tons.a  &   & 0.091725 . \\
+   BalanceP2O5 Tons.b & -6.491e-04  & 0.033346 * \\
+   RatioN.b &  2.915e+00  &  0.001623 **  \\
+   RatioP2O5.b & -1.293e+00  & 0.061174 . \\
+   RatioK2O.a 2.223e-02 &   & 0.038865 * \\
+   P2O5 PPCA.b 1.297e-03  &   & 0.086724 . \\
+   K2O PPCA.b -1.694e-03 &   & 0.023666 * \\
+   FarmKPPCA.b 1.242e-03 &   &    \\ 0.157052
+   harvested.a -1.927e-06 &   &  0.003775 ** \\ 
+   harvested.b -5.877e-05 &   &    \\ 0.085112 .
+   acres.a 1.256e-06 &   &  0.025653 *   \\
+   total.income 1.273e-09 &   & 0.156915
+   %\bottomrule
+   \end{tabular}
+   \caption{Table caption}
+   \end{table}
+
+\end{block}
 
 %----------------------------------------------------------------------------------------
 
-%\end{column} % End of column 2.1
+\end{column} % End of column 2.1
 
-%\begin{column}{\onecolwid} % The second column within column 2 (column 2.2)
+\begin{column}{\onecolwid} % The second column within column 2 (column 2.2)
 
 %----------------------------------------------------------------------------------------
 %	RESULTS
 %----------------------------------------------------------------------------------------
-\begin{column}
+
 \begin{block}{Results}
 
-   \begin{figure}
-
+\begin{figure}
 <<fig=TRUE,echo=false,width=7,height=4>>=
-      county.yield.dat <- subset(county.yield.dat, county.yield.dat$County != "OTHER (COMBINED) COUNTIES")
-      county.yield.plot <- ggplot(county.yield.dat, aes(Year,Value)) 
-      county.yield.plot <- county.yield.plot + scale_fill_manual(values=cbPalette) + scale_colour_manual(values=cbPalette)
-      #county.yield.plot <- county.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
-      county.yield.plot <- county.yield.plot + geom_point(aes(color=State),size=1,alpha = 0.1)
-      county.yield.plot <- county.yield.plot  + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess")
-      county.yield.plot
+county.yield.plot
 @
-      
-   \caption{County-level yields (bu/acre) by year}
-   \end{figure}
-\end{block}
 
-\end{column}
+\caption{County-level yields (bu/acre) by year}
+\end{figure}
 
-\begin{column}
-   \begin{block}
+Nunc tempus venenatis facilisis. Curabitur suscipit consequat eros non porttitor. Sed a massa dolor, id ornare enim:
+
 \begin{table}
 \vspace{2ex}
 \begin{tabular}{l l l}
 \toprule
-\textbf{Covariate} & \textbf{Coefficient} & \textbf{P}\\
+\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
 \midrule
-max.a &  -6.037e-02    & 0.012567 *    \\
-max.b  & -3.643e+00   & 0.000539 **    \\
-sun.a  &  -1.799e-04  &     0.000114 *** \\
-fine.a   & -2.676e-02  & 0.120097    \\
-day.a  &  3.73 & 0.007721 ** \\
-day.b   & 2.500e-01  & 0.052297 . \\
-night.a   &  5.843e-02 & 0.002761 ** \\
-Farm TonsP.b &   &  0.006714 ** \\
-Farm TonsK.b    &   & 0.068946 . \\
-Tons P2O5 Exc.a  &   &  0.071401 .  \\
-Tons K2O Recovered.b &   &  0.042019 * \\
-Tons K2O Rem.a 2.463e-05 &   & 0.047570 * \\
-BalanceN Tons.a  &   & 0.049110 * \\
-BalanceP2O5 Tons.a  &   & 0.091725 . \\
-BalanceP2O5 Tons.b & -6.491e-04  & 0.033346 * \\
-RatioN.b &  2.915e+00  &  0.001623 **  \\
-RatioP2O5.b & -1.293e+00  & 0.061174 . \\
-RatioK2O.a 2.223e-02 &   & 0.038865 * \\
-P2O5 PPCA.b 1.297e-03  &   & 0.086724 . \\
-K2O PPCA.b -1.694e-03 &   & 0.023666 * \\
-FarmKPPCA.b 1.242e-03 &   &    \\ 0.157052
-harvested.a -1.927e-06 &   &  0.003775 ** \\ 
-harvested.b -5.877e-05 &   &    \\ 0.085112 .
-acres.a 1.256e-06 &   &  0.025653 *   \\
-total.income 1.273e-09 &   & 0.156915
+Treatment 1 & 0.0003262 & 0.562 \\
+Treatment 2 & 0.0015681 & 0.910 \\
+Treatment 3 & 0.0009271 & 0.296 \\
 \bottomrule
 \end{tabular}
 \caption{Table caption}
 \end{table}
 
-   \end{block}
-\end{column}
+\end{block}
 
 %----------------------------------------------------------------------------------------
 
-%\end{column} % End of column 2.2
+\end{column} % End of column 2.2
 
-%\end{columns} % End of the split of column 2
+\end{columns} % End of the split of column 2
 
-%\end{column} % End of the second column
+\end{column} % End of the second column
 
----------------------------------------------------------------------
+\begin{column}{\sepwid}\end{column} % Empty spacer column
 
-\end{columns}
+\begin{column}{\onecolwid} % The third column
+
+%----------------------------------------------------------------------------------------
+%	CONCLUSION
+%----------------------------------------------------------------------------------------
+
+\begin{block}{Conclusion}
+
+Nunc tempus venenatis facilisis. \textbf{Curabitur suscipit} consequat eros non porttitor. Sed a massa dolor, id ornare enim. Fusce quis massa dictum tortor \textbf{tincidunt mattis}. Donec quam est, lobortis quis pretium at, laoreet scelerisque lacus. Nam quis odio enim, in molestie libero. Vivamus cursus mi at \textit{nulla elementum sollicitudin}.
+
+\end{block}
+
+%----------------------------------------------------------------------------------------
+%	ADDITIONAL INFORMATION
+%----------------------------------------------------------------------------------------
+
+\begin{block}{Additional Information}
+
+Maecenas ultricies feugiat velit non mattis. Fusce tempus arcu id ligula varius dictum. 
+\begin{itemize}
+\item Curabitur pellentesque dignissim
+\item Eu facilisis est tempus quis
+\item Duis porta consequat lorem
+\end{itemize}
+
+\end{block}
+
+%----------------------------------------------------------------------------------------
+%	REFERENCES
+%----------------------------------------------------------------------------------------
+
+\begin{block}{References}
+
+\nocite{*} % Insert publications even if they are not cited in the poster
+\small{\bibliographystyle{unsrt}
+\bibliography{sample}\vspace{0.75in}}
+
+\end{block}
+
+%----------------------------------------------------------------------------------------
+%	ACKNOWLEDGEMENTS
+%----------------------------------------------------------------------------------------
+
+\setbeamercolor{block title}{fg=red,bg=white} % Change the block title color
+
+\begin{block}{Acknowledgements}
+
+\small{\rmfamily{Nam mollis tristique neque eu luctus. Suspendisse rutrum congue nisi sed convallis. Aenean id neque dolor. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.}} \\
+
+\end{block}
+
+%----------------------------------------------------------------------------------------
+%	CONTACT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\setbeamercolor{block alerted title}{fg=black,bg=norange} % Change the alert block title colors
+\setbeamercolor{block alerted body}{fg=black,bg=white} % Change the alert block body colors
+
+\begin{alertblock}{Contact Information}
+
+\begin{itemize}
+\item Web: \href{http://www.university.edu/smithlab}{http://www.university.edu/smithlab}
+\item Email: \href{mailto:john@smith.com}{john@smith.com}
+\item Phone: +1 (000) 111 1111
+\end{itemize}
+
+\end{alertblock}
+
+\begin{center}
+\begin{tabular}{ccc}
+\end{tabular}
+\end{center}
+
+%----------------------------------------------------------------------------------------
+
+\end{column} % End of the third column
+
+\end{columns} % End of all the columns in the poster
+
 \end{frame} % End of the enclosing frame
 
 \end{document}
+
