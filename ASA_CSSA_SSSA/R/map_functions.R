@@ -26,7 +26,7 @@ load.if.needed <- function(name){
 #from http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-
+fullPalette <- c(cbPalette,cbbPalette)
 gg.default.theme <- theme_bw()
 gg.default.theme$legend.position = "none"
 
@@ -34,9 +34,10 @@ strip.underscores <- function(text) {
    return(gsub("_", " ", text))
 } 
 mapstates <- c("texas","oklahoma","kansas","nebraska","south dakota","north dakota")
-
-make.map.data <- function(values,regions) {
-  states_map <- map_data("county",region=mapstates)
+full.mapstates <- c(mapstates,"montana","wyoming","colorado","new mexico","minnesota","iowa","missouri")
+wa.mapstates <- c("washington","idaho")
+make.map.data <- function(values,regions,basis=mapstates) {
+  states_map <- map_data("county",region=basis)
   states_map$statecounty=paste(states_map$region, states_map$subregion,sep=",")
   names(values)<-as.character(regions)
   states_map$values <- NA
@@ -44,18 +45,28 @@ make.map.data <- function(values,regions) {
   return(states_map)
 }
 
-ggmap.values <- function(values,regions,scale=NA,main=NA,palette=c("red","blue"),legend="mean") {
-  states_map <- make.map.data(values,regions)
+ggmap.values <- function(values,regions,basis=mapstates,scale=NA,main="Main",palette=c("red","blue"),legend="mean") {
+  states_map <- make.map.data(values,regions,basis=basis)
 
   ret <- qplot(long, lat, data = states_map, group = group, fill = values,
     geom = "polygon") + 
-    #scale_fill_gradient(low=palette[1], high=palette[2]) + 
-    #scale_fill_continuous(low=palette[1], high=palette[2]) +
     scale_fill_gradient2(legend,low = palette[1], high = palette[2]) +
    #   midpoint = 0, space = "rgb", na.value = "grey50", guide = "colourbar")
     coord_equal() +
-    labs(title = main,xlab="Longitude",ylab="Latitude")
+    labs(title = main,x="Longitude",y="Latitude")
   return(ret)
+}
+
+make.full.map.data <- function(values,regions) {
+  return(make.map.data(values,regions,basis=full.mapstates))
+}
+
+ggmap.full.values <- function(values,regions,scale=NA,main=NA,palette=c("red","blue"),legend="mean",include.wa=FALSE) {
+  map.states = full.mapstates 
+  if(include.wa) {
+    map.states = c(full.mapstates,wa.mapstates)
+  }
+  return(ggmap.values(values,regions,scale=scale,main=main,palette=palette,legend=legend,basis=map.states))
 }
 
 standard.year.plot <- function(dat,palette=cbPalette,method="lm") {
@@ -120,10 +131,10 @@ extract.county.estimates <- function(fitted.model,term=1) {
 }
 
 early.f <- function(year) {
-  return((year<1943)&(year>1923))
+  return((year<1945)&(year>1923))
 }
 mid.f <- function(year) {
-  return((year<1978)&(year>1942))
+  return((year<1980)&(year>1948))
 }
 late.f <- function(year) {
   return((year<2015)&(year>1983))

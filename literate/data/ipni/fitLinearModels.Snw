@@ -30,7 +30,7 @@ ipni.dat$State <- tolower(as.character(ipni.dat$STATE_NAME))
 ipni.dat$County <- tolower(as.character(ipni.dat$GEO))
 ipni.dat$statecounty <- paste(ipni.dat$State,ipni.dat$County,sep=",")
 #head(ipni.dat)
-ipni.dat <- subset(ipni.dat,ipni.dat$statecounty %in% covariates.dat$statecounty)
+#ipni.dat <- subset(ipni.dat,ipni.dat$statecounty %in% covariates.dat$statecounty)
 ipni.dat$statecounty <- as.factor(as.character(ipni.dat$statecounty))
 
 
@@ -59,10 +59,23 @@ ipni.dat$K2O_PPCA <- as.numeric(ipni.dat$K2O_PPCA)
 ipni.dat$FarmNPPCA <- as.numeric(ipni.dat$FarmNPPCA)
 ipni.dat$FarmPPPCA <- as.numeric(ipni.dat$FarmPPPCA)
 ipni.dat$FarmKPPCA <- as.numeric(ipni.dat$FarmKPPCA)
+
+ipni.dat$X21Crop_TotalPlantedAc <- as.character(ipni.dat$X21Crop_TotalPlantedAc)
+ipni.dat$X21Crop_TotalHarvestAc <- as.character(ipni.dat$X21Crop_TotalHarvestAc)
+ipni.dat$Total_Harvested_Cropland_Acres <- as.character(ipni.dat$Total_Harvested_Cropland_Acres)
+ipni.dat$TotalCropland <- as.character(ipni.dat$TotalCropland)
+for(idx in 1:length(ipni.dat$X21Crop_TotalPlantedAc)) {
+   ipni.dat$X21Crop_TotalPlantedAc[idx] <- paste(strsplit(ipni.dat$X21Crop_TotalPlantedAc[idx],",")[[1]],collapse="")
+   ipni.dat$X21Crop_TotalHarvestAc[idx] <- paste(strsplit(ipni.dat$X21Crop_TotalHarvestAc[idx],",")[[1]],collapse="")
+   ipni.dat$Total_Harvested_Cropland_Acres[idx] <- paste(strsplit(ipni.dat$Total_Harvested_Cropland_Acres[idx],",")[[1]],collapse="")
+   ipni.dat$TotalCropland[idx] <- paste(strsplit(ipni.dat$TotalCropland[idx],",")[[1]],collapse="")
+}
 ipni.dat$X21Crop_TotalPlantedAc <- as.numeric(ipni.dat$X21Crop_TotalPlantedAc)
 ipni.dat$X21Crop_TotalHarvestAc <- as.numeric(ipni.dat$X21Crop_TotalHarvestAc)
-ipni.dat$Total_Harvested_Cropland_Acres <- as.numeric(ipni.dat$Total_Harvested_Cropland_Acres )
+ipni.dat$Total_Harvested_Cropland_Acres <- as.numeric(ipni.dat$Total_Harvested_Cropland_Acres)
 ipni.dat$TotalCropland <- as.numeric(ipni.dat$TotalCropland)
+
+
  save(ipni.dat, file="ipni.dat.Rda")
  
 } else {
@@ -78,196 +91,473 @@ midpoint <- minyear + (maxyear-minyear)/2
 
 The next step is hidden, but basically fits a linear model for each data column in the IPNI data set to both county and county by year. This gives us a unique intercept for each state and a slope; we can use this to compute a weighted mean.
 
-<<echo=false>>=  
+<<>>=  
 if(!file.exists("Farm_TonsN.lm.Rda")) {
      Farm_TonsN.lm <- lm(Farm_TonsN ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Farm_TonsP.lm <- lm(Farm_TonsP  ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Farm_TonsK.lm <- lm(Farm_TonsK ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Tons_N_Exc.lm <- lm(Tons_N_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Tons_P2O5_Exc.lm <- lm(Tons_P2O5_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Tons_K2O_Exc.lm <- lm(Tons_K2O_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Tons_N_Recovered.lm <- lm(Tons_N_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Tons_P2O5_Recovered.lm <- lm(Tons_P2O5_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Tons_K2O_Recovered.lm <- lm(Tons_K2O_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Tons_N_Fixed_Legumes.lm <- lm(Tons_N_Fixed_Legumes ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Tons_N_Rem.lm <- lm(Tons_N_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Tons_P2O5_Rem.lm <- lm(Tons_P2O5_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Tons_K2O_Rem.lm <- lm(Tons_K2O_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     BalanceN_Tons.lm <- lm(BalanceN_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     BalanceP2O5_Tons.lm <- lm(BalanceP2O5_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     BalanceK2O_Tons.lm <- lm(BalanceK2O_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     RatioN.lm <- lm(RatioN ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     RatioP2O5.lm <- lm(RatioP2O5 ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     RatioK2O.lm <- lm(RatioK2O ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     N_PPCA.lm <- lm(N_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     P2O5_PPCA.lm <- lm(P2O5_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     K2O_PPCA.lm <- lm(K2O_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     FarmNPPCA.lm <- lm(FarmNPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     FarmPPPCA.lm <- lm(FarmPPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     FarmKPPCA.lm <- lm(FarmKPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     X21Crop_TotalPlantedAc.lm <- lm(X21Crop_TotalPlantedAc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     X21Crop_TotalHarvestAc.lm <- lm(X21Crop_TotalHarvestAc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     Total_Harvested_Cropland_Acres.lm <- lm(Total_Harvested_Cropland_Acres ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-     TotalCropland.lm <- lm(TotalCropland ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
-
      save(Farm_TonsN.lm, file="Farm_TonsN.lm.Rda")
+     Farm_TonsN.lm = NULL
+     
+     Farm_TonsP.lm <- lm(Farm_TonsP  ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(Farm_TonsP.lm, file="Farm_TonsP.lm.Rda")
+     Farm_TonsP.lm = NULL
+     
+     Farm_TonsK.lm <- lm(Farm_TonsK ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(Farm_TonsK.lm, file="Farm_TonsK.lm.Rda")
+     Farm_TonsK.lm =  NULL
+     
+     Tons_N_Exc.lm <- lm(Tons_N_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(Tons_N_Exc.lm, file="Tons_N_Exc.lm.Rda")
+     Tons_N_Exc.lm = NULL
+     
+     Tons_P2O5_Exc.lm <- lm(Tons_P2O5_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(Tons_P2O5_Exc.lm, file="Tons_P2O5_Exc.lm.Rda")
+     Tons_P2O5_Exc.lm = NULL
+     
+     Tons_K2O_Exc.lm <- lm(Tons_K2O_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(Tons_K2O_Exc.lm, file="Tons_K2O_Exc.lm.Rda")
+     Tons_K2O_Exc.lm = NULL
+     
+     Tons_N_Recovered.lm <- lm(Tons_N_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(Tons_N_Recovered.lm, file="Tons_N_Recovered.lm.Rda")
+     Tons_N_Recovered.lm = NULL
+     
+     Tons_P2O5_Recovered.lm <- lm(Tons_P2O5_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(Tons_P2O5_Recovered.lm, file="Tons_P2O5_Recovered.lm.Rda")
+     Tons_P2O5_Recovered.lm = NULL
+     
+     Tons_K2O_Recovered.lm <- lm(Tons_K2O_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat) 
      save(Tons_K2O_Recovered.lm, file="Tons_K2O_Recovered.lm.Rda")
+     Tons_K2O_Recovered.lm = NULL
+     
+     Tons_N_Fixed_Legumes.lm <- lm(Tons_N_Fixed_Legumes ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(Tons_N_Fixed_Legumes.lm, file="Tons_N_Fixed_Legumes.lm.Rda")
+     Tons_N_Fixed_Legumes.lm = NULL
+     
+     Tons_N_Rem.lm <- lm(Tons_N_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(Tons_N_Rem.lm, file="Tons_N_Rem.lm.Rda")
+     Tons_N_Rem.lm =  NULL
+     
+     Tons_P2O5_Rem.lm <- lm(Tons_P2O5_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(Tons_P2O5_Rem.lm, file="Tons_P2O5_Rem.lm.Rda")
+     Tons_P2O5_Rem.lm = NULL
+     
+     Tons_K2O_Rem.lm <- lm(Tons_K2O_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(Tons_K2O_Rem.lm, file="Tons_K2O_Rem.lm.Rda")
+     Tons_K2O_Rem.lm = NULL
+     
+     BalanceN_Tons.lm <- lm(BalanceN_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(BalanceN_Tons.lm, file="BalanceN_Tons.lm.Rda")
+     BalanceN_Tons.lm = NULL
+     
+     BalanceP2O5_Tons.lm <- lm(BalanceP2O5_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(BalanceP2O5_Tons.lm, file="BalanceP2O5_Tons.lm.Rda")
+     BalanceP2O5_Tons.lm = NULL
+     
+     BalanceK2O_Tons.lm <- lm(BalanceK2O_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(BalanceK2O_Tons.lm, file="BalanceK2O_Tons.lm.Rda")
+     BalanceK2O_Tons.lm = NULL
+     
+     RatioN.lm <- lm(RatioN ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(RatioN.lm, file="RatioN.lm.Rda")
+     RatioN.lm = NULL
+     
+     RatioP2O5.lm <- lm(RatioP2O5 ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(RatioP2O5.lm, file="RatioP2O5.lm.Rda")
+     RatioP2O5.lm = NULL
+     
+     RatioK2O.lm <- lm(RatioK2O ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(RatioK2O.lm, file="RatioK2O.lm.Rda")
+     RatioK2O.lm = NULL
+     
+     N_PPCA.lm <- lm(N_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(N_PPCA.lm, file="N_PPCA.lm.Rda")
+     N_PPCA.lm = NULL
+     
+     P2O5_PPCA.lm <- lm(P2O5_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(P2O5_PPCA.lm, file="P2O5_PPCA.lm.Rda")
+     P2O5_PPCA.lm = NULL
+     
+     K2O_PPCA.lm <- lm(K2O_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(K2O_PPCA.lm, file="K2O_PPCA.lm.Rda")
+     K2O_PPCA.lm = NULL
+     
+     FarmNPPCA.lm <- lm(FarmNPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(FarmNPPCA.lm, file="FarmNPPCA.lm.Rda")
+     FarmNPPCA.lm = NULL
+     
+     FarmPPPCA.lm <- lm(FarmPPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(FarmPPPCA.lm, file="FarmPPPCA.lm.Rda")
+     FarmPPPCA.lm = NULL
+     
+     FarmKPPCA.lm <- lm(FarmKPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(FarmKPPCA.lm, file="FarmKPPCA.lm.Rda")
+     FarmKPPCA.lm = NULL 
+}
+
+if(!file.exists("X21Crop_TotalPlantedAc.lm.Rda")) {   
+     X21Crop_TotalPlantedAc.lm <- lm(X21Crop_TotalPlantedAc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(X21Crop_TotalPlantedAc.lm, file="X21Crop_TotalPlantedAc.lm.Rda")
+     X21Crop_TotalPlantedAc.lm = NULL
+     
+     X21Crop_TotalHarvestAc.lm <- lm(X21Crop_TotalHarvestAc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
      save(X21Crop_TotalHarvestAc.lm, file="X21Crop_TotalHarvestAc.lm.Rda")
-     save(Total_Harvested_Cropland_Acres.lm, file="Total_Harvested_Cropland_Acres.lm.Rda")
-     save(TotalCropland.lm, file="TotalCropland.lm.Rda")
-
-     } else {
-
-       load(file="Farm_TonsN.lm.Rda")
-       load(file="Farm_TonsP.lm.Rda")
-       load(file="Farm_TonsK.lm.Rda")
-       load(file="Tons_N_Exc.lm.Rda")
-       load(file="Tons_P2O5_Exc.lm.Rda")
-       load(file="Tons_K2O_Exc.lm.Rda")
-       load(file="Tons_N_Recovered.lm.Rda")
-       load(file="Tons_P2O5_Recovered.lm.Rda")
-       load(file="Tons_K2O_Recovered.lm.Rda")
-       load(file="Tons_N_Fixed_Legumes.lm.Rda")
-       load(file="Tons_N_Rem.lm.Rda")
-       load(file="Tons_P2O5_Rem.lm.Rda")
-       load(file="Tons_K2O_Rem.lm.Rda")
-       load(file="BalanceN_Tons.lm.Rda")
-       load(file="BalanceP2O5_Tons.lm.Rda")
-       load(file="BalanceK2O_Tons.lm.Rda")
-       load(file="RatioN.lm.Rda")
-       load(file="RatioP2O5.lm.Rda")
-       load(file="RatioK2O.lm.Rda")
-       load(file="N_PPCA.lm.Rda")
-       load(file="P2O5_PPCA.lm.Rda")
-       load(file="K2O_PPCA.lm.Rda")
-       load(file="FarmNPPCA.lm.Rda")
-       load(file="FarmPPPCA.lm.Rda")
-       load(file="FarmKPPCA.lm.Rda")
-       load(file="X21Crop_TotalPlantedAc.lm.Rda")
-       load(file="X21Crop_TotalHarvestAc.lm.Rda")
-       load(file="Total_Harvested_Cropland_Acres.lm.Rda")
-       load(file="TotalCropland.lm.Rda")
-    }   
-
-@
-
-<<>>=
-current.wd <- getwd()
-setwd('../usda')
-load.if.needed("covariates.dat")
-setwd(current.wd)
-if(!("Farm_TonsN.a" %in% names(covariates.dat))) {
+      X21Crop_TotalHarvestAc.lm = NULL
       
-   covariates.dat$Farm_TonsN.a <- extract.county.estimates(Farm_TonsN.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Farm_TonsN.b <- extract.county.estimates(Farm_TonsN.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Farm_TonsP.a <- extract.county.estimates(Farm_TonsP.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Farm_TonsP.b <- extract.county.estimates(Farm_TonsP.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Farm_TonsK.a <- extract.county.estimates(Farm_TonsK.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Farm_TonsK.b <- extract.county.estimates(Farm_TonsK.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Tons_N_Exc.a <- extract.county.estimates(Tons_N_Exc.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Tons_N_Exc.b <- extract.county.estimates(Tons_N_Exc.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Tons_P2O5_Exc.a <- extract.county.estimates(Tons_P2O5_Exc.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Tons_P2O5_Exc.b <- extract.county.estimates(Tons_P2O5_Exc.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Tons_K2O_Exc.a <- extract.county.estimates(Tons_K2O_Exc.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Tons_K2O_Exc.b <- extract.county.estimates(Tons_K2O_Exc.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Tons_N_Recovered.a <- extract.county.estimates(Tons_N_Recovered.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Tons_N_Recovered.b <- extract.county.estimates(Tons_N_Recovered.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Tons_P2O5_Recovered.a <- extract.county.estimates(Tons_P2O5_Recovered.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Tons_P2O5_Recovered.b <- extract.county.estimates(Tons_P2O5_Recovered.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Tons_K2O_Recovered.a <- extract.county.estimates(Tons_K2O_Recovered.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Tons_K2O_Recovered.b <- extract.county.estimates(Tons_K2O_Recovered.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Tons_N_Fixed_Legumes.a <- extract.county.estimates(Tons_N_Fixed_Legumes.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Tons_N_Fixed_Legumes.b <- extract.county.estimates(Tons_N_Fixed_Legumes.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Tons_N_Rem.a <- extract.county.estimates(Tons_N_Rem.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Tons_N_Rem.b <- extract.county.estimates(Tons_N_Rem.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Tons_P2O5_Rem.a <- extract.county.estimates(Tons_P2O5_Rem.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Tons_P2O5_Rem.b <- extract.county.estimates(Tons_P2O5_Rem.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Tons_K2O_Rem.a <- extract.county.estimates(Tons_K2O_Rem.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Tons_K2O_Rem.b <- extract.county.estimates(Tons_K2O_Rem.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$BalanceN_Tons.a <- extract.county.estimates(BalanceN_Tons.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$BalanceN_Tons.b <- extract.county.estimates(BalanceN_Tons.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$BalanceP2O5_Tons.a <- extract.county.estimates(BalanceP2O5_Tons.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$BalanceP2O5_Tons.b <- extract.county.estimates(BalanceP2O5_Tons.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$BalanceK2O_Tons.a <- extract.county.estimates(BalanceK2O_Tons.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$BalanceK2O_Tons.b <- extract.county.estimates(BalanceK2O_Tons.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$RatioN.a <- extract.county.estimates(RatioN.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$RatioN.b <- extract.county.estimates(RatioN.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$RatioP2O5.a <- extract.county.estimates(RatioP2O5.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$RatioP2O5.b <- extract.county.estimates(RatioP2O5.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$RatioK2O.a <- extract.county.estimates(RatioK2O.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$RatioK2O.b <- extract.county.estimates(RatioK2O.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$N_PPCA.a <- extract.county.estimates(N_PPCA.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$N_PPCA.b <- extract.county.estimates(N_PPCA.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$P2O5_PPCA.a <- extract.county.estimates(P2O5_PPCA.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$P2O5_PPCA.b <- extract.county.estimates(P2O5_PPCA.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$K2O_PPCA.a <- extract.county.estimates(K2O_PPCA.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$K2O_PPCA.b <- extract.county.estimates(K2O_PPCA.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$FarmNPPCA.a <- extract.county.estimates(FarmNPPCA.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$FarmNPPCA.b <- extract.county.estimates(FarmNPPCA.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$FarmPPPCA.a <- extract.county.estimates(FarmPPPCA.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$FarmPPPCA.b <- extract.county.estimates(FarmPPPCA.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$FarmKPPCA.a <- extract.county.estimates(FarmKPPCA.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$FarmKPPCA.b <- extract.county.estimates(FarmKPPCA.lm,term=2)[covariates.dat$statecounty]
-
-   covariates.dat$X21Crop_TotalPlantedAc.a <- extract.county.estimates(X21Crop_TotalPlantedAc.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$X21Crop_TotalPlantedAc.b <- extract.county.estimates(X21Crop_TotalPlantedAc.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$X21Crop_TotalHarvestAc.a <- extract.county.estimates(X21Crop_TotalHarvestAc.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$X21Crop_TotalHarvestAc.b <- extract.county.estimates(X21Crop_TotalHarvestAc.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$Total_Harvested_Cropland_Acres.a <- extract.county.estimates(Total_Harvested_Cropland_Acres.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$Total_Harvested_Cropland_Acres.b <- extract.county.estimates(Total_Harvested_Cropland_Acres.lm,term=2)[covariates.dat$statecounty]
-   covariates.dat$TotalCropland.a <- extract.county.estimates(TotalCropland.lm,term=1)[covariates.dat$statecounty]
-   covariates.dat$TotalCropland.b <- extract.county.estimates(TotalCropland.lm,term=2)[covariates.dat$statecounty]
-
-   save(covariates.dat, file="../usda/covariates.dat")
+     Total_Harvested_Cropland_Acres.lm <- lm(Total_Harvested_Cropland_Acres ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     save(Total_Harvested_Cropland_Acres.lm, file="Total_Harvested_Cropland_Acres.lm.Rda")
+     Total_Harvested_Cropland_Acres.lm = NULL
+     
+     TotalCropland.lm <- lm(TotalCropland ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     save(TotalCropland.lm, file="TotalCropland.lm.Rda")
+     TotalCropland.lm = NULL
 }
 @
 
+<<>>=
+local.wd <- getwd()
+setwd('../usda')
+load.if.needed("covariates.dat")
+setwd(local.wd)
+if(!("Farm_TonsN.a" %in% names(covariates.dat))) {
+   local.idx <- as.character(covariates.dat$statecounty)
+   load.if.needed('Farm_TonsN.lm')
+   covariates.dat$Farm_TonsN.a <- extract.county.estimates(Farm_TonsN.lm,term=1)[local.idx]
+   covariates.dat$Farm_TonsN.b <- extract.county.estimates(Farm_TonsN.lm,term=2)[local.idx]
+   Farm_TonsN.lm=NULL
+   
+   load.if.needed("Farm_TonsP.lm")
+   covariates.dat$Farm_TonsP.a <- extract.county.estimates(Farm_TonsP.lm,term=1)[local.idx]
+   covariates.dat$Farm_TonsP.b <- extract.county.estimates(Farm_TonsP.lm,term=2)[local.idx]
+   Farm_TonsP.lm=NULL
+   
+   load.if.needed("Farm_TonsK.lm")
+   covariates.dat$Farm_TonsK.a <- extract.county.estimates(Farm_TonsK.lm,term=1)[local.idx]
+   covariates.dat$Farm_TonsK.b <- extract.county.estimates(Farm_TonsK.lm,term=2)[local.idx]
+   Farm_TonsK.lm=NULL
+   
+   load.if.needed("Tons_N_Exc.lm")
+   covariates.dat$Tons_N_Exc.a <- extract.county.estimates(Tons_N_Exc.lm,term=1)[local.idx]
+   covariates.dat$Tons_N_Exc.b <- extract.county.estimates(Tons_N_Exc.lm,term=2)[local.idx]
+   Tons_N_Exc.lm=NULL
+   
+   load.if.needed("Tons_P2O5_Exc.lm")
+   covariates.dat$Tons_P2O5_Exc.a <- extract.county.estimates(Tons_P2O5_Exc.lm,term=1)[local.idx]
+   covariates.dat$Tons_P2O5_Exc.b <- extract.county.estimates(Tons_P2O5_Exc.lm,term=2)[local.idx]
+   Tons_P2O5_Exc.lm=NULL
+ 
+   load.if.needed("Tons_K2O_Exc.lm")
+   covariates.dat$Tons_K2O_Exc.a <- extract.county.estimates(Tons_K2O_Exc.lm,term=1)[local.idx]
+   covariates.dat$Tons_K2O_Exc.b <- extract.county.estimates(Tons_K2O_Exc.lm,term=2)[local.idx]
+   Tons_K2O_Exc.lm=NULL
+   
+   load.if.needed("Tons_N_Recovered.lm")
+   covariates.dat$Tons_N_Recovered.a <- extract.county.estimates(Tons_N_Recovered.lm,term=1)[local.idx]
+   covariates.dat$Tons_N_Recovered.b <- extract.county.estimates(Tons_N_Recovered.lm,term=2)[local.idx]
+   Tons_N_Recovered.lm=NULL
+   
+   load.if.needed("Tons_P2O5_Recovered.lm")
+   covariates.dat$Tons_P2O5_Recovered.a <- extract.county.estimates(Tons_P2O5_Recovered.lm,term=1)[local.idx]
+   covariates.dat$Tons_P2O5_Recovered.b <- extract.county.estimates(Tons_P2O5_Recovered.lm,term=2)[local.idx]
+   Tons_P2O5_Recovered.lm=NULL
+   
+   load.if.needed("Tons_K2O_Recovered.lm")
+   covariates.dat$Tons_K2O_Recovered.a <- extract.county.estimates(Tons_K2O_Recovered.lm,term=1)[local.idx]
+   covariates.dat$Tons_K2O_Recovered.b <- extract.county.estimates(Tons_K2O_Recovered.lm,term=2)[local.idx]
+   Tons_K2O_Recovered.lm=NULL
+   
+   load.if.needed("Tons_N_Fixed_Legumes.lm")
+   covariates.dat$Tons_N_Fixed_Legumes.a <- extract.county.estimates(Tons_N_Fixed_Legumes.lm,term=1)[local.idx]
+   covariates.dat$Tons_N_Fixed_Legumes.b <- extract.county.estimates(Tons_N_Fixed_Legumes.lm,term=2)[local.idx]
+   Tons_N_Fixed_Legumes.lm=NULL
+   
+   load.if.needed("Tons_N_Rem.lm")
+   covariates.dat$Tons_N_Rem.a <- extract.county.estimates(Tons_N_Rem.lm,term=1)[local.idx]
+   covariates.dat$Tons_N_Rem.b <- extract.county.estimates(Tons_N_Rem.lm,term=2)[local.idx]
+   Tons_N_Rem.lm=NULL
+   
+   load.if.needed("Tons_P2O5_Rem.lm")
+   covariates.dat$Tons_P2O5_Rem.a <- extract.county.estimates(Tons_P2O5_Rem.lm,term=1)[local.idx]
+   covariates.dat$Tons_P2O5_Rem.b <- extract.county.estimates(Tons_P2O5_Rem.lm,term=2)[local.idx]
+   Tons_P2O5_Rem.lm=NULL
+   
+   load.if.needed("Tons_K2O_Rem.lm")
+   covariates.dat$Tons_K2O_Rem.a <- extract.county.estimates(Tons_K2O_Rem.lm,term=1)[local.idx]
+   covariates.dat$Tons_K2O_Rem.b <- extract.county.estimates(Tons_K2O_Rem.lm,term=2)[local.idx]
+   Tons_K2O_Rem.lm=NULL
+   
+   load.if.needed("BalanceN_Tons.lm")
+   covariates.dat$BalanceN_Tons.a <- extract.county.estimates(BalanceN_Tons.lm,term=1)[local.idx]
+   covariates.dat$BalanceN_Tons.b <- extract.county.estimates(BalanceN_Tons.lm,term=2)[local.idx]
+   BalanceN_Tons.lm=NULL
+   
+   load.if.needed("BalanceP2O5_Tons.lm")
+   covariates.dat$BalanceP2O5_Tons.a <- extract.county.estimates(BalanceP2O5_Tons.lm,term=1)[local.idx]
+   covariates.dat$BalanceP2O5_Tons.b <- extract.county.estimates(BalanceP2O5_Tons.lm,term=2)[local.idx]
+   BalanceP2O5_Tons.lm=NULL
+   
+   load.if.needed("BalanceK2O_Tons.lm")
+   covariates.dat$BalanceK2O_Tons.a <- extract.county.estimates(BalanceK2O_Tons.lm,term=1)[local.idx]
+   covariates.dat$BalanceK2O_Tons.b <- extract.county.estimates(BalanceK2O_Tons.lm,term=2)[local.idx]
+   BalanceK2O_Tons.lm=NULL
+   
+   load.if.needed("RatioN.lm")
+   covariates.dat$RatioN.a <- extract.county.estimates(RatioN.lm,term=1)[local.idx]
+   covariates.dat$RatioN.b <- extract.county.estimates(RatioN.lm,term=2)[local.idx]
+   RatioN.lm=NULL
+   
+   load.if.needed("RatioP2O5.lm")
+   covariates.dat$RatioP2O5.a <- extract.county.estimates(RatioP2O5.lm,term=1)[local.idx]
+   covariates.dat$RatioP2O5.b <- extract.county.estimates(RatioP2O5.lm,term=2)[local.idx]
+   RatioP2O5.lm=NULL
+   
+   load.if.needed("RatioK2O.lm")
+   covariates.dat$RatioK2O.a <- extract.county.estimates(RatioK2O.lm,term=1)[local.idx]
+   covariates.dat$RatioK2O.b <- extract.county.estimates(RatioK2O.lm,term=2)[local.idx]
+   RatioK2O.lm=NULL
+   
+   load.if.needed("N_PPCA.lm")
+   covariates.dat$N_PPCA.a <- extract.county.estimates(N_PPCA.lm,term=1)[local.idx]
+   covariates.dat$N_PPCA.b <- extract.county.estimates(N_PPCA.lm,term=2)[local.idx]
+   N_PPCA.lm=NULL
+   
+   load.if.needed("P2O5_PPCA.lm")
+   covariates.dat$P2O5_PPCA.a <- extract.county.estimates(P2O5_PPCA.lm,term=1)[local.idx]
+   covariates.dat$P2O5_PPCA.b <- extract.county.estimates(P2O5_PPCA.lm,term=2)[local.idx]
+   P2O5_PPCA.lm=NULL
+   
+   load.if.needed("K2O_PPCA.lm")
+   covariates.dat$K2O_PPCA.a <- extract.county.estimates(K2O_PPCA.lm,term=1)[local.idx]
+   covariates.dat$K2O_PPCA.b <- extract.county.estimates(K2O_PPCA.lm,term=2)[local.idx]
+   K2O_PPCA.lm=NULL
+   
+   load.if.needed("FarmNPPCA.lm")
+   covariates.dat$FarmNPPCA.a <- extract.county.estimates(FarmNPPCA.lm,term=1)[local.idx]
+   covariates.dat$FarmNPPCA.b <- extract.county.estimates(FarmNPPCA.lm,term=2)[local.idx]
+   FarmNPPCA.lm=NULL
+   
+   load.if.needed("FarmPPPCA.lm")
+   covariates.dat$FarmPPPCA.a <- extract.county.estimates(FarmPPPCA.lm,term=1)[local.idx]
+   covariates.dat$FarmPPPCA.b <- extract.county.estimates(FarmPPPCA.lm,term=2)[local.idx]
+   FarmPPPCA.lm=NULL
+   
+   load.if.needed("FarmKPPCA.lm")
+   covariates.dat$FarmKPPCA.a <- extract.county.estimates(FarmKPPCA.lm,term=1)[local.idx]
+   covariates.dat$FarmKPPCA.b <- extract.county.estimates(FarmKPPCA.lm,term=2)[local.idx]
+   FarmKPPCA.lm=NULL
+
+   load.if.needed("X21Crop_TotalPlantedAc.lm")
+   covariates.dat$X21Crop_TotalPlantedAc.a <- extract.county.estimates(X21Crop_TotalPlantedAc.lm,term=1)[local.idx]
+   covariates.dat$X21Crop_TotalPlantedAc.b <- extract.county.estimates(X21Crop_TotalPlantedAc.lm,term=2)[local.idx]
+   X21Crop_TotalPlantedAc.lm=NULL
+   
+   load.if.needed("X21Crop_TotalHarvestAc.lm")   
+   covariates.dat$X21Crop_TotalHarvestAc.a <- extract.county.estimates(X21Crop_TotalHarvestAc.lm,term=1)[local.idx]
+   covariates.dat$X21Crop_TotalHarvestAc.b <- extract.county.estimates(X21Crop_TotalHarvestAc.lm,term=2)[local.idx]
+   X21Crop_TotalHarvestAc.lm=NULL
+   
+   load.if.needed("Total_Harvested_Cropland_Acres.lm")
+   covariates.dat$Total_Harvested_Cropland_Acres.a <- extract.county.estimates(Total_Harvested_Cropland_Acres.lm,term=1)[local.idx]
+   covariates.dat$Total_Harvested_Cropland_Acres.b <- extract.county.estimates(Total_Harvested_Cropland_Acres.lm,term=2)[local.idx]
+   Total_Harvested_Cropland_Acres.lm=NULL
+   
+   load.if.needed("TotalCropland.lm")
+   covariates.dat$TotalCropland.a <- extract.county.estimates(TotalCropland.lm,term=1)[local.idx]
+   covariates.dat$TotalCropland.b <- extract.county.estimates(TotalCropland.lm,term=2)[local.idx]
+   TotalCropland.lm=NULL
+   
+   save(covariates.dat, file="../usda/covariates.dat.Rda")
+}
+@
+
+<<>>=
+local.wd <- getwd()
+setwd('../usda')
+load.if.needed("full.covariates.dat")
+setwd(local.wd)
+if(!("Farm_TonsN.a" %in% names(full.covariates.dat))) {
+   full.local.idx <- as.character(full.covariates.dat$statecounty)
+   
+   load.if.needed('Farm_TonsN.lm')
+   full.covariates.dat$Farm_TonsN.a <- extract.county.estimates(Farm_TonsN.lm,term=1)[full.local.idx]
+   full.covariates.dat$Farm_TonsN.b <- extract.county.estimates(Farm_TonsN.lm,term=2)[full.local.idx]
+   Farm_TonsN.lm=NULL
+   
+   load.if.needed("Farm_TonsP.lm")
+   full.covariates.dat$Farm_TonsP.a <- extract.county.estimates(Farm_TonsP.lm,term=1)[full.local.idx]
+   full.covariates.dat$Farm_TonsP.b <- extract.county.estimates(Farm_TonsP.lm,term=2)[full.local.idx]
+   Farm_TonsP.lm=NULL
+   
+   load.if.needed("Farm_TonsK.lm")
+   full.covariates.dat$Farm_TonsK.a <- extract.county.estimates(Farm_TonsK.lm,term=1)[full.local.idx]
+   full.covariates.dat$Farm_TonsK.b <- extract.county.estimates(Farm_TonsK.lm,term=2)[full.local.idx]
+   Farm_TonsK.lm=NULL
+   
+   load.if.needed("Tons_N_Exc.lm")
+   full.covariates.dat$Tons_N_Exc.a <- extract.county.estimates(Tons_N_Exc.lm,term=1)[full.local.idx]
+   full.covariates.dat$Tons_N_Exc.b <- extract.county.estimates(Tons_N_Exc.lm,term=2)[full.local.idx]
+   Tons_N_Exc.lm=NULL
+   
+   load.if.needed("Tons_P2O5_Exc.lm")
+   full.covariates.dat$Tons_P2O5_Exc.a <- extract.county.estimates(Tons_P2O5_Exc.lm,term=1)[full.local.idx]
+   full.covariates.dat$Tons_P2O5_Exc.b <- extract.county.estimates(Tons_P2O5_Exc.lm,term=2)[full.local.idx]
+   Tons_P2O5_Exc.lm=NULL
+ 
+   load.if.needed("Tons_K2O_Exc.lm")
+   full.covariates.dat$Tons_K2O_Exc.a <- extract.county.estimates(Tons_K2O_Exc.lm,term=1)[full.local.idx]
+   full.covariates.dat$Tons_K2O_Exc.b <- extract.county.estimates(Tons_K2O_Exc.lm,term=2)[full.local.idx]
+   Tons_K2O_Exc.lm=NULL
+   
+   load.if.needed("Tons_N_Recovered.lm")
+   full.covariates.dat$Tons_N_Recovered.a <- extract.county.estimates(Tons_N_Recovered.lm,term=1)[full.local.idx]
+   full.covariates.dat$Tons_N_Recovered.b <- extract.county.estimates(Tons_N_Recovered.lm,term=2)[full.local.idx]
+   Tons_N_Recovered.lm=NULL
+   
+   load.if.needed("Tons_P2O5_Recovered.lm")
+   full.covariates.dat$Tons_P2O5_Recovered.a <- extract.county.estimates(Tons_P2O5_Recovered.lm,term=1)[full.local.idx]
+   full.covariates.dat$Tons_P2O5_Recovered.b <- extract.county.estimates(Tons_P2O5_Recovered.lm,term=2)[full.local.idx]
+   Tons_P2O5_Recovered.lm=NULL
+   
+   load.if.needed("Tons_K2O_Recovered.lm")
+   full.covariates.dat$Tons_K2O_Recovered.a <- extract.county.estimates(Tons_K2O_Recovered.lm,term=1)[full.local.idx]
+   full.covariates.dat$Tons_K2O_Recovered.b <- extract.county.estimates(Tons_K2O_Recovered.lm,term=2)[full.local.idx]
+   Tons_K2O_Recovered.lm=NULL
+   
+   load.if.needed("Tons_N_Fixed_Legumes.lm")
+   full.covariates.dat$Tons_N_Fixed_Legumes.a <- extract.county.estimates(Tons_N_Fixed_Legumes.lm,term=1)[full.local.idx]
+   full.covariates.dat$Tons_N_Fixed_Legumes.b <- extract.county.estimates(Tons_N_Fixed_Legumes.lm,term=2)[full.local.idx]
+   Tons_N_Fixed_Legumes.lm=NULL
+   
+   load.if.needed("Tons_N_Rem.lm")
+   full.covariates.dat$Tons_N_Rem.a <- extract.county.estimates(Tons_N_Rem.lm,term=1)[full.local.idx]
+   full.covariates.dat$Tons_N_Rem.b <- extract.county.estimates(Tons_N_Rem.lm,term=2)[full.local.idx]
+   Tons_N_Rem.lm=NULL
+   
+   load.if.needed("Tons_P2O5_Rem.lm")
+   full.covariates.dat$Tons_P2O5_Rem.a <- extract.county.estimates(Tons_P2O5_Rem.lm,term=1)[full.local.idx]
+   full.covariates.dat$Tons_P2O5_Rem.b <- extract.county.estimates(Tons_P2O5_Rem.lm,term=2)[full.local.idx]
+   Tons_P2O5_Rem.lm=NULL
+   
+   load.if.needed("Tons_K2O_Rem.lm")
+   full.covariates.dat$Tons_K2O_Rem.a <- extract.county.estimates(Tons_K2O_Rem.lm,term=1)[full.local.idx]
+   full.covariates.dat$Tons_K2O_Rem.b <- extract.county.estimates(Tons_K2O_Rem.lm,term=2)[full.local.idx]
+   Tons_K2O_Rem.lm=NULL
+   
+   load.if.needed("BalanceN_Tons.lm")
+   full.covariates.dat$BalanceN_Tons.a <- extract.county.estimates(BalanceN_Tons.lm,term=1)[full.local.idx]
+   full.covariates.dat$BalanceN_Tons.b <- extract.county.estimates(BalanceN_Tons.lm,term=2)[full.local.idx]
+   BalanceN_Tons.lm=NULL
+   
+   load.if.needed("BalanceP2O5_Tons.lm")
+   full.covariates.dat$BalanceP2O5_Tons.a <- extract.county.estimates(BalanceP2O5_Tons.lm,term=1)[full.local.idx]
+   full.covariates.dat$BalanceP2O5_Tons.b <- extract.county.estimates(BalanceP2O5_Tons.lm,term=2)[full.local.idx]
+   BalanceP2O5_Tons.lm=NULL
+   
+   load.if.needed("BalanceK2O_Tons.lm")
+   full.covariates.dat$BalanceK2O_Tons.a <- extract.county.estimates(BalanceK2O_Tons.lm,term=1)[full.local.idx]
+   full.covariates.dat$BalanceK2O_Tons.b <- extract.county.estimates(BalanceK2O_Tons.lm,term=2)[full.local.idx]
+   BalanceK2O_Tons.lm=NULL
+   
+   load.if.needed("RatioN.lm")
+   full.covariates.dat$RatioN.a <- extract.county.estimates(RatioN.lm,term=1)[full.local.idx]
+   full.covariates.dat$RatioN.b <- extract.county.estimates(RatioN.lm,term=2)[full.local.idx]
+   RatioN.lm=NULL
+   
+   load.if.needed("RatioP2O5.lm")
+   full.covariates.dat$RatioP2O5.a <- extract.county.estimates(RatioP2O5.lm,term=1)[full.local.idx]
+   full.covariates.dat$RatioP2O5.b <- extract.county.estimates(RatioP2O5.lm,term=2)[full.local.idx]
+   RatioP2O5.lm=NULL
+   
+   load.if.needed("RatioK2O.lm")
+   full.covariates.dat$RatioK2O.a <- extract.county.estimates(RatioK2O.lm,term=1)[full.local.idx]
+   full.covariates.dat$RatioK2O.b <- extract.county.estimates(RatioK2O.lm,term=2)[full.local.idx]
+   RatioK2O.lm=NULL
+   
+   load.if.needed("N_PPCA.lm")
+   full.covariates.dat$N_PPCA.a <- extract.county.estimates(N_PPCA.lm,term=1)[full.local.idx]
+   full.covariates.dat$N_PPCA.b <- extract.county.estimates(N_PPCA.lm,term=2)[full.local.idx]
+   N_PPCA.lm=NULL
+   
+   load.if.needed("P2O5_PPCA.lm")
+   full.covariates.dat$P2O5_PPCA.a <- extract.county.estimates(P2O5_PPCA.lm,term=1)[full.local.idx]
+   full.covariates.dat$P2O5_PPCA.b <- extract.county.estimates(P2O5_PPCA.lm,term=2)[full.local.idx]
+   P2O5_PPCA.lm=NULL
+   
+   load.if.needed("K2O_PPCA.lm")
+   full.covariates.dat$K2O_PPCA.a <- extract.county.estimates(K2O_PPCA.lm,term=1)[full.local.idx]
+   full.covariates.dat$K2O_PPCA.b <- extract.county.estimates(K2O_PPCA.lm,term=2)[full.local.idx]
+   K2O_PPCA.lm=NULL
+   
+   load.if.needed("FarmNPPCA.lm")
+   full.covariates.dat$FarmNPPCA.a <- extract.county.estimates(FarmNPPCA.lm,term=1)[full.local.idx]
+   full.covariates.dat$FarmNPPCA.b <- extract.county.estimates(FarmNPPCA.lm,term=2)[full.local.idx]
+   FarmNPPCA.lm=NULL
+   
+   load.if.needed("FarmPPPCA.lm")
+   full.covariates.dat$FarmPPPCA.a <- extract.county.estimates(FarmPPPCA.lm,term=1)[full.local.idx]
+   full.covariates.dat$FarmPPPCA.b <- extract.county.estimates(FarmPPPCA.lm,term=2)[full.local.idx]
+   FarmPPPCA.lm=NULL
+   
+   load.if.needed("FarmKPPCA.lm")
+   full.covariates.dat$FarmKPPCA.a <- extract.county.estimates(FarmKPPCA.lm,term=1)[full.local.idx]
+   full.covariates.dat$FarmKPPCA.b <- extract.county.estimates(FarmKPPCA.lm,term=2)[full.local.idx]
+   FarmKPPCA.lm=NULL
+}
+
+if(!("X21Crop_TotalPlantedAc.a" %in% names(full.covariates.dat))) {
+   load.if.needed("X21Crop_TotalPlantedAc.lm")
+   full.covariates.dat$X21Crop_TotalPlantedAc.a <- extract.county.estimates(X21Crop_TotalPlantedAc.lm,term=1)[full.local.idx]
+   full.covariates.dat$X21Crop_TotalPlantedAc.b <- extract.county.estimates(X21Crop_TotalPlantedAc.lm,term=2)[full.local.idx]
+   X21Crop_TotalPlantedAc.lm=NULL
+   
+   load.if.needed("X21Crop_TotalHarvestAc.lm")   
+   full.covariates.dat$X21Crop_TotalHarvestAc.a <- extract.county.estimates(X21Crop_TotalHarvestAc.lm,term=1)[full.local.idx]
+   full.covariates.dat$X21Crop_TotalHarvestAc.b <- extract.county.estimates(X21Crop_TotalHarvestAc.lm,term=2)[full.local.idx]
+   X21Crop_TotalHarvestAc.lm=NULL
+   
+   load.if.needed("Total_Harvested_Cropland_Acres.lm")
+   full.covariates.dat$Total_Harvested_Cropland_Acres.a <- extract.county.estimates(Total_Harvested_Cropland_Acres.lm,term=1)[full.local.idx]
+   full.covariates.dat$Total_Harvested_Cropland_Acres.b <- extract.county.estimates(Total_Harvested_Cropland_Acres.lm,term=2)[full.local.idx]
+   Total_Harvested_Cropland_Acres.lm=NULL
+   
+   load.if.needed("TotalCropland.lm")
+   full.covariates.dat$TotalCropland.a <- extract.county.estimates(TotalCropland.lm,term=1)[full.local.idx]
+   full.covariates.dat$TotalCropland.b <- extract.county.estimates(TotalCropland.lm,term=2)[full.local.idx]
+   TotalCropland.lm=NULL
+   save(full.covariates.dat, file="../usda/full.covariates.dat.Rda")
+}
+@
 
 For completeness, examine each data column.
-\section*{Farm TonsN}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
-ggplot(ipni.dat, aes(Year,Farm_TonsN)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
+\section*{Farm TonsN}
+<<>>=
+load.if.needed("Farm_TonsN.lm")
 @
+
+%<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
+%ggplot(ipni.dat, aes(Year,Farm_TonsN)) + 
+%   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
+%   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
+%@
 
 
 <<fig=TRUE,echo=false>>=
 values.a <- extract.county.estimates(Farm_TonsN.lm,term=1)
 values.b <- extract.county.estimates(Farm_TonsN.lm,term=2)
-ggmap.values(values.b,names(values.b))
+ggmap.full.values(values.b,names(values.b))
 @
+
 
 <<fig=TRUE,echo=false>>=
 values.a <- extract.county.estimates(Farm_TonsN.lm,term=1)
 values.b <- extract.county.estimates(Farm_TonsN.lm,term=2)
 estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
+means <- tapply(ipni.dat$Farm_TonsN,list(ipni.dat$statecounty),mean,na.rm=TRUE)
+grid.arrange(arrangeGrob(
+   ggmap.values(estimate.mean,names(values.a),main="Least Square Means"),
+   ggmap.values(means,names(means),main="Arithmetic Means"),
+   as.table=TRUE,
+   ncol=2))
 @
 
 <<fig=TRUE,echo=false>>=
@@ -285,10 +575,6 @@ names(estimate.mean)[!names(estimate.mean)%in%names(values)]
 par(mfrow = c(2, 2)) 
 plot(Farm_TonsN.lm)
 par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Farm_TonsN.lm))
 @
 
 <<fig=TRUE>>=
@@ -309,1502 +595,63 @@ grid.arrange(arrangeGrob(
 
 \section*{Farm TonsP}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
-gg.default.theme <- theme_bw()
-gg.default.theme$legend.position = "none"
-	
-ggplot(ipni.dat, aes(Year,Farm_TonsP)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Farm_TonsP.lm,term=1)
-values.b <- extract.county.estimates(Farm_TonsP.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Farm_TonsP.lm,term=1)
-values.b <- extract.county.estimates(Farm_TonsP.lm,term=2)
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Farm_TonsP,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<>>=
-names(values)[!names(values)%in%names(estimate.mean)]
-names(estimate.mean)[!names(estimate.mean)%in%names(values)]
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Farm_TonsP.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Farm_TonsP.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Farm_TonsP.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Farm_TonsP.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Farm_TonsP.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Farm_TonsP.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
 
 \section*{Farm TonsK}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
-gg.default.theme <- theme_bw()
-gg.default.theme$legend.position = "none"
-	
-ggplot(ipni.dat, aes(Year,Farm_TonsK)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Farm_TonsK.lm,term=1)
-values.b <- extract.county.estimates(Farm_TonsK.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Farm_TonsK.lm,term=1)
-values.b <- extract.county.estimates(Farm_TonsK.lm,term=2)
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Farm_TonsK,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<>>=
-names(values)[!names(values)%in%names(estimate.mean)]
-names(estimate.mean)[!names(estimate.mean)%in%names(values)]
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Farm_TonsK.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Farm_TonsK.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Farm_TonsK.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Farm_TonsK.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Farm_TonsK.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Farm_TonsK.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
 \section*{Tons N Exc}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
-gg.default.theme <- theme_bw()
-gg.default.theme$legend.position = "none"
-	
-ggplot(ipni.dat, aes(Year,Tons_N_Exc)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_N_Exc.lm,term=1)
-values.b <- extract.county.estimates(Tons_N_Exc.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_N_Exc.lm,term=1)
-values.b <- extract.county.estimates(Tons_N_Exc.lm,term=2)
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Tons_N_Exc,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Tons_N_Exc.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Tons_N_Exc.lm))
-@
-
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_N_Exc.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_N_Exc.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_N_Exc.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_N_Exc.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
 
 \section*{Tons P2O5 Exc}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
-gg.default.theme <- theme_bw()
-gg.default.theme$legend.position = "none"
-	
-ggplot(ipni.dat, aes(Year,Tons_P2O5_Exc)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_P2O5_Exc.lm,term=1)
-values.b <- extract.county.estimates(Tons_P2O5_Exc.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_P2O5_Exc.lm,term=1)
-values.b <- extract.county.estimates(Tons_P2O5_Exc.lm,term=2)
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Tons_P2O5_Exc,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Tons_P2O5_Exc.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Tons_P2O5_Exc.lm))
-@
-
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_P2O5_Exc.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_P2O5_Exc.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_P2O5_Exc.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_P2O5_Exc.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
 \section*{Tons K2O Exc}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
-gg.default.theme <- theme_bw()
-gg.default.theme$legend.position = "none"
-	
-ggplot(ipni.dat, aes(Year,Tons_K2O_Exc)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_K2O_Exc.lm,term=1)
-values.b <- extract.county.estimates(Tons_K2O_Exc.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_K2O_Exc.lm,term=1)
-values.b <- extract.county.estimates(Tons_K2O_Exc.lm,term=2)
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Tons_K2O_Exc,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Tons_K2O_Exc.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Tons_K2O_Exc.lm))
-@
-
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_K2O_Exc.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_K2O_Exc.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_K2O_Exc.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_K2O_Exc.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
 
 \section*{Tons N Recovered}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
-gg.default.theme <- theme_bw()
-gg.default.theme$legend.position = "none"
-	
-ggplot(ipni.dat, aes(Year,Tons_N_Recovered)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_N_Recovered.lm,term=1)
-values.b <- extract.county.estimates(Tons_N_Recovered.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Tons_N_Recovered,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Tons_N_Recovered.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Tons_N_Recovered.lm))
-@
-
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_N_Recovered.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_N_Recovered.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_N_Recovered.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_N_Recovered.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
 \section*{Tons P2O5 Recovered}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,Tons_P2O5_Recovered)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_P2O5_Recovered.lm,term=1)
-values.b <- extract.county.estimates(Tons_P2O5_Recovered.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Tons_P2O5_Recovered,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Tons_P2O5_Recovered.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Tons_P2O5_Recovered.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_P2O5_Recovered.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_P2O5_Recovered.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_P2O5_Recovered.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_P2O5_Recovered.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
 
 \section*{Tons K2O Recovered}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,Tons_K2O_Recovered)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_K2O_Recovered.lm,term=1)
-values.b <- extract.county.estimates(Tons_K2O_Recovered.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Tons_K2O_Recovered,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Tons_K2O_Recovered.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Tons_K2O_Recovered.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_K2O_Recovered.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_K2O_Recovered.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_K2O_Recovered.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_K2O_Recovered.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
 \section*{Tons N Fixed Legumes}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,Tons_N_Fixed_Legumes)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_N_Fixed_Legumes.lm,term=1)
-values.b <- extract.county.estimates(Tons_N_Fixed_Legumes.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Tons_N_Fixed_Legumes,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Tons_N_Fixed_Legumes.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Tons_N_Fixed_Legumes.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_N_Fixed_Legumes.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_N_Fixed_Legumes.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_N_Fixed_Legumes.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_N_Fixed_Legumes.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
 
 \section*{Tons N Rem}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,Tons_N_Rem)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_N_Rem.lm,term=1)
-values.b <- extract.county.estimates(Tons_N_Rem.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Tons_N_Rem,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Tons_N_Rem.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Tons_N_Rem.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_N_Rem.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_N_Rem.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_N_Rem.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_N_Rem.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
 \section*{Tons P2O5 Rem}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,Tons_P2O5_Rem)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_P2O5_Rem.lm,term=1)
-values.b <- extract.county.estimates(Tons_P2O5_Rem.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Tons_P2O5_Rem,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Tons_P2O5_Rem.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Tons_P2O5_Rem.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_P2O5_Rem.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_P2O5_Rem.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_P2O5_Rem.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_P2O5_Rem.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
 
 \section*{Tons K2O Rem}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,Tons_K2O_Rem)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Tons_K2O_Rem.lm,term=1)
-values.b <- extract.county.estimates(Tons_K2O_Rem.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Tons_K2O_Rem,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Tons_K2O_Rem.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Tons_K2O_Rem.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_K2O_Rem.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_K2O_Rem.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Tons_K2O_Rem.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Tons_K2O_Rem.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
 \section*{BalanceN Tons}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,BalanceN_Tons)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(BalanceN_Tons.lm,term=1)
-values.b <- extract.county.estimates(BalanceN_Tons.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$BalanceN_Tons,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(BalanceN_Tons.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(BalanceN_Tons.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(BalanceN_Tons.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(BalanceN_Tons.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(BalanceN_Tons.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(BalanceN_Tons.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
 
 \section*{BalanceP2O5 Tons}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,BalanceP2O5_Tons)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(BalanceP2O5_Tons.lm,term=1)
-values.b <- extract.county.estimates(BalanceP2O5_Tons.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$BalanceP2O5_Tons,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(BalanceP2O5_Tons.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(BalanceP2O5_Tons.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(BalanceP2O5_Tons.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(BalanceP2O5_Tons.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(BalanceP2O5_Tons.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(BalanceP2O5_Tons.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
 \section*{BalanceK2O Tons}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,BalanceK2O_Tons)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(BalanceK2O_Tons.lm,term=1)
-values.b <- extract.county.estimates(BalanceK2O_Tons.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$BalanceK2O_Tons,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(BalanceK2O_Tons.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(BalanceK2O_Tons.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(BalanceK2O_Tons.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(BalanceK2O_Tons.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(BalanceK2O_Tons.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(BalanceK2O_Tons.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
 
 \section*{RatioN}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,RatioN)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(RatioN.lm,term=1)
-values.b <- extract.county.estimates(RatioN.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$RatioN,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(RatioN.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(RatioN.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(RatioN.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(RatioN.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(RatioN.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(RatioN.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
 \section*{RatioP2O5}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,RatioP2O5)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(RatioP2O5.lm,term=1)
-values.b <- extract.county.estimates(RatioP2O5.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$RatioP2O5,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(RatioP2O5.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(RatioP2O5.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(RatioP2O5.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(RatioP2O5.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(RatioP2O5.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(RatioP2O5.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
 
 \section*{RatioK2O}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,RatioK2O)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(RatioK2O.lm,term=1)
-values.b <- extract.county.estimates(RatioK2O.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$RatioK2O,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(RatioK2O.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(RatioK2O.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(RatioK2O.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(RatioK2O.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(RatioK2O.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(RatioK2O.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
 \section*{N PPCA}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,N_PPCA)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(N_PPCA.lm,term=1)
-values.b <- extract.county.estimates(N_PPCA.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$N_PPCA,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(N_PPCA.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(N_PPCA.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(N_PPCA.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(N_PPCA.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(N_PPCA.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(N_PPCA.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
 
 \section*{P2O5 PPCA}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,P2O5_PPCA)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(P2O5_PPCA.lm,term=1)
-values.b <- extract.county.estimates(P2O5_PPCA.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$P2O5_PPCA,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(P2O5_PPCA.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(P2O5_PPCA.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(P2O5_PPCA.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(P2O5_PPCA.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(P2O5_PPCA.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(P2O5_PPCA.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
 \section*{K2O PPCA}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,K2O_PPCA)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(K2O_PPCA.lm,term=1)
-values.b <- extract.county.estimates(K2O_PPCA.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$K2O_PPCA,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(K2O_PPCA.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(K2O_PPCA.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(K2O_PPCA.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(K2O_PPCA.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(K2O_PPCA.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(K2O_PPCA.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
 
 \section*{FarmNPPCA}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,FarmNPPCA)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(FarmNPPCA.lm,term=1)
-values.b <- extract.county.estimates(FarmNPPCA.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$FarmNPPCA,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(FarmNPPCA.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(FarmNPPCA.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(FarmNPPCA.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(FarmNPPCA.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(FarmNPPCA.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(FarmNPPCA.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
 \section*{FarmPPPCA}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,FarmPPPCA)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(FarmPPPCA.lm,term=1)
-values.b <- extract.county.estimates(FarmPPPCA.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$FarmPPPCA,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(FarmPPPCA.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(FarmPPPCA.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(FarmPPPCA.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(FarmPPPCA.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(FarmPPPCA.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(FarmPPPCA.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
 
 \section*{FarmKPPCA}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,FarmKPPCA)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(FarmKPPCA.lm,term=1)
-values.b <- extract.county.estimates(FarmKPPCA.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$FarmKPPCA,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(FarmKPPCA.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(FarmKPPCA.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(FarmKPPCA.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(FarmKPPCA.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(FarmKPPCA.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(FarmKPPCA.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
 \section*{X21Crop TotalPlantedAc}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,X21Crop_TotalPlantedAc)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(X21Crop_TotalPlantedAc.lm,term=1)
-values.b <- extract.county.estimates(X21Crop_TotalPlantedAc.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$X21Crop_TotalPlantedAc,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(X21Crop_TotalPlantedAc.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(X21Crop_TotalPlantedAc.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(X21Crop_TotalPlantedAc.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(X21Crop_TotalPlantedAc.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(X21Crop_TotalPlantedAc.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(X21Crop_TotalPlantedAc.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
 
 \section*{X21Crop TotalHarvestAc}
 
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,X21Crop_TotalHarvestAc)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(X21Crop_TotalHarvestAc.lm,term=1)
-values.b <- extract.county.estimates(X21Crop_TotalHarvestAc.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$X21Crop_TotalHarvestAc,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(X21Crop_TotalHarvestAc.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(X21Crop_TotalHarvestAc.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(X21Crop_TotalHarvestAc.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(X21Crop_TotalHarvestAc.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(X21Crop_TotalHarvestAc.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(X21Crop_TotalHarvestAc.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
 \section*{Total Harvested Cropland Acres}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
+<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
 ggplot(ipni.dat, aes(Year,Total_Harvested_Cropland_Acres)) + 
    geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
    geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
 @
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(Total_Harvested_Cropland_Acres.lm,term=1)
-values.b <- extract.county.estimates(Total_Harvested_Cropland_Acres.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$Total_Harvested_Cropland_Acres,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(Total_Harvested_Cropland_Acres.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(Total_Harvested_Cropland_Acres.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Total_Harvested_Cropland_Acres.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Total_Harvested_Cropland_Acres.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(Total_Harvested_Cropland_Acres.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(Total_Harvested_Cropland_Acres.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
 \section*{TotalCropland}
-
-<<fig=TRUE,echo=false,results=hide,width=6,height=4>>=	
-ggplot(ipni.dat, aes(Year,TotalCropland)) + 
-   geom_point(aes(color=State),size=2,alpha = 0.2) + gg.default.theme +
-   geom_smooth(aes(group=statecounty,color=State),weight=10,se = FALSE,method="lm")
-@
-
-<<fig=TRUE,echo=false>>=
-values.a <- extract.county.estimates(TotalCropland.lm,term=1)
-values.b <- extract.county.estimates(TotalCropland.lm,term=2)
-ggmap.values(values.b,names(values.b))
-@
-
-<<fig=TRUE,echo=false>>=
-estimate.mean <- values.a + midpoint*values.b
-ggmap.values(estimate.mean,names(values.a))
-@
-
-<<fig=TRUE,echo=false>>=
-values <- tapply(ipni.dat$TotalCropland,list(ipni.dat$statecounty),mean, na.rm=TRUE)
-common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
-plot(values[common.names],estimate.mean[common.names])
-@
-
-<<fig=TRUE,echo=false>>=
-par(mfrow = c(2, 2)) 
-plot(TotalCropland.lm)
-par(mfrow = c(1,1)) 
-@
-
-<<>>=
-summary(aov(TotalCropland.lm))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(TotalCropland.a,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(TotalCropland.a,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-<<fig=TRUE>>=
-grid.arrange(arrangeGrob(
-  ggplot(covariates.dat, aes(TotalCropland.b,yield.b)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-  ggplot(covariates.dat, aes(TotalCropland.b,yield.a)) + geom_point(aes(color=state)) + geom_smooth(aes(group=state),weight=10,se = FALSE,method="lm"),
-   as.table=TRUE,
-   ncol=1))
-@
-
-
-
 
 \end{document}

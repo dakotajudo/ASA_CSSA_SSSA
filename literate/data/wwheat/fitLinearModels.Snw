@@ -36,7 +36,7 @@ names(state.abbr.map) <- state.abbr
 
 #subset by state
 locations.dat <- read.csv("Locations.csv", header = TRUE)
-locations.dat <- subset(locations.dat, locations.dat$State %in% c("ND","SD","NE","KS","OK","TX"))
+locations.dat <- subset(locations.dat, locations.dat$State %in% state.abbr)
 locations.dat$State <- as.character(locations.dat$State)
 locations.dat$State <- state.abbr.map[locations.dat$State]
 
@@ -44,8 +44,6 @@ locations.dat$State <- state.abbr.map[locations.dat$State]
 statecounty.map <- as.character(paste(locations.dat$State,locations.dat$County,sep=","))
 locations.dat$statecounty <- statecounty.map
 names(statecounty.map) <- as.character(locations.dat$Name)
-#statecounty.map <- as.character(locations.dat$Name)
-#names(statecounty.map) <- as.character(paste(locations.dat$State,locations.dat$County,sep=", "))
 @
 
 Now, generate an index
@@ -272,8 +270,13 @@ names(moran.values) <- covariates.map$names
 
 moran.test(moran.values,covariates.wt,na.action=na.exclude,zero.policy=TRUE)
 
+
+
 recent.moran <- localmoran(moran.values,covariates.wt,na.action=na.exclude,zero.policy=TRUE)
-covariates.dat$I <- recent.moran[covariates.dat$statecounty,1]
+moranI <-  recent.moran[,1]
+names(moranI) <- names(moran.values)
+covariates.dat$I <- moranI[as.character(covariates.dat$statecounty)]
+
 ggmap.values(covariates.dat$I,covariates.dat$statecounty,main="Local Autocorrelation",legend="Moran's I",palette=cbPalette[3:4])
 @
 

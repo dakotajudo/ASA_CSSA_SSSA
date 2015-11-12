@@ -349,11 +349,45 @@
     1>|)>-<around*|(|\<mu\>+\<alpha\><rsub|2>+\<beta\><rsub|2>+<around*|(|\<alpha\>\<beta\>|)><rsub|2
     2>|)>|]>,\<ldots\> ,<around*|(|\<mu\>+\<alpha\><rsub|2m>+\<beta\><rsub|1>+<around*|(|\<alpha\>\<beta\>|)><rsub|m
     1>|)>-<around*|(|\<mu\>+\<alpha\><rsub|m>+\<beta\><rsub|2>+<around*|(|\<alpha\>\<beta\>|)><rsub|m
-    2>|)>|}>>>|<row|<cell|>|<cell|=>|<cell|<around*|{|<around*|(|\<mu\>+\<alpha\><rsub|1>+\<beta\><rsub|1>+0|)>-<around*|(|\<mu\>+\<alpha\><rsub|1>+\<beta\><rsub|2>+0|)>,
+    2>|)>|}><rsup|1/2>>>|<row|<cell|>|<cell|=>|<cell|<around*|{|<around*|(|\<mu\>+\<alpha\><rsub|1>+\<beta\><rsub|1>+0|)>-<around*|(|\<mu\>+\<alpha\><rsub|1>+\<beta\><rsub|2>+0|)>,
     <around*|(|\<mu\>+\<alpha\><rsub|2>+\<beta\><rsub|1>+0|)>-<around*|(|\<mu\>+\<alpha\><rsub|2>+\<beta\><rsub|2>+0|)>,\<ldots\>
-    ,<around*|(|\<mu\>+\<alpha\><rsub|m>+\<beta\><rsub|1>+0|)>-<around*|(|\<mu\>+\<alpha\><rsub|m>+\<beta\><rsub|2>+0|)>|}>>>|<row|<cell|>|<cell|=>|<cell|<around*|{|<around*|(|\<beta\><rsub|1>-\<beta\><rsub|2>|)>,
+    ,<around*|(|\<mu\>+\<alpha\><rsub|m>+\<beta\><rsub|1>+0|)>-<around*|(|\<mu\>+\<alpha\><rsub|m>+\<beta\><rsub|2>+0|)>|}><rsup|1/2>>>|<row|<cell|>|<cell|=>|<cell|<sqrt|<around*|{|<around*|(|\<beta\><rsub|1>-\<beta\><rsub|2>|)>,
     <around*|(|\<beta\><rsub|1>-\<beta\><rsub|2>|)>,\<ldots\>
-    ,<around*|(|\<beta\><rsub|1>-\<beta\><rsub|2>|)>|}>>>|<row|<cell|>|<cell|=>|<cell|m<around*|(|\<beta\><rsub|1>-\<beta\><rsub|2>|)><rsup|2>>>>>
+    ,<around*|(|\<beta\><rsub|1>-\<beta\><rsub|2>|)>|}>>>>|<row|<cell|>|<cell|=>|<cell|<sqrt|m<around*|(|\<beta\><rsub|1>-\<beta\><rsub|2>|)><rsup|2>>>>|<row|<cell|>|<cell|=>|<cell|<sqrt|m><sqrt|<around*|(|\<beta\><rsub|1>-\<beta\><rsub|2>|)><rsup|2>>>>>>
+  </eqnarray*>
+
+  <\eqnarray*>
+    <tformat|<table|<row|<cell|<around*|\<\|\|\>|T<rsub|1>-T<rsub|2>|\<\|\|\>>>|<cell|=>|<cell|<sqrt|<big|sum><around*|{|<around*|(|t<rsub|1
+    1>-t<rsub|1 2>|)><rsup|2>,<around*|(|t<rsub|2 1>-t<rsub|2
+    2>|)><rsup|2>\<nocomma\>,\<ldots\> ,<around*|(|t<rsub|m 1>-t<rsub|m
+    2>|)><rsup|2>|}>>>>|<row|<cell|>|<cell|=>|<cell|<around*|{|<around*|[|<around*|(|\<mu\>+\<alpha\><rsub|1>+\<beta\><rsub|1>+<around*|(|\<alpha\>\<beta\>|)><rsub|1
+    1>|)>-<around*|(|\<mu\>+\<alpha\><rsub|1>+\<beta\><rsub|2>+<around*|(|\<alpha\>\<beta\>|)><rsub|1
+    2>|)>|]>, <around*|[|<around*|(|\<mu\>+\<alpha\><rsub|2>+\<beta\><rsub|1>+<around*|(|\<alpha\>\<beta\>|)><rsub|2
+    1>|)>-<around*|(|\<mu\>+\<alpha\><rsub|2>+\<beta\><rsub|2>+<around*|(|\<alpha\>\<beta\>|)><rsub|2
+    2>|)>|]>,\<ldots\> ,<around*|(|\<mu\>+\<alpha\><rsub|2m>+\<beta\><rsub|1>+<around*|(|\<alpha\>\<beta\>|)><rsub|m
+    1>|)>-<around*|(|\<mu\>+\<alpha\><rsub|m>+\<beta\><rsub|2>+<around*|(|\<alpha\>\<beta\>|)><rsub|m
+    2>|)>|}>>>|<row|<cell|>|<cell|=>|<cell|<around*|{|<around*|(|<around*|(|\<beta\><rsub|1>+<around*|(|\<alpha\>\<beta\>|)><rsub|1
+    1>|)>-<around*|(|\<beta\><rsub|2>+<around*|(|\<alpha\>\<beta\>|)><rsub|1
+    2>|)>|)>, <around*|(|<around*|(|\<beta\><rsub|1>+<around*|(|\<alpha\>\<beta\>|)><rsub|2
+    1>|)>-<around*|(|\<beta\><rsub|2>+<around*|(|\<alpha\>\<beta\>|)><rsub|2
+    2>|)>|)>,\<ldots\> ,<around*|(|<around*|(|\<beta\><rsub|1>+<around*|(|\<alpha\>\<beta\>|)><rsub|m
+    1>|)>-<around*|(|\<beta\><rsub|2>+<around*|(|\<alpha\>\<beta\>|)><rsub|m
+    2>|)>|)>|}>>>|<row|<cell|>|<cell|=>|<cell|<around*|{|<around*|(|<around*|(|\<beta\><rsub|1>-\<beta\><rsub|2>|)>+<around*|(|<around*|(|\<alpha\>\<beta\>|)><rsub|1
+    1>-<around*|(|\<alpha\>\<beta\>|)><rsub|1 2>|)>|)>,
+    <around*|(|<around*|(|\<beta\><rsub|1>-\<beta\><rsub|2>|)>-<around*|(|<around*|(|\<alpha\>\<beta\>|)><rsub|2
+    1>-<around*|(|\<alpha\>\<beta\>|)><rsub|2 2>|)>|)>,\<ldots\>
+    ,<around*|(|<around*|(|\<beta\><rsub|1>-\<beta\><rsub|2>|)>-<around*|(|<around*|(|\<alpha\>\<beta\>|)><rsub|m
+    1>-<around*|(|\<alpha\>\<beta\>|)><rsub|m
+    2>|)>|)>|}>>>|<row|<cell|>|<cell|=>|<cell|>>>>
+  </eqnarray*>
+
+  <\eqnarray*>
+    <tformat|<table|<row|<cell|<around*|\<\|\|\>|y<rsub|1\<bullet\>>-y<rsub|2\<bullet\>>|\<\|\|\>>>|<cell|=>|<cell|<sqrt|<big|sum><around*|(|y<rsub|1i>-y<rsub|2i>|)><rsup|2>>>>|<row|<cell|y<rsub|1\<bullet\>>-y<rsub|2\<bullet\>>>|<cell|=>|<cell|<around*|(|y<rsub|11>,y<rsub|12>,y<rsub|13>|)>-<around*|(|y<rsub|21>,y<rsub|22>,y<rsub|33>|)>>>|<row|<cell|>|<cell|=>|<cell|<around*|(|\<mu\>+\<alpha\><rsub|1>+\<beta\><rsub|1>+\<phi\><rsub|11>,\<mu\>+\<alpha\><rsub|1>+\<beta\><rsub|2>+\<phi\><rsub|12>,\<mu\>+\<alpha\><rsub|1>+\<beta\><rsub|3>+\<phi\><rsub|13>|)>-<around*|(|\<mu\>+\<alpha\><rsub|2>+\<beta\><rsub|1>+\<phi\><rsub|21>,\<mu\>+\<alpha\><rsub|2>+\<beta\><rsub|2>+\<phi\><rsub|22>,\<mu\>+\<alpha\><rsub|2>+\<beta\><rsub|3>+\<phi\><rsub|23>|)>>>|<row|<cell|>|<cell|=>|<cell|<around*|(|\<alpha\><rsub|1>+\<phi\><rsub|11>-\<alpha\><rsub|2>-\<phi\><rsub|21>,\<alpha\><rsub|1>+\<phi\><rsub|12>-\<alpha\><rsub|2>-\<phi\><rsub|22>,\<alpha\><rsub|1>+\<phi\><rsub|13>-\<alpha\><rsub|2>-\<phi\><rsub|23>|)>>>|<row|<cell|>|<cell|=>|<cell|<around*|(|<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+<around*|(|\<phi\><rsub|11>-\<phi\><rsub|21>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+<around*|(|\<phi\><rsub|12>-\<phi\><rsub|22>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+<around*|(|\<phi\><rsub|13>-\<phi\><rsub|23>|)>|)>>>|<row|<cell|>|<cell|>|<cell|no
+    interaction>>|<row|<cell|y<rsub|1\<bullet\>>-y<rsub|2\<bullet\>>>|<cell|=>|<cell|<around*|(|<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>|)>>>|<row|<cell|H<rsub|0>=<around*|\<\|\|\>|y<rsub|1\<bullet\>>-y<rsub|2\<bullet\>>|\<\|\|\>><rsup|2>>|<cell|=>|<cell|<around*|(|<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>|)>>>|<row|<cell|>|<cell|>|<cell|simple
+    nonadditivity>>|<row|<cell|y<rsub|1\<bullet\>>-y<rsub|2\<bullet\>>>|<cell|=>|<cell|<around*|(|<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+<around*|(|\<lambda\>\<alpha\><rsub|1><rsub|>\<beta\><rsub|1>-\<lambda\>\<alpha\><rsub|2><rsub|>\<beta\><rsub|1>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+<around*|(|\<lambda\>\<alpha\><rsub|1><rsub|>\<beta\><rsub|2>-\<lambda\>\<alpha\><rsub|2><rsub|>\<beta\><rsub|2>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+<around*|(|\<lambda\>\<alpha\><rsub|1><rsub|>\<beta\><rsub|3>-\<lambda\>\<alpha\><rsub|2><rsub|>\<beta\><rsub|3>|)>|)>>>|<row|<cell|>|<cell|>|<cell|<around*|(|<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+\<lambda\>\<beta\><rsub|1><around*|(|\<alpha\><rsub|1><rsub|>-\<alpha\><rsub|2><rsub|>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+\<lambda\>\<beta\><rsub|2><around*|(|\<alpha\><rsub|1><rsub|>-\<alpha\><rsub|2><rsub|>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+\<lambda\>\<beta\><rsub|3><around*|(|\<alpha\><rsub|1><rsub|>-\<alpha\><rsub|2><rsub|>|)>|)>>>|<row|<cell|>|<cell|>|<cell|<around*|(|<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)><around*|(|1+\<lambda\>\<beta\><rsub|1>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)><around*|(|1+\<lambda\>\<beta\><rsub|2>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)><around*|(|1+\<lambda\>\<beta\><rsub|3>|)>|)>>>|<row|<cell|>|<cell|>|<cell|if
+    \<lambda\>=0,>>|<row|<cell|>|<cell|>|<cell|<around*|(|<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)><around*|(|1|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)><around*|(|1|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)><around*|(|1|)>|)>>>|<row|<cell|>|<cell|>|<cell|>>|<row|<cell|>|<cell|>|<cell|heterogenous
+    slopes>>|<row|<cell|y<rsub|1\<bullet\>>-y<rsub|2\<bullet\>>>|<cell|=>|<cell|<around*|(|<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+<around*|(|\<lambda\><rsub|1><rsub|>\<beta\><rsub|1>-\<lambda\><rsub|2><rsub|>\<beta\><rsub|1>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+<around*|(|\<lambda\><rsub|1><rsub|>\<beta\><rsub|2>-\<lambda\><rsub|2><rsub|>\<beta\><rsub|2>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+<around*|(|\<lambda\><rsub|1><rsub|>\<beta\><rsub|3>-\<lambda\><rsub|2><rsub|>\<beta\><rsub|3>|)>|)>>>|<row|<cell|>|<cell|>|<cell|<around*|(|<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+\<beta\><rsub|1><around*|(|\<lambda\><rsub|1><rsub|>-\<lambda\><rsub|2><rsub|>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+\<beta\><rsub|2><around*|(|\<lambda\><rsub|1><rsub|>-\<lambda\><rsub|2><rsub|>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>+\<beta\><rsub|3><around*|(|\<lambda\><rsub|1><rsub|>-\<lambda\><rsub|2><rsub|>|)>|)>>>|<row|<cell|>|<cell|>|<cell|if
+    \<lambda\><rsub|1><rsub|>-\<lambda\><rsub|2>\<nocomma\>,\<nocomma\>\<nocomma\>then>>|<row|<cell|>|<cell|=>|<cell|<around*|(|<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>,<around*|(|\<alpha\><rsub|1>-\<alpha\><rsub|2>|)>|)>>>>>
   </eqnarray*>
 
   Corsten 1990 - simultaneous clustering of genotypes and environments

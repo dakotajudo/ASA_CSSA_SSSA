@@ -1,0 +1,249 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% baposter Portrait Poster
+% LaTeX Template
+% Version 1.0 (15/5/13)
+%
+% Created by:
+% Brian Amberg (baposter@brian-amberg.de)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+%\documentclass[a0paper,portrait]{baposter}
+
+\documentclass[paperwidth=42in,paperheight=44in]{baposter}
+\usepackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
+\usepackage{booktabs} % Horizontal rules in tables
+\usepackage{relsize} % Used for making text smaller in some places
+
+\graphicspath{{figures/}} % Directory in which figures are stored
+
+\definecolor{bordercol}{RGB}{40,40,40} % Border color of content boxes
+\definecolor{headercol1}{RGB}{186,215,230} % Background color for the header in the content boxes (left side)
+\definecolor{headercol2}{RGB}{80,80,80} % Background color for the header in the content boxes (right side)
+\definecolor{headerfontcol}{RGB}{0,0,0} % Text color for the header text in the content boxes
+\definecolor{boxcolor}{RGB}{186,215,230} % Background color for the content in the content boxes
+
+\begin{document}
+
+\background{ % Set the background to an image (background.pdf)
+\begin{tikzpicture}[remember picture,overlay]
+\draw (current page.north west)+(-2em,2em) node[anchor=north west]
+{\includegraphics[height=1.1\textheight]{background}};
+\end{tikzpicture}
+}
+
+\begin{poster}{
+grid=false,
+borderColor=bordercol, % Border color of content boxes
+headerColorOne=headercol1, % Background color for the header in the content boxes (left side)
+headerColorTwo=headercol2, % Background color for the header in the content boxes (right side)
+headerFontColor=headerfontcol, % Text color for the header text in the content boxes
+boxColorOne=boxcolor, % Background color for the content in the content boxes
+headershape=roundedright, % Specify the rounded corner in the content box headers
+headerfont=\Large\sf\bf, % Font modifiers for the text in the content box headers
+textborder=rectangle,
+background=user,
+headerborder=open, % Change to closed for a line under the content box headers
+boxshade=plain
+}
+{}
+%
+%----------------------------------------------------------------------------------------
+%	TITLE AND AUTHOR NAME
+%----------------------------------------------------------------------------------------
+%
+{\sf\bf Temporal and Spatial Trends in Winter Wheat Yields  \\ Monitored Via Multiple Online Data Sources } % Poster title
+{\vspace{1em} Peter Claussen\\ % Author names
+{\smaller Pete@gdmdata.com}} % Author email addresses
+%{\includegraphics[scale=0.15]{logo}} % University/lab logo
+
+%----------------------------------------------------------------------------------------
+%	INTRODUCTION
+%----------------------------------------------------------------------------------------
+
+\headerbox{Introduction}{name=introduction,column=0,row=0}{
+
+
+Recent studies have suggested that crop yields gains have slowed or stagnated in many regions globally \cite{lin.m-07-2012,graybosch.r-2014}. However, a simple analysis of winter wheat yield in the central United States shows that while yield gains have slowed for some (southern) regions, relative to mid-century gains, yield improvement have accelerated in other (northern) regions (Figure \ref{prelim}a). This implies a shift in winter wheat productions zones, perhaps related to climate change. 
+
+To explore this shift, data from several public databases were combined for covariate analysis to determine if changes in environmental and socio-economic variables correlate with geospatial patterns of winter wheat yield changes. For simplicity, this analysis was centered on the Great Plains states plus adjacent states with testing stations cooperating in the Hard Winter Wheat Regional Nursery \cite{hww-rpn}. (Figure \ref{prelim}b)
+
+\begin{center}
+   \includegraphics[width=0.49\linewidth]{WheatYields-centralyear}
+   \includegraphics[width=0.49\linewidth]{WheatYields-distance}
+   \captionof{figure}{a. County average wheat yields (bu/acre) for six states in the Great Plains. b. Approximate distance from county center to nearest HWW RPN site, in degrees latitude/longitude}
+   \label{prelim}
+\end{center}
+}
+
+%----------------------------------------------------------------------------------------
+%	MATERIALS AND METHODS
+%----------------------------------------------------------------------------------------
+
+\headerbox{Materials and Methods}{name=methods,column=0,below=introduction}{
+ 
+Data sources and brief descriptions:
+\begin{itemize}
+   \item{USDA NASS} \cite{usda-nass}
+      Yield, acreage, income.
+   \item{NuGIS} \cite{nuGIS}
+       Soil $N$, $P$ , $K$ addition and withdrawal.
+   \item{CDC WONDER} \cite{modis,nldas}
+      Air and surface temperatures, precipitation.
+   \item{HWW RPN} \cite{hww-rpn}
+      Testing of advanced breeding lines.
+\end{itemize}
+For all data, linear regression coefficients on year $x_i$ and county $n$ were computed in R using the model $y_{n i} = a_{n} + b_{n} x_i + e_{n i}$.  Where sufficient records were available data were regressed on the years 1984-2014; otherwise data were regressed on all available years. Weighted means for each county were computed by standardizing regression to 1999 by $\bar{y}_{n} = \hat{a}_{n} + \hat{b}_{n} \times 1999$. Rate of change were normalized to a relative rate as $\% \hat{b_n} = 100 \times \hat{b}_{n} / \bar{y}_{n}$.
+
+}
+
+%----------------------------------------------------------------------------------------
+%	CONCLUSION
+%----------------------------------------------------------------------------------------
+
+\headerbox{Conclusion}{name=conclusion,column=0,below=methods}{
+This analysis demonstrates that multiple data sources can be integrated to provide insight into regional yield trends. However, difficulties managing heterogenous, too numerous to list here, limit replication of this analysis to focus on different regions or to update analysis as new data are available. I hope this analysis provides impetus for greater cooperation among the data aggregating agencies.
+}
+
+%----------------------------------------------------------------------------------------
+%	REFERENCES
+%----------------------------------------------------------------------------------------
+
+\headerbox{References}{name=references,column=0,below=conclusion}{
+
+\smaller % Reduce the font size in this block
+\renewcommand{\section}[2]{\vskip 0.05em} % Get rid of the default "References" section title
+\nocite{*} % Insert publications even if they are not cited in the poster
+
+\bibliographystyle{unsrt}
+\bibliography{sample} % Use sample.bib as the bibliography file
+}
+
+%----------------------------------------------------------------------------------------
+%	ACKNOWLEDGEMENTS
+%----------------------------------------------------------------------------------------
+
+\headerbox{Acknowledgements}{name=acknowledgements,column=0,below=references, above=bottom}{
+
+\smaller % Reduce the font size in this block
+Fusce mattis tellus ac odio imperdiet lobortis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus commodo blandit euismod. Ut porttitor cursus magna. Mauris adipiscing pellentesque ipsum nec facilisis. Cras ornare bibendum bibendum. Ut a elit purus, vel adipiscing.
+} 
+
+%----------------------------------------------------------------------------------------
+%	RESULTS 1
+%----------------------------------------------------------------------------------------
+
+\headerbox{Results Heading}{name=results1,span=2,column=1,row=0}{ % To reduce this block to 1 column width, remove 'span=2'
+
+\begin{center}
+\includegraphics[width=0.49\linewidth]{WheatYields-yielda}
+\includegraphics[width=0.49\linewidth]{WheatYields-yieldb}
+\captionof{figure}{Figure caption 1 (left); Figure caption 2 (right)}
+\end{center}
+
+\begin{center}
+\includegraphics[width=0.24\linewidth]{WheatYields-maxb}
+\includegraphics[width=0.24\linewidth]{WheatYields-precipb}
+\includegraphics[width=0.24\linewidth]{WheatYields-dayb}
+\includegraphics[width=0.24\linewidth]{WheatYields-fineb}
+\end{center}
+\begin{center}
+\includegraphics[width=0.24\linewidth]{WheatYields-precipb}
+\includegraphics[width=0.24\linewidth]{WheatYields-FarmNPPCA}
+\includegraphics[width=0.24\linewidth]{WheatYields-wheatfrac}
+\includegraphics[width=0.24\linewidth]{WheatYields-X21CropTotalHarvestAc}
+\captionof{figure}{Spatial distribution of changing covariates correlated with yield changes.}
+\end{center}
+%------------------------------------------------
+
+
+}
+
+%----------------------------------------------------------------------------------------
+%	RESULTS 2
+%----------------------------------------------------------------------------------------
+
+\headerbox{Results Heading 2}{name=results2,span=1,column=1,below=results1,above=bottom}{ % To reduce this block to 1 column width, remove 'span=2'
+
+\begin{center}
+\includegraphics[width=0.85\linewidth]{WheatYields-pca2}
+\captionof{figure}{Principle component analysis of changing covariates associated with yield changes. See Table \ref{coeftable} for letter codes.}
+\end{center}
+A,J,D,B tend to positively covary with yield, while MNC vary inversely.
+
+%------------------------------------------------
+}
+
+\headerbox{Results Heading 3}{name=results3,span=1,column=2,below=results1,above=bottom}{ % To reduce this block to 1 column width, remove 
+
+The linear model relating change in yield $Y_b$ to relative change in covariates $Y_b = \% \hat{b_1} + \% \hat{b_2} + \dots + \% \hat{b_n}$ was fit in \verb|R| using the \verb|lm| function. An optimal linear model was found using the \verb|step| function. Table \ref{coeftable} shows the result of this function. All variables listed are in \% units, with the exception of Percent Wheat Acres, which was computed as the percent of wheat acres harvested to total crop acres harvested.
+
+
+{\smaller
+\begin{center}
+\begin{tabular}{l l l}
+\toprule
+\textbf{Covariate} & \textbf{Percent Slope} \\
+\midrule
+%   & -1.3489 & 4.26e-06 *** \\ %max.b
+%Daily Max Heat Index (C)  & 5.7769 & 4.77e-05 *** \\ %heat.b 
+%precip.b  & -0.1998 & 0.0885 . \\ %precip.b
+%sun.b  & -2.8272 & 0.0034 ** \\ %sun.b
+%Day Land Surface Temperature (C)  & 0.1096 & 0.0199 * \\ %day.b
+%AAPFCO Farm Inputs, Tons N  & 0.0110 & 0.1567 \\ %FarmTonsN.b
+%Excreted Manure Nutrients, Tons P2O5  & -0.0113 & 0.1050 \\ %TonsP2O5Exc.b
+%TonsNRem.b  & -0.0109 & 0.147636 \\ %TonsNRem.b
+%TonsP2O5Rem.b  & 0.0195 & 0.049144 * \\ %TonsP2O5Rem.b
+% Net Removal to Use Ratio, P2O5 & -0.0328 & 0.0518 . \\
+% X21CropTotalPlantedAc.b  & -0.5669 & 0.0095 ** \\ %X21CropTotalPlantedAc.b
+% X21CropTotalHarvestAc.b  & 0.8066 & 0.0001 *** \\ %X21CropTotalHarvestAc.b
+%TotalCropland.b  & -0.1543 & 0.0049 ** \\  %TotalCropland.b
+% wheatfrac  & -0.0078 & 0.0003 *** \\ %wheatfrac 
+A) min.b  & 1.532e-02 \\ %min.b
+B) max.b & -2.387e+00  *** \\ %max.b
+C) precip.b  & 2.425e-01  * \\ %precip.b
+D) day.b  & -3.494e-01  *** \\ %day.b
+E) fine.b  & -1.045e-01  *** \\ %fine.b
+F) Farm Inputs, Tons N \cite{nuGIS} & 2.164e-02  ** \\ %Farm TonsN.b
+G) Farm Inputs, Tons P \cite{nuGIS} & 1.332e-02  . \\ %Farm TonsP.b
+H) Farm Inputs, Tons K \cite{nuGIS} & -1.268e-02  \\ %Farm TonsK.b
+I) Excreted Manure Nutrients, P205 \cite{nuGIS} & -1.229e-02 \\ %TonsP2O5Exc.b
+J) Tons N Rem.b  & -1.563e-02  * \\ %Tons N Rem.b
+K) Tons K2O Rem.b  & 1.084e-02 \\ %Tons K2O Rem.b
+L) Net Lbs / Cropland Acre, N \cite{nuGIS} & 1.749e-02  . \\ %N PPCA.b
+M) Farm Fertilizer Input (Lb / Cropland Acre) not manure, N \cite{nuGIS} & 2.702e-02  * \\ % FarmNPPCA.b
+N) Farm Fertilizer Input (Lb / Cropland Acre) not manure, K \cite{nuGIS} &  1.582e-02  * \\ %FarmKPPCA.b
+O) Sum of 21 Crop Acres Planted \cite{nuGIS} & 3.783e-02  ** \\
+P) acres.b  & 1.979e-02 *** \\ %acres.b
+Q) Percent Harvested Acres, Wheat  & -2.313e-04  *** \\ %wheat frac
+\bottomrule
+\end{tabular}
+\label{coeftable}
+\captionof{table}{Table caption}
+\end{center}
+}
+%------------------------------------------------
+
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+Nunc sit amet sem ut nulla tincidunt mattis vel nec mauris. Vestibulum odio tellus, lobortis. Vel adipiscing, Aliquam dictum, ligula egestas commodo posuere, lectus lectus congue ligula, sed posuere urna lectus at nisi. Aenean commodo risus ut dolor (viverra scelerisque). Nullam varius, lacus et interdum hendrerit, odio orci ultrices mauris, id interdum eros mauris at urna. Fusce in nisi eros, sit amet volutpat turpis, \textbf{porttior magna} (commodo blandit euismod) \textbf{facilisis ornate magnis} (dis magnis). Aliquam ac justo lectus. Nunc ultrices aliquet purus non dictum. Nulla facilisi. Quisque vitae urna non purus sollicitudin venenatis. Aliquam erat volutpat. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. In hendrerit tortor sed massa consequat eu viverra justo porta. Ut nec felis sem, non elementum.
+}
+
+%----------------------------------------------------------------------------------------
+
+\end{poster}
+
+\end{document}
