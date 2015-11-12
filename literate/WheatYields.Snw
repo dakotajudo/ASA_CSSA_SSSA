@@ -9,6 +9,7 @@
 
 <<>>=
 source("../ASA_CSSA_SSSA/R/map_functions.R")
+
 @
 
 We drive the analysis from the USDA data set for yield. These data are in the \verb|usda| directory.
@@ -35,14 +36,22 @@ full.coef.idx <- as.character(full.covariates.dat$statecounty)
 ref <- 1984+(2014-1984)/2
 @
 
-<<centralyear,fig=TRUE,width=6,height=4>>=
+<<centralyear,fig=TRUE,width=6.35,height=4>>=
 setwd('data/usda/')
 load.if.needed("county.yield.dat")
 setwd(current.wd)
-county.yield.plot <- ggplot(county.yield.dat, aes(Year,Value)) 
+county.yield.dat$State <- as.character(county.yield.dat$State)
+county.yield.dat$State[county.yield.dat$State=="SOUTH DAKOTA"] <- "SD"
+county.yield.dat$State[county.yield.dat$State=="NORTH DAKOTA"] <- "ND"
+county.yield.dat$State[county.yield.dat$State=="NEBRASKA"] <- "NE"
+county.yield.dat$State[county.yield.dat$State=="KANSAS"] <- "KS"
+county.yield.dat$State[county.yield.dat$State=="OKLAHOMA"] <- "OK"
+county.yield.dat$State[county.yield.dat$State=="TEXAS"] <- "TX"
+county.yield.dat$State <- as.factor(county.yield.dat$State)
+county.yield.plot <- ggplot(county.yield.dat, aes(Year,Value)) + theme_bw() + labs(y="Yield, bu/acre",title="County Yield Average over Time")
 county.yield.plot <- county.yield.plot + scale_fill_manual(values=fullPalette) + scale_colour_manual(values=fullPalette)
-county.yield.plot <- county.yield.plot + geom_point(aes(color=State),size=2,alpha = 0.2)
-county.yield.plot <- county.yield.plot + geom_smooth(aes(group= State,color=State,linetype=State),weight=24,se = FALSE,method="loess")
+county.yield.plot <- county.yield.plot + geom_point(aes(color=State),size=1,alpha = 0.2)
+county.yield.plot <- county.yield.plot + geom_smooth(aes(group= State,color=State,linetype=State),size=2,se = FALSE,method="loess")
 county.yield.plot
 @
 
@@ -175,8 +184,8 @@ setwd(current.wd)
 
 <<fig=TRUE>>=
 grid.arrange(arrangeGrob(
-  ggmap.full.values(full.covariates.dat$harvested.a,full.covariates.dat$statecounty,main="Harvested Average",legend="mean",palette=cbPalette[3:4]),
-  ggmap.full.values(full.covariates.dat$harvested.b,full.covariates.dat$statecounty,main="Harvested Change",legend="slope",palette=cbPalette[3:4]),
+  ggmap.full.values(full.covariates.dat$harvested.a,full.covariates.dat$statecounty,main="Harvested Average",legend="mean",palette=yield.palette),
+  ggmap.full.values(full.covariates.dat$harvested.b,full.covariates.dat$statecounty,main="Harvested Change",legend="slope",palette=yield.palette),
    as.table=TRUE,
    ncol=2))
 @
@@ -245,7 +254,7 @@ full.covariates.dat[,full.intercept.columns+1] <- 100*full.covariates.dat[,full.
 
 
 <<fig=TRUE>>=
-ggmap.full.values(full.covariates.dat$harvested.a,full.covariates.dat$statecounty,main="harvested.a",legend="mean",palette=cbPalette[3:4])
+ggmap.full.values(full.covariates.dat$harvested.a,full.covariates.dat$statecounty,main="harvested.a",legend="mean",palette=yield.palette)
 @
 
 This removes mostly iowa counties
@@ -255,7 +264,7 @@ full.covariates.dat <- subset(full.covariates.dat,full.covariates.dat$harvested.
 @
 
 <<fig=TRUE>>=
-ggmap.full.values(full.covariates.dat$harvested.a,full.covariates.dat$statecounty,main="harvested.a subset",legend="mean",palette=cbPalette[3:4])
+ggmap.full.values(full.covariates.dat$harvested.a,full.covariates.dat$statecounty,main="harvested.a subset",legend="mean",palette=yield.palette)
 @
 
 <<fig=TRUE>>=
@@ -288,7 +297,7 @@ full.covariates.dat <- subset(full.covariates.dat,abs(full.covariates.dat$yield.
 @
 
 <<fig=TRUE>>=
-ggmap.full.values(full.covariates.dat$yield.b,full.covariates.dat$statecounty,main="yield.b",legend="%",palette=cbPalette[3:4])
+ggmap.full.values(full.covariates.dat$yield.b,full.covariates.dat$statecounty,main="yield.b",legend="%",palette=yield.palette)
 @
 
 <<>>=
@@ -306,7 +315,7 @@ covariates.dat$mean.income <- c(mean.income1)[as.character(covariates.dat$statec
 
 
 <<meanincome,fig=TRUE,width=7,height=5>>=
-ggmap.full.values(full.covariates.dat$mean.income,full.covariates.dat$statecounty,main="Mean Income",legend="$/operation",palette=cbPalette[3:4])
+ggmap.full.values(full.covariates.dat$mean.income,full.covariates.dat$statecounty,main="Mean Income",legend="$/operation",palette=yield.palette)
 @
 
 
@@ -324,7 +333,7 @@ covariates.dat$wheat_frac <- 100*covariates.dat$harvested.a/covariates.dat$Total
 @
 
 <<fig=TRUE>>=
-ggmap.full.values(full.covariates.dat$wheat_frac,full.covariates.dat$statecounty,main="Wheat acres, % of total acres",legend="% harvested",palette=cbPalette[3:4])
+ggmap.full.values(full.covariates.dat$wheat_frac,full.covariates.dat$statecounty,main="Wheat acres, % of total acres",legend="% harvested",palette=yield.palette)
 @
 
 \section*{HWW RPN}
@@ -350,8 +359,8 @@ if(!("Distance" %in% names(full.covariates.dat))) {
 }
 @
 
-<<distance,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$Distance,full.covariates.dat$statecounty,main="Distance to HWW RPN Site",legend="degrees",palette=cbPalette[5:6])
+<<distance,fig=TRUE,height=4>>=
+ggmap.full.values(full.covariates.dat$Distance,full.covariates.dat$statecounty,main="Distance to HWW RPN Site",legend="degrees",palette=coef.palette)
 @
 
 <<>>=
@@ -359,11 +368,22 @@ full.covariates.dat<- subset(full.covariates.dat,full.covariates.dat$Distance<4)
 @
 
 <<distance,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$Distance,full.covariates.dat$statecounty,main="Distance to HWW RPN Site",legend="degrees",palette=cbPalette[5:6])
+ggmap.full.values(full.covariates.dat$Distance,full.covariates.dat$statecounty,main="Distance to HWW RPN Site",legend="degrees",palette=coef.palette )
 @
 
-<<distance,fig=TRUE,width=6,height=4>>=
-ggmap.full.values(full.covariates.dat$DistanceGPS,full.covariates.dat$statecounty,main="Distance to HWW RPN Site",legend="degrees",palette=cbPalette[5:6],include.wa=TRUE)
+<<distance,fig=TRUE,height=4>>=
+dist.plot <- ggmap.full.values(full.covariates.dat$DistanceGPS,full.covariates.dat$statecounty,main="Distance to HWW RPN Site",legend="degrees",palette=coef.palette ,include.wa=TRUE)  + theme_bw()
+dist.plot
+@
+
+<<intro,fig=TRUE,width=18>>=
+par(bg="white")
+grid.arrange(arrangeGrob(
+  county.yield.plot,
+  dist.plot,
+   as.table=TRUE,
+   widths=c(8, 10),
+   ncol=2))
 @
 
 Limit our analysis to the plains states
@@ -371,9 +391,9 @@ Limit our analysis to the plains states
 full.covariates.dat<- subset(full.covariates.dat,!(full.covariates.dat$state %in% c("washington","idaho")))
 @
 
-<<moran,fig=TRUE,width=5,height=4>>=
+<<moran,fig=TRUE,height=4.5>>=
 i.dat <- subset(full.covariates.dat,full.covariates.dat$I<6)
-ggmap.full.values(i.dat$I,i.dat$statecounty,main="Autocorrelation of yield changes",legend="Moran's I",palette=cbPalette[5:6]) + theme_bw()
+ggmap.full.values(i.dat$I,i.dat$statecounty,main="N. Autocorrelation of Yield Changes",legend="Moran's I",palette=coef.palette ) + theme_bw()
 @
 
 <<>>=
@@ -417,11 +437,6 @@ full.cov4.lm <- lm(form4,data=na.omit(full.covariates.dat))
 @
 
 <<results=hide>>=
-best1 <- step(cov1.lm,direction = "both")
-best2 <- step(cov2.lm,direction = "both")
-best3 <- step(cov3.lm,direction = "both")
-best4 <- step(cov4.lm,direction = "both")
-
 full.best1 <- step(full.cov1.lm,direction = "both")
 full.best2 <- step(full.cov2.lm,direction = "both")
 full.best3 <- step(full.cov3.lm,direction = "both")
@@ -429,17 +444,6 @@ full.best4 <- step(full.cov4.lm,direction = "both")
 @
 
 \section{Yield Average Covariates}
-<<>>=
-#summary(cov1.lm)
-#summary(aov(cov1.lm))
-summary(best1)
-#summary(aov(best1))
-#summary(cov3.lm)
-#summary(aov(cov3.lm))
-summary(best3)
-#summary(aov(best3))
-@
-
 <<>>=
 summary(full.cov1.lm)
 #summary(aov(full.cov1.lm))
@@ -453,17 +457,6 @@ summary(full.best3)
 
 \section{Yield Change Covariates}
 <<>>=
-#summary(cov2.lm)
-#summary(aov(cov2.lm))
-summary(best2)
-#summary(update(best2,data=full.covariates.dat))
-#summary(aov(best2))
-#summary(cov4.lm)
-#summary(aov(cov4.lm))
-summary(best4)
-#summary(update(best4,data=full.covariates.dat))
-#summary(aov(best4))
-#
 summary(full.cov2.lm)
 #summary(aov(full.cov2.lm))
 summary(full.best2)
@@ -480,16 +473,16 @@ We'll color by state, so convert index
 
 
 
-<<maxb,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$max.b,full.covariates.dat$statecounty,main="Daily Max Air Temperature (C) ",legend="%/yr",palette=cbPalette[3:4]) + theme_bw()
+<<maxb,fig=TRUE,height=4.5>>=
+ggmap.full.values(full.covariates.dat$max.b,full.covariates.dat$statecounty,main="A. Daily Max Air Temperature ",legend="%/yr",palette=yield.palette) + theme_bw()
 @
 
-<<heatb,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$heat.b,full.covariates.dat$statecounty,main="Daily Max Heat Index (C)",legend="slope",palette=cbPalette[3:4])
+<<heatb,fig=TRUE,height=4.5>>=
+ggmap.full.values(full.covariates.dat$heat.b,full.covariates.dat$statecounty,main="B. Daily Max Heat Index",legend="%/yr",palette=yield.palette) + theme_bw()
 @
 
-<<precipb,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$precip.b,full.covariates.dat$statecounty,main="Precip b",legend="slope",palette=cbPalette[3:4])
+<<precipb,fig=TRUE,height=4.5>>=
+ggmap.full.values(full.covariates.dat$precip.b,full.covariates.dat$statecounty,main="C. Daily Precipitation",legend="%/yr",palette=yield.palette) + theme_bw()
 @
 
 <<precipbregress,fig=TRUE,width=8,height=6>>=
@@ -500,89 +493,73 @@ precipb.yield.plot <- ggplot(full.covariates.dat, aes(precip.b,yield.b)) + theme
 precipb.yield.plot
 @
 
-<<sunb,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$sun.b,full.covariates.dat$statecounty,main="Sun b",legend="slope",palette=cbPalette[3:4])
+<<sunb,fig=TRUE,height=4.5>>=
+ggmap.full.values(full.covariates.dat$sun.b,full.covariates.dat$statecounty,main="D. Daily Sunlight",legend="slope",palette=yield.palette)  + theme_bw()
 @
 
 <<fineb,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$fine.b,full.covariates.dat$statecounty,main="Fine b",legend="slope",palette=cbPalette[3:4])
+ggmap.full.values(full.covariates.dat$fine.b,full.covariates.dat$statecounty,main="Fine b",legend="slope",palette=yield.palette)
 @
 
 
 <<dayb,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$day.b,full.covariates.dat$statecounty,main="Day Land Surface Temperature (C)",legend="slope",palette=cbPalette[3:4])
+ggmap.full.values(full.covariates.dat$day.b,full.covariates.dat$statecounty,main="E. Day Land Surface Temperature",legend="slope",palette=yield.palette)  + theme_bw()
 @
 
-<<Farm_TonsN,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$Farm_TonsN.b,full.covariates.dat$statecounty,main="Interpolated Adjusted AAPFCO Farm Inputs, Ton N",legend="slope",palette=cbPalette[3:4])
+<<Farm_TonsN,fig=TRUE,width=6,height=4>>=
+ggmap.full.values(full.covariates.dat$Farm_TonsN.b,full.covariates.dat$statecounty,main="Interpolated Adjusted AAPFCO Farm Inputs, Ton N",legend="slope",palette=yield.palette)
 @
 
 <<TonsP2O5Exc,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$Tons_P2O5_Exc.b,full.covariates.dat$statecounty,main="Tons_P2O5_Exc b",legend="slope",palette=cbPalette[3:4])
+ggmap.full.values(full.covariates.dat$Tons_P2O5_Exc.b,full.covariates.dat$statecounty,main="Tons_P2O5_Exc b",legend="slope",palette=yield.palette)
 @
 
 <<TonsNRem,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$Tons_N_Rem.b,full.covariates.dat$statecounty,main="Tons_N_Rem b",legend="slope",palette=cbPalette[3:4])
+ggmap.full.values(full.covariates.dat$Tons_N_Rem.b,full.covariates.dat$statecounty,main="Tons_N_Rem b",legend="slope",palette=yield.palette)
 @
 
 <<TonsP2O5Rem,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$Tons_P2O5_Rem.b,full.covariates.dat$statecounty,main="Tons_P2O5_Rem b",legend="slope",palette=cbPalette[3:4])
+ggmap.full.values(full.covariates.dat$Tons_P2O5_Rem.b,full.covariates.dat$statecounty,main="Tons_P2O5_Rem b",legend="slope",palette=yield.palette)
 @
 
-<<RatioP2O5,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$RatioP2O5.b,full.covariates.dat$statecounty,main="RatioP2O5 b",legend="slope",palette=cbPalette[3:4])
+<<RatioP2O5,fig=TRUE,width=6,height=4.5>>=
+ggmap.full.values(full.covariates.dat$RatioP2O5.b,full.covariates.dat$statecounty,main="H. Net Removal to Use Ratio, P",legend="slope",palette=yield.palette)  + theme_bw()
 @
 
 <<FarmNPPCA,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$FarmNPPCA.b,full.covariates.dat$statecounty,main="FarmNPPCA b",legend="slope",palette=cbPalette[3:4])
+ggmap.full.values(full.covariates.dat$FarmNPPCA.b,full.covariates.dat$statecounty,main="FarmNPPCA b",legend="slope",palette=yield.palette)
 @
 FarmNPPCA.b
 
 <<X21CropTotalPlantedAc,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$X21Crop_TotalPlantedAc.b,full.covariates.dat$statecounty,main="X21Crop_TotalPlantedAc b",legend="slope",palette=cbPalette[3:4])
+ggmap.full.values(full.covariates.dat$X21Crop_TotalPlantedAc.b,full.covariates.dat$statecounty,main="X21Crop_TotalPlantedAc b",legend="slope",palette=yield.palette)
 @
 
-<<X21CropTotalHarvestAc,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$X21Crop_TotalHarvestAc.b,full.covariates.dat$statecounty,main="X21Crop_TotalHarvestAc b",legend="slope",palette=cbPalette[3:4])
+<<X21CropTotalHarvestAc,fig=TRUE,width=6,height=4.5>>=
+ggmap.full.values(full.covariates.dat$X21Crop_TotalHarvestAc.b,full.covariates.dat$statecounty,main="J. Sum of 21 Crop Acres Harves",legend="slope",palette=yield.palette) + theme_bw()
 @
 
-<<TotalCropland,fig=TRUE,width=9,height=6>>=
-ggmap.full.values(full.covariates.dat$TotalCropland.b,full.covariates.dat$statecounty,main="TotalCropland b",legend="slope",palette=cbPalette[3:4])
+<<TotalCropland,fig=TRUE,width=6,height=4>>=
+ggmap.full.values(full.covariates.dat$TotalCropland.b,full.covariates.dat$statecounty,main="TotalCropland b",legend="slope",palette=yield.palette)
 @
 
-<<wheatfrac,fig=TRUE,width=5,height=4>>=
-ggmap.full.values(full.covariates.dat$wheat_frac,full.covariates.dat$statecounty,main="wheat_frac",legend="slope",palette=cbPalette[3:4])
-@
-
-
-<<central,fig=TRUE,width=7,height=5>>=
-grid.arrange(arrangeGrob(
-  ggmap.values(covariates.dat$yield.a,covariates.dat$statecounty,main="Average Yield",legend="bu/ac",palette=cbPalette[3:4]),
-  ggmap.values(covariates.dat$yield.b,covariates.dat$statecounty,main="Yield Change",legend="%/yr",palette=cbPalette[3:4]),
-   as.table=TRUE,
-   ncol=2))
-@
-
-<<yielda,fig=TRUE,width=7,height=5>>=
-ggmap.full.values(full.covariates.dat$yield.a,full.covariates.dat$statecounty,main="Average Yield, 1984-2014",legend="bu/ac",palette=cbPalette[3:4])
+<<wheatfrac,fig=TRUE,width=6,height=4.5>>=
+ggmap.full.values(full.covariates.dat$wheat_frac,full.covariates.dat$statecounty,main="L. Percent Harvested Acres, Wheat",legend="slope",palette=yield.palette) + theme_bw()
 @
 
 
-<<yieldb,fig=TRUE,width=7,height=5>>=
-ggmap.full.values(full.covariates.dat$yield.b,full.covariates.dat$statecounty,main="Yield Change, 1984-2014",legend="%/yr",palette=cbPalette[3:4])
+<<yielda,fig=TRUE,width=8,height=5>>=
+ggmap.full.values(full.covariates.dat$yield.a,full.covariates.dat$statecounty,main="Average Yield, 1984-2014",legend="bu/ac",palette=yield.palette) + theme_bw()
+@
+
+
+<<yieldb,fig=TRUE,width=8,height=5>>=
+ggmap.full.values(full.covariates.dat$yield.b,full.covariates.dat$statecounty,main="Yield Change, 1984-2014",legend="%/yr",palette=yield.palette) + theme_bw()
 @
 
 
 \section{PCA}
 <<>>=
-frm1.pca.a <- paste("~ yield.a")
-for(trm in attr(best1$terms,"term.labels")) {
-   frm1.pca.a <- paste(frm1.pca.a,trm,sep=" + ")
-}
-best1.pca<-princomp(as.formula(frm1.pca.a),data=na.omit(covariates.dat),cor=TRUE)
-summary(best1.pca)
-best1.pca$loadings
-
 full.frm1.pca.a <- paste("~ yield.a")
 for(trm in attr(full.best1$terms,"term.labels")) {
    full.frm1.pca.a <- paste(full.frm1.pca.a,trm,sep=" + ")
@@ -593,14 +570,6 @@ full.best1.pca$loadings
 @
 
 <<>>=
-frm2.pca.b <- paste("~ yield.b")
-for(trm in attr(best2$terms,"term.labels")) {
-   frm2.pca.b <- paste(frm2.pca.b,trm,sep=" + ")
-}
-best2.pca<-princomp(as.formula(frm2.pca.b),data=na.omit(covariates.dat),cor=TRUE)
-summary(best2.pca)
-best2.pca$loadings
-
 full.frm2.pca.b <- paste("~ yield.b")
 for(trm in attr(full.best2$terms,"term.labels")) {
    full.frm2.pca.b <- paste(full.frm2.pca.b,trm,sep=" + ")
@@ -614,7 +583,7 @@ full.best2.pca$loadings
 
 <<>>=
 PC1labels <- c("Yield Average","Wa","Wb","Wc","Wd","We","Ia","Ib","Ic","Id","Ie","If","Ig","Ih","Ii","Ij","Ik","Il","Im","In","In","Ua")
-xnames1 <- attr(best1.pca$scores,"dimnames")[[1]]
+xnames1 <- attr(full.best1.pca$scores,"dimnames")[[1]]
 for(idx in 1:length(xnames1)) {
    xnames1[idx] = substr(xnames1[idx], 1, 2)
 }
@@ -626,7 +595,7 @@ xnames1[xnames1=="ne"] <- "NE"
 xnames1[xnames1=="ok"] <- "OK"
 
 PC2labels <- c("Yield Change","W1","W2","W3","W4","W5","W6","I1","I2","I3","I4","I5","I6","I7","I8","U1","U2","U3")
-xnames2 <- attr(best2.pca$scores,"dimnames")[[1]]
+xnames2 <- attr(full.best2.pca$scores,"dimnames")[[1]]
 for(idx in 1:length(xnames2)) {
    xnames2[idx] = substr(xnames2[idx], 1, 3)
 }
@@ -674,13 +643,6 @@ full.PC1labels <-all.PC1labels[1:dim(full.best1.pca$loadings)[2]]
 @
 
 
-<<fig=TRUE>>=
-par(mfrow=c(1,2))
-biplot(best1.pca,cex=c(.5,1),xlabs=xnames1,col=cbbPalette[2:1],main="Regression Means")
-biplot(best2.pca,cex=c(.5,1),xlabs=xnames2,col=cbbPalette[2:1],main="Relative Change")
-par(mfrow=c(1,1))
-@
-
 <<pca,fig=TRUE>>=
 par(mfrow=c(1,2))
 biplot(full.best1.pca,cex=c(.5,1),xlabs=full.xnames2,ylabs=full.PC1labels,col=cbbPalette[2:1])
@@ -689,50 +651,14 @@ par(mfrow=c(1,1))
 @
 
 <<pca1,fig=TRUE,width=5,height=5>>=
+par(bg="white")
 biplot(full.best1.pca,cex=c(.5,1),xlabs=full.xnames2,ylabs=full.PC1labels,col=cbbPalette[2:1])
 @
 
 <<pca2,fig=TRUE,width=5,height=5>>=
+par(bg="white")
 biplot(full.best2.pca,cex=c(.5,1),xlabs=full.xnames2,ylabs=full.PC2labels,col=cbbPalette[2:1])
 @
-
-
-<<>>=
-frm3.pca.a <- paste("~ yield.a")
-for(trm in attr(best3$terms,"term.labels")) {
-   frm3.pca.a <- paste(frm3.pca.a,trm,sep=" + ")
-}
-best3.pca<-princomp(as.formula(frm3.pca.a),data=na.omit(covariates.dat),cor=TRUE)
-summary(best3.pca)
-best3.pca$loadings
-@
-
-<<>>=
-frm4.pca.b <- paste("~ yield.b")
-for(trm in attr(best4$terms,"term.labels")) {
-   frm4.pca.b <- paste(frm4.pca.b,trm,sep=" + ")
-}
-best4.pca<-princomp(as.formula(frm4.pca.b),data=na.omit(covariates.dat),cor=TRUE)
-summary(best4.pca)
-best4.pca$loadings
-@
-
-
-
-xnames <- attr(best4.pca$scores,"dimnames")[[1]]
-for(idx in 1:length(xnames)) {
-   xnames[idx] = substr(xnames[idx], 1, 2)
-}
-xnames[xnames=="so"] <- "SD"
-xnames[xnames=="ka"] <- "KS"
-xnames[xnames=="no"] <- "ND"
-xnames[xnames=="te"] <- "TX"
-
-xnames[xnames=="ne"] <- "NE"
-xnames[xnames=="ok"] <- "OK"
-
-biplot(best4.pca,xlabs=xnames,ylabs=PClabels,cex=c(.4,1),col=cbPalette[1:2])
-
 
 
 
@@ -756,12 +682,13 @@ rpn.early.year.estimates <- extract.county.estimates(early.lm,term=2)
 
 
 <<fig=TRUE>>=
+par(bg="white")
 yield.b <- covariates.dat$yield.b
 names(yield.b) <- as.character(covariates.dat$statecounty)
 grid.arrange(arrangeGrob(
-   ggmap.values(rpn.early.year.estimates,names(rpn.early.year.estimates),main="Yield Change,1924-1944",legend="slope",palette=cbPalette[3:4]),
-   ggmap.values(rpn.mid.year.estimates,names(rpn.mid.year.estimates),main="Yield Change,1944-1979",legend="slope",palette=cbPalette[3:4]),
-   ggmap.values(yield.b,names(yield.b),main="Yield Change, 1984-2014 ",legend="slope",palette=cbPalette[3:4]),
+   ggmap.values(rpn.early.year.estimates,names(rpn.early.year.estimates),main="Yield Change,1924-1944",legend="slope",palette=yield.palette),
+   ggmap.values(rpn.mid.year.estimates,names(rpn.mid.year.estimates),main="Yield Change,1944-1979",legend="slope",palette=yield.palette),
+   ggmap.values(yield.b,names(yield.b),main="Yield Change, 1984-2014 ",legend="slope",palette=yield.palette),
    as.table=TRUE,
    ncol=3))
 @
@@ -784,9 +711,9 @@ full.early.year.estimates <- extract.county.estimates(early.full.lm,term=2)
 full.yield.b <- full.covariates.dat$yield.b
 names(full.yield.b) <- as.character(full.covariates.dat$statecounty)
 grid.arrange(arrangeGrob(
-   ggmap.full.values(full.early.year.estimates,names(full.early.year.estimates),main="Yield Change,1924-1944",legend="slope",palette=cbPalette[3:4]),
-   ggmap.full.values(full.mid.year.estimates,names(full.mid.year.estimates),main="Yield Change,1944-1979",legend="slope",palette=cbPalette[3:4]),
-   ggmap.full.values(full.yield.b,names(full.yield.b),main="Yield Change, 1984-2014 ",legend="slope",palette=cbPalette[3:4]),
+   ggmap.full.values(full.early.year.estimates,names(full.early.year.estimates),main="Yield Change,1924-1944",legend="slope",palette=yield.palette),
+   ggmap.full.values(full.mid.year.estimates,names(full.mid.year.estimates),main="Yield Change,1944-1979",legend="slope",palette=yield.palette),
+   ggmap.full.values(full.yield.b,names(full.yield.b),main="Yield Change, 1984-2014 ",legend="slope",palette=yield.palette),
    as.table=TRUE,
    ncol=3))
 @
@@ -983,9 +910,9 @@ summary(aov(best2.6))
 yield.b <- covariates.dat$yield.b
 names(yield.b) <- as.character(covariates.dat$statecounty)
 grid.arrange(arrangeGrob(
-   ggmap.values(covariates2.dat$yield.b,covariates2.dat$statecounty,main="Yield Change, 1982-2012",legend="slope",palette=cbPalette[3:4]),
-   ggmap.values(covariates4.dat$yield.b,covariates4.dat$statecounty,main="Yield Change, 1980-2010",legend="slope",palette=cbPalette[3:4]),
-   ggmap.values(covariates6.dat$yield.b,covariates6.dat$statecounty,main="Yield Change, 1978-2008",legend="slope",palette=cbPalette[3:4]),
+   ggmap.values(covariates2.dat$yield.b,covariates2.dat$statecounty,main="Yield Change, 1982-2012",legend="slope",palette=yield.palette),
+   ggmap.values(covariates4.dat$yield.b,covariates4.dat$statecounty,main="Yield Change, 1980-2010",legend="slope",palette=yield.palette),
+   ggmap.values(covariates6.dat$yield.b,covariates6.dat$statecounty,main="Yield Change, 1978-2008",legend="slope",palette=yield.palette),
    as.table=TRUE,
    ncol=3))
 @
@@ -1057,9 +984,9 @@ yield10.b <- extract.county.estimates(late10.county.lm,term=2)[coef.idx]
 yield15.b <- extract.county.estimates(late15.county.lm,term=2)[coef.idx]
 
 grid.arrange(arrangeGrob(
-   ggmap.values(yield15.b,names(yield15.b ),main="Yield Change, 1969-1999",legend="slope",palette=cbPalette[3:4]),
-   ggmap.values(yield10.b,names(yield10.b),main="Yield Change, 1974-2004",legend="slope",palette=cbPalette[3:4]),
-   ggmap.values(yield5.b,names(yield5.b),main="Yield Change, 1979-2009",legend="slope",palette=cbPalette[3:4]),
+   ggmap.values(yield15.b,names(yield15.b ),main="Yield Change, 1969-1999",legend="slope",palette=yield.palette),
+   ggmap.values(yield10.b,names(yield10.b),main="Yield Change, 1974-2004",legend="slope",palette=yield.palette),
+   ggmap.values(yield5.b,names(yield5.b),main="Yield Change, 1979-2009",legend="slope",palette=yield.palette),
    as.table=TRUE,
    ncol=3))
 @
@@ -1093,9 +1020,9 @@ yield10.b <- extract.county.estimates(late10.full.lm,term=2)[full.coef.idx]
 yield15.b <- extract.county.estimates(late15.full.lm,term=2)[full.coef.idx]
 
 grid.arrange(arrangeGrob(
-   ggmap.full.values(yield15.b,names(yield15.b ),main="Yield Change, 1969-1999",legend="slope",palette=cbPalette[3:4]),
-   ggmap.full.values(yield10.b,names(yield10.b),main="Yield Change, 1974-2004",legend="slope",palette=cbPalette[3:4]),
-   ggmap.full.values(yield5.b,names(yield5.b),main="Yield Change, 1979-2009",legend="slope",palette=cbPalette[3:4]),
+   ggmap.full.values(yield15.b,names(yield15.b ),main="Yield Change, 1969-1999",legend="slope",palette=yield.palette),
+   ggmap.full.values(yield10.b,names(yield10.b),main="Yield Change, 1974-2004",legend="slope",palette=yield.palette),
+   ggmap.full.values(yield5.b,names(yield5.b),main="Yield Change, 1979-2009",legend="slope",palette=yield.palette),
    as.table=TRUE,
    ncol=3))
 @

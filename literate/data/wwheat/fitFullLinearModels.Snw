@@ -56,7 +56,7 @@ head(full.late.dat)
 head(yield.gap.dat)
 
 gap.means <- tapply(yield.gap.dat$Value,list(yield.gap.dat$statecounty),mean,na.rm=TRUE)
-ggmap.full.values(gap.means,names(gap.means),main="county means",legend="bu/ac",palette=cbPalette[3:4])
+ggmap.full.values(gap.means,names(gap.means),main="county means",legend="bu/ac")
 @
 
 Map nursery yield means to county means
@@ -192,7 +192,7 @@ locations.dat$gapintercept <- locations.dat$gapintercept + locations.dat$gapslop
 
 <<fig=TRUE>>=
 gapplot.dat <- subset(locations.dat, !is.na(locations.dat$gapslope))
-ggmap.full.values(locations.dat$gapslope,locations.dat$statecounty,main="gap slope",legend="slope",palette=cbPalette[3:4])
+ggmap.full.values(locations.dat$gapslope,locations.dat$statecounty,main="gap slope",legend="slope")
 @
 
 <<>>=
@@ -209,15 +209,15 @@ locations.dat$gapperintercept <- locations.dat$gapperintercept + locations.dat$g
 
 <<fig=TRUE>>=
 gapplot.dat <- subset(locations.dat, !is.na(locations.dat$gapslope))
-ggmap.full.values(locations.dat$gapslope,locations.dat$statecounty,main="gap slope",legend="slope",palette=cbPalette[3:4])
+ggmap.full.values(locations.dat$gapslope,locations.dat$statecounty,main="gap slope",legend="slope")
 @
 
 <<fig=TRUE>>=
-ggmap.full.values(locations.dat$gapintercept,locations.dat$statecounty,main="gap mean",legend="mean",palette=cbPalette[3:4])
+ggmap.full.values(locations.dat$gapintercept,locations.dat$statecounty,main="gap mean",legend="mean")
 @
 
 <<fig=TRUE>>=
-ggmap.full.values(locations.dat$gapperintercept,locations.dat$statecounty,main="gap percent",legend="precent",palette=cbPalette[3:4])
+ggmap.full.values(locations.dat$gapperintercept,locations.dat$statecounty,main="gap percent",legend="precent")
 @
 
 <<fig=TRUE>>=
@@ -229,11 +229,13 @@ nursery.dat <- data.frame(
    statecounty=names(yield.rpn.a),
    yield.a=yield.rpn.a,
    yield.b=yield.rpn.b)
-   
-ggmap.full.values(yield.rpn.a,names(yield.rpn.a),main="Yield Average, RPN",legend="slope",palette=cbPalette[3:4])
-ggmap.full.values(yield.rpn.b,names(yield.rpn.b),main="Yield Change, RPN",legend="slope",palette=cbPalette[3:4])
+ggmap.full.values(yield.rpn.a,names(yield.rpn.a),main="Yield Average, RPN",legend="slope")
+
 @
 
+<<rpn,fig=TRUE,height=4.5>>=
+ggmap.full.values(yield.rpn.b,names(yield.rpn.b),main="M. Yield Change, HWW RP Trials",legend="%/yr",palette=yield.palette) + theme_bw()
+@
 Now, determine distance to test locations
 
 <<>>=
