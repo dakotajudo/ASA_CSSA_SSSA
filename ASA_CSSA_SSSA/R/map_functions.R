@@ -23,6 +23,9 @@ load.if.needed <- function(name){
   }
 }
 
+yield.palette =  c("#d8b365", "#f5f5f5","#5ab4ac")
+coef.palette =  c("#ef8a62", "#f7f7f7", "#67a9cf")
+
 #from http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
@@ -45,12 +48,12 @@ make.map.data <- function(values,regions,basis=mapstates) {
   return(states_map)
 }
 
-ggmap.values <- function(values,regions,basis=mapstates,scale=NA,main="Main",palette=c("red","blue"),legend="mean") {
+ggmap.values <- function(values,regions,basis=mapstates,scale=NA,main="Main",palette=c("red","white","blue"),legend="mean") {
   states_map <- make.map.data(values,regions,basis=basis)
 
   ret <- qplot(long, lat, data = states_map, group = group, fill = values,
     geom = "polygon") + 
-    scale_fill_gradient2(legend,low = palette[1], high = palette[2]) +
+    scale_fill_gradient2(legend,low = palette[1], mid = palette[2] , high = palette[3]) +
    #   midpoint = 0, space = "rgb", na.value = "grey50", guide = "colourbar")
     coord_equal() +
     labs(title = main,x="Longitude",y="Latitude")
@@ -61,7 +64,7 @@ make.full.map.data <- function(values,regions) {
   return(make.map.data(values,regions,basis=full.mapstates))
 }
 
-ggmap.full.values <- function(values,regions,scale=NA,main=NA,palette=c("red","blue"),legend="mean",include.wa=FALSE) {
+ggmap.full.values <- function(values,regions,scale=NA,main=NA,palette=c("red","white","blue"),legend="mean",include.wa=FALSE) {
   map.states = full.mapstates 
   if(include.wa) {
     map.states = c(full.mapstates,wa.mapstates)
