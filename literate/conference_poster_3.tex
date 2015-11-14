@@ -27,11 +27,15 @@
 
 \graphicspath{{figures/}} % Directory in which figures are stored
 
+
 \definecolor{bordercol}{RGB}{40,40,40} % Border color of content boxes
 \definecolor{headercol1}{RGB}{158,202,225} % Background color for the header in the content boxes (left side)
+%\definecolor{headercol1}{RGB}{161,217,155} % Background color for the header in the content boxes (left side)
 \definecolor{headercol2}{RGB}{49,130,189} % Background color for the header in the content boxes (right side)
+%\definecolor{headercol2}{RGB}{49,163,84} % Background color for the header in the content boxes (right side)
 \definecolor{headerfontcol}{RGB}{0,0,0} % Text color for the header text in the content boxes
 \definecolor{boxcolor}{RGB}{222,235,247} % Background color for the content in the content boxes
+%\definecolor{boxcolor}{RGB}{229,245,224} % Background color for the content in the content boxes
 
 \begin{document}
 
@@ -183,20 +187,18 @@ The linear model relating change in yield ($Y_b$) to relative change in covariat
 \toprule
 \textbf{Covariate} & \textbf{Coefficient} & \\
 \midrule
-A. Daily Max Air Temperature \cite{nldas} & -1.1844  &  *** \\ %max.b
-B. Daily Max Heat Index \cite{nldas} &  6.1933  &  *** \\ %heat.b
-C. Daily Precipitation  \cite{nldas} &  -0.1844  &  \\ %precip.b
-D. Daily Sunlight   \cite{nldas}  & -2.7275  & ** \\ %sun.b
-E. Day Land Surface Temperature \cite{modis} &  0.1157   &  *  \\ %day.b
-F. Farm Inputs, Tons $P$ \cite{nuGIS} & -0.0110 \\ %Farm TonsP.b
-G. Nutrient Removal by Crops, $N$ \cite{nuGIS} & -0.0119  &  \\   %Tons_N_Rem.b
-H. Net Removal to Use Ratio, $P_2 O_5$  \cite{nuGIS} & -0.0385  &  * \\ %RatioP2O5.b 
-I. Sum of 21 Crop Acres Planted  \cite{nuGIS} & -0.4795   &  * \\ 
-J. Sum of 21 Crop Acres Harvested  \cite{nuGIS} &  0.7501  &  *** \\
-K. Total Cropland \cite{nuGIS} & -0.1107  &  *  \\%TotalCropland.b
-L. Percent Harvested Acres, Wheat               & -0.0079 &  *** \\ %wheat frac
- 
-
+A. Daily Max Air Temperature \cite{nldas} & -1.2558  &  *** \\ %max.b
+B. Daily Max Heat Index \cite{nldas} &  2.8354  &  * \\ %heat.b
+C. Daily Precipitation  \cite{nldas} &  0.2645  &  *** \\ %precip.b
+D. Daily Sunlight   \cite{nldas}  & 0.7585  &  \\ %sun.b
+E. Day Land Surface Temperature \cite{modis} &  -0.0792   &  *  \\ %day.b
+F. Farm Inputs, Tons $P$ \cite{nuGIS} & -0.0009 \\ %Farm TonsP.b
+G. Nutrient Removal by Crops, $N$ \cite{nuGIS} & -0.0114  &  \\   %Tons_N_Rem.b
+H. Net Removal to Use Ratio, $P_2 O_5$  \cite{nuGIS} & -0.0728  &  *** \\ %RatioP2O5.b 
+I. Sum of 21 Crop Acres Planted  \cite{nuGIS} & -0.1951   &  * \\ 
+J. Sum of 21 Crop Acres Harvested  \cite{nuGIS} &  0.3774  &  *** \\
+K. Total Cropland \cite{nuGIS} & -0.1531  &  *** \\%TotalCropland.b
+L. Percent Harvested Acres, Wheat               & -0.0122 &  *** \\ %wheat frac
 \bottomrule
 \end{tabular}
 \captionof{table}{Summary of best linear model coefficients. Coefficients of regression are significant at 0.1\% (***) 1\% (**) 5\% (*) and 10\%(.)}
