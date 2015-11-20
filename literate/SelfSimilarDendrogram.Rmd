@@ -1,0 +1,91 @@
+---
+title: "Self-similar dendrograms"
+author: "Peter Claussen"
+date: "November 20, 2015"
+output: html_document
+---
+
+```{r,echo=FALSE}
+library(ARMR)
+source("../ASA_CSSA_SSSA/R/gei.table.to.frame.R")
+source("../ASA_CSSA_SSSA/R/nonadditivity.gei.R")
+source("../ASA_CSSA_SSSA/R/heterogeneity.gei.R")
+source("../ASA_CSSA_SSSA/R/standard.sensitivity.plot.R")
+source("../ASA_CSSA_SSSA/R/expand.incidence.R")
+source("../ASA_CSSA_SSSA/R/decompose.means.table.R")
+source("../ASA_CSSA_SSSA/R/interaction.outliers.R")
+source("../ASA_CSSA_SSSA/R/plot.interaction.ARMST.R")
+```
+
+
+```{r}
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cbColors <- c(cbPalette,cbbPalette)
+trtPalette <- cbColors
+```
+
+### sample RCBD
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/sampleRCBD/trialMeans.SmyCol1.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/sampleRCBD/trialTable.SmyCol1.tab',header=FALSE)
+means.vector <- means.vector[,1]
+```
+
+```{r}
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nTasselling',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSampleRCBD', ylab='',trt.colors=trtPalette,use.colors = TRUE)
+decomp <- decompose.means.table(means.matrix)
+fg=cbColors[2]
+res3 <- plot.clusters.ARMST(decomp$mu + decomp$alpha + decomp$beta, means.vector, fg=fg,add=TRUE)
+par(fig = c(0, 1, 0, 1))
+```
+
+Remove outliers 2,8,24
+
+```{r}
+means2.matrix <- means.matrix[-c(2,8,24),]
+means2.vector <- means.vector[-c(2,8,24)]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means2.matrix, means2.vector, ylab='Treatment in Trial Mean \nTasselling',regression=TRUE, main='Treatment Stability and Trial Clusters minus 3 outliers', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means2.matrix, means2.vector, xlab='Trial Mean \nSampleRCBD', ylab='',trt.colors=trtPalette,use.colors = TRUE)
+decomp <- decompose.means.table(means2.matrix)
+fg=cbColors[2]
+res3 <- plot.clusters.ARMST(decomp$mu + decomp$alpha + decomp$beta, means2.vector, fg=fg,add=TRUE,ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+
+Remove outliers 33,12
+
+```{r}
+means3.matrix <- means.matrix[-c(2,8,24,33,12),]
+means3.vector <- means.vector[-c(2,8,24,33,12)]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means3.matrix, means3.vector, ylab='Treatment in Trial Mean \nTasselling',regression=TRUE, main='Treatment Stability and Trial Clusters minus 5 outliers', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means3.matrix, means3.vector, xlab='Trial Mean \nSampleRCBD', ylab='',trt.colors=trtPalette,use.colors = TRUE)
+decomp <- decompose.means.table(means3.matrix)
+fg=cbColors[2]
+res3 <- plot.clusters.ARMST(decomp$mu + decomp$alpha + decomp$beta, means3.vector, fg=fg,add=TRUE,ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+Remove outliers 33,12
+
+```{r}
+means3.matrix <- means.matrix[-c(2,8,24,33,12,16,32),]
+means3.vector <- means.vector[-c(2,8,24,33,12,16,32)]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means3.matrix, means3.vector, ylab='Treatment in Trial Mean \nTasselling',regression=TRUE, main='Treatment Stability and Trial Clusters minus 7 outliers', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means3.matrix, means3.vector, xlab='Trial Mean \nSampleRCBD', ylab='',trt.colors=trtPalette,use.colors = TRUE)
+decomp <- decompose.means.table(means3.matrix)
+fg=cbColors[2]
+res3 <- plot.clusters.ARMST(decomp$mu + decomp$alpha + decomp$beta, means3.vector, fg=fg,add=TRUE,ylab='')
+par(fig = c(0, 1, 0, 1))
+```
