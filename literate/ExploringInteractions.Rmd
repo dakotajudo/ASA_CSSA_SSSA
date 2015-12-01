@@ -10,7 +10,6 @@ output: html_document
 Here I use the CPT 2007 data set to illustrate new options avialable for ST Treatment Stability/Trial Dendrogram plots.
 
 ```{r,echo=FALSE}
-library(ARMR)
 source("../ASA_CSSA_SSSA/R/gei.table.to.frame.R")
 source("../ASA_CSSA_SSSA/R/nonadditivity.gei.R")
 source("../ASA_CSSA_SSSA/R/heterogeneity.gei.R")
