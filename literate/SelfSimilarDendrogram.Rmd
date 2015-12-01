@@ -6,7 +6,6 @@ output: html_document
 ---
 
 ```{r,echo=FALSE}
-library(ARMR)
 source("../ASA_CSSA_SSSA/R/gei.table.to.frame.R")
 source("../ASA_CSSA_SSSA/R/nonadditivity.gei.R")
 source("../ASA_CSSA_SSSA/R/heterogeneity.gei.R")
