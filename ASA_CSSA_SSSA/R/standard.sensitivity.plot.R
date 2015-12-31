@@ -10,7 +10,7 @@ standard.sensitivity.plot <- function(plot.dat,
                           legend.columns=4,
                           method="complete",
                           fixed.prop=FALSE,
-                          fixed.trials=FALSE) {
+                          fixed.trials=FALSE,colors=c()) {
  
   require(lme4)
   
@@ -43,12 +43,14 @@ standard.sensitivity.plot <- function(plot.dat,
   if(plot.outliers) {
     m.table <- plot.interaction.ARMST(m.matrix, m.vector, ylab='Treatment in Trial Mean',
                                       regression=TRUE, main=response, show.legend=TRUE,legend.pos=c(.01,.98),
-                                      legend.columns=legend.columns,lwd = 2,fixed.prop=fixed.prop,mark.int=random.outliers$pairs
+                                      legend.columns=legend.columns,lwd = 2,fixed.prop=fixed.prop,mark.int=random.outliers$pairs,
+                                      trt.colors=colors
     )
   } else {
     m.table <- plot.interaction.ARMST(m.matrix, m.vector, ylab='Treatment in Trial Mean',
                                       regression=TRUE, main=response, show.legend=TRUE,legend.pos=c(.01,.98),
-                                      legend.columns=legend.columns,lwd = 2,fixed.prop=fixed.prop
+                                      legend.columns=legend.columns,lwd = 2,fixed.prop=fixed.prop,
+                                      trt.colors=colors
     )
   }
   
@@ -63,7 +65,7 @@ standard.sensitivity.plot <- function(plot.dat,
   if(dual.dendrogram) {
     #fg="yellow"
     fg="gray"
-    m.hc.add <- plot.clusters.ARMST(P6, m.vector, xlab='Trial Mean',fg=fg,fixed.prop=fixed.prop, ylab='',method=method)
+    m.hc.add <- plot.clusters.ARMST(P6, m.vector, xlab='Trial Mean',fg=fg,fixed.prop=fixed.prop, ylab='',method=method,trt.colors=colors)
   }
   fg="black"
   reference=NULL
@@ -73,12 +75,12 @@ standard.sensitivity.plot <- function(plot.dat,
     }
     #fg="gray"
     m.hc.int <- plot.clusters.ARMST(m.matrix, m.vector, xlab='Trial Mean', ylab='',fixed.prop=fixed.prop,
-                        plot.names=names(m.vector),fg=fg,add=TRUE,method=method,reference=reference)
+                        plot.names=names(m.vector),fg=fg,add=TRUE,method=method,reference=reference,trt.colors=colors)
     #m.hc.int <- plot.clusters.ARMST(m.matrix, m.vector, xlab='Trial Mean', ylab='',fixed.prop=fixed.prop,
     #                                plot.names=names(m.vector),fg=fg,method=method,reference=P6)
   } else {
     m.hc.int <- plot.clusters.ARMST(m.matrix, m.vector, xlab='Trial Mean', ylab='',fixed.prop=fixed.prop,
-                        plot.names=names(m.vector),fg=fg,method=method)
+                        plot.names=names(m.vector),fg=fg,method=method,trt.colors=colors)
   }
   #if(dual.dendrogram) {
   #  fg="yellow"
@@ -109,6 +111,11 @@ standard.sensitivity.plot <- function(plot.dat,
               fit=m.table$fit,
               table=m.matrix,
               vector=m.vector,
+              trl.effects=estimates$trl.effects,
+              trt.effects=estimates$trt.effects,
+              int.effects=estimates$int.effects,
+              trt.means=estimates$trt.means,
+              trial.means=estimates$trial.means,
               cluster=m.hc.int,
               add.cluster=m.hc.add,
               lm=base.lm,
@@ -119,11 +126,11 @@ standard.sensitivity.plot <- function(plot.dat,
               tdf=nonadditivity.gei(data=plot.dat,response=response,
                                   TreatmentName=TreatmentName,
                                   TrialName=TrialName,
-                                  BlockName=RepName),
+                                  BlockName=NULL),
               het=heterogeneity.gei(d=plot.dat,response=response,
                                     TreatmentName=TreatmentName,
                                     TrialName=TrialName,
-                                    BlockName=RepName),
+                                    BlockName=NULL),
               #ammi=ammi.1df.ARMST(data=m.table$data,AName="TrtNo",BName="Trial.ID",response="values"),
               random.outliers=random.outliers
               #fixed.outliers=fixed.outliers
@@ -195,6 +202,18 @@ standard.plot.reduced <- function(plot.dat,fixed.prop=FALSE,fixed.trials=FALSE,d
 }
 
 print.stdplot <- function(fit) {
+  
+  print("----------------------------------------------------",quote = FALSE)
+  print("Effects",quote = FALSE)
+  print(fit$trl.effects)
+  print(fit$trt.effects)
+  print("Means",quote = FALSE)
+  print(fit$trial.means)
+  print(fit$trt.means)
+  print("Row Col Means",quote = FALSE)
+  print(rowMeans(fit$table))
+  print(colMeans(fit$table))
+  print("----------------------------------------------------",quote = FALSE)
   print("AOV",quote = FALSE)
   print("----------------------------------------------------",quote = FALSE)
   print(fit$aov)
@@ -221,6 +240,8 @@ print.stdplot <- function(fit) {
   print(summary(fit$het$heterogeneous0.lm))
   print(summary(aov(fit$het$heterogeneous0.lm)))
   print(summary(aov(fit$het$heterogeneous.lm)))
+  print("ARM Table",quote = FALSE)
+  print(extract.slopes(summary(fit$het$heterogeneous0.lm)$coefficients,fit$het$heterogeneous0.lm$df.residual))
   print("",quote = FALSE)
   #print("AMMI AOV",quote = FALSE)
   #print("----------------------------------------------------",quote = FALSE)
@@ -271,6 +292,8 @@ print.stdplot.reduced <- function(fit) {
   print(summary(fit$het$lm0))
   print(summary(aov(fit$het$lm0)))
   print(fit$het$aov)
+  print("ARM Table",quote = FALSE)
+  print(extract.slopes(summary(fit$het$lm0)$coefficients))
   print("Stability",quote = FALSE)
   print("----------------------------------------------------",quote = FALSE)
   print(fit$fit)

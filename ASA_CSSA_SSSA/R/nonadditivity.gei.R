@@ -82,6 +82,32 @@ nonadditivity.gei <- function(data=NULL,
   return(list(additive.lm=additive.lm,multiplicative.lm=multiplicative.lm,t=t.effects,e=e.effects))
 }
 
+################################################
+# Assume tdf.tbl
+#                Df         SS         MS      Fval          prF
+#   Trial         
+#   Treatment     
+#   Error        
+#     Additivity  
+#     Residual   
+#
+# and aov.tlb
+#                   Df Sum Sq Mean Sq F value    Pr(>F)    
+#   Treatment         
+#   Trial             
+#   ...     
+#   Residuals    
+#
+# Compute the F-test of the interaction residual
+compute.tdf.residualF <- function(tdf.tbl, aov.tbl) {
+  last = dim(aov.tbl)[1]
+  last.row <- aov.tbl[last,]
+  tdf.last <- dim(tdf.tbl)[1]
+  tdf.tbl[tdf.last,4] <- tdf.tbl[tdf.last,3]/last.row[3]
+  tdf.tbl[tdf.last,5] <- 1-pf(tdf.tbl[tdf.last,4],tdf.tbl[tdf.last,1],as.numeric(last.row[1]))
+  return(tdf.tbl)
+}
+
 recompute.tdf.aov <- function(tdf.tbl,aov.tbl) {
   # assume the tdf table has full aov residuals, while the second to last row in aov.tbl
   # is assumed to be treatment by trial interaction

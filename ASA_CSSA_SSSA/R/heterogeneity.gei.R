@@ -46,6 +46,54 @@ extract.slopes <- function(het0.tbl,df) {
   return(ret.tbl)
 } 
 
+################################################
+# Assume tdf.tbl
+#                Df         SS         MS      Fval          prF
+#   Trial         
+#   Treatment     
+#   Error        
+#     Additivity  
+#     Residual   
+#
+# and het.tbl
+#                   Df Sum Sq Mean Sq F value    Pr(>F)    
+#   Treatment         
+#   Trial             
+#   Treatment:eTrial      
+#   Residuals    
+#
+# This function replaces  Addivity rows with Heterogeneity rows
+recompute.het.aov <- function(het.tbl,tdf.tbl) {
+  
+  ret <- tdf.tbl
+  #use an index for the new last row
+  last = dim(ret)[1]
+  #this is assumed from requirements
+  resid.row <- 3
+  #copy the interaction term (heterogeneity of slopes)
+  ret[(last-1),] <- het.tbl[3,]
+  
+  #subtract SS and DF
+  ret[last,1] <- tdf.tbl[resid.row,1] - ret[(last-1),1]
+  ret[last,2] <- tdf.tbl[resid.row,2] - ret[(last-1),2]
+  #recompute residual MS
+  if(ret[last,1]>0) {
+    ret[last,3] <- ret[last,2]/ret[last,1]
+    #compute signficance
+    ret[last-1,4] <- ret[last-1,3]/ret[last,3]
+    ret[last-1,5] <- 1-pf(ret[last-1,4],ret[last-1,1],ret[last,1])
+  } else {
+    ret[last,3] <- NA
+    ret[last-1,4] <- NA
+    ret[last-1,5] <- NA
+    ret[last,4] <- NA
+    ret[last,5] <- NA
+  }
+  
+  rownames(ret)[last-1] <- "  Heterogeneity"
+  rownames(ret)[last] <- "  Heterogeneity Residual"
+  return(ret)
+}
 
 print.heterogeneity.gei <- function(res) {
   print.nonadditivity.gei(res)
