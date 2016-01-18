@@ -76,58 +76,58 @@ if(!file.exists("weather.2.Rda")) {
 <<>>=
 if(!file.exists("min.lm.Rda")) {
 
-  min.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
+  min.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.dat, model=FALSE, qr=FALSE)
   save(min.lm, file="min.lm.Rda")
   min.lm = NULL
   
-  max.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
+  max.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.dat, model=FALSE, qr=FALSE)
   save(max.lm, file="max.lm.Rda")
   max.lm = NULL
   
-  heat.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather.dat)
+  heat.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather.dat, model=FALSE, qr=FALSE)
   save(heat.lm, file="heat.lm.Rda")
   heat.lm = NULL
   
   weather2.dat <- subset(weather.base,late.f(weather.base$Year+2))
   
-  max2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat)
+  max2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat, model=FALSE, qr=FALSE)
   save(max2.lm, file="max2.lm.Rda")
   max2.lm = NULL
   
-  min2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat)
+  min2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat, model=FALSE, qr=FALSE)
   save(min2.lm, file="min2.lm.Rda")
   min2.lm = NULL
   
-  heat2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat)
+  heat2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather2.dat, model=FALSE, qr=FALSE)
   save(heat2.lm, file="heat2.lm.Rda")
   heat2.lm = NULL
   weather2.dat=NA
    
   weather4.dat <- subset(weather.base,late.f(weather.base$Year+4))
   
-  max4.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat)
+  max4.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat, model=FALSE, qr=FALSE)
   save(max4.lm, file="max4.lm.Rda")
   max4.lm = NULL
   
-  min4.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat)
+  min4.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat, model=FALSE, qr=FALSE)
   save(min4.lm, file="min4.lm.Rda")
   min4.lm = NULL
   
-  heat4.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat)
+  heat4.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather4.dat, model=FALSE, qr=FALSE)
   save(heat4.lm, file="heat4.lm.Rda")
   heat4.lm = NULL
   
   weather6.dat <- subset(weather.base,late.f(weather.base$Year+6))
     
-  max6.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
+  max6.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat, model=FALSE, qr=FALSE)
   save(max6.lm, file="max6.lm.Rda")
   max6.lm = NULL
   
-  min6.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
+  min6.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat, model=FALSE, qr=FALSE)
   save(min6.lm, file="min6.lm.Rda")
   min6.lm = NULL
   
-  heat6.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat)
+  heat6.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather6.dat, model=FALSE, qr=FALSE)
   save(heat6.lm, file="heat6.lm.Rda")
   heat6.lm = NULL
 }
@@ -136,57 +136,57 @@ if(!file.exists("min.2.lm.Rda")) {
    load.if.needed("weather.2.base")
    weather.2.dat <- subset(weather.2.base,weather.2.base$Year>1983)
    
-   min.2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.2.dat)
+   min.2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.2.dat, model=FALSE, qr=FALSE)
    save(min.2.lm, file="min.2.lm.Rda")
    min.2.lm = NULL
 
-  max.2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.2.dat)
+  max.2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather.2.dat, model=FALSE, qr=FALSE)
   save(max.2.lm, file="max.2.lm.Rda")
   max.2.lm = NULL
   
-  heat.2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather.2.dat)
+  heat.2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather.2.dat, model=FALSE, qr=FALSE)
   save(heat.2.lm, file="heat.2.lm.Rda")
   heat.2.lm = NULL
   
   weather2.2.dat <- subset(weather.2.base,late.f(weather.2.base$Year+2))
   
-  max2.2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.2.dat)
+  max2.2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.2.dat, model=FALSE, qr=FALSE)
   save(max2.2.lm, file="max2.2.lm.Rda")
   max2.2.lm = NULL
   
-  min2.2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.2.dat)
+  min2.2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather2.2.dat, model=FALSE, qr=FALSE)
   save(min2.2.lm, file="min2.2.lm.Rda")
   min2.2.lm = NULL
   
-  heat2.2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather2.2.dat)
+  heat2.2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather2.2.dat, model=FALSE, qr=FALSE)
   save(heat2.2.lm, file="heat2.2.lm.Rda")
   heat2.2.lm = NULL
   
   weather4.2.dat <- subset(weather.2.base,late.f(weather.2.base$Year+4))
   
-  max4.2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.2.dat)
+  max4.2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.2.dat, model=FALSE, qr=FALSE)
   save(max4.2.lm, file="max4.2.lm.Rda")
   max4.2.lm = NULL
   
-  min4.2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.2.dat)
+  min4.2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather4.2.dat, model=FALSE, qr=FALSE)
   save(min4.2.lm, file="min4.2.lm.Rda")
   min4.2.lm = NULL
   
-  heat4.2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather4.2.dat)
+  heat4.2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather4.2.dat, model=FALSE, qr=FALSE)
   save(heat4.2.lm, file="heat4.2.lm.Rda")
   heat4.2.lm = NULL
   
   weather6.2.dat <- subset(weather.2.base,late.f(weather.2.base$Year+6))
   
-  max6.2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.2.dat)
+  max6.2.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.2.dat, model=FALSE, qr=FALSE)
   save(max6.2.lm, file="max6.2.lm.Rda")
   max6.2.lm = NULL
   
-  min6.2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.2.dat)
+  min6.2.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~ 0 + statecounty + statecounty:Year,data=weather6.2.dat, model=FALSE, qr=FALSE)
   save(min6.2.lm, file="min6.2.lm.Rda")
   min6.2.lm = NULL
   
-  heat6.2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather6.2.dat)
+  heat6.2.lm <- lm(Avg.Daily.Max.Heat.Index..C.~ 0 + statecounty + statecounty:Year,data=weather6.2.dat, model=FALSE, qr=FALSE)
   save(heat6.lm, file="heat6.2.lm.Rda")
   heat6.2.lm = NULL
 }
@@ -205,19 +205,19 @@ if(!file.exists("precip.lm.Rda")) {
   precip4.dat <- subset(precip.dat,late.f(precip.dat$Year+4))
   precip6.dat <- subset(precip.dat,late.f(precip.dat$Year+6))
   
-  precip.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip.dat)
+  precip.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip.dat, model=FALSE, qr=FALSE)
   save(precip.lm, file="precip.lm.Rda")
   precip.lm = NULL
   
-  precip2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip2.dat)
+  precip2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip2.dat, model=FALSE, qr=FALSE)
   save(precip2.lm, file="precip2.lm.Rda")
   precip2.lm = NULL
   
-  precip4.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip4.dat)
+  precip4.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip4.dat, model=FALSE, qr=FALSE)
   save(precip4.lm, file="precip4.lm.Rda")
   precip4.lm = NULL
   
-  precip6.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip6.dat)
+  precip6.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip6.dat, model=FALSE, qr=FALSE)
   save(precip6.lm, file="precip6.lm.Rda")
   precip6.lm = NULL
 }
@@ -233,19 +233,19 @@ if(!file.exists("precip.2.lm.Rda")) {
   precip4.2.dat <- subset(precip.2.dat,late.f(precip.2.dat$Year+4))
   precip6.2.dat <- subset(precip.2.dat,late.f(precip.2.dat$Year+6))
   
-  precip.2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip.2.dat)
+  precip.2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip.2.dat, model=FALSE, qr=FALSE)
   save(precip.2.lm, file="precip.2.lm.Rda")
   precip.2.lm = NULL
   
-  precip2.2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip2.2.dat)
+  precip2.2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip2.2.dat, model=FALSE, qr=FALSE)
   save(precip2.2.lm, file="precip2.2.lm.Rda")
   precip2.2.lm = NULL
   
-  precip4.2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip4.2.dat)
+  precip4.2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip4.2.dat, model=FALSE, qr=FALSE)
   save(precip4.2.lm, file="precip4.2.lm.Rda")
   precip4.2.lm = NULL
   
-  precip6.2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip6.2.dat)
+  precip6.2.lm <- lm(Avg.Daily.Precipitation..mm.~0 + statecounty + statecounty:Year,data=precip6.2.dat, model=FALSE, qr=FALSE)
   save(precip6.2.lm, file="precip6.2.lm.Rda")
   precip6.2.lm = NULL
 }
@@ -262,19 +262,19 @@ if(!file.exists("sun.lm.Rda")) {
   sunlight4.dat <- subset(sunlight.dat,late.f(sunlight.dat$Year+4))
   sunlight6.dat <- subset(sunlight.dat,late.f(sunlight.dat$Year+6))
   
-  sun.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight.dat)
+  sun.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight.dat, model=FALSE, qr=FALSE)
   save(sun.lm, file="sun.lm.Rda")
   sun.lm = NULL
   
-  sun2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight2.dat)
+  sun2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight2.dat, model=FALSE, qr=FALSE)
   save(sun2.lm, file="sun2.lm.Rda")
   sun2.lm = NULL
   
-  sun4.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight4.dat)
+  sun4.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight4.dat, model=FALSE, qr=FALSE)
   save(sun4.lm, file="sun4.lm.Rda")
   sun4.lm = NULL
   
-  sun6.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight6.dat)
+  sun6.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight6.dat, model=FALSE, qr=FALSE)
   save(sun6.lm, file="sun6.lm.Rda")
   sun6.lm = NULL
 }
@@ -291,19 +291,19 @@ if(!file.exists("sun.2.lm.Rda")) {
   sunlight4.2.dat <- subset(sunlight.2.dat,late.f(sunlight.2.dat$Year+4))
   sunlight6.2.dat <- subset(sunlight.2.dat,late.f(sunlight.2.dat$Year+6))
   
-  sun.2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight.2.dat)
+  sun.2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight.2.dat, model=FALSE, qr=FALSE)
   save(sun.2.lm, file="sun.2.lm.Rda")
   sun.2.lm = NULL
   
-  sun2.2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight2.2.dat)
+  sun2.2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight2.2.dat, model=FALSE, qr=FALSE)
   save(sun2.2.lm, file="sun2.2.lm.Rda")
   sun2.2.lm = NULL
   
-  sun4.2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight4.2.dat)
+  sun4.2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight4.2.dat, model=FALSE, qr=FALSE)
   save(sun4.2.lm, file="sun4.2.lm.Rda")
   sun4.2.lm = NULL
   
-  sun6.2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight6.2.dat)
+  sun6.2.lm <- lm(Avg.Daily.Sunlight..KJ.m..~0 + statecounty + statecounty:Year,data=sunlight6.2.dat, model=FALSE, qr=FALSE)
   save(sun6.2.lm, file="sun6.2.lm.Rda")
   sun6.2.lm = NULL
 }
@@ -334,15 +334,15 @@ if(!file.exists("fine.lm.Rda")) {
    fine.dat$statecounty <- paste(fine.dat$State,fine.dat$County,sep=",")
    surface.dat$statecounty <- paste(surface.dat$State,surface.dat$County,sep=",")
 
-   fine.lm <- lm(Avg.Fine.Particulate.Matter~ 0 + statecounty + statecounty:Year,data=fine.dat)
+   fine.lm <- lm(Avg.Fine.Particulate.Matter~ 0 + statecounty + statecounty:Year,data=fine.dat, model=FALSE, qr=FALSE)
    save(fine.lm, file="fine.lm.Rda")
    fine.lm=NA
    
-   day.lm <- lm(Avg.Day.Land.Surface.Temperature..C. ~ 0 + statecounty + statecounty:Year,data=surface.dat)
+   day.lm <- lm(Avg.Day.Land.Surface.Temperature..C. ~ 0 + statecounty + statecounty:Year,data=surface.dat, model=FALSE, qr=FALSE)
    save(day.lm, file="day.lm.Rda")
    day.lm=NA
    
-   night.lm <- lm(Avg.Night.Land.Surface.Temperature..C. ~ 0 + statecounty + statecounty:Year,data=surface.dat)
+   night.lm <- lm(Avg.Night.Land.Surface.Temperature..C. ~ 0 + statecounty + statecounty:Year,data=surface.dat, model=FALSE, qr=FALSE)
    save(night.lm, file="night.lm.Rda")
    night.lm=NA
 } 
@@ -362,15 +362,15 @@ if(!file.exists("fine.2.lm.Rda")) {
    fine.2.dat$statecounty <- paste(fine.2.dat$State,fine.2.dat$County,sep=",")
    surface.2.dat$statecounty <- paste(surface.2.dat$State,surface.2.dat$County,sep=",")
 
-   fine.2.lm <- lm(Avg.Fine.Particulate.Matter~ 0 + statecounty + statecounty:Year,data=fine.2.dat)
+   fine.2.lm <- lm(Avg.Fine.Particulate.Matter~ 0 + statecounty + statecounty:Year,data=fine.2.dat, model=FALSE, qr=FALSE)
    save(fine.2.lm, file="fine.2.lm.Rda")
    fine.2.lm=NA
    
-   day.2.lm <- lm(Avg.Day.Land.Surface.Temperature..C. ~ 0 + statecounty + statecounty:Year,data=surface.2.dat)
+   day.2.lm <- lm(Avg.Day.Land.Surface.Temperature..C. ~ 0 + statecounty + statecounty:Year,data=surface.2.dat, model=FALSE, qr=FALSE)
    save(day.2.lm, file="day.2.lm.Rda")
    day.2.lm=NA
    
-   night.2.lm <- lm(Avg.Night.Land.Surface.Temperature..C. ~ 0 + statecounty + statecounty:Year,data=surface.2.dat)
+   night.2.lm <- lm(Avg.Night.Land.Surface.Temperature..C. ~ 0 + statecounty + statecounty:Year,data=surface.2.dat, model=FALSE, qr=FALSE)
    save(night.2.lm, file="night.2.lm.Rda")
    night.2.lm=NA
 }

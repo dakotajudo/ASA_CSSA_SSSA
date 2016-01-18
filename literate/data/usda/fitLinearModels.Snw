@@ -28,6 +28,7 @@ source("../../../ASA_CSSA_SSSA/R/map_functions.R")
 library(ggplot2)
 library(gridExtra)
 library(maps)
+keepqr=TRUE
 @
 
 This document drives the final analysis, so we save a template for covariates
@@ -63,7 +64,7 @@ if(!file.exists("full.yield.dat.Rda")) {
    
    county.yield1.dat <- read.csv("69C9E26C-F285-325A-9443-6668747878F8.csv", header = TRUE)
    county.yield2.dat <- read.csv("CC71A450-97E2-3D03-BB42-39ACFAFBE2E6.csv", header = TRUE)
-   full.yield.dat <- rbind(county.yield1.dat,county.yield2.dat)
+   full.yield.dat <- rbind(county.yield1.dat,county.yield2.dat, model=FALSE, qr=keepqr)
    county.yield1.dat=NULL
    county.yield2.dat=NULL
    full.yield.dat <- subset(full.yield.dat,county.yield.dat$Value>1)
@@ -102,19 +103,19 @@ if(!file.exists("late.county.lm.Rda")) {
    late.counts <- tapply(county.late.dat$Value,list(county.late.dat$statecounty),length)
    county.late.dat$Count <- late.counts[county.late.dat$statecounty]
    county.late.dat <- subset(county.late.dat,county.late.dat$Count>(min.count-1))
-
-   late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.late.dat)
+   
+   late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.late.dat, model=FALSE, qr=keepqr)  
    
    mid.counts <- tapply(county.mid.dat$Value,list(county.mid.dat$statecounty),length)
    county.mid.dat$Count <- mid.counts[county.mid.dat$statecounty]
    county.mid.dat <- subset(county.mid.dat,county.mid.dat$Count>(min.count-1))
-   mid.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.mid.dat)
+   mid.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.mid.dat, model=FALSE, qr=keepqr)
    #summary(mid.lm)
 
    early.counts <- tapply(county.early.dat$Value,list(county.early.dat$statecounty),length)
    county.early.dat$Count <- early.counts[county.early.dat$statecounty]
    county.early.dat <- subset(county.early.dat,county.early.dat$Count>(min.count-1))
-   early.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.early.dat)
+   early.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.early.dat, model=FALSE, qr=keepqr)
    
    save(late.county.lm, file="late.county.lm.Rda")
    save(early.lm, file="early.lm.Rda")
@@ -133,18 +134,18 @@ if(!file.exists("full.county.lm.Rda")) {
    full.late.dat$Count <- late.counts[full.late.dat$statecounty]
    full.late.dat <- subset(full.late.dat,full.late.dat$Count>(min.count-1))
 
-   late.full.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=full.late.dat)
+   late.full.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=full.late.dat, model=FALSE, qr=keepqr)
    
    mid.counts <- tapply(full.mid.dat$Value,list(full.mid.dat$statecounty),length)
    full.mid.dat$Count <- mid.counts[full.mid.dat$statecounty]
    full.mid.dat <- subset(full.mid.dat,full.mid.dat$Count>(min.count-1))
-   mid.full.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=full.mid.dat)
+   mid.full.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=full.mid.dat, model=FALSE, qr=keepqr)
    #summary(mid.lm)
 
    early.counts <- tapply(full.early.dat$Value,list(full.early.dat$statecounty),length)
    full.early.dat$Count <- early.counts[full.early.dat$statecounty]
    full.early.dat <- subset(full.early.dat,full.early.dat$Count>(min.count-1))
-   early.full.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=full.early.dat)
+   early.full.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=full.early.dat, model=FALSE, qr=keepqr)
    
    save(late.full.lm, file="late.full.lm.Rda")
    save(early.full.lm, file="early.full.lm.Rda")
@@ -179,13 +180,14 @@ county.yield.plot
 We generate a base file for later covariate analysis of county level wheat yields. We start with yield regression.
 <<>>=
 load.if.needed("late.county.lm")
+load.if.needed("county.late.dat")
 @
 
 <<fig=TRUE,echo=false,results=hide,width=6,height=4>>=
 gg.default.theme <- theme_bw()
 gg.default.theme$legend.position = "none"
 	
-ggplot(late.county.lm$model, aes(Year,Value)) + 
+ggplot(county.late.dat, aes(Year,Value)) + 
    geom_point(aes(color=statecounty),size=2,alpha = 0.2) + gg.default.theme +
    geom_smooth(aes(group=statecounty,color=statecounty),weight=10,se = FALSE,method="lm")
 @
@@ -246,15 +248,15 @@ ggmap.full.values(yield.b.full.estimates,names(yield.b.full.estimates))
 @
 
 <<fig=TRUE,echo=false>>=
-minyear <- min(late.county.lm$model$Year)
-maxyear <- max(late.county.lm$model$Year)
+minyear <- min(county.late.dat$Year)
+maxyear <- max(county.late.dat$Year)
 midpoint <- minyear + (maxyear-minyear)/2
 estimate.mean <- yield.a.estimates + midpoint*yield.b.estimates
 ggmap.values(estimate.mean,names(yield.a.estimates))
 @
 
 <<fig=TRUE,echo=false>>=
-values <- tapply(late.county.lm$model$Value,list(late.county.lm$model$statecounty),mean, na.rm=TRUE)
+values <- tapply(county.late.dat$Value,list(county.late.dat$statecounty),mean, na.rm=TRUE)
 common.names <- names(estimate.mean)[names(estimate.mean)%in%names(values)]
 plot(values[common.names],estimate.mean[common.names])
 @
@@ -296,9 +298,9 @@ if(!file.exists("harvested.late.county.lm.Rda")) {
    harvested.late.dat$Count <- harvested.late.counts[harvested.late.dat$statecounty]
    harvested.late.dat <- subset(harvested.late.dat,harvested.late.dat$Count>(min.count-1))
 
-   harvested.late.lm <- lm(Value ~ Year,data=harvested.late.dat)
-   harvested.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=harvested.late.dat)
-   harvested.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=harvested.late.dat)
+   harvested.late.lm <- lm(Value ~ Year,data=harvested.late.dat, model=FALSE, qr=keepqr)
+   harvested.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=harvested.late.dat, model=FALSE, qr=keepqr)
+   harvested.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=harvested.late.dat, model=FALSE, qr=keepqr)
    save(harvested.late.county.lm, file="harvested.late.county.lm.Rda")
 }
 
@@ -323,7 +325,7 @@ if(!file.exists("harvested.late.full.lm.Rda")) {
    harvested.late.dat$Count <- harvested.late.counts[harvested.late.dat$statecounty]
    harvested.late.dat <- subset(harvested.late.dat,harvested.late.dat$Count>(min.count-1))
 
-   harvested.late.full.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=harvested.late.dat)
+   harvested.late.full.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=harvested.late.dat, model=FALSE, qr=keepqr)
    save(harvested.late.full.lm, file="harvested.late.full.lm.Rda")
 }
 
@@ -359,9 +361,9 @@ if(!file.exists("acres.late.county.lm.Rda")) {
    acres.late.dat$Count <- acres.late.counts[acres.late.dat$statecounty]
    acres.late.dat <- subset(acres.late.dat,acres.late.dat$Count>(min.count-1))
 
-   acres.late.lm <- lm(Value ~ Year,data=acres.late.dat)
-   acres.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=acres.late.dat)
-   acres.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=acres.late.dat)
+   acres.late.lm <- lm(Value ~ Year,data=acres.late.dat, model=FALSE, qr=keepqr)
+   acres.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=acres.late.dat, model=FALSE, qr=keepqr)
+   acres.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=acres.late.dat, model=FALSE, qr=keepqr)
 
    save(acres.late.county.lm, file="acres.late.county.lm.Rda")
 }
@@ -392,7 +394,7 @@ if(!file.exists("acres.late.full.lm.Rda")) {
    full.acres.late.dat$Count <- full.acres.late.counts[full.acres.late.dat$statecounty]
    full.acres.late.dat <- subset(full.acres.late.dat,full.acres.late.dat$Count>(min.count-1))
 
-   acres.late.full.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=full.acres.late.dat)
+   acres.late.full.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=full.acres.late.dat, model=FALSE, qr=keepqr)
 
    save(acres.late.full.lm, file="acres.late.full.lm.Rda")
 }
@@ -443,9 +445,9 @@ if(!file.exists("production.late.county.lm.Rda")) {
    production.late.dat$Count <- production.late.counts[production.late.dat$statecounty]
    production.late.dat <- subset(production.late.dat,production.late.dat$Count>(min.count-1))
 
-   production.late.lm <- lm(Value ~ Year,data=production.late.dat)
-   production.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=production.late.dat)
-   production.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=production.late.dat)
+   production.late.lm <- lm(Value ~ Year,data=production.late.dat, model=FALSE, qr=keepqr)
+   production.late.state.lm <- lm(Value ~ 0 + State + State:Year,data=production.late.dat, model=FALSE, qr=keepqr)
+   production.late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=production.late.dat, model=FALSE, qr=keepqr)
    
     save(production.late.county.lm, file="production.late.county.lm.Rda")
     
@@ -495,14 +497,14 @@ income.relative.dat <- subset(income.relative.dat,late.f(income.relative.dat$Yea
 #income.relative.dat$Count <- income.relative.counts[income.relative.dat$statecounty]
 #income.relative.dat <- subset(income.relative.dat,income.relative.dat$Count>(min.count-1))
 
-income.relative.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=income.relative.dat)
+income.relative.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=income.relative.dat, model=FALSE, qr=keepqr)
    
    income.total.dat <- subset(income.total.dat,late.f(income.total.dat$Year))
    #income.total.counts <- tapply(income.total.dat$Value,list(income.total.dat$statecounty),length)
    #income.total.dat$Count <- income.total.counts[income.total.dat$statecounty]
    #income.total.dat <- subset(income.total.dat,income.total.dat$Count>(min.count-1))
 
-   income.total.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=income.total.dat)
+   income.total.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=income.total.dat, model=FALSE, qr=keepqr)
    
    save(income.total.county.lm, file="income.total.county.lm.Rda")
    save(income.relative.county.lm, file="income.relative.county.lm.Rda")
@@ -541,14 +543,14 @@ full.income.relative.dat <- subset(full.income.relative.dat,late.f(full.income.r
 #full.income.relative.dat$Count <- full.income.relative.counts[full.income.relative.dat$statecounty]
 #full.income.relative.dat <- subset(full.income.relative.dat,full.income.relative.dat$Count>(min.count-1))
 
-full.income.relative.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=full.income.relative.dat)
+full.income.relative.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=full.income.relative.dat, model=FALSE, qr=keepqr)
    
    full.income.total.dat <- subset(full.income.total.dat,late.f(full.income.total.dat$Year))
    #full.income.total.counts <- tapply(full.income.total.dat$Value,list(full.income.total.dat$statecounty),length)
    #full.income.total.dat$Count <- full.income.total.counts[full.income.total.dat$statecounty]
    #full.income.total.dat <- subset(full.income.total.dat,full.income.total.dat$Count>(min.count-1))
 
-   full.income.total.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=full.income.total.dat)
+   full.income.total.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=full.income.total.dat, model=FALSE, qr=keepqr)
    
    save(full.income.total.county.lm, file="full.income.total.county.lm.Rda")
    save(full.income.relative.county.lm, file="full.income.relative.county.lm.Rda")
@@ -691,9 +693,9 @@ if(!file.exists("late2.county.lm.Rda")) {
    county.late6.dat$Count <- late6.counts[county.late6.dat$statecounty]
    county.late6.dat <- subset(county.late6.dat,county.late6.dat$Count>(min.count-1))
    
-   late2.county.lm <-update(late.county.lm,data=county.late2.dat)
-   late4.county.lm <-update(late.county.lm,data=county.late4.dat)
-   late6.county.lm <-update(late.county.lm,data=county.late6.dat)
+   late2.county.lm <-update(late.county.lm,data=county.late2.dat, model=FALSE, qr=keepqr)
+   late4.county.lm <-update(late.county.lm,data=county.late4.dat, model=FALSE, qr=keepqr)
+   late6.county.lm <-update(late.county.lm,data=county.late6.dat, model=FALSE, qr=keepqr)
    
    save(late2.county.lm, file="late2.county.lm.Rda")
    save(late4.county.lm, file="late4.county.lm.Rda")
@@ -712,9 +714,9 @@ if(!file.exists("late2.county.lm.Rda")) {
    county.late15.dat$Count <- late15.counts[county.late15.dat$statecounty]
    county.late15.dat <- subset(county.late15.dat,county.late15.dat$Count>(min.count-1))
    
-   late5.county.lm <-update(late.county.lm,data=county.late5.dat)
-   late10.county.lm <-update(late.county.lm,data=county.late10.dat)
-   late15.county.lm <-update(late.county.lm,data=county.late15.dat)
+   late5.county.lm <-update(late.county.lm,data=county.late5.dat, model=FALSE, qr=keepqr)
+   late10.county.lm <-update(late.county.lm,data=county.late10.dat, model=FALSE, qr=keepqr)
+   late15.county.lm <-update(late.county.lm,data=county.late15.dat, model=FALSE, qr=keepqr)
    
    save(late5.county.lm, file="late5.county.lm.Rda")
    save(late10.county.lm, file="late10.county.lm.Rda")
@@ -746,9 +748,9 @@ if(!file.exists("late2.full.lm.Rda")) {
    full.late6.dat$Count <- late6.counts[full.late6.dat$statecounty]
    full.late6.dat <- subset(full.late6.dat,full.late6.dat$Count>(min.count-1))
    
-   late2.full.lm <-update(late.full.lm,data=full.late2.dat)
-   late4.full.lm <-update(late.full.lm,data=full.late4.dat)
-   late6.full.lm <-update(late.full.lm,data=full.late6.dat)
+   late2.full.lm <-update(late.full.lm,data=full.late2.dat, model=FALSE, qr=keepqr)
+   late4.full.lm <-update(late.full.lm,data=full.late4.dat, model=FALSE, qr=keepqr)
+   late6.full.lm <-update(late.full.lm,data=full.late6.dat, model=FALSE, qr=keepqr)
    
    save(late2.full.lm, file="late2.full.lm.Rda")
    save(late4.full.lm, file="late4.full.lm.Rda")
@@ -767,9 +769,9 @@ if(!file.exists("late2.full.lm.Rda")) {
    full.late15.dat$Count <- late15.counts[full.late15.dat$statecounty]
    full.late15.dat <- subset(full.late15.dat,full.late15.dat$Count>(min.count-1))
    
-   late5.full.lm <-update(late.full.lm,data=full.late5.dat)
-   late10.full.lm <-update(late.full.lm,data=full.late10.dat)
-   late15.full.lm <-update(late.full.lm,data=full.late15.dat)
+   late5.full.lm <-update(late.full.lm,data=full.late5.dat, model=FALSE, qr=keepqr)
+   late10.full.lm <-update(late.full.lm,data=full.late10.dat, model=FALSE, qr=keepqr)
+   late15.full.lm <-update(late.full.lm,data=full.late15.dat, model=FALSE, qr=keepqr)
    
    save(late5.full.lm, file="late5.full.lm.Rda")
    save(late10.full.lm, file="late10.full.lm.Rda")
