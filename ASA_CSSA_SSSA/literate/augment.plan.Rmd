@@ -1,0 +1,135 @@
+---
+title: "augment.plan"
+author: "Peter Claussen"
+date: "April 7, 2016"
+output: html_document
+---
+
+Assume we have a plan of the form
+
+```{r}
+source('../R/cycle.R')
+source('../R/weave.R')
+source('../R/make.plan.R')
+library(agridat)
+```
+
+```{r}
+plan <- data.frame(
+     trt=c(4,1,3,2,1,3,4,2,3,2,4,1,2,3,4,1),
+     row=c(rep(1,4),rep(2,4),rep(3,4),rep(4,4)),
+     col=c(rep(1:4,4))
+  )
+```
+
+We want to augment this plan with a specified number of unreplicated entries. 
+
+First, convert the plan to a matrix
+```{r}
+rows <- max(plan$row)
+cols <- max(plan$col)
+v_t <- max(plan$trt)
+plan.matrix <- matrix(rep(0,rows*cols),nrow=rows)
+
+for(idx in 1:length(plan$row)) {
+  r = plan$row[idx]
+  c = plan$col[idx]
+  plan.matrix[r,c] = plan$trt[idx]
+}
+plan.matrix
+```
+
+
+Populate an array of unreplicated
+```{r}
+v_1 <- 1:64
+v_1 <- v_1 + v_t
+
+v_star = length(v_1)
+```
+
+count the actual number of check plots
+
+```{r}
+blocks <- dim(plan.matrix)[1]
+cols <- dim(plan.matrix)[2]
+
+k_u = ceiling(v_star / blocks)
+
+neededChecks = k_u * blocks - v_star
+```
+
+```{r}
+if (neededChecks > 0) {
+  padding = sample(v_r, neededChecks)
+  v_1 <- c(v_1,padding)
+}
+```
+
+```{r}
+v_1 = sample(v_1)
+```
+
+```{r}
+k_r = cols
+```
+
+
+The number of entries in the augmented blocks
+```{r}
+k  = k_u + k_r
+```
+
+```{r}
+aug.matrix <- matrix(rep(0,rows*k),nrow=rows)
+```
+
+```{r}
+startOffset  = sample(k)[1]
+```
+
+
+we copy a range of entries from V_u
+```{r}
+a = 1
+b = k_u
+```
+
+repeat for each whole block
+```{r}
+for (row in 1:rows) {
+  V_r = plan.matrix[row,]
+  lines = v_1[a:(a+b-1)]
+  a = a + b
+
+  entries <- c()
+
+  #how many lines do we need to pad out the block?
+  needed = k - length(V_r)
+  if (length(lines) < (needed)) {
+    #pad with controls
+    tmp = sample(V_r, needed - length(lines))
+
+    lines <- c(lines,tmp)
+    lines = sample(lines)
+  }
+
+  entries = weave(V_r, lines, random=TRUE)
+
+  stagger  = floor(sqrt(k_u / k_r))
+
+  entries = cycle(entries, startOffset)
+  startOffset = startOffset - stagger
+  if (startOffset < 1) {
+    startOffset = k_u + k_r + startOffset
+  }
+  aug.matrix[row,] <- entries    
+}
+```
+
+```{r}
+aug.matrix
+```
+
+
+

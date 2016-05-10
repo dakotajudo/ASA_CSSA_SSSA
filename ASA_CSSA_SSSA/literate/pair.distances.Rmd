@@ -1,0 +1,40 @@
+---
+title: "pair.distances"
+author: "Peter Claussen"
+date: "April 12, 2016"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(grid) #textGrob
+library(gridExtra) #grid.arrange
+library(agridat)
+source("../R/contrast.distances.R")
+source("../R/average.distances.R")
+source("../R/pair.distances.R")
+source("../R/plot.distance.R")
+source("../R/expected.adtc.R")
+```
+
+
+
+Scott 1993 
+```{r}
+Scott.plan <- data.frame(
+  row=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3),
+  col=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+  trt=c(1, 5, 7, 2, 6, 8, 3, 10, 4, 9, 11, 12, 3, 14, 13, 1, 16, 2, 15, 4, 1, 19, 1, 2, 21, 18, 3, 20, 4, 17)
+)
+desplot(trt ~ col*row, data=Scott.plan, num=trt, main="Scott 1993")
+
+
+pairs.dat <- pair.distances(Scott.plan)
+make.pairs.table(pairs.dat)
+
+pairs2.dat <- pair.distances(Scott.plan,reference=1:4)
+make.pairs.table(pairs2.dat)
+
+make.pairs.matrices(make.pairs.table(pairs.dat))
+make.pairs.matrices(make.pairs.table(pairs2.dat))
+```
