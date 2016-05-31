@@ -93,121 +93,121 @@ The next step is hidden, but basically fits a linear model for each data column 
 
 <<>>=  
 if(!file.exists("Farm_TonsN.lm.Rda")) {
-     Farm_TonsN.lm <- lm(Farm_TonsN ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Farm_TonsN.lm <- lm(Farm_TonsN ~ 0 + statecounty + statecounty:Year,data=ipni.dat,model=FALSE)
      save(Farm_TonsN.lm, file="Farm_TonsN.lm.Rda")
      Farm_TonsN.lm = NULL
      
-     Farm_TonsP.lm <- lm(Farm_TonsP  ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Farm_TonsP.lm <- lm(Farm_TonsP  ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(Farm_TonsP.lm, file="Farm_TonsP.lm.Rda")
      Farm_TonsP.lm = NULL
      
-     Farm_TonsK.lm <- lm(Farm_TonsK ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Farm_TonsK.lm <- lm(Farm_TonsK ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(Farm_TonsK.lm, file="Farm_TonsK.lm.Rda")
      Farm_TonsK.lm =  NULL
      
-     Tons_N_Exc.lm <- lm(Tons_N_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Tons_N_Exc.lm <- lm(Tons_N_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(Tons_N_Exc.lm, file="Tons_N_Exc.lm.Rda")
      Tons_N_Exc.lm = NULL
      
-     Tons_P2O5_Exc.lm <- lm(Tons_P2O5_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Tons_P2O5_Exc.lm <- lm(Tons_P2O5_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(Tons_P2O5_Exc.lm, file="Tons_P2O5_Exc.lm.Rda")
      Tons_P2O5_Exc.lm = NULL
      
-     Tons_K2O_Exc.lm <- lm(Tons_K2O_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Tons_K2O_Exc.lm <- lm(Tons_K2O_Exc ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(Tons_K2O_Exc.lm, file="Tons_K2O_Exc.lm.Rda")
      Tons_K2O_Exc.lm = NULL
      
-     Tons_N_Recovered.lm <- lm(Tons_N_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Tons_N_Recovered.lm <- lm(Tons_N_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(Tons_N_Recovered.lm, file="Tons_N_Recovered.lm.Rda")
      Tons_N_Recovered.lm = NULL
      
-     Tons_P2O5_Recovered.lm <- lm(Tons_P2O5_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Tons_P2O5_Recovered.lm <- lm(Tons_P2O5_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(Tons_P2O5_Recovered.lm, file="Tons_P2O5_Recovered.lm.Rda")
      Tons_P2O5_Recovered.lm = NULL
      
-     Tons_K2O_Recovered.lm <- lm(Tons_K2O_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat) 
+     Tons_K2O_Recovered.lm <- lm(Tons_K2O_Recovered ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE) 
      save(Tons_K2O_Recovered.lm, file="Tons_K2O_Recovered.lm.Rda")
      Tons_K2O_Recovered.lm = NULL
      
-     Tons_N_Fixed_Legumes.lm <- lm(Tons_N_Fixed_Legumes ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Tons_N_Fixed_Legumes.lm <- lm(Tons_N_Fixed_Legumes ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(Tons_N_Fixed_Legumes.lm, file="Tons_N_Fixed_Legumes.lm.Rda")
      Tons_N_Fixed_Legumes.lm = NULL
      
-     Tons_N_Rem.lm <- lm(Tons_N_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Tons_N_Rem.lm <- lm(Tons_N_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(Tons_N_Rem.lm, file="Tons_N_Rem.lm.Rda")
      Tons_N_Rem.lm =  NULL
      
-     Tons_P2O5_Rem.lm <- lm(Tons_P2O5_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Tons_P2O5_Rem.lm <- lm(Tons_P2O5_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(Tons_P2O5_Rem.lm, file="Tons_P2O5_Rem.lm.Rda")
      Tons_P2O5_Rem.lm = NULL
      
-     Tons_K2O_Rem.lm <- lm(Tons_K2O_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Tons_K2O_Rem.lm <- lm(Tons_K2O_Rem ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(Tons_K2O_Rem.lm, file="Tons_K2O_Rem.lm.Rda")
      Tons_K2O_Rem.lm = NULL
      
-     BalanceN_Tons.lm <- lm(BalanceN_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     BalanceN_Tons.lm <- lm(BalanceN_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(BalanceN_Tons.lm, file="BalanceN_Tons.lm.Rda")
      BalanceN_Tons.lm = NULL
      
-     BalanceP2O5_Tons.lm <- lm(BalanceP2O5_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     BalanceP2O5_Tons.lm <- lm(BalanceP2O5_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(BalanceP2O5_Tons.lm, file="BalanceP2O5_Tons.lm.Rda")
      BalanceP2O5_Tons.lm = NULL
      
-     BalanceK2O_Tons.lm <- lm(BalanceK2O_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     BalanceK2O_Tons.lm <- lm(BalanceK2O_Tons ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(BalanceK2O_Tons.lm, file="BalanceK2O_Tons.lm.Rda")
      BalanceK2O_Tons.lm = NULL
      
-     RatioN.lm <- lm(RatioN ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     RatioN.lm <- lm(RatioN ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(RatioN.lm, file="RatioN.lm.Rda")
      RatioN.lm = NULL
      
-     RatioP2O5.lm <- lm(RatioP2O5 ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     RatioP2O5.lm <- lm(RatioP2O5 ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(RatioP2O5.lm, file="RatioP2O5.lm.Rda")
      RatioP2O5.lm = NULL
      
-     RatioK2O.lm <- lm(RatioK2O ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     RatioK2O.lm <- lm(RatioK2O ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(RatioK2O.lm, file="RatioK2O.lm.Rda")
      RatioK2O.lm = NULL
      
-     N_PPCA.lm <- lm(N_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     N_PPCA.lm <- lm(N_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(N_PPCA.lm, file="N_PPCA.lm.Rda")
      N_PPCA.lm = NULL
      
-     P2O5_PPCA.lm <- lm(P2O5_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     P2O5_PPCA.lm <- lm(P2O5_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(P2O5_PPCA.lm, file="P2O5_PPCA.lm.Rda")
      P2O5_PPCA.lm = NULL
      
-     K2O_PPCA.lm <- lm(K2O_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     K2O_PPCA.lm <- lm(K2O_PPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(K2O_PPCA.lm, file="K2O_PPCA.lm.Rda")
      K2O_PPCA.lm = NULL
      
-     FarmNPPCA.lm <- lm(FarmNPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     FarmNPPCA.lm <- lm(FarmNPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(FarmNPPCA.lm, file="FarmNPPCA.lm.Rda")
      FarmNPPCA.lm = NULL
      
-     FarmPPPCA.lm <- lm(FarmPPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     FarmPPPCA.lm <- lm(FarmPPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(FarmPPPCA.lm, file="FarmPPPCA.lm.Rda")
      FarmPPPCA.lm = NULL
      
-     FarmKPPCA.lm <- lm(FarmKPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     FarmKPPCA.lm <- lm(FarmKPPCA ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(FarmKPPCA.lm, file="FarmKPPCA.lm.Rda")
      FarmKPPCA.lm = NULL 
 }
 
 if(!file.exists("X21Crop_TotalPlantedAc.lm.Rda")) {   
-     X21Crop_TotalPlantedAc.lm <- lm(X21Crop_TotalPlantedAc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     X21Crop_TotalPlantedAc.lm <- lm(X21Crop_TotalPlantedAc ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(X21Crop_TotalPlantedAc.lm, file="X21Crop_TotalPlantedAc.lm.Rda")
      X21Crop_TotalPlantedAc.lm = NULL
      
-     X21Crop_TotalHarvestAc.lm <- lm(X21Crop_TotalHarvestAc ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     X21Crop_TotalHarvestAc.lm <- lm(X21Crop_TotalHarvestAc ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(X21Crop_TotalHarvestAc.lm, file="X21Crop_TotalHarvestAc.lm.Rda")
       X21Crop_TotalHarvestAc.lm = NULL
       
-     Total_Harvested_Cropland_Acres.lm <- lm(Total_Harvested_Cropland_Acres ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     Total_Harvested_Cropland_Acres.lm <- lm(Total_Harvested_Cropland_Acres ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE, qr=FALSE)
      save(Total_Harvested_Cropland_Acres.lm, file="Total_Harvested_Cropland_Acres.lm.Rda")
      Total_Harvested_Cropland_Acres.lm = NULL
      
-     TotalCropland.lm <- lm(TotalCropland ~ 0 + statecounty + statecounty:Year,data=ipni.dat)
+     TotalCropland.lm <- lm(TotalCropland ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE)
      save(TotalCropland.lm, file="TotalCropland.lm.Rda")
      TotalCropland.lm = NULL
 }

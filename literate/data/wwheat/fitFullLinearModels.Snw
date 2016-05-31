@@ -145,11 +145,11 @@ Plot the actual gap by year
 
 <<>>=
 rpndry.dat <- subset(rpndry.dat,rpndry.dat$Count>10)
-summary(lm(Gap ~ Location + Cycle, data=rpndry.dat))
-summary(lm(GapPercent ~ Location + Cycle, data=rpndry.dat))
+summary(lm(Gap ~ Location + Cycle, data=rpndry.dat, model=FALSE, qr=FALSE))
+summary(lm(GapPercent ~ Location + Cycle, data=rpndry.dat, model=FALSE, qr=FALSE))
 
-summary(lm(Gap ~ Trial + Cycle, data=rpndry.dat))
-summary(lm(GapPercent ~ Trial + Cycle, data=rpndry.dat))
+summary(lm(Gap ~ Trial + Cycle, data=rpndry.dat, model=FALSE, qr=FALSE))
+summary(lm(GapPercent ~ Trial + Cycle, data=rpndry.dat, model=FALSE, qr=FALSE))
 @
 <<fig=TRUE>>=
 yield.gap5.plot <- ggplot(rpndry.dat, aes(Cycle,Gap),xlab="Year",ylab="Gap")
@@ -170,8 +170,8 @@ yield.gap6b.plot
 @
 
 <<>>=
-gap.lm <- lm(Gap ~ 0 + Location + Location:Cycle, data=rpndry.dat)
-gapper.lm <- lm(GapPercent ~ 0 + Location + Location:Cycle, data=rpndry.dat)
+gap.lm <- lm(Gap ~ 0 + Location + Location:Cycle, data=rpndry.dat, model=FALSE, qr=FALSE)
+gapper.lm <- lm(GapPercent ~ 0 + Location + Location:Cycle, data=rpndry.dat, model=FALSE, qr=FALSE)
 summary(gap.lm)
 summary(gapper.lm)
 @
@@ -221,7 +221,7 @@ ggmap.full.values(locations.dat$gapperintercept,locations.dat$statecounty,main="
 @
 
 <<fig=TRUE>>=
-yield.rpn.lm <- lm(Value ~ 0 + statecounty + statecounty:Cycle, data=rpndry.dat)
+yield.rpn.lm <- lm(Value ~ 0 + statecounty + statecounty:Cycle, data=rpndry.dat, model=FALSE, qr=FALSE)
 yield.rpn.a <- extract.county.estimates(yield.rpn.lm,term=1)
 yield.rpn.b <- extract.county.estimates(yield.rpn.lm,term=2)
 yield.rpn.a <- yield.rpn.a + yield.rpn.b*1999
