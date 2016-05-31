@@ -1,0 +1,45 @@
+\documentclass[]{article}
+<<echo=false,results=hide>>=
+options(useFancyQuotes = "TeX")
+library(lme4)
+library(ggplot2)
+@\textbf{}
+
+\begin{document}
+
+Bayesian Modeling of Heterogenous Error and Genotype $\times$ Environment Interaction Variances.
+Jode W. Edwards and Jean-Luc Jannink. \cite{edwards.j-2006}
+
+Edwards and Jannink address an analysis problem inherent in the design of experiments fundamental to crop science research. They use for their discussion a series of trials 
+
+\cite{so-2009} Heterogeneity is common in these trials, but modeling heterogenous variance may not improve prediction \cite{so-2011}
+
+BLUP
+\cite{piepho.m-4-2008}
+BLUP in Bayesian and Frequentist contexts.
+\cite{blasco.a-2001}
+
+stan-src-1.1.1
+in 
+make ./src/models/basic_estimators/bernoulli
+
+make ./src/models/bugs_examples/vol2/schools
+
+./my_model --data=my_data
+
+schools.stan
+equiv.stan
+
+pigs.stan
+
+\cite{besag-1999} RCB analysis; see also CARramp package
+
+
+Three papers citing WinBUGS ins Crop Science
+chernyshova.a-11-2007
+\cite{edwards.j-2006}
+
+\bibliography{asa.bib}	
+\bibliographystyle{plain}
+
+\end{document}

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ScrivenerProject Version="1.5" Creator="SCRMAC-2.7.1-26120" Device="Peters-MacBook-Pro-2" Modified="2015-12-31 12:49:22 -0600" ModID="3AFE9791-33FE-41E4-9304-307654F77A5E">
+    <Binder>
+        <BinderItem ID="0" UUID="798D8E0A-B8AE-47CB-8B01-C2C2735FE691" Type="DraftFolder" Created="2014-01-14 12:59:07 -0600" Modified="2014-01-14 12:59:07 -0600">
+            <Title>Draft</Title>
+            <MetaData>
+                <IncludeInCompile>Yes</IncludeInCompile>
+            </MetaData>
+            <Children>
+                <BinderItem ID="3" UUID="C299B87C-C7A7-4B93-8326-6478720A6E3A" Type="Text" Created="2014-01-14 12:59:07 -0600" Modified="2014-01-17 11:09:54 -0600">
+                    <Title>Randomized Complete Block</Title>
+                    <MetaData>
+                        <IncludeInCompile>Yes</IncludeInCompile>
+                        <NotesTextSelection>0,0</NotesTextSelection>
+                    </MetaData>
+                    <TextSettings>
+                        <TextSelection>522,0</TextSelection>
+                    </TextSettings>
+                </BinderItem>
+                <BinderItem ID="4" UUID="D308E90F-3D26-4BA1-AA91-DC2F1231C68F" Type="Text" Created="2014-01-14 12:59:15 -0600" Modified="2014-01-14 12:59:15 -0600">
+                    <Title>Untitled</Title>
+                    <MetaData>
+                        <IncludeInCompile>Yes</IncludeInCompile>
+                        <NotesTextSelection>0,0</NotesTextSelection>
+                    </MetaData>
+                    <TextSettings>
+                        <TextSelection>0,0</TextSelection>
+                    </TextSettings>
+                </BinderItem>
+                <BinderItem ID="5" UUID="6480C78A-E9A2-4FEE-BDEE-38806539C351" Type="Folder" Created="2014-01-14 12:59:19 -0600" Modified="2014-01-14 12:59:27 -0600">
+                    <Title>Tables</Title>
+                    <MetaData>
+                        <IncludeInCompile>Yes</IncludeInCompile>
+                        <NotesTextSelection>0,0</NotesTextSelection>
+                    </MetaData>
+                    <TextSettings>
+                        <TextSelection>0,0</TextSelection>
+                    </TextSettings>
+                    <Children>
+                        <BinderItem ID="6" UUID="E6DDAB48-7659-4E6C-AF6B-EF8F2C69162E" Type="Text" Created="2014-01-14 12:59:27 -0600" Modified="2014-01-14 12:59:42 -0600">
+                            <Title>RCB</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                                <NotesTextSelection>0,0</NotesTextSelection>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>0,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem ID="7" UUID="A180285F-E477-4122-ADAD-0AFE77C03882" Type="Text" Created="2014-01-14 12:59:43 -0600" Modified="2014-01-20 16:44:34 -0600">
+                            <Title>SAS Multilocation</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                                <NotesTextSelection>0,0</NotesTextSelection>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>447,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem ID="8" UUID="33524CBD-79C7-4D2F-8045-A01D392D0451" Type="Text" Created="2014-01-14 12:59:50 -0600" Modified="2014-01-14 17:10:48 -0600">
+                            <Title>Steel and Torrie</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                                <NotesTextSelection>0,0</NotesTextSelection>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>132,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                    </Children>
+                </BinderItem>
+            </Children>
+        </BinderItem>
+        <BinderItem ID="1" UUID="E5B39BD9-7F9C-47CF-BA19-F2492F85A978" Type="ResearchFolder" Created="2014-01-14 12:59:07 -0600" Modified="2014-01-14 12:59:07 -0600">
+            <Title>Research</Title>
+            <MetaData>
+                <IncludeInCompile>Yes</IncludeInCompile>
+            </MetaData>
+            <Children>
+                <BinderItem ID="9" UUID="FBA98764-1E30-41D7-B5CD-508EBFC5A863" Type="Text" Created="2014-01-17 11:14:46 -0600" Modified="2014-01-17 11:24:11 -0600">
+                    <Title>RCB examples</Title>
+                    <MetaData>
+                        <IncludeInCompile>Yes</IncludeInCompile>
+                        <NotesTextSelection>0,0</NotesTextSelection>
+                    </MetaData>
+                    <TextSettings>
+                        <TextSelection>130,0</TextSelection>
+                    </TextSettings>
+                </BinderItem>
+                <BinderItem ID="10" UUID="B6AAC83F-0FA2-4B35-A3AE-4C98FEE421F6" Type="Text" Created="2014-01-17 11:15:19 -0600" Modified="2014-01-17 11:15:39 -0600">
+                    <Title>Spatial</Title>
+                    <MetaData>
+                        <IncludeInCompile>Yes</IncludeInCompile>
+                        <NotesTextSelection>0,0</NotesTextSelection>
+                    </MetaData>
+                    <TextSettings>
+                        <TextSelection>39,0</TextSelection>
+                    </TextSettings>
+                </BinderItem>
+            </Children>
+        </BinderItem>
+        <BinderItem ID="2" UUID="14E20109-5847-44F7-AA72-BDC79DE4D33D" Type="TrashFolder" Created="2014-01-14 12:59:07 -0600" Modified="2014-01-14 12:59:07 -0600">
+            <Title>Trash</Title>
+            <MetaData>
+                <IncludeInCompile>Yes</IncludeInCompile>
+            </MetaData>
+        </BinderItem>
+    </Binder>
+    <Collections>
+        <Collection Type="Binder" ID="BB37B574-60EB-4507-AA97-94756CE321D7" Color="0.784753 0.815752 0.848702">
+            <Title>Binder</Title>
+        </Collection>
+        <Collection Type="RecentSearch" ID="706A73D7-5C41-4DF1-B854-C9F861A81F6C" Color="0.922 0.91 0.98">
+            <Title>Search Results</Title>
+        </Collection>
+    </Collections>
+    <LabelSettings>
+        <Title>Label</Title>
+        <DefaultLabelID>-1</DefaultLabelID>
+        <Labels>
+            <Label ID="-1">No Label</Label>
+            <Label ID="0" Color="0.9 0.92 0.95">Concept</Label>
+            <Label ID="1" Color="0.985 0.875 0.85">Chapter</Label>
+        </Labels>
+    </LabelSettings>
+    <StatusSettings>
+        <Title>Status</Title>
+        <DefaultStatusID>-1</DefaultStatusID>
+        <StatusItems>
+            <Status ID="-1">No Status</Status>
+            <Status ID="0">To Do</Status>
+            <Status ID="1">First Draft</Status>
+            <Status ID="2">Revised Draft</Status>
+            <Status ID="3">Final Draft</Status>
+            <Status ID="4">Done</Status>
+        </StatusItems>
+    </StatusSettings>
+    <ProjectTargets Notify="No">
+        <DraftTarget Type="Words" CountIncludedOnly="Yes" CurrentCompileGroupOnly="No" Deadline="2014-01-14 12:59:07 -0600" IgnoreDeadline="Yes">0</DraftTarget>
+        <SessionTarget Type="Words" CountDraftOnly="Yes" AllowNegatives="Yes" ResetType="Midnight" DeterminedFromDeadline="No" WritingDays="" CanWriteOnDeadlineDate="No">0</SessionTarget>
+        <PreviousSession Words="0" Characters="0" Date="2015-08-17 11:41:54 -0500"></PreviousSession>
+    </ProjectTargets>
+    <PrintSettings PaperSize="612.0,792.0" LeftMargin="72.0" RightMargin="72.0" TopMargin="90.0" BottomMargin="90.0" PaperType="na-letter" Orientation="Portrait" HorizontalPagination="Clip" VerticalPagination="Auto" ScaleFactor="1.0" HorizontallyCentered="Yes" VerticallyCentered="Yes" Collates="Yes" PagesAcross="1" PagesDown="1"></PrintSettings>
+</ScrivenerProject>

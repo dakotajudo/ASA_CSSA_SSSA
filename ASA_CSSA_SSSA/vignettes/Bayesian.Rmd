@@ -1,0 +1,484 @@
+Bayesian
+========================================================
+
+Use examples from che.x-2010 "Bayesian data analysis for agricultural experiments"
+BUGS
+JAGS
+stan
+
+Simplest problem, RCB with missing values.
+
+
+```{r}
+library(ARMR)
+data(Geisbrecht)
+
+Table5.7 <- subset(Table5.7,!is.na(Table5.7$obs))
+
+lm1 <- lm(obs ~ rep + trt,data=Table5.7)
+
+anova(lm1)
+```
+
+We want to compare Bayesian estimates of $\sigma$ and $\sigma_b$ to REML estimates, and to fixed effects estimates.
+
+```{r}
+library(nlme)
+lme1 <- lme(obs ~ trt, random= ~ 1 | rep, data=Table5.7)
+lme1
+ranef(lme1)
+```
+
+Stan
+-----
+
+
+
+Need to create
+~/.R/Makevars
+
+CXX=g++ -arch x86_64 -ftemplate-depth-256 -stdlib=libstdc++
+
+Test intallation
+```{r}
+# using library inline to compile a C++ code on the fly
+library(inline) 
+library(Rcpp)
+src <- ' 
+  std::vector<std::string> s; 
+  s.push_back("hello");
+  s.push_back("world");
+  return Rcpp::wrap(s);
+'
+hellofun <- cxxfunction(body = src, includes = '', plugin = 'Rcpp', verbose = FALSE)
+cat(hellofun(), '\n') 
+```
+
+Installation
+```
+options(repos = c(getOption("repos"), rstan = "http://wiki.rstan-repo.googlecode.com/git/"))
+install.packages('rstan', type = 'source')
+```
+
+```{r}
+library(rstan) 
+set_cppo("fast")  # for best running speed
+#set_cppo('debug') # make debug easier
+```
+
+Example
+```{r}
+schools_code <- '
+  data {
+    int<lower=0> J; // number of schools 
+    real y[J]; // estimated treatment effects
+    real<lower=0> sigma[J]; // s.e. of effect estimates 
+  }
+  parameters {
+    real mu; 
+    real<lower=0> tau;
+    real eta[J];
+  }
+  transformed parameters {
+    real theta[J];
+    for (j in 1:J)
+      theta[j] <- mu + tau * eta[j];
+  }
+  model {
+    eta ~ normal(0, 1);
+    y ~ normal(theta, sigma);
+  }
+'
+
+schools_dat <- list(J = 8, 
+                    y = c(28,  8, -3,  7, -1,  1, 18, 12),
+                    sigma = c(15, 10, 16, 11,  9, 11, 10, 18))
+
+fit <- stan(model_code = schools_code, data = schools_dat, 
+            iter = 1000, chains = 4)
+print(fit)
+```
+
+
+```
+J <- 8
+y <- c(28,  8, -3,  7, -1,  1, 18, 12)
+sigma_y <- c(15, 10, 16, 11,  9, 11, 10, 18)
+
+schools_dat <- read_rdump('8schools.rdump')
+
+source('8schools.rdump') 
+fit <- stan(file = '8schools.stan', data = c("J", "y", "sigma_y"), 
+            iter = 1000, chains = 4) 
+```
+
+
+```
+fit1 <- stan(file = '8schools.stan', data = schools_dat, iter = 1000, chains = 4)
+fit2 <- stan(fit = fit1, data = schools_dat, iter = 10000, chains = 4)
+```
+
+```
+print(fit2)
+plot(fit2)
+
+la <- extract(fit2, permuted = TRUE) # return a list of arrays 
+mu <- la$mu 
+
+## return an array of three dimensions: iterations, chains, parameters 
+a <- extract(fit2, permuted = FALSE) 
+
+## use S3 functions as.array (or as.matrix) on stanfit objects
+a2 <- as.array(fit2)
+m <- as.matrix(fit2)
+```
+
+    
+Fixed effects model
+------------------
+```{r}
+rcb_code <- '
+  data {
+    int<lower=0> N;
+    int<lower=0> t;
+    int<lower=0> r;
+    vector[N] obs;
+    vector[N] trt;
+    vector[N] rep;
+  }
+  transformed data {
+    vector[N] trt2; 
+    vector[N] trt3; 
+    vector[N] trt4; 
+    vector[N] trt5;
+    vector[N] trt6;
+    vector[N] rep2;
+    vector[N] rep3;
+    vector[N] rep4;
+    for (i in 1:N) {
+      trt2[i] <- trt[i] == 2;
+      trt3[i] <- trt[i] == 3;
+      trt4[i] <- trt[i] == 4;
+      trt5[i] <- trt[i] == 5;
+      trt6[i] <- trt[i] == 6;
+      rep2[i] <- rep[i] == 2;
+      rep3[i] <- rep[i] == 3;
+      rep4[i] <- rep[i] == 4;
+    }
+  }
+  parameters {
+    vector[9] beta;
+    real<lower=0> sigma;
+  }
+  model {
+    obs ~ normal(beta[1] + beta[2] * rep2 + beta[3] * rep3 + beta[4] * rep4 +
+          beta[5] * trt2 + beta[6] * trt3 + beta[7] * trt4 + beta[8] * trt5 + beta[9] * trt6
+         , sigma);
+  }'
+
+rcb_dat <- list(N=length(Table5.7$obs),
+                t=length(levels(Table5.7$trt)),
+                r=length(levels(Table5.7$rep)),
+                obs=Table5.7$obs,
+                trt=as.numeric(Table5.7$trt),
+                rep=as.numeric(Table5.7$rep))
+fit1 <- stan(model_code = rcb_code, data = rcb_dat, 
+            iter = 1000, chains = 4)
+print(fit1)
+```
+
+lm1
+```
+
+vector mult 
+inter <- u .* x;
+
+Random effects model (Model 1)
+--------------------
+
+```{r}
+rcb_code <- '
+  data {
+    int<lower=0> N;
+    int<lower=0> t;
+    int<lower=0> r;
+    vector[N] obs;
+    vector[N] trt;
+    int<lower=1,upper=4> rep[N];
+  }
+  transformed data {
+    vector[N] trt2; 
+    vector[N] trt3; 
+    vector[N] trt4; 
+    vector[N] trt5;
+    vector[N] trt6;
+    for (i in 1:N) {
+      trt2[i] <- trt[i] == 2;
+      trt3[i] <- trt[i] == 3;
+      trt4[i] <- trt[i] == 4;
+      trt5[i] <- trt[i] == 5;
+      trt6[i] <- trt[i] == 6;
+    }
+  }
+  parameters {
+    vector[6] beta;
+    vector[4] u;
+    real mu_u;
+    real<lower=0> sigma_u;
+    real<lower=0> sigma;
+  }
+  transformed parameters {
+    vector[N] y_hat;
+
+    for (i in 1:N)
+      y_hat[i] <- beta[1] + u[rep[i]] + beta[2] * trt2[i] + beta[3] * trt3[i] + beta[4] * trt4[i] + beta[5] * trt5[i] + beta[6] * trt6[i];
+  }
+  model {
+    mu_u ~ normal(0, 1);
+    u ~ normal(mu_u, sigma_u);
+
+    obs ~ normal(y_hat, sigma);
+  }'
+fit2 <- stan(model_code = rcb_code, data = rcb_dat, 
+            iter = 1000, chains = 4)
+print(fit2)
+```
+
+```{r}
+rcb_code <- '
+  data {
+    int<lower=0> N;
+    int<lower=0> t;
+    int<lower=0> r;
+    vector[N] obs;
+    vector[N] trt;
+    vector[N] rep;
+  }
+  transformed data {
+    vector[N] trt2; 
+    vector[N] trt3; 
+    vector[N] trt4; 
+    vector[N] trt5;
+    vector[N] trt6;
+    vector[N] rep1;
+    vector[N] rep2;
+    vector[N] rep3;
+    vector[N] rep4;
+    
+    for (i in 1:N) {
+      trt2[i] <- trt[i] == 2;
+      trt3[i] <- trt[i] == 3;
+      trt4[i] <- trt[i] == 4;
+      trt5[i] <- trt[i] == 5;
+      trt6[i] <- trt[i] == 6;
+      rep1[i] <- rep[i] == 1;
+      rep2[i] <- rep[i] == 2;
+      rep3[i] <- rep[i] == 3;
+      rep4[i] <- rep[i] == 4;
+    }
+  }
+  parameters {
+    vector[6] beta;
+    vector[4] u;
+    real mu_u;
+    real<lower=0> sigma_u;
+    real<lower=0> sigma;
+  }
+  model {
+    mu_u ~ normal(0, 1);
+    u ~ normal(mu_u, sigma_u);
+    obs ~ normal(beta[1] + u[1] * rep1 + u[2] * rep2 + u[3] * rep3 + u[4] * rep4 +
+          beta[2] * trt2 + beta[3] * trt3 + beta[4] * trt4 + beta[5] * trt5 + beta[6] * trt6
+         , sigma);
+  }'
+fit3 <- stan(model_code = rcb_code, data = rcb_dat, 
+            iter = 1000, chains = 4)
+print(fit3)
+```
+
+Compare with MCMCglmm
+
+```{r}
+library(MCMCglmm)
+
+rcb.MCMCglmm <- MCMCglmm(fixed=obs ~ trt, random = ~ rep,data=Table5.7, verbose=FALSE)
+summary(rcb.MCMCglmm)
+```
+
+### glmmBUGS
+```{r}
+library(glmmBUGS)
+p399.grp$Trial <- as.factor(as.integer(p399.grp$Trial))
+getDesignMatrix(Yield ~ Variety, data=p399.grp, effects="Trial")
+p399.arr <- winBugsRaggedArray(p399.grp)
+p399.pql <- glmmPQLstrings(effects="Trial", covariates=NULL, observations="Yield", data = p399.grp, family="gaussian")
+
+writeBugsModel("model.bug", effects="Trial",  observations="Yield",
+  covariates=list(observations="Variety"),
+  family="normal", priors=c(intercept="dunif(-10,10)") ) 
+getStartingValues(pql=p399.pql, ragged=p399.arr)
+
+#hom1.glmmBUGS <- glmmBUGS(Yield ~ Variety, data=p399.grp, effects="Trial", family="gaussian")
+
+data(Muscle)
+muscleRagged = glmmBUGS(length~conc , data=Muscle, effects="Strip", family="gaussian")
+startingValues = muscleRagged$startingValues
+```
+library(nlme)
+data(Muscle)
+
+## Not run:
+# run with winbugs
+source("getInits.R")
+require(R2WinBUGS)
+muscleResult = bugs(muscleRagged$ragged, getInits, parameters.to.save = names(getInits()),
+model.file="model.bug", n.chain=3, n.iter=1000, n.burnin=100, n.thin=10,
+program="winbugs", working.directory=getwd())
+# a jags example
+require(R2jags)
+muscleResultJags = jags(
+muscleRagged$ragged, getInits, parameters.to.save = names(getInits()),
+model.file="model.bug", n.chain=3, n.iter=1000,
+n.burnin=100, n.thin=10,
+working.directory=getwd())
+## End(Not run)
+data(muscleResult)
+muscleParams = restoreParams(muscleResult, muscleRagged$ragged)
+summaryChain(muscleParams)
+checkChain(muscleParams)
+# a spatial example
+## Not run:
+glmmBUGS 13
+library(diseasemapping)
+data(popdata)
+data(casedata)
+model = getRates(casedata, popdata, ~age*sex)
+ontario = getSMR(popdata, model, casedata)
+ontario = ontario@data[,c("CSDUID","observed","logExpected")]
+library(spdep)
+popDataAdjMat = poly2nb(popdata,row.names=as.character(popdata[["CSDUID"]]))
+## End(Not run)
+data(popDataAdjMat)
+data(ontario)
+forBugs = glmmBUGS(formula=observed + logExpected ~ 1,
+effects="CSDUID", family="poisson", spatial=popDataAdjMat,
+spatialEffect="CSDUID",
+data=ontario)
+startingValues = forBugs$startingValues
+source("getInits.R")
+## Not run:
+library(R2WinBUGS)
+ontarioResult = bugs(forBugs$ragged, getInits,
+parameters.to.save = names(getInits()),
+model.file="model.bug", n.chain=3, n.iter=50, n.burnin=10, n.thin=2,
+program="winbugs", debug=T,working.directory=getwd())
+## End(Not run)
+data(ontarioResult)
+ontarioParams = restoreParams(ontarioResult, forBugs$ragged)
+ontarioSummary = summaryChain(ontarioParams)
+# posterior probability of having 10x excess risk
+postProb = apply(ontarioParams$FittedRCSDUID, 3, function(x) mean(x>log(10)) )
+hist(postProb)
+## Not run:
+ontario = mergeBugsData(popdata, ontarioSummary)
+spplot(ontario, "FittedRateCSDUID.mean")
+ontario = mergeBugsData(ontario, postProb, newcol="postProb", by.x="CSDUID")
+14 glmmBUGS
+spplot(ontario, "postProb")
+## End(Not run)
+# geostatistical example
+## Not run:
+library(geoRglm)
+data(rongelap)
+## End(Not run)
+rongelap= read.table(url("http://www.leg.ufpr.br/lib/exe/fetch.php/pessoais:paulojus:mbgbook:datasets:rongelap.library(spdep)
+coordinates(rongelap) = ~cX+cY
+rongelap$logOffset = log(rongelap$time)
+rongelap$site = seq(1, length(rongelap$time))
+forBugs = glmmBUGS(
+formula=counts + logOffset ~ 1, family="poisson",
+data=rongelap@data, effects="site", spatial=rongelap,
+priors=list(phisite="dgamma(100,1)"))
+startingValues = forBugs$startingValues
+startingValues$phi$site = 100
+source("getInits.R")
+## Not run:
+rongelapResult = bugs(forBugs$ragged, getInits,
+parameters.to.save = names(getInits()),
+model.file="model.bug", n.chain=2, n.iter=20, n.burnin=4, n.thin=2,
+program="winbugs", debug=TRUE,
+working.directory=getwd())
+## End(Not run)
+data(rongelapResult)
+rongelapParams = restoreParams(rongelapResult, forBugs$ragged)
+checkChain(rongelapParams)
+rongelapParams$siteGrid = CondSimuPosterior(rongelapParams, rongelap,gridSize=100)
+glmmPQLstrings 15
+rongelapSummary=summaryChain(rongelapParams)
+# plot posterior probabilities of being above average
+image(rongelapSummary$siteGrid$pgt0)
+
+```{r}
+#glmmBUGS(data, effects=c("Variety"), covariates = list(Trial="Trial", Block="Block"))
+```
+
+### ADMB
+### stan
+### JAGS
+
+
+Small data
+----------
+
+four.trials.hom.var1 <- lmer(GY ~ entry + (1 | env) + (1 | entry:env) + (1|env:bloc), data=four.trials)
+four.trials.hom.var1
+
+cpt.pbal.hom.var1 <- lmer(GY ~ entry + (1 | env) + (1 | entry:env) + (1|env:bloc), data=cpt.pbal)
+print(cpt.pbal.hom.var1,correlation=FALSE)
+
+#heterogeneous GEI variances
+het.var1 <- lmer(GY ~ entry + (1 | env) + (entry | env) + (1|env:bloc),data=four.trials)
+print(het.var1,correlation=FALSE)
+het.var1.0 <- lmer(GY ~ entry + (1 | env) + (0 + entry | env) + (1|env:bloc),data=four.trials)
+print(het.var1.0,correlation=FALSE)
+
+#heterogenous error
+MCMCglmm(fixed=  GY ~ entry + env + entry:env, random = ~ env:bloc,data=four.trials,rcov=~idh(env):units, verbose=FALSE)
+
+
+
+
+#heterogeneous GEI variances
+
+
+
+### MCMCglmm
+
+four.trials.hom.var1 <- lmer(GY ~ entry + (1 | env) + (1 | entry:env) + (1|env:bloc), data=four.trials)
+four.trials.hom.var1
+
+het.var1 <- lmer(GY ~ entry + (1 | env) + (entry | env) + (1|env:bloc),data=four.trials)
+print(het.var1,correlation=FALSE)
+het.var1.0 <- lmer(GY ~ entry + (1 | env) + (0 + entry | env) + (1|env:bloc),data=four.trials)
+print(het.var1.0,correlation=FALSE)
+
+hom.mcmc1 <- MCMCglmm(fixed=  GY ~ entry, random = ~ env + env:entry + env:bloc, data=four.trials, verbose=FALSE)
+summary(hom.mcmc1)
+
+het.mcmc1 <- MCMCglmm(fixed=  GY ~ entry, random = ~ env + idh(entry):env + env:bloc,data=four.trials, verbose=FALSE)
+summary(het.mcmc1)
+
+
+Large data
+----------
+
+
+cpt.pbal.hom.var1 <- lmer(GY ~ entry + (1 | env) + (1 | entry:env) + (1|env:bloc), data=cpt.pbal)
+print(cpt.pbal.hom.var1,correlation=FALSE)
+
+cpt.pbal.mcmc1 <- MCMCglmm(fixed=  GY ~ entry, random = ~ env + env:entry + env:bloc, data=cpt.pbal, verbose=FALSE)
+summary(cpt.pbal.mcmc1)
+
+het.mcmc2 <- MCMCglmm(fixed=  GY ~ entry + env + entry:env, random = ~ env:bloc,data=four.trials,rcov=~idh(env):units, verbose=FALSE)
+summary(het.mcmc2)
+print(lm(GY ~ entry + env + entry:env,data=four.trials))

@@ -6,6 +6,13 @@ date: "October 15, 2015"
 output: html_document
 ---
 
+```{r}
+lambda  <- c(0.04,-0.191,0.028,0.037,-0.021,0.085,0.015,-0.135,-0.004,0.021,-0.011,0.018,0.022,-0.1,0.047)
+year <- as.factor(c(2007,2007,2007,2003,2003,2003,2004,2004,2004,2005,2005,2005,2006,2006,2006))
+variable <-as.factor(c("GY","TW","HD","GY","TW","HD","GY","TW","HD","GY","TW","HD","GY","TW","HD"))
+tapply(lambda,list(variable),mean)
+tapply(lambda,list(variable),sd)
+```
 
 Here I use the CPT 2007 data set to illustrate new options avialable for ST Treatment Stability/Trial Dendrogram plots.
 

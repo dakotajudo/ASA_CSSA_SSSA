@@ -14,6 +14,8 @@ source("../ASA_CSSA_SSSA/R/expand.incidence.R")
 source("../ASA_CSSA_SSSA/R/decompose.means.table.R")
 source("../ASA_CSSA_SSSA/R/interaction.outliers.R")
 source("../ASA_CSSA_SSSA/R/plot.interaction.ARMST.R")
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 sorghum.dat <- matrix(
   c(12.3, 19.6, 25.7, 30.4,
@@ -127,7 +129,7 @@ sorghum.res <- standard.sensitivity.plot(sorghum.tbl,
                           TreatmentName = TreatmentName,
                           TrialName = TrialName,
                           dual.dendrogram=TRUE,
-                          plot.outliers=TRUE,legend.columns=2)
+                          plot.outliers=TRUE,legend.columns=2,colors=cbbPalette)
 sorghum.means <- gei.table.and.effects(sorghum.tbl,
                                      response = response,
                           TreatmentName = TreatmentName,
@@ -147,7 +149,7 @@ additive.res <- standard.sensitivity.plot(additive.tbl,
                                           response = response,
                           TreatmentName = TreatmentName,
                           TrialName = TrialName,
-                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2,colors=cbbPalette)
 print.stdplot(additive.res)
 ```
 
@@ -162,7 +164,7 @@ onecell.res <- standard.sensitivity.plot(onecell.tbl,
                                           response = response,
                           TreatmentName = TreatmentName,
                           TrialName = TrialName,
-                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2,colors=cbbPalette)
 print.stdplot(onecell.res)
 ```
 
@@ -175,7 +177,7 @@ onerow.res <- standard.sensitivity.plot(onecell.tbl,
                                           response = response,
                           TreatmentName = TreatmentName,
                           TrialName = TrialName,
-                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2,colors=cbbPalette)
 print.stdplot(onerow.res)
 ```
 
@@ -185,7 +187,7 @@ twocells.res <- standard.sensitivity.plot(twocells.tbl,
                                           response = response,
                           TreatmentName = TreatmentName,
                           TrialName = TrialName,
-                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2,colors=cbbPalette)
 print.stdplot(twocells.res)
 ```
 
@@ -195,7 +197,7 @@ tworows.res <- standard.sensitivity.plot(tworows.tbl,
                                           response = response,
                           TreatmentName = TreatmentName,
                           TrialName = TrialName,
-                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2,colors=cbbPalette)
 print.stdplot(tworows.res)
 ```
 
@@ -205,7 +207,7 @@ oneronec.res <- standard.sensitivity.plot(oneronec.tbl,
                                           response = response,
                           TreatmentName = TreatmentName,
                           TrialName = TrialName,
-                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=,colors=cbbPalette)
 print.stdplot(oneronec.res)
 ```
 
@@ -215,6 +217,6 @@ davies.res <- standard.sensitivity.plot(davies.tbl,
                                           response = response,
                           TreatmentName = TreatmentName,
                           TrialName = TrialName,
-                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2)
+                          dual.dendrogram=TRUE,plot.outliers=TRUE,legend.columns=2,colors=cbbPalette)
 print.stdplot(davies.res)
 ```

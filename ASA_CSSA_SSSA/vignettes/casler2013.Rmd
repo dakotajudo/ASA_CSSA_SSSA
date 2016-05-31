@@ -1,0 +1,203 @@
+Fundamentals of Experimental Design: Guidelines for Designing Successful Experiments
+========================================================
+Michael D. Casler 
+
+Appendix 1
+----------
+> SAS code to compute Tukey’s test for nonadditivity in a randomized complete block design. The test is computed in two parts: (1) output the predicted values from the mixed models analysis,
+then (2) square the predicted values and include this term as a single-degree-of-freedom regressor variable (covariate) as a test for multiplicative block and treatment effects (Sahai and Ageel, 2000).
+
+data a; infile ‘tukey.dat’;
+input rep block trt y;
+proc mixed; class trt;
+model pcb = trt / outpred=x;
+random block;
+data x; set x;
+p2=pred*pred;
+proc mixed; class trt;
+model pcb = trt p2;
+random block;
+
+Casler cites Sahai, which provide the following code (p 264)
+
+data tukey;
+input a b y;
+datalines;
+...
+proc glm;
+class a b;
+model y = a b;
+output out = t t = pred;
+
+data t;
+set t;
+p2 = pred * pred;
+proc glm
+class a b;
+model y = a b p2;
+run;
+
+In R,
+```{r}
+tukey.dat <- data.frame(
+  y=c(12,4,2,5,4,-2,-4,-5,4,-3,-7,-2),
+  squares=c(14,2,1,2,2,0,2,2,2,1,5,0),
+	a=as.factor(c(1,1,1,1,2,2,2,2,3,3,3,3)),
+	b=as.factor(c(1,2,3,4,1,2,3,4,1,2,3,4)))
+tuk.lm <- lm(y ~ a + b,data=tukey.dat)
+p2 <- predict(tuk.lm)
+tukey.dat$p2 <- p2*p2
+tuk2.lm <- lm(y ~ a + b + p2,data=tukey.dat)
+anova(tuk2.lm)
+```
+
+```{r}
+nonadditivity <- function(data=tukey.dat) {
+   require(lme4)
+   model1 <- lmer(y ~ trt + (1 | block),data=tukey.dat)
+   p2 <- fitted(model1)
+   tukey.dat$p2 <- p2*p2
+   model2 <- lmer(y ~ trt + p2 + (1 | block),data=tukey.dat)
+   return(model2)
+}
+```
+
+```{r}
+library(ARMR)
+
+tukey.dat$trt <- tukey.dat$a
+tukey.dat$block <- tukey.dat$b
+tuk.lmer <- nonadditivity(tukey.dat)
+anova(tuk.lmer)
+
+tdf <- tukey.1df.ARMST(data=tukey.dat,AName="a",BName="b",response="y")
+anova(tdf$lm)
+```
+
+Appendix 2
+---------
+> This SAS code to estimate the power of a hypothesis test has the following parameters: treatment means = 95 and 100, variance components = 5 and 10 (experimental error and sampling
+error, respectively), r = 4 replicates, s = 2 observational units per experimental unit, and the assumption of normally distributed errors (adapted from Gbur et al., 2012).
+
+options nocenter mprint;
+data a; input trt y;
+do rep=1 to 4 by 1;
+do samples=1 to 2 by 1;
+output;
+end;
+end;
+datalines;
+1 95
+2 100
+run;
+proc glimmix; class trt rep;
+model y = trt;
+random rep(trt);
+parms (5)(10) / hold=1,2;
+ods output tests3=power_terms;
+data power;
+set power_terms;
+alpha=0.05;
+ncparm=numdf*Fvalue;
+F_critical=finv(1-alpha, numdf, dendf, 0);
+power=1–probf(F_critical, numdf, dendf, ncparm);
+proc print;
+run;
+
+```{r}
+reps <- 1:4
+samples <- 1:2
+means <- c(95,100)
+alpha = 0.05
+numdf <- 2
+dendf <- 5
+ncparm <- numdf * Fvalue
+F_critical=finv(1-alpha, numdf, dendf, 0);
+power <- 1 - pf(F_critical, numdf, dendf, ncparm)
+```
+
+Appendix 3
+----------
+> The SAS code from Appendix 1 is embedded in a macro that allows power to be estimated for a range of experimental designs with four to eight experimental units per treatment (rep, repl, repmax) and two to four observational units per experimental unit (obs, obsv, obsmax).
+
+options nocenter mprint;
+%macro one(obsmax,repmax);
+data a;
+%do obsv=2 %to &obsmax;
+group1=&obsv;
+%do repl=2 %to &repmax;
+group2=&repl;
+do obs=2 to &obsv by 1;
+do rep=4 to &repl by 1;
+do trt=0 to 1 by 1;
+output;
+end;
+end;
+end;
+%end;
+%end;
+%mend one;
+
+%one(4,8); /* change values here */
+run;
+proc sort; by group1 group2;
+data b; set a; by group1 group2;
+if trt=0 then y=95;
+if trt=1 then y=100;
+run;
+proc glimmix; class trt rep; by group1 group2;
+model y = trt;
+random rep(trt);
+parms (5)(10) / hold=1,2;
+ods output tests3=power_terms;
+data power;
+set power_terms;
+alpha=0.05;
+ncparm=numdf*Fvalue;
+F_critical=finv(1–alpha, numdf, dendf, 0);
+power=1–probf(F_critical, numdf, dendf, ncparm);
+proc print;
+run;
+
+Appendix 4
+----------
+> This SAS code to estimate the power of a hypothesis test has the following parameters: treatment means = 9 and 10, variance components = 0.02 and 0.2 (treatment ´ location interaction and experimental error, respectively), r = 4 to 20 replicates, l = 2 to 6 locations, and the assumption of normally distributed errors (adapted from Gbur et al., 2012).
+
+options nocenter mprint;
+%macro two(locmax,repmax);
+data a;
+%do locn=2 %to &locmax;
+group1=&locn;
+%do repl=4 %to &repmax;
+group2=&repl;
+do loc=2 to &locn by 1;
+do rep=4 to &repl by 1;
+do trt=0 to 1 by 1;
+output;
+end;
+end;
+end;
+%end;
+%end;
+%mend two;
+%two(6,20); /* change here */
+run;
+proc sort; by group1 group2;
+data b; set a; by group1 group2;
+if trt=0 then y=9;
+if trt=1 then y=10;
+run;
+proc glimmix; class location trt rep; by group1 group2;
+model y = trt;
+random trt*location;
+parms (0.02)(0.2) / hold=1,2;
+ods output tests3=power_terms;
+data power;
+set power_terms;
+alpha=0.05;
+ncparm=numdf*Fvalue;
+F_critical=finv(1–alpha, numdf, dendf, 0);
+power=1–probf(F_critical, numdf, dendf, ncparm);
+proc print;
+run;
+
