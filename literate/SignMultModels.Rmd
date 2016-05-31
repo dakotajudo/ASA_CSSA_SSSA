@@ -34,21 +34,74 @@ EVT16B.dat <- matrix(
 )
 rownames(EVT16B.dat) <- paste("L",as.character(c(19,10,7,1,8,2,18,20,17,5,9,15,3,4,11,16,14,6,13,12)),sep="")
 colnames(EVT16B.dat) <- paste("T",as.character(c(8,2,1,7,3,9,4,5,6)),sep="")
-source("../../ARMR.git/ARMR/R/plot.interaction.ARMST.R")
+source("../ASA_CSSA_SSSA/R/gei.table.to.frame.R")
+source("../ASA_CSSA_SSSA/R/nonadditivity.gei.R")
+source("../ASA_CSSA_SSSA/R/heterogeneity.gei.R")
+source("../ASA_CSSA_SSSA/R/standard.sensitivity.plot.R")
+source("../ASA_CSSA_SSSA/R/expand.incidence.R")
+source("../ASA_CSSA_SSSA/R/decompose.means.table.R")
+source("../ASA_CSSA_SSSA/R/interaction.outliers.R")
+source("../ASA_CSSA_SSSA/R/plot.interaction.ARMST.R")
 l.means <- rowMeans(EVT16B.dat)
 ```
 
 ```{r}
+random.outliers <- interaction.outliers(data.frame(EVT16B.dat), l.means,fixed=FALSE,sigma=2,rms=602847)
 par(fig = c(0, 1, 0.4, 1), mar = (c(1, 4, 1, 1) + 0.1))
 mn.table <- plot.interaction.ARMST(data.frame(EVT16B.dat), l.means, ylab='Treatment in Trial Mean',
                       regression=TRUE, main='Yield', show.legend=TRUE,legend.pos=c(.01,.98),
-                      legend.columns=3,lwd = 1
+                      legend.columns=3,lwd = 1,mark.int=random.outliers$pairs
                       )
 par(fig=c(0,1,0,.4),mar=(c(5, 4, 0, 1) + 0.1), new=TRUE)
+
 mn.hc <- plot.clusters.ARMST(EVT16B.dat, l.means, xlab='Trial Mean', ylab='')
-
-
 par(fig = c(0, 1, 0, 1))
+
+mixed.res <- standard.sensitivity.plot(gei.table.to.frame(t(EVT16B.dat)),
+                                     response = "Plot.Mean",
+                          TreatmentName = "Treatment",
+                          TrialName = "Trial",
+                          dual.dendrogram=FALSE,
+                          plot.outliers=TRUE,
+                          legend.columns=3)
+```
+
+```{r}
+random.outliers <- interaction.outliers(data.frame(EVT16B.dat), l.means,fixed=FALSE,sigma=2)
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 4, 1, 1) + 0.1))
+mn.table <- plot.interaction.ARMST(data.frame(EVT16B.dat), l.means, ylab='Treatment in Trial Mean',
+                      regression=TRUE, main='Yield', show.legend=TRUE,legend.pos=c(.01,.98),
+                      legend.columns=3,lwd = 1,mark.int=random.outliers$pairs
+                      )
+par(fig=c(0,1,0,.4),mar=(c(5, 4, 0, 1) + 0.1), new=TRUE)
+
+mn.hc <- plot.clusters.ARMST(EVT16B.dat, l.means, xlab='Trial Mean', ylab='')
+par(fig = c(0, 1, 0, 1))
+
+mixed.res <- standard.sensitivity.plot(gei.table.to.frame(t(EVT16B.dat)),
+                                     response = "Plot.Mean",
+                          TreatmentName = "Treatment",
+                          TrialName = "Trial",
+                          dual.dendrogram=FALSE,
+                          plot.outliers=TRUE,
+                          legend.columns=3)
+mixed.res <- standard.sensitivity.plot(gei.table.to.frame(t(EVT16B.dat)),
+                                     response = "Plot.Mean",
+                          TreatmentName = "Treatment",
+                          TrialName = "Trial",
+                          dual.dendrogram=TRUE,
+                          plot.outliers=TRUE,
+                          outliers=2,
+                          legend.columns=3)
+mixed.res <- standard.sensitivity.plot(gei.table.to.frame(t(EVT16B.dat)),
+                                     response = "Plot.Mean",
+                          TreatmentName = "Treatment",
+                          TrialName = "Trial",
+                          dual.dendrogram=TRUE,
+                          mark.branches=TRUE,
+                          plot.outliers=TRUE,
+                          outliers=2,
+                          legend.columns=3)
 ```
 We’ll restrict our discussion to the AMMI model.
 
@@ -58,10 +111,12 @@ Sequential sums of squares, SSk due to the kth multiplicative term for the AMMI 
 decomp <- decompose.means.table(EVT16B.dat)
 ammi.svd <- svd(decomp$gamma)
 ammi.svd$d
+```
+
 ## [1] 5.922595e+03 3.070185e+03 2.552583e+03 2.320229e+03 1.758364e+03
 ## [6] 1.313367e+03 7.923616e+02 7.571147e+02 4.739120e-12
 We need p and q values for AMMI, where p=min(g−1,e−1) and q=max(g−1,e−1)
-
+```{r}
 g <- dim(EVT16B.dat)[2]
 e <- dim(EVT16B.dat)[1]
 p = min(dim(EVT16B.dat)-1)

@@ -514,3 +514,33 @@ res1$fit
 anova(het$heterogeneous.lm)
 anova(het$heterogeneous0.lm)
 ```
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/latin/trialMeans.SmyCol1.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/latin/trialTable.SmyCol1.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nPlant Height',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 4', show.legend=TRUE,legend.columns=2, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nLatin Changeover', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+```{r}
+TreatmentName="TrtNo"
+res1$data[[TreatmentName]] <- as.factor(res1$data[[TreatmentName]])
+tdf=nonadditivity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```

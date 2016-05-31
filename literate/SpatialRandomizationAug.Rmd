@@ -41,7 +41,10 @@ Scott.plan <- data.frame(
 desplot(trt ~ col*row, data=Scott.plan, num=trt, main="Scott 1993")
 Scott.mat <- make.pairs.matrices(make.pairs.table(pair.distances(Scott.plan,reference=1:4)))
 Scott.mat
+
+make.pairs.matrices(make.pairs.table(pair.distances(Scott.plan,multiple=FALSE)))
 make.pairs.matrices(make.pairs.table(pair.distances(Scott.plan,reference=1:4,multiple=FALSE)))
+make.pairs.matrices(make.pairs.table(pair.distances(Scott.plan)))
 ```
 
 
@@ -59,6 +62,7 @@ plan <- data.frame(
   )
 
 v_t <- max(plan$trt)
+v_r <- 4
 
 v_1 <- 1:80
 v_1 <- v_1 + v_t
@@ -137,83 +141,82 @@ mean(min6.means[v_1])
 ```
 
 ```{r}
-min.mean <- c()
-staggers <- c()
-replicate <- c()
+if(!file.exists("staggers.dat.Rda")) {
+  min.mean <- c()
+ staggers <- c()
+ replicate <- c()
+ unreplicated <- c()
+ ratio <- c()
+ avg.mean <- c()
+ ratios <- c(2,4,8,12,16,24,32)
+ for(rat in ratios) {
+   max.v1 = rat*v_t*v_r
+   v_1 <- 1:max.v1
+   
+   v_1 <- v_1 + v_t
+   
+   stagger <- 1:rat
 
-stagger <- 0:4
-v_1 <- 1:64
-
-for(idx in 1:10) {
-  replicate <- c(replicate, idx)
-  
-  for (st in stagger) {
-    plan0<-make.plan(augment.plan(plan,v_1,st))
-    min0.means <- apply(
-                    make.pairs.matrices(
+   for(idx in 1:30) {
+     for (st in stagger) {
+      plan0<-make.plan(augment.plan(plan,v_1,st))
+          plan.mat <- make.pairs.matrices(
                       make.pairs.table(
-                        pair.distances(plan0,reference=1:v_t)))$min,1,min,na.rm=TRUE)
-    min.mean <- c(min.mean,mean(min0.means[v_1]))
-    staggers <- c(staggers,st)
-  }
+                        pair.distances(plan0,reference=1:v_t)))
+      min0.means <- apply(plan.mat$min,1,min,na.rm=TRUE)
+      avg0.mean <- apply(plan.mat$mean,1,mean,na.rm=TRUE)
+      avg.mean <- c(avg.mean,mean(avg0.mean[v_1]))
+    
+      min.mean <- c(min.mean,mean(min0.means[v_1]))
+      staggers <- c(staggers,st)
+      unreplicated <- c(unreplicated,max.v1)
+      ratio <- c(ratio,rat)
+      replicate <- c(replicate, idx)
+   }
+ }
+ }
+ 
+  staggers.dat <- data.frame(
+   min.mean=min.mean,
+   avg.mean=avg.mean,
+   staggers=staggers,
+   replicate=replicate,
+   ratio=ratio,
+   unreplicated=unreplicated
+ )
+ save(staggers.dat, file="staggers.dat.Rda")
+ 
+} else {
+  load(file="staggers.dat.Rda")
 }
 
-plot(staggers,min.mean)
+staggers.dat$ratio <- as.factor(staggers.dat$ratio)
+
+staggers.dat$avg.scaled <- staggers.dat$avg.mean/(tapply(staggers.dat$avg.mean,list(staggers.dat$ratio),min)[staggers.dat$ratio])
+                                                  
+ggplot(staggers.dat, aes(staggers, avg.mean)) + 
+  geom_point(aes(shape = ratio, color=ratio),size=2)
+ggplot(staggers.dat, aes(staggers, avg.scaled)) + 
+  geom_point(aes(shape = ratio, color=ratio),size=2)
 ```
 
 ```{r}
-min.mean <- c()
-staggers <- c()
-replicate <- c()
+staggers.dat$min.scaled <- staggers.dat$min.mean/max(staggers.dat$min.mean)
+staggers.dat$min.scaled <- staggers.dat$min.mean/(tapply(staggers.dat$min.mean,list(staggers.dat$ratio),min)[staggers.dat$ratio])
+ggplot(staggers.dat, aes(staggers, min.mean)) + 
+  geom_point(aes(color=ratio),size=2) + 
+  geom_smooth(aes(group=ratio),se=FALSE) 
+ggplot(staggers.dat, aes(staggers, min.scaled)) + 
+  geom_point(aes(color=ratio),size=2) + 
+  geom_smooth(aes(group=ratio),se=FALSE) 
+```
 
-stagger <- 0:6
+
+
+```{r}
 v_1 <- 1:80
-
-for(idx in 1:10) {
-  replicate <- c(replicate, idx)
-  
-  for (st in stagger) {
-    plan0<-make.plan(augment.plan(plan,v_1,st))
-    min0.means <- apply(
-                    make.pairs.matrices(
-                      make.pairs.table(
-                        pair.distances(plan0,reference=1:v_t)))$min,1,min,na.rm=TRUE)
-    min.mean <- c(min.mean,mean(min0.means[v_1]))
-    staggers <- c(staggers,st)
-  }
-}
-
-plot(staggers,min.mean)
-```
-
-```{r}
-min.mean <- c()
-staggers <- c()
-replicate <- c()
-
-
-stagger <- 0:8
-v_1 <- 1:112
 v_1 <- v_1 + v_t
 
-for(idx in 1:10) {
-  replicate <- c(replicate, idx)
-  
-  for (st in stagger) {
-    plan0<-make.plan(augment.plan(plan,v_1,st))
-    min0.means <- apply(
-                    make.pairs.matrices(
-                      make.pairs.table(
-                        pair.distances(plan0,reference=1:v_t)))$min,1,min,na.rm=TRUE)
-    min.mean <- c(min.mean,mean(min0.means[v_1]))
-    staggers <- c(staggers,st)
-  }
-}
-
-plot(staggers,min.mean)
-```
-
-```{r}
 plan0<-make.plan(augment.plan(plan,v_1,0))
 plan1<-make.plan(augment.plan(plan,v_1,1))
 plan2<-make.plan(augment.plan(plan,v_1,2))
@@ -253,117 +256,13 @@ mean(min3.means[v_1])
 mean(min4.means[v_1])
 ```
 
-```{r}
-
-min.mean <- c()
-staggers <- c()
-replicate <- c()
 
 
-stagger <- 0:10
-v_1 <- 1:144
-v_1 <- v_1 + v_t
-
-for(idx in 1:10) {
-  replicate <- c(replicate, idx)
-  
-  for (st in stagger) {
-    plan0<-make.plan(augment.plan(plan,v_1,st))
-    min0.means <- apply(
-                    make.pairs.matrices(
-                      make.pairs.table(
-                        pair.distances(plan0,reference=1:v_t)))$min,1,min,na.rm=TRUE)
-    min.mean <- c(min.mean,mean(min0.means[v_1]))
-    staggers <- c(staggers,st)
-  }
-}
-```
 
 ```{r}
-plot(staggers,min.mean)
-
-min.mean <- c()
-staggers <- c()
-replicate <- c()
-
-stagger <- 0:12
-v_1 <- 1:176
-v_1 <- v_1 + v_t
-
-for(idx in 1:10) {
-  replicate <- c(replicate, idx)
-  
-  for (st in stagger) {
-    plan0<-make.plan(augment.plan(plan,v_1,st))
-    min0.means <- apply(
-                    make.pairs.matrices(
-                      make.pairs.table(
-                        pair.distances(plan0,reference=1:v_t)))$min,1,min,na.rm=TRUE)
-    min.mean <- c(min.mean,mean(min0.means[v_1]))
-    staggers <- c(staggers,st)
-  }
-}
-
-plot(staggers,min.mean)
-```
-
-```{r}
-min.mean <- c()
-staggers <- c()
-replicate <- c()
-
-stagger <- 0:14
-v_1 <- 1:208
-v_1 <- v_1 + v_t
-
-for(idx in 1:10) {
-  replicate <- c(replicate, idx)
-  
-  for (st in stagger) {
-    plan0<-make.plan(augment.plan(plan,v_1,st))
-    min0.means <- apply(
-                    make.pairs.matrices(
-                      make.pairs.table(
-                        pair.distances(plan0,reference=1:v_t)))$min,1,min,na.rm=TRUE)
-    min.mean <- c(min.mean,mean(min0.means[v_1]))
-    staggers <- c(staggers,st)
-  }
-}
-
-plot(staggers,min.mean)
-```
-
-```{r}
-min.mean <- c()
-avg.mean <- c()
-staggers <- c()
-replicate <- c()
-
-stagger <- 0:16
 v_1 <- 1:240
 v_1 <- v_1 + v_t
 
-for(idx in 1:10) {
-  replicate <- c(replicate, idx)
-  
-  for (st in stagger) {
-    plan0<-make.plan(augment.plan(plan,v_1,st))
-    plan.mat <- make.pairs.matrices(
-                      make.pairs.table(
-                        pair.distances(plan0,reference=1:v_t)))
-    min0.means <- apply(plan.mat$min,1,min,na.rm=TRUE)
-    min.mean <- c(min.mean,mean(min0.means[v_1]))
-    avg0.mean <- apply(plan.mat$mean,1,mean,na.rm=TRUE)
-    avg.mean <- c(avg.mean,mean(avg0.mean[v_1]))
-    staggers <- c(staggers,st)
-  }
-}
-
-plot(staggers,min.mean)
-plot(staggers,avg.mean)
-```
-
-```{r}
 plan4<-make.plan(augment.plan(plan,v_1,4))
 
 plan4$check <- plan4$trt %in% 1:v_t
@@ -376,17 +275,38 @@ desplot(check ~ col*row, data=plan8, main="8 stagger")
 
 ```
 
+
+### Variations on plot size and stagger, 240 unreplicated
+
 ```{r}
+if(!file.exists("staggers.240.dat.Rda")) {
 min.mean <- c()
 avg.mean <- c()
 staggers <- c()
 replicate <- c()
+row.width <- c()
+col.width <- c()
 
-for(idx in 1:10) {
+stagger <- 0:16
+v_1 <- 1:240
+v_1 <- v_1 + v_t
+
+for(idx in 1:30) {
   replicate <- c(replicate, idx)
   
   for (st in stagger) {
     plan0<-make.plan(augment.plan(plan,v_1,st))
+    plan.mat <- make.pairs.matrices(
+                      make.pairs.table(
+                        pair.distances(plan0,reference=1:v_t)))
+    min0.means <- apply(plan.mat$min,1,min,na.rm=TRUE)
+    min.mean <- c(min.mean,mean(min0.means[v_1]))
+    avg0.mean <- apply(plan.mat$mean,1,mean,na.rm=TRUE)
+    avg.mean <- c(avg.mean,mean(avg0.mean[v_1]))
+    staggers <- c(staggers,st)
+    row.width <- c(row.width,1)
+    col.width <- c(col.width,1)
+    
     plan.mat <- make.pairs.matrices(
                       make.pairs.table(
                         pair.distances(plan0,reference=1:v_t,plot.dim=c(1,2),buffer.dim=c(0,0))))
@@ -395,24 +315,10 @@ for(idx in 1:10) {
     avg0.mean <- apply(plan.mat$mean,1,mean,na.rm=TRUE)
     avg.mean <- c(avg.mean,mean(avg0.mean[v_1]))
     staggers <- c(staggers,st)
-  }
-}
-
-plot(staggers,min.mean)
-plot(staggers,avg.mean)
-```
-
-```{r}
-min.mean <- c()
-avg.mean <- c()
-staggers <- c()
-replicate <- c()
-
-for(idx in 1:10) {
-  replicate <- c(replicate, idx)
-  
-  for (st in stagger) {
-    plan0<-make.plan(augment.plan(plan,v_1,st))
+    row.width <- c(row.width,1)
+    col.width <- c(col.width,2)
+    
+    
     plan.mat <- make.pairs.matrices(
                       make.pairs.table(
                         pair.distances(plan0,reference=1:v_t,plot.dim=c(1,4),buffer.dim=c(0,0))))
@@ -421,25 +327,21 @@ for(idx in 1:10) {
     avg0.mean <- apply(plan.mat$mean,1,mean,na.rm=TRUE)
     avg.mean <- c(avg.mean,mean(avg0.mean[v_1]))
     staggers <- c(staggers,st)
-  }
-}
-
-plot(staggers,min.mean)
-plot(staggers,avg.mean)
-```
-
-
-```{r}
-min.mean <- c()
-avg.mean <- c()
-staggers <- c()
-replicate <- c()
-
-for(idx in 1:10) {
-  replicate <- c(replicate, idx)
-  
-  for (st in stagger) {
-    plan0<-make.plan(augment.plan(plan,v_1,st))
+    row.width <- c(row.width,1)
+    col.width <- c(col.width,4)
+    
+    
+    plan.mat <- make.pairs.matrices(
+                      make.pairs.table(
+                        pair.distances(plan0,reference=1:v_t,plot.dim=c(2,1),buffer.dim=c(0,0))))
+    min0.means <- apply(plan.mat$min,1,min,na.rm=TRUE)
+    min.mean <- c(min.mean,mean(min0.means[v_1]))
+    avg0.mean <- apply(plan.mat$mean,1,mean,na.rm=TRUE)
+    avg.mean <- c(avg.mean,mean(avg0.mean[v_1]))
+    staggers <- c(staggers,st)
+    row.width <- c(row.width,2)
+    col.width <- c(col.width,1)
+    
     plan.mat <- make.pairs.matrices(
                       make.pairs.table(
                         pair.distances(plan0,reference=1:v_t,plot.dim=c(4,1),buffer.dim=c(0,0))))
@@ -448,9 +350,52 @@ for(idx in 1:10) {
     avg0.mean <- apply(plan.mat$mean,1,mean,na.rm=TRUE)
     avg.mean <- c(avg.mean,mean(avg0.mean[v_1]))
     staggers <- c(staggers,st)
+    row.width <- c(row.width,4)
+    col.width <- c(col.width,1)
   }
 }
 
-plot(staggers,min.mean)
-plot(staggers,avg.mean)
+
+ staggers.240.dat <- data.frame(
+   min.mean=min.mean,
+   avg.mean=avg.mean,
+   staggers=staggers,
+   replicate=replicate,
+   row.width=row.width,
+   col.width=col.width
+ )
+
+ save(staggers.240.dat, file="staggers.240.dat.Rda")
+ 
+} else {
+  load(file="staggers.240.dat.Rda")
+}
 ```
+
+```{r}
+staggers.240.dat$plot.dim <- as.factor(staggers.240.dat$row.width):as.factor(staggers.240.dat$col.width)
+```
+
+```{r}
+
+staggers.240.dat$avg.scaled <- staggers.240.dat$avg.mean/(tapply(staggers.240.dat$avg.mean,list(staggers.240.dat$plot.dim),min)[staggers.240.dat$plot.dim])
+
+ggplot(staggers.240.dat, aes(staggers, avg.mean)) + 
+  geom_point(aes(shape = plot.dim, color=plot.dim),size=2)
+ggplot(staggers.240.dat, aes(staggers, avg.scaled)) + 
+  geom_point(aes(shape = plot.dim, color=plot.dim),size=2)
+```
+
+```{r}
+
+staggers.240.dat$min.scaled <- staggers.240.dat$min.mean/(tapply(staggers.240.dat$min.mean,list(staggers.240.dat$plot.dim),min)[staggers.240.dat$plot.dim])
+
+
+ggplot(staggers.240.dat, aes(staggers, min.mean)) + 
+  geom_point(aes(shape = plot.dim, color=plot.dim),size=2) + 
+  geom_smooth(aes(group= plot.dim),se=FALSE) 
+ggplot(staggers.240.dat, aes(staggers, min.scaled)) + 
+  geom_point(aes(shape = plot.dim, color=plot.dim),size=2) + 
+  geom_smooth(aes(group= plot.dim),se=FALSE) 
+```
+
