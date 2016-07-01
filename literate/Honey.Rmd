@@ -1,0 +1,65 @@
+---
+title: "Changes in Honey Yields"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(gridExtra)
+library(maps)
+```
+
+
+
+```{r}
+honey.dat <- read.csv("./data/usda/380353E8-8B59-321E-9C0B-3250AC6704D9.csv", header = TRUE)
+production.dat <- subset(honey.dat,honey.dat$Data.Item=="HONEY - PRODUCTION, MEASURED IN LB / COLONY")
+colonies.dat <- subset(honey.dat,honey.dat$Data.Item=="HONEY, BEE COLONIES - INVENTORY, MEASURED IN COLONIES")
+stocks.dat <- subset(honey.dat,honey.dat$Data.Item=="HONEY - STOCKS, MEASURED IN LB")
+
+production.dat$Value <- as.numeric(as.character(production.dat$Value))
+production.plot <- ggplot(production.dat, aes(Year,Value)) 
+production.plot <- production.plot + scale_colour_brewer() + geom_point(size=2,alpha = 0.3)
+production.plot <- production.plot + geom_smooth(weight=10,se = FALSE,method="loess",span = 0.6)
+production.plot
+production.totals <- tapply(production.dat$Value,list(production.dat$Year),sum)
+colonies.dat$Value<-as.character(colonies.dat$Value)
+for(idx in 1:length(colonies.dat$Value)) {
+   colonies.dat$Value[idx] <- paste(strsplit(colonies.dat$Value[idx],",")[[1]],collapse="")
+}
+colonies.dat$Value <- as.numeric(colonies.dat$Value)
+colonies.dat$State <- as.factor(as.character((colonies.dat$State)))
+tapply(colonies.dat$Value,list(colonies.dat$State),mean,na.rm=TRUE)
+counts <- tapply(colonies.dat$Value,list(colonies.dat$State),length)
+totals <- tapply(colonies.dat$Value,list(colonies.dat$Year),sum)
+colonies.dat <- subset(colonies.dat, colonies.dat$State %in% names(counts>20))
+
+colonies.plot <- ggplot(colonies.dat, aes(Year,Value)) 
+colonies.plot <- colonies.plot + geom_point(size=2,alpha = 0.3)
+colonies.plot <- colonies.plot + geom_smooth(weight=10,se = FALSE,method="loess",span = 0.6)
+colonies.plot
+
+
+colonies.plot <- ggplot(colonies.dat, aes(Year,Value)) 
+colonies.plot <- colonies.plot + geom_point(size=2,alpha = 0.3)
+colonies.plot <- colonies.plot + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.6)
+colonies.plot
+
+colonies.central.dat <- subset(colonies.dat,colonies.dat$State %in% c("ILLINOIS","INDIANA","IOWA","KANSAS","MINNESOTA","MISSOURI","NEBRASKA","NORTH DAKOTA","SOUTH DAKOTA"))
+
+colonies.central.plot <- ggplot(colonies.central.dat, aes(Year,Value)) + geom_point(size=2,alpha = 0.3) + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.6)
+colonies.central.plot
+
+colonies.central.dat <- subset(colonies.dat,colonies.dat$State %in% c("TEXAS","OKLAHOMA","KANSAS","NEBRASKA","NORTH DAKOTA","SOUTH DAKOTA"))
+
+colonies.central.plot <- ggplot(colonies.central.dat, aes(Year,Value)) + geom_point(size=2,alpha = 0.3) + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.6)
+colonies.central.plot
+
+production.central.dat <- subset(production.dat,production.dat$State %in% c("TEXAS","OKLAHOMA","KANSAS","NEBRASKA","NORTH DAKOTA","SOUTH DAKOTA"))
+
+production.central.plot <- ggplot(production.central.dat, aes(Year,Value)) + geom_point(size=2,alpha = 0.3) + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.6)
+production.central.plot
+```
+
+Apple application data
+12F6A6B4-C161-319F-A163-9B2DEFEE424D

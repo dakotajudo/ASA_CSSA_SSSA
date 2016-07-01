@@ -94,6 +94,8 @@ trt.means <- tapply(connolly.potato$yield,
 yield.e <- connolly.potato$yield -
     sapply(connolly.potato$gen, function(x) trt.means[x])
 
+connolly.potato$yield.e <- yield.e
+
 nb20x4 <- cell2nb(20,4)
 W.papa <- nb2listw(nb20x4)
 connolly.potato$X <- listw2mat(W.papa) %*% yield.e
