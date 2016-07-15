@@ -15,12 +15,23 @@ contrast.distances <- function(plan,multiple=FALSE,plot.dim=c(1,1),buffer.dim=c(
     }
   }
   
+  trt1vec=c()
+  trt2vec=c()
+  trt1row=c()
+  trt2row=c()
+  trt1col=c()
+  trt2col=c()
+  trt1rep=c()
+  trt2rep=c()
+  distances=c()
+  
   cont <- data.frame(
     trt1=trt1,
     trt2=trt2,
     distance=rep(0,length(trt1)),
     dist.sd=rep(0,length(trt1))
   )
+
   
   #for each treatment
   for (trt1 in 1:(trts-1)) {
@@ -36,12 +47,23 @@ contrast.distances <- function(plan,multiple=FALSE,plot.dim=c(1,1),buffer.dim=c(
           print(idx1)
         }
         p1 <- c(this.trt$row[idx1],this.trt$col[idx1])
+        rep1 <- this.trt$rep[idx1]
         for (idx2 in 1:(dim(other.trt)[1])) {
           p2 <- c(other.trt$row[idx2],other.trt$col[idx2])
+          rep2 <- other.trt$rep[idx2]
+          dist <- plot.distance(p1,p2,plot.dim,buffer.dim)
           if(multiple || p1[1]==p2[1]) {
-            dist <- plot.distance(p1,p2,plot.dim,buffer.dim)
             dists <- c(dists,dist)
           }
+          trt1vec=c(trt1vec,trt1)
+          trt2vec=c(trt2vec,trt2)
+          trt1rep=c(trt1rep,rep1)
+          trt2rep=c(trt2rep,rep2)
+          trt1row=c(trt1row,this.trt$row[idx1])
+          trt2row=c(trt2row,other.trt$row[idx2])
+          trt1col=c(trt1col,this.trt$col[idx1])
+          trt2col=c(trt2col,other.trt$col[idx2])
+          distances=c(dist,distances)
         }
       }
       #print(paste("Trt",trt1,"vs Trt",trt2))
@@ -57,5 +79,16 @@ contrast.distances <- function(plan,multiple=FALSE,plot.dim=c(1,1),buffer.dim=c(
       }
     }
   }
-  return(cont)
+  
+  return(list(pairs=data.frame(
+                      trt1=trt1vec,
+                      trt2=trt2vec,
+                      rep1=trt1rep,
+                      rep2=trt2rep,
+                      row1=trt1row,
+                      row2=trt2row,
+                      col1=trt1col,
+                      col2=trt2col,
+                      distance=distances),
+                means=cont))
 }

@@ -18,4 +18,40 @@
   provide optimal treatment dispersions and compare methods of recovering
   spatial information. The choice of methods used for spatial analysis may
   dictate the requirements for optimal dispersion.>>
+
+  \;
+
+  \;
+
+  <subsection*|Computing dispersion for augmented designs.>
+
+  van Es, et al, <inactive|<cite|es.h-03-1993>>
+
+  Federer used a simple design to demonstrate the analysis of\ 
+
+  <\bibliography|bib|tm-plain|biblio.bib>
+    <\bib-list|0>
+      </bib-list>
+  </bibliography>
 </body>
+
+<\references>
+  <\collection>
+    <associate|auto-1|<tuple|?|?>>
+    <associate|auto-2|<tuple|?|?>>
+  </collection>
+</references>
+
+<\auxiliary>
+  <\collection>
+    <\associate|toc>
+      <with|par-left|<quote|1tab>|Computing dispersion for augmented designs.
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-1>>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|Bibliography>
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-2><vspace|0.5fn>
+    </associate>
+  </collection>
+</auxiliary>
