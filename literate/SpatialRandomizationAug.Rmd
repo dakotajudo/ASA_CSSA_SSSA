@@ -27,7 +27,13 @@ Fig2.plan <- data.frame(
      col=c(rep(1:4,4))
   )
 desplot(trt ~ col*row, data=Fig2.plan, num=trt, main="Figure 2")
-Fig2.mat <- make.pairs.matrices(make.pairs.table(pair.distances(Fig2.plan)))
+Fig2.plan$rep <- Fig2.plan$row
+Fig2.dist <- pair.distances(Fig2.plan)
+Fig2.dist
+
+
+Fig2.tbl <- make.pairs.table(Fig2.dist)
+Fig2.mat <- make.pairs.matrices(Fig2.tbl)
 Fig2.mat
 ```
 
@@ -39,12 +45,13 @@ Scott.plan <- data.frame(
   trt=c(1, 5, 7, 2, 6, 8, 3, 10, 4, 9, 11, 12, 3, 14, 13, 1, 16, 2, 15, 4, 1, 19, 1, 2, 21, 18, 3, 20, 4, 17)
 )
 desplot(trt ~ col*row, data=Scott.plan, num=trt, main="Scott 1993")
+Scott.plan$rep <- Scott.plan$row
 Scott.mat <- make.pairs.matrices(make.pairs.table(pair.distances(Scott.plan,reference=1:4)))
 Scott.mat
 
-make.pairs.matrices(make.pairs.table(pair.distances(Scott.plan,multiple=FALSE)))
-make.pairs.matrices(make.pairs.table(pair.distances(Scott.plan,reference=1:4,multiple=FALSE)))
-make.pairs.matrices(make.pairs.table(pair.distances(Scott.plan)))
+#make.pairs.matrices(make.pairs.table(pair.distances(Scott.plan,multiple=FALSE)))
+#make.pairs.matrices(make.pairs.table(pair.distances(Scott.plan,reference=1:4,multiple=FALSE)))
+#make.pairs.matrices(make.pairs.table(pair.distances(Scott.plan)))
 ```
 
 
@@ -93,6 +100,16 @@ desplot(check ~ col*row, data=plan3, main="3 stagger")
 desplot(check ~ col*row, data=plan4, main="4 stagger")
 desplot(check ~ col*row, data=plan5, main="5 stagger")
 desplot(check ~ col*row, data=plan6, main="6 stagger")
+
+
+plan0$rep <- plan0$row
+plan1$rep <- plan1$row
+plan2$rep <- plan2$row
+plan3$rep <- plan3$row
+plan4$rep <- plan4$row
+plan5$rep <- plan5$row
+plan6$rep <- plan6$row
+
 ```
 
 ```{r}
@@ -234,6 +251,13 @@ desplot(check ~ col*row, data=plan1, main="1 stagger")
 desplot(check ~ col*row, data=plan2, main="2 stagger")
 desplot(check ~ col*row, data=plan3, main="3 stagger")
 desplot(check ~ col*row, data=plan4, main="4 stagger")
+
+plan0$rep <- plan0$row
+plan1$rep <- plan1$row
+plan2$rep <- plan2$row
+plan3$rep <- plan3$row
+plan4$rep <- plan4$row
+
 ```
 
 ```{r}
