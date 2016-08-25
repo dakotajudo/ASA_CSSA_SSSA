@@ -1,0 +1,59 @@
+\documentclass[]{article}
+
+\begin{document}
+
+\title{meta.individual}
+\author{Peter Claussen}
+\maketitle
+
+\verb|meta.individua| is a driver function for individual trial analysis in META. This function simply scans for trial names, then calls meta.single.trial for individual trial analysis. The results are returned as a list.
+
+We also append a list of trials analyzed. Trials may be skipped if heritability is too low, so we can filter combined trials on this set.
+
+This function also takes an optional list of responses. This allows us to specify only a subset of responses to analyze. If this is null, we use a utility function to extract responses.
+
+<<>>=
+meta.individual <- function(dat=NULL,
+                        mrv="MRV",
+                        location="Loc",
+                        genotype="Gen",
+                        replicate="Rep",
+                        block=NULL,
+                        covariate=NULL,
+                        heretibility_threshold=0.05,
+                        responses=NULL) {
+
+   locations <- levels(get(location,dat))
+   location.list <- vector("list",length(locations))
+   names(location.list) <- as.character(locations)
+
+   for(loc.idx in locations) {
+      #extract the current location
+      current.dat <- subset(dat,get(location,dat)==loc.idx)
+      
+      #analyze as single trial
+      current.res <- meta.single.trial(dat=current.dat,
+                                       mrv=mrv,
+                                       location=location,
+                                       genotype=genotype,
+                                       replicate=replicate,
+                                       block=block,
+                                       covariate=covariate)
+                                       
+      #add to return list
+      if(current.res$Heritability>heretibility_threshold) {
+         location.list[[loc.idx]] <- current.res
+      }
+   }
+   class(location.list) <- c(class(location.list),"META.individual")
+   return(location.list)
+}
+@
+
+The print utility.
+<<>>=
+print.META.individual <- function(value) {
+   
+}
+@
+\end{document}

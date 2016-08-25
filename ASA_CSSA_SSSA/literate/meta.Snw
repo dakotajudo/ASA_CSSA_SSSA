@@ -1,0 +1,20 @@
+\documentclass[]{article}
+
+\begin{document}
+
+
+<<echo=false,results=hide>>=
+@
+\title{Implementing SAS META}
+\author{Peter Claussen}
+\maketitle
+
+The SAS version of META is prompt driven. Users are asked to input file and variable names. This function mimics that functionality by prompting from the R command line. \verb|meta| driver routines are appropriately called.
+
+<<>>=
+meta <- function() {
+   
+}
+@
+
+\end{document}

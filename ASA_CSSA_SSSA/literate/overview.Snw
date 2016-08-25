@@ -1,0 +1,21 @@
+\documentclass[]{article}
+
+\begin{document}
+
+
+<<echo=false,results=hide>>=
+@
+\title{Implementing SAS META}
+\author{Peter Claussen}
+\maketitle
+
+Vargas, et al, recently released a suite of SAS macros for multienvironment trials. This is a menu-driven system intended to simplify analysis for crop scientists. R is becoming a popular statistics programming tool for crop scientists, so we implement the META functionality as an R library.
+
+R is primarily a command-line environment, so most functionality is implemented as functions. However, the top level \verb|meta()| function prompts for input, following the logic presented for the SAS suite.
+
+<<>>=
+meta <- function() {
+}
+@
+
+\end{document}

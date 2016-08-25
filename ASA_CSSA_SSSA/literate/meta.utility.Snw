@@ -1,0 +1,43 @@
+\documentclass[]{article}
+
+\begin{document}
+
+
+<<echo=false,results=hide>>=
+@
+\title{META utility functions}
+\author{Peter Claussen}
+\maketitle
+
+Given a data set, extract the column names for data that can be analyzed.
+
+<<>>=
+extract.responses <- function(dat,mrv="MRV",
+   location="Loc",
+   genotype="Gen",
+   replicate="Rep",
+   block=NULL,
+   covariate=NULL,
+   grouping=NULL) {
+      
+      dat.names <- names(dat)
+      #remove non-numeric columns
+      dat.names <- subset(dat.names, is.numeric(dat[1,]))
+      
+      expected.names <- c(mrv,location,genotype,replicate)
+      
+      if(!is.nothing(block)) {
+         expected.names <- c(expected.names,block)
+      }
+      if(!is.nothing(covariate)) {
+         expected.names <- c(expected.names,covariate)
+      }
+      if(!is.nothing(grouping)) {
+         expected.names <- c(expected.names,grouping)
+      }
+      
+      ret.names <- subset(dat.names, !(dat.names %in% expected.names))
+      
+      return(ret.names)
+}
+@

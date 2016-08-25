@@ -85,8 +85,8 @@ pair.distances <- function(plan,plot.dim=c(1,1),row.buffer=c(0,0),reference=c())
                     pair=pair,distance=dist,
                     contrast=cont,reference=ref,
                     row1=row1,
-                    row2=row2,
                     col1=col1,
+                    row2=row2,
                     col2=col2,
                     rep1=rep1,
                     rep2=rep2

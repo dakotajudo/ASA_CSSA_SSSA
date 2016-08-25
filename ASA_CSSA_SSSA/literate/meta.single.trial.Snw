@@ -1,0 +1,174 @@
+\documentclass[]{article}
+
+\begin{document}
+
+
+<<echo=false,results=hide>>=
+@
+\title{meta.single.trial}
+\author{Peter Claussen}
+\maketitle
+<<>>=
+meta.single.trial <- function(dat=NULL,
+                        mrv="MRV",
+                        location="Loc",
+                        genotype="Gen",
+                        replicate="Rep",
+                        block=NULL,
+                        covariate=NULL) {
+
+   entries <- as.character(levels(get(genotype,dat)))
+
+   fix.model <- paste("~",genotype,"+ (1 |", replicate,")")
+   fix.model.0 <- paste("~",genotype,"+ 0 + (1 |", replicate,")")
+   ran.model <- paste("~ (1 |",genotype,") + (1 |", replicate,")")
+
+   fix.frm <- as.formula(paste(MRV,fix.model))
+   fix.frm.0 <- as.formula(paste(MRV,fix.model.0))
+   ran.frm <- as.formula(paste(MRV,ran.model))
+
+   Heritability.lists <- vector("list",1+length(responses))
+   Residual.lists <- vector("list",1+length(responses))
+   Genotype.lists <- vector("list",1+length(responses))
+
+   names(Heritability.lists) <- c("MRV",responses)
+   names(Residual.lists) <- c("MRV",responses)
+   names(Genotype.lists) <- c("MRV",responses)
+
+      nreps=NULL
+      Genotype_Variance=NULL
+      Residual_Variance=NULL
+      Grand_Mean=NULL
+      LSD=NULL
+      CV=NULL
+      Heritability=NULL
+
+      #for each location, we want BLUP and BLUE for the main response variable
+      #and least square means for the remaining responses.
+      loc_means <- vector("list",length(responses)+2)
+
+      #fit to a mixed model without intercept to get BLUE for genotypes
+      #and a random model for BLUP
+      mrv0.lmer <- lmer(fix.frm.0,data=current.dat)
+      mrv.ran.lmer <- lmer(ran.frm,data=current.dat)
+      mrv_blue <- fixef(mrv0.lmer)
+
+      #for blup, get the random effects from the (1 | Gen) model,
+      #then add the fixed intercept
+      mrv_blup <- ranef(mrv.ran.lmer)
+      mrv_blup <- as.numeric(get(Gname,mrv_blup)[[1]]) + as.numeric(fixef(mrv.ran.lmer))
+
+      #get variance components
+      mrv.fix.varcor <- VarCorr(mrv0.lmer)
+      mrv.ran.varcor <- VarCorr(mrv.ran.lmer)
+      mrv.gen.var <- get(Gname,mrv.ran.varcor)[1]
+      Genotype_Variance <- mrv.gen.var
+      mrv.res.var <- attr(mrv.ran.varcor,"sc")
+      Residual_Variance <- mrv.res.var*mrv.res.var
+
+      #grand mean
+      Grand_Mean <- c(Grand_Mean,mean(get(MRV,current.dat),na.rm=TRUE))
+
+      #replicates for MRV
+      mrv.reps <- replicates(mrv0.lmer,response=MRV,group=Gname)
+      nreps <- harmonic.mean(mrv.reps)
+
+      #lsd for MRV
+      LSD <- lsd(mrv0.lmer,as.numeric(replicates(mrv0.lmer,response=MRV,group=Gname)))
+
+      #cv for MRV
+      CV <- cv(get(MRV,current.dat))
+
+      #heritibility for MRV
+      Heritability <- heritibility(s2g=Genotype_Variance,s2e=Residual_Variance,nreps=nreps) 
+
+      #for creating a heritability table
+      Genotype.lists[["MRV"]] <- c(Genotype.lists[["MRV"]],Genotype_Variance)
+      Residual.lists[["MRV"]] <- c(Residual.lists[["MRV"]],Residual_Variance)
+      Heritability.lists[["MRV"]] <- c(Heritability.lists[["MRV"]],Heritability)
+
+      #table for means
+      means.table <- data.frame(Entries=entries,
+                                BLUE.MRV=as.numeric(mrv_blue),
+                                BLUP.MRV=as.numeric(mrv_blup))
+
+      #table for variances, first two columsn for MRV; note we don't provide values for BLUP, they would be identical to BLUE
+      row.names=c("Reps","Genotype_Variance","Residual_Variance","Grand_Mean","LSD","CV","Heritability")
+      var.table <- data.frame(BLUE.MRV=c(nreps,Genotype_Variance,Residual_Variance,Grand_Mean,LSD,CV,Heritability),
+                              BLUP.MRV=c(NA,NA,NA,NA,NA,NA,NA),
+                              row.names=row.names)
+
+      if(verbose) {
+         print(paste("Analysis for BLUEs, ",MRV," without covariate ",sep=""))
+         print(mrv0.lmer)
+         print(paste("Analysis for BLUPs, ",MRV," without covariate ",sep=""))
+         print(mrv.ran.lmer)
+         #programmitically create the comparison contrasts; needs an element named for 
+         #effect in the model
+         tmp.mcp <- mcp(Gname="Tukey")
+         names(tmp.mcp) <- c(Gname)
+         print(summary(glht(mrv0.lmer,linfct=tmp.mcp)))
+      }
+
+      #for all other responses
+      if(verbose) {
+         print("Individual Analysis for LSmeans, LSD & CV for All the Other Variates")
+      }
+      idx <- 3
+      for(r in responses) {
+         sd.r <- sd(get(r,current.dat))
+         Grand_Mean <-  c(Grand_Mean,mean(get(r,current.dat),na.rm=TRUE))
+         #TASSELLING is NA for TUMU
+         if(!is.na(sd.r) && (sd.r > 0)) {
+            #in the test data, this fails when the response values are all identical
+            #BIRNIN-KUDU, MOIST=15 for all
+            current.lmer <- lmer(as.formula(paste(r,fix.model.0)),data=current.dat)
+
+            current.ran <- lmer(as.formula(paste(r,ran.model)),data=current.dat)
+
+            current.means <- fixef(current.lmer)
+            current.means[2:length(current.means)] <- current.means[2:length(current.means)] + current.means[1]
+            means.table <- cbind(means.table,as.numeric(current.means))
+
+            current.varcor <- VarCorr(current.ran)
+            Genotype_Variance <- get(Gname,current.varcor)[1]
+            res.s <- attr(current.varcor,"sc")
+            Residual_Variance <- res.s*res.s
+            Grand_Mean <- mean(get(r,current.dat),na.rm=TRUE)
+
+            nreps <- replicates(current.lmer,response=r,group=Gname)
+            LSD <- lsd(current.lmer,as.numeric(replicates(current.lmer,response=r,group=Gname)))
+            nreps <- harmonic.mean(mrv.reps) 
+
+            CV <- cv(get(r,current.dat))
+
+            Heritability <- heritibility(s2g=Genotype_Variance,s2e=Residual_Variance,nreps=nreps) 
+
+            var.table <- cbind(var.table,
+                              c(nreps,Genotype_Variance,Residual_Variance,Grand_Mean,LSD,CV,Heritability)
+                         )
+            if(verbose) {
+               print(current.lmer)
+               print(current.ran)
+               tmp.mcp <- mcp(Gname="Tukey")
+               names(tmp.mcp) <- c(Gname)
+               summary(glht(current.lmer,linfct=tmp.mcp))
+            }
+         } else {
+            #not estimable data
+            means.table <- cbind(means.table,rep(mean(get(r,current.dat)),length(entries)))
+            var.table <- cbind(var.table,rep(NA,length(row.names)))
+            if(verbose) {
+               print(paste("SD for",r,"is not estimable, no analysis generated"))
+            }
+         }
+         idx <- idx+1
+      }
+      names(var.table) <- c("BLUE.MRV","BLUP.MRV",responses)
+      names(means.table) <- c("Entry","BLUE.MRV","BLUP.MRV",responses)
+      
+      ret <- list(means=means.table,variances=var.table)
+      class(ret) <-"META.single.trial"
+}
+@
+

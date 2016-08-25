@@ -1,0 +1,110 @@
+\documentclass[]{article}
+
+\begin{document}
+
+
+<<echo=false,results=hide>>=
+@
+\title{meta.driver}
+\author{Peter Claussen}
+\maketitle
+Since R is more commonly used from the command line, we implement a driver function, \verb|meta.driver| with parameters that correspond to the META menu structure.
+
+Briefly, user choices include, from Fig. 1, 
+\begin{itemize}
+   \item{Lattice or RCB}
+   \item{With or Without Covariate}
+   \item{Visualize or Analyze}
+\end{itemize}
+
+Additional prompts for names include
+
+\begin{itemize}
+   \item{Input folder}
+   \item{Output folder}
+   \item{Input file}
+   \item{Main Response Variable}
+   \item{Covariate}
+   \item{Grouping}
+   \item{Rep}
+   \item{Block}
+   \item{Genotype}
+\end{itemize}
+
+We start by assuming the \verb|meta.driver| function will be called with a data set and will return a data frame or table, so input and output folders are not needed. The remaining prompts are passed to the main function as named parameters, and we provide default null values for Covariate, Grouping and Block.
+If Block is an empty string we analyze as RCB, otherwise the analysis is a lattice. If the Covariate parameter is non-null we include, otherwise ignore.
+
+Visualization options typically include
+\begin{itemize}
+   \item[1]{Box Plots}
+   \item[2]{Frequency Histograms}
+   \item[3]{Back to previous menu}
+\end{itemize}
+
+We include in the \verb|meta| driver function a parameter that displays plots, then giving an option to proceed with analysis. 
+
+Analysis options typically include
+\begin{itemize}
+   \item[1]{Genetic Correlation Among Locations}
+   \item[2]{BLUEs \& BLUPs Individual Analysis without Management}
+   \item[3]{BLUEs \& BLUPs Individual Analysis with Management}
+   \item[4]{BLUEs \& BLUPs Combined Analysis by Management}
+   \item[5]{BLUEs \& BLUPs Combined Analysis Across All Locations}
+   \item[6]{Running All Programs in a Simple Step}
+   \item[7]{Exit META}
+\end{itemize}
+
+We will assume for our driver function that if Grouping is provided we proceed with either 3 or 4, so we have analysis options of 
+\begin{enumerate}
+   \item[1]{Genetic Correlations}
+   \item[2]{Individual Trials}
+   \item[3]{Combined Trials}
+   \item[4]{Combined Trials, Managed}
+   \item[5]{All}
+\end{enumerate}
+
+The only real advantage for the top-level driver function is to simplify all analysis, so we provide option \verb|4| from the \verb|meta| function, but allow subsets of analysis using \verb|meta.*|. The return from \verb|meta| will be a list of results, each named corresponding to the 
+\verb|*| option. 
+
+The driver function looks like
+<<>>=
+meta.driver <- function(data=NULL,
+                        mrv="MRV",
+                        location="Loc",
+                        genotype="Gen",
+                        replicate="Rep",
+                        block=NULL,
+                        covariate=NULL,
+                        grouping=NULL,
+                        visualize=FALSE,
+                        heretibility_threshold=0.05) {
+   #check parameters
+   dat.names <- names(data)
+   #if we are passed a parameter for block, does it exist in the data?
+   if(!is.nothing(block)) {
+      if(!any(dat.names==block)) {
+         # there is no valid block name, so revert to RCB. 
+         block <- NULL
+         #report as a warning
+      }
+   }
+   
+   if(visualize) {
+      meta.boxplots(data=data,mrv=mrv,location=location,genotype=genotype,replicate=replicate,block=block,covariate=covariate)
+      meta.histograms(data=data,mrv=mrv,location=location,genotype=genotype,replicate=replicate,block=block,covariate=covariate)
+   }
+   
+   #return is an empty list
+   ret <- c()
+   
+   ret$gen_cor <- meta.correlations(data=data,mrv=mrv,location=location,genotype=genotype,replicate=replicate,block=block,covariate=covariate)
+   ret$individual <- meta.individual(data=data,mrv=mrv,location=location,genotype=genotype,replicate=replicate,block=block,covariate=covariate)
+   ret$combined <- meta.combined(data=data,mrv=mrv,location=location,genotype=genotype,replicate=replicate,block=block,covariate=covariate)
+   if(!is.nothing(grouping)) {
+      ret$managed <- meta.managed(data=data,mrv=mrv,location=location,genotype=genotype,replicate=replicate,block=block,covariate=covariate)
+   }
+   return(ret)
+}
+@
+
+\end{document}

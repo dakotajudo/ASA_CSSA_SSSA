@@ -1,0 +1,363 @@
+agridat
+========================================================
+```{r}
+library(agridat)
+```
+Agridat is a pretty good R package with data sets from a variety of sources. There is signficant overlap with ARMR, so I'm making notes.
+
+According to Wright, "Some of the examples use the asreml package since it is the only option for fitting mixed models with complex variance structures to large datasets, and also the only option (even for small datasets) for modelling AR1xAR1 structures. "
+
+
+From the help page, organized by analysis type
+
+Uniformity trials with a single genotype
+----------------------------------------
+
+### baker.barley.uniformity
+```{r}
+dat <- baker.barley.uniformity
+
+desplot(yield~col*row|year, data=dat, main="Heatmaps by year")
+dat2 <- aggregate(yield ~ row*col, data=dat, FUN=mean, na.rm=TRUE)
+asp <- (161*3+30)/827 # True aspect ratio
+
+desplot(yield~col*row, data=dat2, main="Avg yield over 10 years", aspect=asp)
+# Note lower yield in upper right, slanting to left a bit due to sandy soil.
+
+# Baker fig 2, stdev vs mean
+dat3 <- aggregate(yield ~ row*col, data=dat, FUN=sd, na.rm=TRUE)
+
+plot(dat2$yield, dat3$yield, xlab="Mean yield", ylab="Std Dev yield")
+
+# Baker table 4, correlation of plots across years
+require(reshape2)
+mat <- acast(dat, row+col~year)
+round(cor(mat, use='pair'),2)
+```
+
+### batchelor.apple.uniformity
+```{r}
+require(lattice)
+
+# Apple
+dat <- batchelor.apple.uniformity
+desplot(yield~col*row, dat, aspect=30/16,
+          main="Jonathon apple tree yields")
+```
+### batchelor.lemon.uniformity
+```{r}
+# Lemon
+dat <- batchelor.lemon.uniformity
+desplot(yield~col*row, dat, aspect=26/14,
+          main="Eureka lemon tree yields")
+```
+### batchelor.navel1.uniformity
+```{r}
+# Navel1 (Arlington)
+dat <- batchelor.navel1.uniformity
+desplot(yield~col*row, dat, aspect=50/20,
+          main="Navel orange tree yields (Arlington)")
+```
+### batchelor.navel2.uniformity
+```{r}
+# Navel2 (Antelope)
+dat <- batchelor.navel2.uniformity
+desplot(yield~col*row, dat, aspect=33/15,
+          main="Navel orange tree yields (Antelope)")
+```
+### batchelor.valencia.uniformity
+```{r}
+# Valencia
+dat <- batchelor.valencia.uniformity
+desplot(yield~col*row, dat, aspect=20/12,
+          main="Valencia orange tree yields")
+```
+### batchelor.walnut.uniformity
+```{r}
+# Walnut
+dat <- batchelor.walnut.uniformity
+desplot(yield~col*row, dat, aspect=32/10,
+          main="Seedling walnut yields")
+```
+
+garber.multi.uniformity	 45 x 6	 xy, 2 years/crops	
+gomez.rice.uniformity	 18 x 36	 xy	 aov
+goulden.barley.uniformity	 20 x 20	 xy	
+harris.multi.uniformity	 2 x 23	 xy, 23 crops	 corrgram
+immer.sugarbeet.uniformity	 10 x 60	 xy, 3 traits	
+kempton.barley.uniformity	 7 x 28	 xy	
+li.millet.uniformity	 6 x 100	 xy	
+lyon.potato.uniformity	 34 x 6	 xy	
+mercer.wheat.uniformity	 25 x 20	 xy, 2 traits	 spplot
+odland.soybean.uniformity	 25 x 42	 xy	
+odland.soyhay.uniformity	 28 x 55	 xy	
+smith.corn.uniformity	 6 x 20	 xy, 3 years	 rgl
+stephens.sorghum.uniformity	 100 x 20	 xy	
+wiebe.wheat.uniformity	 12 x 125	 xy	 medianpolish, loess
+williams.barley.uniformity	 48 x 15	 xy	 loess
+williams.cotton.uniformity	 24 x 12	 xy	 loess
+
+Animals
+-------
+name	 gen	 loc	 years	 trt	 other	 model
+diggle.cow				 4	 ts	
+henderson.milkfat						 nls,lm,glm,gam
+ilri.sheep	 4		 6		 diallel	 lmer, asreml
+zuidhof.broiler					 ts	
+
+Trees
+-----
+
+name	 gen	 loc	 reps	 years	 trt	 other	 model
+archbold.apple	 2		 5		 24	 split-split	 lmer
+box.cork						 repeated	 radial, asreml
+harris.wateruse	 2				 2	 repeated	 asreml
+lavoranti.eucalyptus	 70	 7					 svd
+pearce.apple			 4		 6	 cov	 lm,lmer
+williams.trees	 37	 62		
+
+Field and horticulture crops
+----------------------------
+
+
+name	 gen	 loc	 reps	 years	 trt	 other	 model
+adugna.sorghum	 28	 13		 5			
+aastveit.barley	 15			 9		 Yr*Gen~Yr*Trait	 pls
+allcroft.lodging	 32	 7				 percent	 tobit
+
+### ars.earlywhitecorn96
+```{r}
+require(lattice)
+dat <- ars.earlywhitecorn96
+# These views emphasize differences between locations
+dotplot(gen~yield, dat, group=loc, auto.key=list(columns=3),
+        main="ars.earlywhitecorn96")
+dotplot(gen~stalklodge, dat, group=loc, auto.key=list(columns=3),
+        main="ars.earlywhitecorn96")
+splom(~dat[,3:9], group=dat$loc, auto.key=list(columns=3))
+```
+
+### australia.soybean
+```{r}
+dat <- australia.soybean
+dm <- melt(dat, id.var=c('env', 'year','loc','gen'))
+
+# Joint plot of genotypes & traits. Similar to Figure 1 of Kroonenberg 1989
+dmat <- acast(dm, gen~variable, fun=mean)
+dmat <- scale(dmat)
+biplot(princomp(dmat), main="australia.soybean trait x gen biplot", cex=.75)
+
+# Figure 1 of Kozak 2010, lines 44-58
+dmat2 <- dmat[44:58,]
+require("lattice")
+parallelplot(dmat2[,c(2:6,1)], horiz=FALSE)
+```
+
+### besag.bayesian
+TODO asreml
+```{r}
+dat <- besag.bayesian
+
+# Yield values were scaled to unit variance
+var(dat$yield, na.rm=TRUE)
+
+# Besag Fig 2. Reverse row numbers to match Besag, Davison
+dat$rrow <- 76 - dat$row
+library("lattice")
+xyplot(yield ~ rrow|col, dat, layout=c(1,3), type='s')
+
+## Not run: 
+# Use asreml to fit a model with AR1 gradient in rows
+#require(asreml)
+#dat <- transform(dat, cf=factor(col), rf=factor(rrow))
+#m1 <- asreml(yield ~ -1 + gen, data=dat, random=~ar1v(rf))
+
+# Visualize trends, similar to Besag figure 2.
+#dat$res <- resid(m1)
+#dat$geneff <- coef(m1)$fixed[as.numeric(dat$gen)]
+#dat <- transform(dat, fert=yield-geneff-res)
+#xyplot(geneff ~ rrow|col, dat, layout=c(1,3), type='s',
+#       main="Variety effects", ylim=c(5,15 ))
+#xyplot(fert ~ rrow|col, dat, layout=c(1,3), type='s',
+#       main="Fertility", ylim=c(-2,2))
+#xyplot(res ~ rrow|col, dat, layout=c(1,3), type='s',
+#       main="Residuals", ylim=c(-4,4))
+```
+
+besag.elbatan	 50		 3			 xy	 lm, gam
+besag.met	 64	 6	 3			 xy, incblock	 asreml, lme
+blackman.wheat	 12	 7			 2		 biplot
+bond.diallel	 6*6				 9		 diallel
+bridges.cucumber	 4	 2	 4			 xy, latin, hetero	 asreml
+caribbean.maize		 17	 4		 3		
+carmer.density	 8				 4		 nls
+cochran.bib	 13	 13				 BIB	 aov, lme
+cochran.crd					 7	 xy, crd	 aov
+cochran.latin			 6		 6	 xy, latin	 aov
+cochran.wireworms			 5		 5	 xy, latin	 glm
+cochran.eelworms			 4		 5	 xy	 aov
+corsten.interaction	 20	 7					
+crossa.wheat	 18	 25					 AMMI
+crowder.seeds	 2		 21		 2		 glm,jags
+cox.stripsplit			 4		 3,4,2		 aov
+darwin.maize			 12		 2		 t.test
+denis.missing	 5	 26					 lme
+denis.ryegrass	 21	 7					 aov
+digby.jointregression	 10	 17			 4		 lm
+durban.competition	 36		 3			 xy, competition	 lm
+durban.rowcol	 272		 2			 xy	 lm, gam, asreml
+durban.splitplot	 70		 4		 2	 xy	 lm, gam, asreml
+eden.potato			 4	 3	 4-12	 xy, rcb, latin	 aov
+engelstad.nitro		 2		 5	 6		 nls quadratic plateau
+fan.stability	 13	 10		 2		 3-way	 stability
+federer.diagcheck	 122					 xy	 lm, lmer, asreml
+federer.tobacco			 8		 7	 xy	 lm
+gathmann.bt	 2		 8				 TOST
+gauch.soy	 7	 7	 4	 12			 AMMI
+gilmour.serpentine	 108		 3			 xy, serpentine	 asreml
+gilmour.slatehall	 25		 6			 xy	 asreml
+gomez.fractionalfactorial			 2		 6	 xy	 lm
+gomez.groupsplit	 45		 3		 2	 xy, 3 gen groups	 aov
+
+### gomez.multilocsplitplot
+```{r}
+dat <- gomez.multilocsplitplot
+
+# Gomez figure 8.3
+xyplot(yield~nitro, dat, group=loc, type=c('p','smooth'), auto.key=TRUE)
+
+# AOV
+# Be careful to use the right stratum, 'nf' appears in both strata.
+# Still not quite the same as Gomez table 8.21
+dat$nf <- factor(dat$nitro)
+t1 <- terms(yield ~ loc * nf * gen + Error(loc:rep:nf),
+            "Error", keep.order=TRUE)
+m1 <- aov(t1, data=dat)
+summary(m1)
+
+# F values are somewhat similar to Gomez Table 8.21
+require(lme4)
+m2 <- lmer(yield ~ loc*nf*gen + (1|loc/rep/nf), dat)
+anova(m2)
+```
+
+### gomez.nitrogen
+```{r}
+dat <- gomez.nitrogen
+
+# Note the depletion of nitrogren over time (stage)
+library(HH)
+interaction2wt(nitro ~ rep/trt + trt*stage, data=dat)
+# Just the fertilizer profiles
+with(dat, interaction.plot(stage, trt, nitro, col=1:4, lty=1:3))
+
+# Gomez table 6.16
+m1 <- aov(nitro ~ Error(rep/trt) + trt*stage, data=dat)
+summary(m1)
+
+# Gomez table 6.18
+# Treatment                    1 2 3 4 5 6 7 8
+cont <- cbind("T7 vs others" = c( 1, 1, 1, 1, 1, 1,-7, 1),
+              "T8 vs others"  = c( 1, 1, 1, 1, 1, 1, 0,-6),
+              "T2,T5 vs others"   = c(-1, 2,-1,-1, 2,-1, 0, 0),
+              "T2 vs T5"       = c( 0, 1, 0, 0,-1, 0, 0, 0))
+contrasts(dat$trt) <- cont
+contrasts(dat$trt)
+
+m2 <- aov(nitro ~ Error(rep/trt) + trt*stage, data=dat)
+summary(m2, expand.split=FALSE,
+        split=list(trt=list(
+                     "T7 vs others"=1,
+                     "T8 vs others"=2,
+                     "T2,T5 vs others"=3,
+                     "T2 vs T5"=4,
+                     rest=c(5,6,7)),
+          "trt:stage"=list(
+            "(T7 vs others):P"=c(1,8),
+            "(T8 vs others):P"=c(2,9),
+            "(T2,T5 vs others):P"=c(3,10),
+            "(T2 vs T5):P"=c(4,11),
+            "rest:P"=c(5,6,7,12,13,14))
+          ))
+
+```
+
+gomez.seedrate			 4		 6	 rate	 lm
+gomez.splitsplit	 3		 3			 xy, nitro, mgmt	 aov, lmer
+gomez.stripplot	 6		 3			 xy, nitro	 aov
+gomez.stripsplitplot	 6		 3			 xy, nitro	 aov
+gotway.hessianfly	 16		 4			 xy	 lmer
+graybill.heteroskedastic	 4	 13				 hetero	
+hanks.sprinkler	 3		 3			 xy	 asreml
+hayman.tobacco	 8		 2				 diallel
+hernandez.nitrogen		 5	 4				 lm, nls
+hildebrand.systems		 14			 4		 asreml
+holshouser.splitstrip	 4		 4		 2*4		 lmer
+hughes.grapes			 3		 6	 binomial	 lmer, aod, glmm
+ivins.herbs	 13		 6			 2 traits	 lm, friedman
+jenkyn.mildew			 9		 4		 lm
+john.alpha	 24		 3			 alpha	 lm, lmer
+kempton.competition	 36		 3			 xy, competition	 lme AR1
+kempton.rowcol	 35		 2			 xy, row-col	 lmer
+kempton.slatehall	 25		 6			 xy	 asreml, lmer
+lyons.wheat		 12		 4			
+mcconway.turnip	 2		 4		 2,4	 hetero	 aov, lme
+mead.cowpeamaize	 3,2		 3		 4	 intercrop	
+mead.germination			 4		 4,4	 binomial	 glm
+mead.strawberry	 8		 4				
+minnesota.barley.weather		 6		 10			
+minnesota.barley.yield	 22	 6		 10			 dotplot
+ortiz.tomato	 15	 18			 16	 Env*Gen~Env*Cov	 pls
+pacheco.soybean	 18	 11					 AMMI
+rothamsted.brussels			 4		 6		
+ryder.groundnut	 5		 4			 xy, rcb	 lm
+senshu.rice		 40					 lm,Fieller
+shafii.rapeseed	 6	 14	 3	 3			 biplot
+snedecor.asparagus			 4	 4	 4		 split-plot, antedependence
+steel.soybeanmet	 12	 3	 3				
+streibig.competition	 2		 3				 glm
+stroup.nin	 56		 4			 xy	 asreml
+stroup.splitplot			 4				 asreml, MCMCglmm
+student.barley	 2	 51		 6			 lmer
+talbot.potato	 9	 12				 Gen*Env~Gen*Trait	 pls
+theobald.covariate	 10	 7	 5			 cov	 jags
+thompson.cornsoy		 5		 33		 repeated measures	 aov
+vargas.wheat1	 7			 6		 G*Y~G*Trait, Y*G~Y*Cov	 pls
+vargas.wheat2	 8	 7				 Env*Gen~Env*Cov	 pls
+verbyla.lupin	 9	 8		 2		 xy, density	
+vsn.lupin3	 336	 3				 xy	 asreml
+wedderburn.barley	 10	 9				 percent	 glm
+yan.winterwheat	 18	 9					 biplot
+yates.missing			 10		 3^2	 factorial	 lm, pca
+yates.oats	 3		 6			 xy, nitro	 lmer
+
+
+Time series
+-----------
+name	 years	 trt	 other	 model
+byers.apple				 lme
+broadbalk.wheat	 74	 17		
+hessling.argentina	 30		 temp,precip	
+lambert.soiltemp	 1	 7		
+nass.barley	 146			
+nass.corn	 146			
+nass.cotton	 146			
+nass.hay	 104			
+nass.sorghum	 93			
+nass.wheat	 146			
+nass.rice	 117			
+nass.soybean	 88	
+
+
+Other
+-----
+name	 model
+beall.borers	 glm
+cate.potassium	 cate-nelson
+cleveland.soil	 loess 2D
+johnson.blight	 logistic regression
+nebraska.farmincome	 choropleth
+pearl.kernels	 chisq
+waynick.soil	
+
+

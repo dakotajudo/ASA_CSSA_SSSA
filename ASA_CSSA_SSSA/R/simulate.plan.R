@@ -1,4 +1,7 @@
-simulate.plan <- function(plan,field,plot.dim=c(1,1),
+simulate.plan <- function(plan,field,
+                          plot.dim=c(1,1),
+                          effects.fn=NULL,
+                          analysis.fn=rcb.analysis,
                           row.buffer=0,
                           sample.vgm=NULL,
                           spacing=3,model="rcb") {
@@ -15,20 +18,7 @@ simulate.plan <- function(plan,field,plot.dim=c(1,1),
     sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
   }
   
-  TrtMS <- c()
-  TrtDF <- c()
-  TrtP <- c()
-  RepMS <- c()
-  RepDF <- c()
-  RepP <- c()
-  RepVar <- c()
-  ResMS <- c()
-  ResP <- c()
-  ResDF <- c()
-  ResVar <- c()
-  Row <- c()
-  Col <- c()
-  Number <- c()
+  sim.dat <- NULL
   
   rightBorder <- max(field$LonM) - (trial.width+2*spacing)
   topBorder <- max(field$LatM) - (trial.height+2*spacing)
@@ -37,7 +27,7 @@ simulate.plan <- function(plan,field,plot.dim=c(1,1),
   col=1
   atColEnd=FALSE
   atRowEnd=FALSE
-  plans <- NA
+  plans <- NULL
   planNo <- 1
   while(!atColEnd) {
     currentRow <- 3+(row-1)*trial.height + (row-1)*2*spacing
@@ -54,36 +44,24 @@ simulate.plan <- function(plan,field,plot.dim=c(1,1),
                                           row.buffer=row.buffer,
                                           sample.vgm=sample.vgm
           )
-          aov.tbl <- summary(aov(YldVolDry ~ as.factor(trt)+as.factor(blk),data=currentPlan$plan))
-          aov.mle <- aov.mle <- lme(YldVolDry ~ as.factor(trt), random = ~ 1| as.factor(blk), data=currentPlan$plan)
-          
-          var.tbl <- VarCorr(aov.mle)
-          
+
+          current.res <- analysis.fn(currentPlan$plan)
+          current.res$Number <- planNo
+          current.res$Row <- corner[1]
+          current.res$Col <- corner[2]
+
+          if(is.null(sim.dat)) {
+            sim.dat <- current.res
+          } else {
+            sim.dat <- rbind(sim.dat,current.res)
+          }
           
           #save points
           currentPlan$plan$number <- planNo
-          Number <- c(Number,planNo)
-          
+
           planNo <- planNo+1
           plans <- rbind(plans,currentPlan$plan)
-          
-          TrtDF <- c(TrtDF,aov.tbl[[1]][1,1])
-          TrtMS <- c(TrtMS,aov.tbl[[1]][1,3])
-          TrtP <- c(TrtP,aov.tbl[[1]][1,5])
-          RepDF <- c(RepDF,aov.tbl[[1]][2,1])
-          RepMS <- c(RepMS,aov.tbl[[1]][2,3])
-          RepP <- c(RepP,aov.tbl[[1]][2,5])
-          RepVar <- c(RepVar,as.numeric(var.tbl[1]))
-          
-          
-          ResDF <- c(ResDF,aov.tbl[[1]][3,1])
-          ResMS <- c(ResMS,aov.tbl[[1]][3,3])
-          ResP <- c(ResP,aov.tbl[[1]][3,5])
-          ResVar <- c(ResVar,as.numeric(var.tbl[2]))
-          
-          Row <- c(Row,corner[1])
-          Col <- c(Col,corner[2])
-          
+        
           col=col+1  
         } else {
           atRowEnd=TRUE
@@ -96,21 +74,49 @@ simulate.plan <- function(plan,field,plot.dim=c(1,1),
       atColEnd =TRUE
     }
   }
-  sim.dat <- data.frame(
-    TrtDF = TrtDF,
-    TrtMS = TrtMS,
-    TrtP = TrtP,
-    RepDF = RepDF,
-    RepMS = RepMS,
-    RepVar = RepVar,
-    RepP = RepP,
-    ResDF = ResDF,
-    ResMS = ResMS,
-    ResVar=ResVar,
-    Row = Row,
-    Col = Col,
-    Number=Number
-  )
+  
   return(list(aov=sim.dat,
               points=plans))
+}
+
+rcb.analysis <- function(current.dat) {
+  aov.tbl <- summary(aov(YldVolDry ~ as.factor(trt)+as.factor(rep),data=current.dat))
+  aov.mle <- lme(YldVolDry ~ as.factor(trt), random = ~ 1| as.factor(rep), data=current.dat)
+  
+  var.tbl <- VarCorr(aov.mle)
+  
+  return(data.frame(
+    TrtDF = aov.tbl[[1]][1,1],
+    TrtMS = aov.tbl[[1]][1,3],
+    TrtP = aov.tbl[[1]][1,5],
+    RepDF = aov.tbl[[1]][2,1],
+    RepMS = aov.tbl[[1]][2,3],
+    RepVar = as.numeric(var.tbl[1]),
+    RepP = aov.tbl[[1]][2,5],
+    ResDF = aov.tbl[[1]][3,1],
+    ResMS = aov.tbl[[1]][3,3],
+    ResVar=as.numeric(var.tbl[2])
+  ))
+}
+
+simulate.plans <- function(pln.list,trial.data,sample.vgm,plot.dim=c(1,1), row.buffer=c(0,0)) {
+  
+  points <- NULL
+  aov <- NULL
+  for (idx in 1:length(pln.list)) {
+    current.plan <- pln.list[[idx]]
+    tmp <- simulate.plan(current.plan,trial.data, 
+                         plot.dim=arm.plot.dim, 
+                         row.buffer=arm.row.buffer, sample.vgm=sample.vgm)
+    tmp$points$plan <- idx
+    tmp$aov$plan <- idx
+    if(is.null(points)) {
+      points <- tmp$points
+      aov <- tmp$aov
+    } else {
+      points <- rbind(points,tmp$points)
+      aov <- rbind(aov,tmp$aov)
+    }
+  }
+  return(list(points=points,aov=aov))
 }
