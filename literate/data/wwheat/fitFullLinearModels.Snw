@@ -145,12 +145,13 @@ Plot the actual gap by year
 
 <<>>=
 rpndry.dat <- subset(rpndry.dat,rpndry.dat$Count>10)
-summary(lm(Gap ~ Location + Cycle, data=rpndry.dat, model=FALSE, qr=FALSE))
-summary(lm(GapPercent ~ Location + Cycle, data=rpndry.dat, model=FALSE, qr=FALSE))
+summary(lm(Gap ~ Location + Cycle, data=rpndry.dat, model=FALSE))
+summary(lm(GapPercent ~ Location + Cycle, data=rpndry.dat, model=FALSE))
 
-summary(lm(Gap ~ Trial + Cycle, data=rpndry.dat, model=FALSE, qr=FALSE))
-summary(lm(GapPercent ~ Trial + Cycle, data=rpndry.dat, model=FALSE, qr=FALSE))
+summary(lm(Gap ~ Trial + Cycle, data=rpndry.dat, model=FALSE))
+summary(lm(GapPercent ~ Trial + Cycle, data=rpndry.dat, model=FALSE))
 @
+
 <<fig=TRUE>>=
 yield.gap5.plot <- ggplot(rpndry.dat, aes(Cycle,Gap),xlab="Year",ylab="Gap")
 yield.gap5.plot <- yield.gap5.plot + geom_point(aes(color=Location)) + geom_smooth(aes(group= Location,color=Location),se = FALSE,method="lm")
@@ -170,8 +171,8 @@ yield.gap6b.plot
 @
 
 <<>>=
-gap.lm <- lm(Gap ~ 0 + Location + Location:Cycle, data=rpndry.dat, model=FALSE, qr=FALSE)
-gapper.lm <- lm(GapPercent ~ 0 + Location + Location:Cycle, data=rpndry.dat, model=FALSE, qr=FALSE)
+gap.lm <- lm(Gap ~ 0 + Location + Location:Cycle, data=rpndry.dat, model=FALSE)
+gapper.lm <- lm(GapPercent ~ 0 + Location + Location:Cycle, data=rpndry.dat, model=FALSE)
 summary(gap.lm)
 summary(gapper.lm)
 @

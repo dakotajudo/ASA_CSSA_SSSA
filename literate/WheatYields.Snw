@@ -69,6 +69,17 @@ full.yield.plot <- ggplot(full.yield.dat, aes(Year,Value)) + theme_bw() + ylim(0
 full.yield.plot
 @
 
+
+<<fig=TRUE>>=
+yield1984.dat <- subset(full.yield.dat,full.yield.dat$Year==1984)
+yield2014.dat <- subset(full.yield.dat,full.yield.dat$Year==2014)
+grid.arrange(arrangeGrob(
+  ggmap.full.values(yield1984.dat$Value,yield1984.dat$statecounty,main="Yield 1984",palette=yield.palette),
+  ggmap.full.values(yield2014.dat$Value,yield2014.dat$statecounty,main="Yield 2014",palette=yield.palette),
+   as.table=TRUE,
+   ncol=2))
+@
+
 <<periphyear,fig=TRUE,width=6,height=4>>=
 periph.dat <- subset(full.yield.dat,!(full.yield.dat$State %in% levels(county.yield.dat$State)))
 periph.yield.plot <- ggplot(periph.dat, aes(Year,Value)) + theme_bw() + ylim(0,150) + 
@@ -195,6 +206,7 @@ Check work
 setwd(current.wd)
 setwd('data/usda/')
 load.if.needed("harvested.late.county.lm")
+load.if.needed("county.harvested.dat")
 setwd(current.wd)
 harvested.a <- extract.county.estimates(harvested.late.county.lm,term=1)[coef.idx]
 harvested.b <- extract.county.estimates(harvested.late.county.lm,term=2)[coef.idx]
@@ -203,11 +215,21 @@ harvested.lsmean <- harvested.a + 1980*harvested.b
 plot(hist(harvested.lsmean))
 harvested.lsmean <- harvested.a + 1999*harvested.b
 plot(hist(harvested.lsmean))
-head(harvested.late.county.lm$model)
-harvested.mean <- tapply(harvested.late.county.lm$model$Value,list(harvested.late.county.lm$model$statecounty),mean,na.rm=TRUE)
+head(county.harvested.dat)
+harvested.mean <- tapply(county.harvested.dat$Value,list(county.harvested.dat$statecounty),mean,na.rm=TRUE)
 plot(hist(harvested.mean))
 @
 
+<<fig=TRUE>>=
+har1984.dat <- subset(county.harvested.dat,county.harvested.dat$Year==1984)
+har2014.dat <- subset(county.harvested.dat,county.harvested.dat$Year==2013)
+grid.arrange(arrangeGrob(
+  ggmap.full.values(har1984.dat$Value,har1984.dat$statecounty,main="Harvested 1984",palette=yield.palette),
+  ggmap.full.values(har2014.dat$Value,har2014.dat$statecounty,main="Harvested 2014",palette=yield.palette),
+   as.table=TRUE,
+   ncol=2))
+@
+   
 <<fig=TRUE>>=
 harvested.mean <- harvested.mean[names(harvested.lsmean)]
 plot(harvested.mean,harvested.lsmean)
@@ -551,17 +573,15 @@ ggmap.full.values(full.covariates.dat$TotalCropland.b,full.covariates.dat$statec
 ggmap.full.values(full.covariates.dat$wheat_frac,full.covariates.dat$statecounty,main="L. Percent Harvested Acres, Wheat",legend="%",palette=yield.palette) + theme_bw()
 @
 
-
 <<yielda,fig=TRUE,width=8,height=5>>=
 ggmap.full.values(full.covariates.dat$yield.a,full.covariates.dat$statecounty,main="Average Yield, 1984-2014",legend="bu/ac",palette=yield.palette) + theme_bw()
 @
 
-
 <<yieldb,fig=TRUE,width=8,height=5>>=
 ggmap.full.values(full.covariates.dat$yield.b,full.covariates.dat$statecounty,main="Yield Change, 1984-2014",legend="%/yr",palette=yield.palette) + theme_bw()
-@
+@ 
 
-<<yieldb,fig=TRUE,width=8,height=5>>=
+<<yieldres,fig=TRUE,width=8,height=5>>=
 ggmap.full.values(full.best2$residuals,names(full.best2$residuals),main="Best 2 Residuals",palette=yield.palette) + theme_bw()
 @
 
