@@ -1,6 +1,12 @@
-average.distances <- function(plan,include.treatments=TRUE,multiple=FALSE,reference=c()) {
-  pairs.dat <- pair.distances(plan,reference=reference)
-  contrasts.dat <- contrast.distances(plan,multiple=multiple,reference=reference)
+average.distances <- function(plan,include.treatments=TRUE,multiple=FALSE,reference=c(),plot.dim=c(1,1),buffer.dim=c(0,0)) {
+  
+  
+  distances <- contrast.distances(plan,multiple=multiple,reference=reference,plot.dim=plot.dim,buffer.dim=buffer.dim)
+  #pairs.dat <- distances$means
+  contrasts.dat <- distances$pairs
+  
+  pairs.dat <- pair.distances(plan,reference=reference,plot.dim=plot.dim,row.buffer=buffer.dim)
+  #contrasts.dat <- contrast.distances(plan,multiple=multiple,reference=reference,plot.dim=plot.dim,buffer.dim=buffer.dim)
   sd.plan <- sd(contrasts.dat$distance)
   
   contrasts.dat <- reshape(contrasts.dat, idvar = "contrast", varying = list(1:2),
@@ -13,6 +19,7 @@ average.distances <- function(plan,include.treatments=TRUE,multiple=FALSE,refere
   
   m.cont <- tapply(contrasts.dat$distance,list(contrasts.dat$trt),mean,na.rm=TRUE)
   sd.cont <- tapply(contrasts.dat$distance,list(contrasts.dat$trt),sd,na.rm=TRUE)
+  
   expected.sd <- expected.adtc(plan)
   if(include.treatments) {
     return(list(means.pair=m.pair,

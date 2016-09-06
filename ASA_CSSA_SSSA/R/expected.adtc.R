@@ -1,5 +1,12 @@
 expected.adtc <- function(plan, multiple=TRUE) {
-  trts <- max(plan$trt)
+  
+  trts <- 0
+  if(is.factor(plan$trt)) {
+    trts <- length(levels(plan$trt))
+  } else {
+    trts <- max(as.numeric(plan$trt))
+  }
+
   reps <- 1
   if(multiple) {
     reps <- max(plan$row)

@@ -2,11 +2,11 @@ simulate.plan <- function(plan,field,
                           plot.dim=c(1,1),
                           effects.fn=NULL,
                           analysis.fn=rcb.analysis,
-                          row.buffer=0,
+                          buffer.dim=0,
                           sample.vgm=NULL,
                           spacing=3,model="rcb") {
   
-  trial.dim <- trial.dimensions(plan,plot.dim=plot.dim,row.buffer=row.buffer)
+  trial.dim <- trial.dimensions(plan,plot.dim=plot.dim,buffer.dim=buffer.dim)
   
   trial.width <- trial.dim[1]
   trial.height <- trial.dim[2]
@@ -41,7 +41,7 @@ simulate.plan <- function(plan,field,
                                           map.data=field,
                                           start.point=corner,
                                           plot.dim=plot.dim,
-                                          row.buffer=row.buffer,
+                                          buffer.dim=buffer.dim,
                                           sample.vgm=sample.vgm
           )
 
@@ -99,15 +99,15 @@ rcb.analysis <- function(current.dat) {
   ))
 }
 
-simulate.plans <- function(pln.list,trial.data,sample.vgm,plot.dim=c(1,1), row.buffer=c(0,0)) {
+simulate.plans <- function(pln.list,trial.data,sample.vgm,plot.dim=c(1,1), buffer.dim=c(0,0)) {
   
   points <- NULL
   aov <- NULL
   for (idx in 1:length(pln.list)) {
     current.plan <- pln.list[[idx]]
     tmp <- simulate.plan(current.plan,trial.data, 
-                         plot.dim=arm.plot.dim, 
-                         row.buffer=arm.row.buffer, sample.vgm=sample.vgm)
+                         plot.dim=plot.dim, 
+                         buffer.dim=buffer.dim, sample.vgm=sample.vgm)
     tmp$points$plan <- idx
     tmp$aov$plan <- idx
     if(is.null(points)) {

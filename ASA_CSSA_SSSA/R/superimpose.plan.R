@@ -1,6 +1,6 @@
-superimpose.plan <- function(plan,map.data,start.point,plot.dim=c(1,1),row.buffer=c(0,0),sample.vgm=NULL) {
+superimpose.plan <- function(plan,map.data,start.point,plot.dim=c(1,1),buffer.dim=c(0,0),sample.vgm=NULL) {
   
-  trial.dim <- trial.dimensions(plan,plot.dim,row.buffer)
+  trial.dim <- trial.dimensions(plan,plot.dim,buffer.dim)
   
   trial.dat <- subset(map.data,map.data$LonM<(start.point[1]+trial.dim[1]+3))
   trial.dat <- subset(trial.dat,trial.dat$LatM<(start.point[2]+trial.dim[2]+3))
@@ -17,8 +17,8 @@ superimpose.plan <- function(plan,map.data,start.point,plot.dim=c(1,1),row.buffe
   for(idx in 1:dim(plan)[1]) {
     row <- plan$row[idx]
     col <- plan$col[idx]
-    plan$LonM[idx] <- start.point[1] + half.width + (col-1)*plot.dim[1] + (col-1)*row.buffer[1]
-    plan$LatM[idx] <- start.point[2] + half.heigth + (row-1)*plot.dim[2] + (row-1)*row.buffer[2]
+    plan$LonM[idx] <- start.point[1] + half.width + (col-1)*plot.dim[1] + (col-1)*buffer.dim[1]
+    plan$LatM[idx] <- start.point[2] + half.heigth + (row-1)*plot.dim[2] + (row-1)*buffer.dim[2]
   }
   if(is.null(sample.vgm)) {
     sample.var <- variogram(YldVolDry~1, 

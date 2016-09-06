@@ -1,5 +1,12 @@
 contrast.distances <- function(plan,multiple=FALSE,plot.dim=c(1,1),buffer.dim=c(0,0),reference=c()) {
-  trts <- max(plan$trt)
+  
+  trts <- 0
+  if(is.factor(plan$trt)) {
+    trts <- length(levels(plan$trt))
+  } else {
+    trts <- max(as.numeric(plan$trt))
+  }
+  
   #define vectors of possible contrasts.
   trt1 <- c()
   trt2 <- c()
@@ -13,6 +20,10 @@ contrast.distances <- function(plan,multiple=FALSE,plot.dim=c(1,1),buffer.dim=c(
       trt1 <- c(trt1,rep(i,trts-i))
       trt2 <- c(trt2,(i+1):trts)
     }
+  }
+  
+  if(is.null(plan$rep)) {
+    plan$rep <- plan$row
   }
   
   trt1vec=c()

@@ -1,5 +1,16 @@
-pair.distances <- function(plan,plot.dim=c(1,1),row.buffer=c(0,0),reference=c()) {
-  trts <- max(plan$trt)
+pair.distances <- function(plan,plot.dim=c(1,1),buffer.dim=c(0,0),reference=c()) {
+  trts <- 0
+  if(is.factor(plan$trt)) {
+    trts <- length(levels(plan$trt))
+  } else {
+    trts <- max(as.numeric(plan$trt))
+  }
+  
+  
+  if(is.null(plan$rep)) {
+    plan$rep <- plan$row
+  }
+  
   #define vectors of possible contrasts.
   trt1 <- c()
   trt2 <- c()
@@ -48,7 +59,7 @@ pair.distances <- function(plan,plot.dim=c(1,1),row.buffer=c(0,0),reference=c())
             c2 <- other.trt$col[idx2]
             
             p2 <- c(r2,c2)
-            d <- plot.distance(p1,p2,plot.dim,row.buffer)
+            d <- plot.distance(p1,p2,plot.dim,buffer.dim)
             
             dist <- c(dist,d)
             if(t2<t1) {
