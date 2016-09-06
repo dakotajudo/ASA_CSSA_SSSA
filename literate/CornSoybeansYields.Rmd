@@ -27,7 +27,7 @@ corn.4.dat <- read.csv("./data/usda/AE02DC67-6AFC-33EA-AA72-10F9C1E34424.csv", h
    #county5.dat<- county5.dat[,which(names5 %in% names1)]
 
    corn.dat <- rbind(corn.1.dat,corn.2.dat,corn.3.dat,corn.4.dat)
-corn.dat <- subset(corn.dat,corn.dat$State %in% levels(state.yield.dat$State))
+#corn.dat <- subset(corn.dat,corn.dat$State %in% levels(state.yield.dat$State))
    #remove county totals
    #county.dat <- subset(county.dat, county.dat$CoFips<888)
    #county.dat$YrFac <- as.factor(county.dat$Year)

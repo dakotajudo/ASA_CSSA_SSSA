@@ -207,7 +207,7 @@ if(!file.exists("X21Crop_TotalPlantedAc.lm.Rda")) {
      save(Total_Harvested_Cropland_Acres.lm, file="Total_Harvested_Cropland_Acres.lm.Rda")
      Total_Harvested_Cropland_Acres.lm = NULL
      
-     TotalCropland.lm <- lm(TotalCropland ~ 0 + statecounty + statecounty:Year,data=ipni.dat, model=FALSE)
+     TotalCropland.lm <- lm(TotalCropland ~ 0 + statecounty + statecounty:Year,data=ipni.dat )
      save(TotalCropland.lm, file="TotalCropland.lm.Rda")
      TotalCropland.lm = NULL
 }

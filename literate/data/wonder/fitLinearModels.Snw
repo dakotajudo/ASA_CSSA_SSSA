@@ -701,7 +701,7 @@ grid.arrange(arrangeGrob(
 
 <<>>=
 load.if.needed("day.lm")
-summary(day.lm)
+#summary(day.lm)
 load(file="day.2.lm.Rda")
 head(covariates.dat$day.a)
 head(covariates.dat$night.a)
