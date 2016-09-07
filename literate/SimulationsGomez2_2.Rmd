@@ -26,9 +26,11 @@ source("expected.adtc.R")
 setwd(currentwd)
 
 arm.plot.dim <- c(4,6)
-arm.buffer.dim <- c(1,1)
+arm.buffer.dim <- c(0.5,1)
 
-bestseed <- 2000
+bestseed <- 1500
+
+#bestseed <- 2000
 #bestseed <- 1600
 #set.seed(10000)
 set.seed(bestseed)
@@ -112,6 +114,8 @@ rcb.plan <- data.frame(
 rcb.plan$trt <- as.factor(rcb.plan$trt)
 rcb.plan$blk <- as.factor(rcb.plan$row)
 rcb.plan$rep <- as.factor(rcb.plan$row)
+base.plan <- rcb.plan
+
 ```
 
 Place this trial at the lower left corner of the field, set in 3 meters
@@ -290,9 +294,17 @@ Perform analysis of variance and plot Treatment p(F):
 ```{r}
 ggplot(simulations.dat$aov, aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
 
+ggplot(simulations.dat$aov, aes(TrtP, fill=plan)) + geom_histogram(bins=20,position="dodge")
+
 ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
 
-ggplot(simulations.dat$aov, aes(TrtP, fill=plan)) + geom_histogram(bins=20,position="dodge")
+ggplot(simulations.dat$aov, aes(ResMS, fill=plan)) + geom_histogram(bins=20,position="dodge")
+
+ggplot(simulations.dat$aov, aes(ResMS,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(ResMS,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(TrtP,fill=plan)) + geom_histogram(bins=20,position="dodge")
 ```
 
 Count the number of trials with false positive (Type I) errors. Since there are no actual treatments in this simulation, we have not achieve p<0.05 in more than 5% of all trials.
@@ -674,6 +686,7 @@ simulationsPooled.dat <- rbind(
 )
 simulationsPooled.dat$base <- as.factor(simulationsPooled.dat$base)
 ggplot(simulationsPooled.dat, aes(TrtP,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+ggplot(simulationsPooled.dat, aes(ResMS,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
 ```
 
 Do rep variances contribute to Type I error?
@@ -681,14 +694,17 @@ Do rep variances contribute to Type I error?
 ```{r}
 simulations.dat$aov$TrtF <- simulations.dat$aov$TrtMS/simulations.dat$aov$RepMS
 simulations.dat$aov$RepF <- simulations.dat$aov$RepMS/simulations.dat$aov$ResMS
-simulations.dat$aov$TrtDF
-simulations.dat$aov$RepDF
+#simulations.dat$aov$TrtDF
+#simulations.dat$aov$RepDF
 
 ggplot(simulations.dat$aov, aes(log(RepF),color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
 
 ggplot(simulations.dat$aov, aes(log(RepVar),color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
 
-ggplot(simulations.dat$aov, aes(log(RepF), log(TrtP))) + geom_point(aes(color=plan,shape=plan),size=3)
+ggplot(simulations.dat$aov, aes(log(RepVar),color=plan,linetype=plan)) + geom_histogram(bins=20,position="dodge")
+
+ggplot(simulations.dat$aov, aes(TrtMS, RepMS)) + geom_point(aes(color=plan,shape=plan),size=3)
+ggplot(simulations.dat$aov, aes(log(RepVar), log(TrtP))) + geom_point(aes(color=plan,shape=plan),size=3)
 ```
 
 ### Trend analysis
@@ -777,6 +793,10 @@ summary(aov(YldVolDry ~ trt + LonM + LatM + I(LonM^2) + I(LatM^2) + I(LonM*LatM)
 ggplot(trend.Adj, aes(log(RepP), log(TrendP))) + geom_point(aes(color=plan),size=1)
 ```
 
+```{r}
+lowTrend.dat
+```
+
 
 
 ```{r}
@@ -787,7 +807,7 @@ if(!file.exists("trend.Spat.Rda")) {
   load(file="trend.Spat.Rda")
 }
 
-ggplot(trend.Spat, aes(TrtPTrend,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(trend.Spat, aes(TrtPTrend,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
 #ggplot(trend.Spat, aes(TrtPTrend)) + stat_density(geom="line",position="identity",size=1)
 ```
 
@@ -800,7 +820,7 @@ if(!file.exists("trend.RC.Rda")) {
   load(file="trend.RC.Rda")
 }
 
-ggplot(trend.RC, aes(TrtPTrend,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(trend.RC, aes(TrtPTrend,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
 #ggplot(trend.RC, aes(TrtPTrend)) + stat_density(geom="line",position="identity",size=1)
 ```
 
@@ -813,7 +833,7 @@ if(!file.exists("trend.SV.Rda")) {
   load(file="trend.SV.Rda")
 }
 
-ggplot(trend.SV, aes(TrtPTrend,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(trend.SV, aes(TrtPTrend,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
 #ggplot(trend.SV, aes(TrtPTrend)) + stat_density(geom="line",position="identity",size=1)
 ```
 
@@ -831,8 +851,12 @@ trendPooled.dat <- rbind(
   trend.RC,
   trend.Spat
 )
+
 trendPooled.dat$base <- as.factor(trendPooled.dat$base)
 ggplot(trendPooled.dat, aes(TrtPTrend,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+ggplot(trendPooled.dat, aes(log(TrtPTrend),color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+ggplot(trendPooled.dat, aes(log(TrendP),color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+
 ```
 
 ### Swap Trial Orientation
@@ -932,121 +956,125 @@ ggplot(simulationsRCBswap.dat$aov, aes(TrtP,color=plan,linetype=plan)) + stat_de
 ### PCA
 
 ```{r}
-TypeI.plans <- subset(simulations.dat$aov,simulations.dat$aov$TrtP<alpha)
-tapply(TypeI.plans$TrtP,list(TypeI.plans$Number),length)
-Type0.plans <- subset(simulations.dat$aov,simulations.dat$aov$TrtP>(1-alpha))
-tapply(Type0.plans$TrtP,list(Type0.plans$Number),length)
+pca.aov <- subset(simulations.dat$aov,simulations.dat$aov$plan=="rc.plan")
+
+choice.dat <- pca.aov
+TypeI.plans <- subset(choice.dat,choice.dat$TrtP<alpha)
+TypeI.counts <- tapply(TypeI.plans$TrtP,list(TypeI.plans$Number),length)
+#TypeI.counts
+
+Type0.plans <- subset(choice.dat,choice.dat$TrtP>(1-4*alpha))
+Type0.counts <- tapply(Type0.plans$TrtP,list(Type0.plans$Number),length)
+#Type0.counts
+
+TypeIRep.plans <- subset(choice.dat,choice.dat$RepP<alpha)
+TypeIRep.counts <- tapply(TypeIRep.plans$RepP,list(TypeIRep.plans$Number),length)
+#TypeIRep.counts
+
+
+Type0Rep.plans <- subset(choice.dat,choice.dat$RepP>(1-4*alpha))
+Type0Rep.counts <- tapply(Type0Rep.plans$RepP,list(Type0Rep.plans$Number),length)
+#Type0Rep.counts
+
+intersect(names(TypeIRep.counts), names(TypeI.counts))
+intersect(names(TypeIRep.counts), names(Type0.counts))
+intersect(names(Type0Rep.counts), names(TypeI.counts))
+intersect(names(Type0Rep.counts), names(Type0.counts))
+
+pca.dat <- subset(simulations.dat$points,simulations.dat$points$plan=="rcb.plan")
+
+parallelReps.dat <- subset(pca.dat,pca.dat$number==49)
+
+sigTrtSigRep.dat <- subset(pca.dat,pca.dat$number==7)
+nonTrtSigRep.dat <- subset(pca.dat,pca.dat$number==4)
+sigTrtNonRep.dat <- subset(pca.dat,pca.dat$number==59)
+nonTrtnonRep.dat <- subset(pca.dat,pca.dat$number==22) #120
+
 ```
 
 ```{r}
-pca.dat <- subset(simulations.dat$points,simulations.dat$points$plan=="rc.plan")
 ggplot(pca.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
 ```
 
 ```{r}
-
 first.pca <- princomp(pca.dat[,c("LonM","LatM","YldVolDry")], cor = TRUE)
 biplot(first.pca,xlabs=rep("", nrow(pca.dat)))
+```
 
-lowP.dat <- subset(pca.dat,pca.dat$number==49)
-lowP.pca <- princomp(lowP.dat[,c("LonM","LatM","YldVolDry")], cor = TRUE)
-biplot(lowP.pca,xlabs=rep("", nrow(lowP.dat)))
-ggplot(lowP.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=8)
-summary(aov(YldVolDry ~ trt + rep,data=lowP.dat))
+```{r}
+trend.pca <- function(current.dat) {
+  lat.pca <- princomp(current.dat[,c("LonM","LatM","YldVolDry")], cor = TRUE)
+  lat.labels <- rep("", nrow(current.dat))
+  lat.plot <- ggplot(current.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=8)
+  
+  rcb.aov <- aov(YldVolDry ~ trt + rep,data=current.dat)
+  
+  current.dat$trtNo <- as.numeric(current.dat$trt)
+  current.dat$repNo <- as.numeric(current.dat$rep)
+  rcb.pca <- princomp(current.dat[,c("trtNo","repNo","YldVolDry")], cor = TRUE)
+  rcb.labels <- rep("", nrow(current.dat))
+  
+  current.dat$trtEffect <- tapply(current.dat$YldVolDry,list(current.dat$trt),mean) - mean(current.dat$YldVolDry)
+  current.dat$repEffect <- tapply(current.dat$YldVolDry,list(current.dat$rep),mean) - mean(current.dat$YldVolDry)
+  
+  effect.pca <- princomp(current.dat[,c("trtEffect","repEffect","YldVolDry")], cor = TRUE)
+  effect.labels <- rep("", nrow(current.dat))
+  
+  return(list(
+    lat.pca=lat.pca,
+    lat.labels=lat.labels,
+    lat.plot=lat.plot,
+  rcb.aov=rcb.aov,
+  rcb.pca=rcb.pca,
+  rcb.labels=rcb.labels,
+  effect.pca=effect.pca,
+  effect.labels=effect.labels
+))
+}
+
+sigTrtSigRep.pca <- trend.pca(sigTrtSigRep.dat)
+biplot(sigTrtSigRep.pca$lat.pca,xlabs=sigTrtSigRep.pca$lat.labels)
+sigTrtSigRep.pca$lat.plot
+summary(sigTrtSigRep.pca$rcb.aov)
+
+biplot(sigTrtSigRep.pca$rcb.pca,xlabs=sigTrtSigRep.pca$rcb.labels)
+biplot(sigTrtSigRep.pca$effect.pca,xlabs=sigTrtSigRep.pca$effect.labels)
 
 
-highP.dat <- subset(pca.dat,pca.dat$number==169)
-highP.pca <- princomp(highP.dat[,c("LonM","LatM","YldVolDry")], cor = TRUE)
-biplot(highP.pca,xlabs=rep("", nrow(highP.dat)))
-ggplot(highP.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=8)
-summary(aov(YldVolDry ~ trt + rep,data=highP.dat))
+sigTrtNonRep.pca <- trend.pca(sigTrtNonRep.dat)
+biplot(sigTrtNonRep.pca$lat.pca,xlabs=sigTrtNonRep.pca$lat.labels)
+sigTrtNonRep.pca$lat.plot
+summary(sigTrtNonRep.pca$rcb.aov)
 
-lowP.dat$trtNo <- as.numeric(lowP.dat$trt)
-lowP.dat$repNo <- as.numeric(lowP.dat$rep)
-
-lowP.dat$trtEffect <- tapply(lowP.dat$YldVolDry,list(lowP.dat$trt),mean) - mean(lowP.dat$YldVolDry)
-lowP.dat$repEffect <- tapply(lowP.dat$YldVolDry,list(lowP.dat$rep),mean) - mean(lowP.dat$YldVolDry)
-
-lowPb.pca <- princomp(lowP.dat[,c("trtNo","repNo","YldVolDry")], cor = TRUE)
-biplot(lowPb.pca,xlabs=rep("", nrow(lowP.dat)))
-summary(lowPb.pca)
-lowPb.pca$loadings
-
-lowP2.pca <- princomp(lowP.dat[,c("trtEffect","repEffect","YldVolDry")], cor = TRUE)
-biplot(lowP2.pca,xlabs=rep("", nrow(lowP.dat)))
-
-highP.dat$trtNo <- as.numeric(highP.dat$trt)
-highP.dat$repNo <- as.numeric(highP.dat$rep)
-highP.dat$trtEffect <- tapply(highP.dat$YldVolDry,list(highP.dat$trt),mean) - mean(highP.dat$YldVolDry)
-highP.dat$repEffect <- tapply(highP.dat$YldVolDry,list(highP.dat$rep),mean) - mean(highP.dat$YldVolDry)
-highPb.pca <- princomp(highP.dat[,c("trtNo","repNo","YldVolDry")], cor = TRUE)
-biplot(highPb.pca,xlabs=rep("", nrow(highP.dat)))
-summary(highPb.pca)
-highPb.pca$loadings
-
-highP2.pca <- princomp(highP.dat[,c("trtEffect","repEffect","YldVolDry")], cor = TRUE)
-biplot(highP2.pca,xlabs=rep("", nrow(highP.dat)))
+biplot(sigTrtNonRep.pca$rcb.pca,xlabs=sigTrtNonRep.pca$rcb.labels)
+biplot(sigTrtNonRep.pca$effect.pca,xlabs=sigTrtNonRep.pca$effect.labels)
 
 
-lowTrend.dat$trtNo <- as.numeric(lowTrend.dat$trt)
-lowTrend.dat$repNo <- as.numeric(lowTrend.dat$rep)
-lowTrend.pca <- princomp(lowTrend.dat[,c("trtNo","repNo","YldVolDry")], cor = TRUE)
-biplot(lowTrend.pca,xlabs=rep("", nrow(lowTrend.dat)))
-summary(lowTrend.pca)
-lowTrend.pca$loadings
+nonTrtSigRep.pca <- trend.pca(nonTrtSigRep.dat)
+biplot(nonTrtSigRep.pca$lat.pca,xlabs=nonTrtSigRep.pca$lat.labels)
+nonTrtSigRep.pca$lat.plot
+summary(nonTrtSigRep.pca$rcb.aov)
+
+biplot(nonTrtSigRep.pca$rcb.pca,xlabs=nonTrtSigRep.pca$rcb.labels)
+biplot(nonTrtSigRep.pca$effect.pca,xlabs=nonTrtSigRep.pca$effect.labels)
+
+
+nonTrtnonRep.pca <- trend.pca(nonTrtnonRep.dat)
+biplot(nonTrtnonRep.pca$lat.pca,xlabs=nonTrtnonRep.pca$lat.labels)
+nonTrtnonRep.pca$lat.plot
+summary(nonTrtnonRep.pca$rcb.aov)
+
+biplot(nonTrtnonRep.pca$rcb.pca,xlabs=nonTrtnonRep.pca$rcb.labels)
+biplot(nonTrtnonRep.pca$effect.pca,xlabs=nonTrtnonRep.pca$effect.labels)
+```
+
+```{r}
+sigTrtSigRep.dat
+nonTrtSigRep.dat
 ```
 
 ### ATDC 
 
-```{r}
-sim <- sample.adtc(trts=6,reps=4,max.plans=1000, plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim)
-head(sim)
-sim2 <- sample.adtc(trts=6,reps=4,max.plans=1000, multiple=TRUE, plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim)
-head(sim2)
-```
-
-```{r fig.width=9, fig.height=5}
-ggplot(sim, aes(Mean)) + geom_histogram()
-```
-
-```{r fig.width=9, fig.height=5}
-ggplot(sim, aes(SDofMeans)) + geom_histogram()
-```
-
-```{r fig.width=9, fig.height=5}
-ggplot(sim, aes(MeanOfSD)) + geom_histogram()
-```
-
-```{r fig.width=9, fig.height=5}
-ggplot(sim, aes(Min)) + geom_histogram()
-```
-
-
-```{r fig.width=9, fig.height=5}
-ggplot(sim, aes(Max)) + geom_histogram()
-```
-
-
-```{r fig.width=9, fig.height=5}
-ggplot(sim2, aes(Mean)) + geom_histogram()
-```
-
-```{r fig.width=9, fig.height=5}
-ggplot(sim2, aes(SDofMeans)) + geom_histogram()
-```
-
-```{r fig.width=9, fig.height=5}
-ggplot(sim2, aes(MeanOfSD)) + geom_histogram()
-```
-
-```{r fig.width=9, fig.height=5}
-ggplot(sim2, aes(Min)) + geom_histogram()
-```
-
-
-```{r fig.width=9, fig.height=5}
-ggplot(sim2, aes(Max)) + geom_histogram()
-```
 
 
 ```{r}
@@ -1081,7 +1109,7 @@ compare.adtc(planSpat.list,multiple=TRUE,plot.dim=arm.plot.dim,buffer.dim=arm.bu
 
 Repeat with a large number (100)
 ```{r}
-numsims <- 200
+numsims <- 300
 ```
 
 ```{r,echo=FALSE}
@@ -1106,29 +1134,40 @@ if(!file.exists("simulations100.dat.Rda")) {
   names(rcb100.list) <- as.character(1:numsims)
   simulations100.dat <- simulate.plans(rcb100.list,trimmed.dat,sample.vgm=sample.vgm,
                                     plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim)
-  sim.adtc <- compare.adtc(rcb100.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
-  simulations100.dat$aov$SDofMeansWithin <- sim.adtc$SDofMeans
-  simulations100.dat$aov$MeanOfSDWithin <- sim.adtc$MeanOfSD
-  simulations100.dat$aov$MinWithin <- sim.adtc$Min
-  simulations100.dat$aov$MaxWithin <- sim.adtc$Max
   
-  sim.adtc <- compare.adtc(rcb100.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
-  simulations100.dat$aov$SDofMeansAcross <- sim.adtc$SDofMeans
-  simulations100.dat$aov$MeanOfSDAcross <- sim.adtc$MeanOfSD
-  simulations100.dat$aov$MinAcross <- sim.adtc$Min
-  simulations100.dat$aov$MaxAcross <- sim.adtc$Max
+  #so our columns will align with previous simulations
+  simulations100.dat$aov$TypeIError <- simulations100.dat$aov$TrtP<0.05
+  simulations100.dat$aov$base <- "rcb"
+  
+  sim100Within.adtc <- compare.adtc(rcb100.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  #simulations100.dat$aov$SDofMeansWithin <- sim.adtc$SDofMeans
+  #simulations100.dat$aov$MeanOfSDWithin <- sim.adtc$MeanOfSD
+  #simulations100.dat$aov$MinWithin <- sim.adtc$Min
+  #simulations100.dat$aov$MaxWithin <- sim.adtc$Max
+  
+  sim100Across.adtc <- compare.adtc(rcb100.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+  #simulations100.dat$aov$SDofMeansAcross <- sim.adtc$SDofMeans
+  #simulations100.dat$aov$MeanOfSDAcross <- sim.adtc$MeanOfSD
+  #simulations100.dat$aov$MinAcross <- sim.adtc$Min
+  #simulations100.dat$aov$MaxAcross <- sim.adtc$Max
   
   save(simulations100.dat,file="simulations100.dat.Rda")
+  save(sim100Within.adtc,file="sim100Within.adtc.Rda")
+  save(sim100Across.adtc,file="sim100Across.adtc.Rda")
 } else {
   
   load(file="simulations100.dat.Rda")
+  load(file="sim100Within.adtc.Rda")
+  load(file="sim100Across.adtc.Rda")
 }
+```
 
-ggplot(simulations100.dat$aov, aes(SDofMeansWithin)) + geom_histogram()
-ggplot(simulations100.dat$aov, aes(MeanOfSDWithin)) + geom_histogram()
+```{r}
+#ggplot(simulations100.dat$aov, aes(SDofMeansWithin)) + geom_histogram()
+#ggplot(simulations100.dat$aov, aes(MeanOfSDWithin)) + geom_histogram()
 
-ggplot(simulations100.dat$aov, aes(SDofMeansAcross)) + geom_histogram()
-ggplot(simulations100.dat$aov, aes(MeanOfSDAcross)) + geom_histogram()
+#ggplot(simulations100.dat$aov, aes(SDofMeansAcross)) + geom_histogram()
+#ggplot(simulations100.dat$aov, aes(MeanOfSDAcross)) + geom_histogram()
 
 ggplot(simulations100.dat$aov, aes(TrtP)) + stat_density(geom="line",position="identity",size=1)
 ggplot(simulations100.dat$aov, aes(TrtP, fill=plan)) + geom_histogram(bins=20,binwidth = 0.05)
@@ -1139,20 +1178,118 @@ length(simulations100.dat$aov$TypeIError)
 100*sum(simulations100.dat$aov$TypeIError)/length(simulations100.dat$aov$TypeIError)
 
 simulations100.dat$aov$plan <- as.factor(simulations100.dat$aov$plan)
-typeICounts <- tapply(simulations100.dat$aov$TypeIError,list(simulations100.dat$aov$plan),sum)
-typeITotal <- tapply(simulations100.dat$aov$TypeIError,list(simulations100.dat$aov$plan),length)
-simulations100.dat$aov$typeIRates <- typeICounts/typeITotal
 
-hist(simulations100.dat$aov$typeIRates)
-
-
-ggplot(simulations100.dat$aov, aes(SDofMeansWithin, typeIRates)) + geom_point(size=2)
-ggplot(simulations100.dat$aov, aes(SDofMeansAcross, typeIRates)) + geom_point(size=2)
-
-ggplot(simulations100.dat$aov, aes(MeanOfSDWithin, typeIRates)) + geom_point(size=2)
-ggplot(simulations100.dat$aov, aes(MeanOfSDAcross, typeIRates)) + geom_point(size=2)
-
+ggplot(subset(simulations100.dat$points,simulations100.dat$points$plan==1), aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
 ```
+
+Combined plot
+```{r}
+
+  ##simulationsRCB.dat$aov,
+  simulationsRCBWithin.adtc <- compare.adtc(planRCB.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  simulationsRCBAcross.adtc <- compare.adtc(planRCB.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+
+  
+  #simulationsAdj.dat$aov,
+  simulationsAdjWithin.adtc <- compare.adtc(planAdj.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  simulationsAdjAcross.adtc <- compare.adtc(planAdj.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+
+  #simulationsRC.dat$aov,
+  simulationsRCWithin.adtc <- compare.adtc(planRC.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  simulationsRCAcross.adtc <- compare.adtc(planRC.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+
+  
+  ##simulationsSpat.dat$aov,
+  simulationsSpatWithin.adtc <- compare.adtc(planSpat.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  simulationsSpatAcross.adtc <- compare.adtc(planSpat.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+
+  #simulationsSV.dat$aov  
+  simulationsSVWithin.adtc <- compare.adtc(planSV.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  simulationsSVAcross.adtc <- compare.adtc(planSV.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+  
+  head(simulationsRCB.dat$aov)
+  head(simulations100.dat$aov)
+  
+  
+  simulations100.dat$aov$plan <- as.character(simulations100.dat$aov$plan)
+  simulationsRCB.dat$aov$plan <- as.character(simulationsRCB.dat$aov$plan)
+  simulationsAdj.dat$aov$plan <- as.character(simulationsAdj.dat$aov$plan)
+  simulationsRC.dat$aov$plan <- as.character(simulationsRC.dat$aov$plan)
+  simulationsSpat.dat$aov$plan <- as.character(simulationsSpat.dat$aov$plan)
+  simulationsSV.dat$aov$plan <- as.character(simulationsSV.dat$aov$plan)
+  
+  adtcPooled.dat <- rbind(
+    simulationsRCB.dat$aov,
+    simulationsAdj.dat$aov,
+    simulationsRC.dat$aov,
+    simulationsSpat.dat$aov,
+    simulationsSV.dat$aov,
+    simulations100.dat$aov
+  )
+  
+  simulationsRCBWithin.adtc$base <- "rcb"
+    simulationsAdjWithin.adtc$base <- "adj"
+    simulationsRCWithin.adtc$base <- "rc"
+    simulationsSpatWithin.adtc$base <- "spat"
+    simulationsSVWithin.adtc$base <- "sv"
+    sim100Within.adtc$base <- "rcb"
+  
+  withinPooled.adtc  <- rbind(
+    simulationsRCBWithin.adtc,
+    simulationsAdjWithin.adtc,
+    simulationsRCWithin.adtc,
+    simulationsSpatWithin.adtc,
+    simulationsSVWithin.adtc,
+    sim100Within.adtc)
+  
+  withinPooled.adtc$base <- as.factor(withinPooled.adtc$base)
+  
+    simulationsRCBAcross.adtc$base <- "rcb"
+    simulationsAdjAcross.adtc$base <- "adj"
+    simulationsRCAcross.adtc$base <- "rc"
+    simulationsSpatAcross.adtc$base <- "spat"
+    simulationsSVAcross.adtc$base <- "sv"
+    sim100Across.adtc$base <- "rcb"
+    
+acrossPooled.adtc  <- rbind(
+    simulationsRCBAcross.adtc,
+    simulationsAdjAcross.adtc,
+    simulationsRCAcross.adtc,
+    simulationsSpatAcross.adtc,
+    simulationsSVAcross.adtc,
+    sim100Across.adtc)
+  
+acrossPooled.adtc$base <- as.factor(acrossPooled.adtc$base)
+
+adtcPooled.dat$plan <- as.factor(adtcPooled.dat$plan)
+  
+typeICounts <- tapply(adtcPooled.dat$TypeIError,list(adtcPooled.dat$plan),sum)
+#typeICounts
+typeITotal <- tapply(adtcPooled.dat$TypeIError,list(adtcPooled.dat$plan),length)
+#typeITotal
+typeIRates <- typeICounts/typeITotal
+
+hist(typeIRates)
+
+withinPooled.adtc$TypeIRates <- typeIRates[as.character(withinPooled.adtc$plan)]
+acrossPooled.adtc$TypeIRates <- typeIRates[as.character(acrossPooled.adtc$plan)]
+
+ggplot(withinPooled.adtc, aes(SDofMeans, TypeIRates)) + geom_point(aes(color=base),size=1)
+ggplot(withinPooled.adtc, aes(MeanOfSD, TypeIRates)) + geom_point(aes(color=base),size=1)
+
+ggplot(acrossPooled.adtc, aes(SDofMeans, TypeIRates)) + geom_point(aes(color=base),size=1)
+ggplot(acrossPooled.adtc, aes(MeanOfSD, TypeIRates)) + geom_point(aes(color=base),size=1)
+
+ggplot(withinPooled.adtc, aes(SDofMeans,fill=plan)) + geom_histogram(bins=20)
+ggplot(withinPooled.adtc, aes(MeanOfSD,fill=plan)) + geom_histogram(bins=20)
+
+ggplot(acrossPooled.adtc, aes(SDofMeans,fill=plan)) + geom_histogram(bins=20)
+ggplot(acrossPooled.adtc, aes(MeanOfSD,fill=plan)) + geom_histogram(bins=20)
+
+#ggplot(simulations100.dat$aov, aes(MeanOfSDWithin, typeIRates)) + geom_point(size=2)
+#ggplot(simulations100.dat$aov, aes(MeanOfSDAcross, typeIRates)) + geom_point(size=2)
+```
+
 
 
 

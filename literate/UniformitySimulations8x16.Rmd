@@ -17,6 +17,7 @@ source("plot.distance.R")
 source("superimpose.plan.R")
 source("simulate.plan.R")
 source("trial.dimensions.R")
+source("extract.corners.R")
 setwd(currentwd)
 
 arm.plot.dim <- c(4,6)
@@ -1150,21 +1151,6 @@ ggplot(compsimb.dat, aes(BasePI,BasePIII)) + geom_point(aes(color=arrangement),s
 For each plan, find the four corner experiments
 
 ```{r}
-extract.corners <- function(points.sim) {
-  max.LonM <- max(points.sim$LonM, na.rm=TRUE)
-  max.LatM <- max(points.sim$LatM, na.rm=TRUE)
-  min.LonM <- min(points.sim$LonM, na.rm=TRUE)
-  min.LatM <- min(points.sim$LatM, na.rm=TRUE)
-  corners <- subset(points.sim, points.sim$LatM==max.LatM | points.sim$LatM==min.LatM)
-  corners <- subset(corners, corners$LonM==max.LonM | corners$LonM==min.LonM)
-  return(list(
-  se=subset(points.sim,points.sim$number==corners$number[1]),
-  sw=subset(points.sim,points.sim$number==corners$number[2]),
-  ne=subset(points.sim,points.sim$number==corners$number[3]),
-  nw=subset(points.sim,points.sim$number==corners$number[4])
-  ))
-}
-
 aug8x16adj0.dat$trtIdx <- as.numeric(as.character(aug8x16adj0.dat$trt))
 aug8x16adj0.dat$SimYield <- aug8x16adj0.dat$YldVolDry + examplevEffects[aug8x16adj0.dat$trtIdx]
 aug8x16adj0.corners <- extract.corners(aug8x16adj0.dat)
