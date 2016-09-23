@@ -1,12 +1,111 @@
-simulate.plan <- function(plan,field,
-                          plot.dim=c(1,1),
+#assume plan has row, col, plotno and columns required for analysis.fn 
+#if given, plots has row, col, plotno, number and columns required for analysis fn
+#row, col, plotno, number are numeric, not factors
+simulate.plan <- function(plan,
+                          field=NULL,
+                          plots=NULL,
                           effects.fn=NULL,
                           analysis.fn=rcb.analysis,
-                          buffer.dim=0,
+                          map.function=rcb.map,
+                          plot.dim=c(1,1),
+                          buffer.dim=c(0,0),
+                          sample.vgm=NULL,
+                          spacing=3,
+                          model="rcb") {
+  
+  res.dat = NULL
+  
+  original.plan = FALSE
+  if(is.null(plots)) {
+    plots <- overlay.field(plan=plan, field=field,plot.dim=plot.dim,
+                          buffer.dim=buffer.dim,sample.vgm=sample.vgm,spacing=spacing)
+    original.plan = TRUE
+    
+  }
+  
+  for(number in 1:max(plots$number)) {
+    currentPlots <- plots[plots$number==number,]
+    if(!original.plan) {
+      #map function copies treatment list to current data
+      print("mapping plots")
+      currentPlots <- map.function(plan,currentPlots)
+      plots[plots$number==number,] <- currentPlots
+    }
+    current.res <- analysis.fn(currentPlots)
+    current.res$Number <- number
+    current.res$Row <- currentPlots$Row[1]
+    current.res$Col <- currentPlots$Col[1]
+    current.res$Model <- model
+    
+    if(is.null(res.dat)) {
+      res.dat <- current.res
+    } else {
+      res.dat <- rbind(res.dat,current.res)
+    }
+  }
+  
+  #copy over model
+  plots$Model <- model
+  
+  return(list(aov=res.dat,
+              plots=plots))
+}
+
+rcb.analysis <- function(current.dat) {
+  aov.tbl <- summary(aov(YldVolDry ~ as.factor(trt)+as.factor(rep),data=current.dat))
+  aov.mle <- lme(YldVolDry ~ as.factor(trt), random = ~ 1| as.factor(rep), data=current.dat)
+  
+  var.tbl <- VarCorr(aov.mle)
+
+  #posthoc power
+  means <- tapply(current.dat$YldVolDry,list(current.dat$trt),mean)
+  GrandMean=mean(current.dat$YldVolDry)
+  ResMS = aov.tbl[[1]][3,3]
+  SD <- sqrt(ResMS)
+  CV=100*SD/GrandMean
+  PerMeanDiff=100*(max(means)-min(means))/GrandMean
+  
+  RepDF <- aov.tbl[[1]][2,1]
+  TrtDF = aov.tbl[[1]][1,1]
+  ResDF = aov.tbl[[1]][3,1]
+  
+  effect.size <-PerMeanDiff/CV
+
+  return(data.frame(
+    TrtDF = TrtDF,
+    TrtMS = aov.tbl[[1]][1,3],
+    TrtP = aov.tbl[[1]][1,5],
+    RepDF = RepDF,
+    RepMS = aov.tbl[[1]][2,3],
+    RepVar = as.numeric(var.tbl[1]),
+    RepP = aov.tbl[[1]][2,5],
+    ResDF = aov.tbl[[1]][3,1],
+    ResMS = ResMS,
+    ResVar=as.numeric(var.tbl[2]),
+    GrandMean=GrandMean,
+    SD=SD,
+    CV=CV,
+    PerMeanDiff=PerMeanDiff,
+    
+    EffectSize=effect.size
+  ))
+}
+
+rcb.map <- function(plan,plots) {
+  for(p in min(plan$plotno):max(plan$plotno)) {
+    plots$trt[plots$plotno==p] <- plan$trt[plots$plotno==p]
+  }
+  return(plots)
+}
+
+overlay.field <- function(plan, field,
+                          plot.dim=c(1,1),
+                          buffer.dim=c(0,0),
                           sample.vgm=NULL,
                           spacing=3,model="rcb") {
+  require(gstat)
   
-  trial.dim <- trial.dimensions(plan,plot.dim=plot.dim,buffer.dim=buffer.dim)
+  trial.dim <- trial.dimensions(plan=plan, plot.dim=plot.dim,buffer.dim=buffer.dim)
   
   trial.width <- trial.dim[1]
   trial.height <- trial.dim[2]
@@ -14,11 +113,9 @@ simulate.plan <- function(plan,field,
   if(is.null(sample.vgm)) {
     sample.var <- variogram(YldVolDry~1, 
                             locations=~LonM+LatM, 
-                            data=map.data)
+                            data=field)
     sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
   }
-  
-  sim.dat <- NULL
   
   rightBorder <- max(field$LonM) - (trial.width+2*spacing)
   topBorder <- max(field$LatM) - (trial.height+2*spacing)
@@ -27,7 +124,7 @@ simulate.plan <- function(plan,field,
   col=1
   atColEnd=FALSE
   atRowEnd=FALSE
-  plans <- NULL
+  plots <- NULL
   planNo <- 1
   while(!atColEnd) {
     currentRow <- 3+(row-1)*trial.height + (row-1)*2*spacing
@@ -44,24 +141,16 @@ simulate.plan <- function(plan,field,
                                           buffer.dim=buffer.dim,
                                           sample.vgm=sample.vgm
           )
-
-          current.res <- analysis.fn(currentPlan$plan)
-          current.res$Number <- planNo
-          current.res$Row <- corner[1]
-          current.res$Col <- corner[2]
-
-          if(is.null(sim.dat)) {
-            sim.dat <- current.res
-          } else {
-            sim.dat <- rbind(sim.dat,current.res)
-          }
           
           #save points
           currentPlan$plan$number <- planNo
-
+          currentPlan$plan$Row <- currentRow
+          currentPlan$plan$Col <- currentCol
+          currentPlan$plan$Model <- model
+          
           planNo <- planNo+1
-          plans <- rbind(plans,currentPlan$plan)
-        
+          plots <- rbind(plots,currentPlan$plan)
+          
           col=col+1  
         } else {
           atRowEnd=TRUE
@@ -74,49 +163,105 @@ simulate.plan <- function(plan,field,
       atColEnd =TRUE
     }
   }
-  
-  return(list(aov=sim.dat,
-              points=plans))
+  return(plots)
 }
 
-rcb.analysis <- function(current.dat) {
-  aov.tbl <- summary(aov(YldVolDry ~ as.factor(trt)+as.factor(rep),data=current.dat))
-  aov.mle <- lme(YldVolDry ~ as.factor(trt), random = ~ 1| as.factor(rep), data=current.dat)
+simulate.plans <- function(plan.list, trial.data, plots.list=NULL, sample.vgm=NULL,plot.dim=c(1,1), buffer.dim=c(0,0),model="rcb",spacing=3) {
   
-  var.tbl <- VarCorr(aov.mle)
-  
-  return(data.frame(
-    TrtDF = aov.tbl[[1]][1,1],
-    TrtMS = aov.tbl[[1]][1,3],
-    TrtP = aov.tbl[[1]][1,5],
-    RepDF = aov.tbl[[1]][2,1],
-    RepMS = aov.tbl[[1]][2,3],
-    RepVar = as.numeric(var.tbl[1]),
-    RepP = aov.tbl[[1]][2,5],
-    ResDF = aov.tbl[[1]][3,1],
-    ResMS = aov.tbl[[1]][3,3],
-    ResVar=as.numeric(var.tbl[2])
-  ))
-}
-
-simulate.plans <- function(pln.list,trial.data,sample.vgm,plot.dim=c(1,1), buffer.dim=c(0,0)) {
-  
-  points <- NULL
+  tmp.plots <- NULL
   aov <- NULL
-  for (idx in 1:length(pln.list)) {
-    current.plan <- pln.list[[idx]]
-    tmp <- simulate.plan(current.plan,trial.data, 
-                         plot.dim=plot.dim, 
-                         buffer.dim=buffer.dim, sample.vgm=sample.vgm)
-    tmp$points$plan <- idx
-    tmp$aov$plan <- idx
-    if(is.null(points)) {
-      points <- tmp$points
-      aov <- tmp$aov
-    } else {
-      points <- rbind(points,tmp$points)
-      aov <- rbind(aov,tmp$aov)
+  plan.names <- names(plan.list)
+
+  if(is.null(plots.list)) {
+    plots <- overlay.field(plan=plan.list[[1]], field=trial.data, plot.dim=plot.dim,
+                             buffer.dim=buffer.dim,sample.vgm=sample.vgm,spacing=spacing)
+    plots.list <- list(plots=plots)
+  }
+  
+  if(!is.list(plots.list)) {
+    
+  }
+
+  plot.names <- names(plots.list)
+  #print(plot.names)
+  for(plot.idx in 1:length(plots.list)) {
+    for (idx in 1:length(plan.list)) {
+      current.plan <- plan.list[[idx]]
+      tmp <- simulate.plan(current.plan,field=NULL,plots=plots.list[[plot.idx]],model=model)
+      
+      if(!is.null(plan.names)) {
+        tmp$plots$plan <- plan.names[idx]
+        tmp$aov$plan <- plan.names[idx]
+        #print(plan.names[idx])
+      } else {
+        tmp$plots$plan <- idx
+        tmp$aov$plan <- idx
+      }
+      
+      tmp$aov$PlanNumber <- idx
+      tmp$plots$PlanNumber <- idx
+      
+      if(!is.null(plot.names)) {
+        tmp$plots$Source <- plot.names[plot.idx]
+        tmp$aov$Source <- plot.names[plot.idx]
+      } else {
+        tmp$plots$Source <- plot.idx
+        tmp$aov$Source <- plot.idx
+      }
+      
+      tmp$aov$SourceNumber <- plot.idx
+      tmp$plots$SourceNumber <- plot.idx
+  
+      if(is.null(tmp.plots)) {
+        tmp.plots <- tmp$plots
+        aov <- tmp$aov
+      } else {
+        tmp.plots <- rbind(tmp.plots,tmp$plots)
+        aov <- rbind(aov,tmp$aov)
+      }
     }
   }
-  return(list(points=points,aov=aov))
+  
+  
+  require(ggplot2)
+  #aov$plan <- as.factor(aov$plan)
+  rcbmap.dat <- subset(tmp.plots, tmp.plots$number==1)
+  rcbmap.dat$Source <- as.factor(rcbmap.dat$Source)
+  rcbmap.dat <- subset(rcbmap.dat,rcbmap.dat$Source==levels(rcbmap.dat$Source)[1])
+  
+  rcbmap.dat$plan <- as.factor(rcbmap.dat$plan)
+  
+  map.plot <- ggplot(rcbmap.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=3) + facet_wrap(~plan)
+  
+  plan.plot <- ggplot(aov, aes(TrtP,color=plan,linetype=plan)) + 
+                      stat_density(geom="line",position="identity",size=1) + 
+                      facet_wrap(~Source)
+  
+  ret <- list(plots=tmp.plots,
+              aov=aov,
+              trt.p.plot=plan.plot,
+              map.plot=map.plot)
+  class(ret) <- "plan.simulations"
+  return(ret)
+}
+
+summary.plan.simulations <- function(res,alpha=0.05) {
+  TypeIError <- res$aov$TrtP <= alpha
+  ErrorCounts <- tapply(TypeIError, list(res$aov$Source,res$aov$plan), sum)
+  TrialCounts <- tapply(TypeIError, list(res$aov$Source,res$aov$plan), length)
+  tbl <- data.frame(100*ErrorCounts/TrialCounts)
+
+  row.means <- apply(tbl,1,mean)
+  row.sd <- apply(tbl,1,sd)
+  
+  col.means <- apply(tbl,2,mean)
+  col.sd <- apply(tbl,2,sd)
+  
+  if(dim(tbl)[2]>1) {
+    tbl$Mean <- row.means
+    tbl$SD <- row.sd
+  }
+  return(list(
+    TypeIError=tbl
+  ))
 }

@@ -1,4 +1,4 @@
-<TeXmacs|1.99.2>
+<TeXmacs|1.99.4>
 
 <style|generic>
 
@@ -64,9 +64,846 @@
   context, <math|\<alpha\><rsub|g>=\<mu\><rsub|g>-\<mu\>> and
   <math|\<beta\><rsub|e>=\<mu\><rsub|e>-\<mu\>> (Gauch 2008)
 
-  <subsection|Decomposing Interaction>
+  <subsection|Implementation>
 
-  <subsubsection|Random Effect>
+  We implement this analysis in R. We assume a data set with the following
+  columns:
+
+  <big-table|<tabular|<tformat|<table|<row|<cell|Name>|<cell|Type>>|<row|<cell|Trial>|<cell|factor>>|<row|<cell|Treatment>|<cell|factor>>|<row|<cell|RepNo>|<cell|factor>>|<row|<cell|Plot.Mean>|<cell|numeric>>>>>|>
+
+  For illustration, we'll use the Multilocation data from the SASMixes
+  library
+
+  <\session|r|default>
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      library(SASmixed)
+    <|unfolded-io>
+      library(SASmixed)
+    </unfolded-io>
+
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      data(Multilocation)
+    <|unfolded-io>
+      data(Multilocation)
+    </unfolded-io>
+
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      st.dat \<less\>- Multilocation
+    <|unfolded-io>
+      st.dat \<less\>- Multilocation
+    </unfolded-io>
+
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      st.dat$Trial \<less\>- Multilocation$Location
+    <|unfolded-io>
+      st.dat$Trial \<less\>- Multilocation$Location
+    </unfolded-io>
+
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      st.dat$Treatment \<less\>- Multilocation$Trt
+    <|unfolded-io>
+      st.dat$Treatment \<less\>- Multilocation$Trt
+    </unfolded-io>
+
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      st.dat$RepNo \<less\>- Multilocation$Block
+    <|unfolded-io>
+      st.dat$RepNo \<less\>- Multilocation$Block
+    </unfolded-io>
+
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      st.dat$Plot.Mean \<less\>- Multilocation$Adj
+    <|unfolded-io>
+      st.dat$Plot.Mean \<less\>- Multilocation$Adj
+    </unfolded-io>
+
+    <\textput>
+      Assuming that treatments and trials may not be exactly balanced, there
+      are two possible specifications for the linear model. I prefer to list
+      Trial first, since we want to be cautious about inference on
+      Treatments. If there are an uneven number of observations per trial,
+      this will shift more variance to trials and decrease signficance of
+      treatment effects.
+
+      \;
+
+      I use the model=FALSE flag to prevent the returned object from carrying
+      along the original data. If I wanted to called update, I would need the
+      model, but I don't intend to do that. With very large data sets, this
+      may impact performance.
+
+      \;
+    </textput>
+
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      st.lm \<less\>- lm(Plot.Mean ~ Trial*Treatment + Trial:RepNo,
+      data=st.dat, model=FALSE)
+    <|unfolded-io>
+      st.lm \<less\>- lm(Plot.Mean ~ Trial*Treatment + Trial:RepNo,
+      data=st.dat, model=F
+
+      \<less\>rial*Treatment + Trial:RepNo, data=st.dat, model=FALSE)
+    </unfolded-io>
+
+    <\textput>
+      For now, we'll skip model diagnostics - we may generally assume that
+      the basic linear model is appropriate, and that later analysis provide
+      insight in cases of non-heterogeneous variances or non-normal data.
+      Instead, we proceed directly to analysis of variance. I use anova to
+      produce a data frame that we will build upon.
+
+      \;
+    </textput>
+
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      print(aov.tbl\<less\>-anova(st.lm))
+    <|unfolded-io>
+      print(aov.tbl\<less\>-anova(st.lm))
+
+      Analysis of Variance Table
+
+      \;
+
+      Response: Plot.Mean
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Df \ Sum Sq Mean Sq F value
+      \ \ \ Pr(\<gtr\>F) \ \ \ 
+
+      Trial \ \ \ \ \ \ \ \ \ \ \ 8 11.4635 1.43294 41.4400 \<less\> 2.2e-16
+      ***
+
+      Treatment \ \ \ \ \ \ \ 3 \ 1.2217 0.40725 11.7774 4.803e-06 ***
+
+      Trial:Treatment 24 \ 0.9966 0.04152 \ 1.2008 \ \ 0.28285 \ \ \ 
+
+      Trial:RepNo \ \ \ \ 18 \ 1.0270 0.05706 \ 1.6500 \ \ 0.07994 . \ 
+
+      Residuals \ \ \ \ \ \ 54 \ 1.8672 0.03458
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      ---
+
+      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    </unfolded-io>
+
+    <\textput>
+      This table assumes all effects are fixed; this is typically not
+      appropriate for multienvironment trials. We'll recompute F tests.
+
+      We can take advantage of a trick in R to index into our anova table.\ 
+    </textput>
+
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      TrtDF \<less\>- aov.tbl["Treatment",1]
+
+      TrialDF \<less\>- aov.tbl["Trial",1]
+
+      IntDF \<less\>- aov.tbl["Trial:Treatment",1]
+
+      BlockDF \<less\>- aov.tbl["Trial:RepNo",1]
+    <|unfolded-io>
+      TrtDF \<less\>- aov.tbl["Treatment",1]
+
+      \<gtr\> TrialDF \<less\>- aov.tbl["Trial",1]
+
+      \<gtr\> IntDF \<less\>- aov.tbl["Trial:Treatment",1]
+
+      \<gtr\> BlockDF \<less\>- aov.tbl["Trial:RepNo",1]
+    </unfolded-io>
+
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      Fval \<less\>- aov.tbl["Treatment",3]/aov.tbl["Trial:Treatment",3]
+
+      aov.tbl["Treatment",4] \<less\>- Fval
+
+      aov.tbl["Treatment",5] \<less\>- 1 - pf(Fval, TrtDF, IntDF)
+    <|unfolded-io>
+      Fval \<less\>- aov.tbl["Treatment",3]/aov.tbl["Trial:Treatment",3]
+
+      \<gtr\> aov.tbl["Treatment",4] \<less\>- Fval
+
+      \<gtr\> aov.tbl["Treatment",5] \<less\>- 1 - pf(Fval, TrtDF, IntDF)
+    </unfolded-io>
+
+    <\textput>
+      It is possible that the interaction MS will be exactly 0, but that is
+      highly unlikely, so we don't need to check.\ 
+
+      Trial significance is tricky. We may choose between Interaction or Rep
+      in Trial. We may also choose an alternative test for blocks
+
+      <\verbatim-code>
+        Fval \<less\>- aov.tbl["Trial:RepNo",3]/aov.tbl["Trial:Treatment",3]
+
+        aov.tbl["Trial:RepNo",4] \<less\>- Fval
+
+        aov.tbl["Trial:RepNo",5] \<less\>- 1 - pf(Fval, BlockDF, IntDF)
+      </verbatim-code>
+    </textput>
+
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      Fval \<less\>- aov.tbl["Trial",3]/aov.tbl["Trial:RepNo",3]
+
+      aov.tbl["Trial",4] \<less\>- Fval
+
+      aov.tbl["Trial",5] \<less\>- 1 - pf(Fval, TrialDF, BlockDF)
+    <|unfolded-io>
+      Fval \<less\>- aov.tbl["Trial",3]/aov.tbl["Trial:RepNo",3]
+
+      \<gtr\> aov.tbl["Trial",4] \<less\>- Fval
+
+      \<gtr\> aov.tbl["Trial",5] \<less\>- 1 - pf(Fval, TrialDF, BlockDF)
+    </unfolded-io>
+
+    <\unfolded-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-io>
+      aov.tbl
+    <|unfolded-io>
+      aov.tbl
+
+      Analysis of Variance Table
+
+      \;
+
+      Response: Plot.Mean
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Df \ Sum Sq Mean Sq F value
+      \ \ \ Pr(\<gtr\>F) \ \ \ 
+
+      Trial \ \ \ \ \ \ \ \ \ \ \ 8 11.4635 1.43294 25.1147 3.001e-08 ***
+
+      Treatment \ \ \ \ \ \ \ 3 \ 1.2217 0.40725 \ 9.8078 0.0002082 ***
+
+      Trial:Treatment 24 \ 0.9966 0.04152 \ 1.2008 0.2828468 \ \ \ 
+
+      Trial:RepNo \ \ \ \ 18 \ 1.0270 0.05706 \ 1.6500 0.0799428 . \ 
+
+      Residuals \ \ \ \ \ \ 54 \ 1.8672 0.03458
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      ---
+
+      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    </unfolded-io>
+
+    <\input>
+      <with|color|red|\<gtr\> >
+    <|input>
+      \;
+    </input>
+  </session>
+
+  \;
+
+  \ \ \ 
+
+  \ \ \ \ 'TODO:do we need this here or in special case code
+
+  \ \ \ \ If (TrialByTreatment) Then
+
+  \ \ \ \ \ \ rfile.WriteLine("tmp \<less\>- aov.tbl[2,]")
+
+  \ \ \ \ \ \ rfile.WriteLine("aov.tbl[2,] \<less\>- aov.tbl[4,]")
+
+  \ \ \ \ \ \ rfile.WriteLine("aov.tbl[4,] \<less\>- aov.tbl[3,]")
+
+  \ \ \ \ \ \ rfile.WriteLine("aov.tbl[3,] \<less\>- tmp")
+
+  \ \ \ \ Else
+
+  \ \ \ \ \ \ 'Rearrange
+
+  \ \ \ \ \ \ ' \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Df \ Sum Sq Mean Sq F
+  value \ \ \ Pr(\<gtr\>F) \ \ \ 
+
+  \ \ \ \ \ \ 'Treatment \ \ \ \ \ \ \ 3 \ 0.8576 0.28587 \ 8.2266 0.0001333
+  ***
+
+  \ \ \ \ \ \ 'Trial \ \ \ \ \ \ \ \ \ \ \ 8 10.5095 1.31369 37.8046 \<less\>
+  2.2e-16 ***
+
+  \ \ \ \ \ \ 'Treatment:Trial 24 \ 1.2062 0.05026 \ 1.4463 0.1305501 \ \ \ 
+
+  \ \ \ \ \ \ 'Trial:RepNo \ \ \ \ 18 \ 1.0373 0.05763 \ 1.6583 0.0778975 .
+  \ 
+
+  \ \ \ \ \ \ 'Residuals \ \ \ \ \ \ 54 \ 1.8765 0.03475 \ \ \ \ \ \ \ 
+
+  \ \ \ \ \ \ 'to
+
+  \ \ \ \ \ \ ' \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Df \ Sum Sq Mean Sq F
+  value \ \ \ Pr(\<gtr\>F) \ \ \ 
+
+  \ \ \ \ \ \ 'Trial \ \ \ \ \ \ \ \ \ \ \ 8 10.5095 1.31369 37.8046 \<less\>
+  2.2e-16 ***
+
+  \ \ \ \ \ \ 'Trial:RepNo \ \ \ \ 18 \ 1.0373 0.05763 \ 1.6583 0.0778975 .\ 
+
+  \ \ \ \ \ \ 'Treatment \ \ \ \ \ \ \ 3 \ 0.8576 0.28587 \ 8.2266 0.0001333
+  ***
+
+  \ \ \ \ \ \ 'Treatment:Trial 24 \ 1.2062 0.05026 \ 1.4463 0.1305501 \ \ \ 
+
+  \ \ \ \ \ \ 'Residuals \ \ \ \ \ \ 54 \ 1.8765 0.03475 \ \ \ \ \ \ 
+
+  \;
+
+  \;
+
+  \ \ \ \ \ \ rfile.WriteLine("tmp \<less\>- aov.tbl[TrtIdx,]")
+
+  \ \ \ \ \ \ rfile.WriteLine("aov.tbl[TrtIdx,] \<less\>-
+  aov.tbl[TrialIdx,]")
+
+  \ \ \ \ \ \ rfile.WriteLine("aov.tbl[TrialIdx,] \<less\>-
+  aov.tbl[BlockIdx,]")
+
+  \ \ \ \ \ \ rfile.WriteLine("aov.tbl[BlockIdx,] \<less\>-
+  aov.tbl[IntIdx,]")
+
+  \ \ \ \ \ \ rfile.WriteLine("aov.tbl[IntIdx,] \<less\>- tmp")
+
+  \ \ \ \ End If
+
+  \ \ \ \ rfile.WriteLine("rownames(aov.tbl) \<less\>- c('Trial','Rep in
+  Trial','Treatment','Treatment x Trial','Residuals')")
+
+  \;
+
+  \;
+
+  \ \ \ \ rfile.WriteExportTableCommand("aov.tbl", ROutputTables_(0), True,
+  False)
+
+  \;
+
+  \ \ \ \ If (UnbalancedReplicates) Then
+
+  \ \ \ \ \ \ rfile.WriteLine("treatments \<less\>- length(levels(" +
+  RWorkFiles_(4) + "$Treatment))")
+
+  \ \ \ \ \ \ rfile.WriteLine("trials \<less\>- length(levels(" +
+  RWorkFiles_(4) + "$Trial))")
+
+  \ \ \ \ \ \ rfile.WriteLine("reps \<less\>- length(levels(" +
+  RWorkFiles_(4) + "$RepNo))")
+
+  \ \ \ \ Else
+
+  \ \ \ \ \ \ rfile.WriteLine("treatments \<less\>-TrtDF+1")
+
+  \ \ \ \ \ \ rfile.WriteLine("trials \<less\>- TrialDF+1")
+
+  \ \ \ \ \ \ 'If there are missing replicates, this is invalid
+
+  \ \ \ \ \ \ rfile.WriteLine("reps \<less\>- (BlockDF/trials)+1")
+
+  \ \ \ \ End If
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("C.e \<less\>- match.fun(st.lm$contrasts[['Trial']])(trials)")
+
+  \ \ \ \ rfile.WriteLine("C.t \<less\>- match.fun(st.lm$contrasts[['Treatment']])(treatments)")
+
+  \ \ \ \ rfile.WriteLine("C.r \<less\>- match.fun(st.lm$contrasts[['Trial']])(reps)")
+
+  \ \ \ \ rfile.WriteLine("C.full.e \<less\>-
+  match.fun(st.lm$contrasts[['Trial']])(trials,contrasts=FALSE)")
+
+  \ \ \ \ rfile.WriteLine("C.b \<less\>- kronecker(C.r,C.full.e)")
+
+  \;
+
+  \ \ \ \ 'rfile.WriteLine("notEstimable \<less\>- FALSE")
+
+  \ \ \ \ rfile.WriteLine("coeffs \<less\>- st.lm$coefficients")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("if(any(is.na(coeffs))) {")
+
+  \ \ \ \ rfile.WriteLine(" \ coeffs[is.na(coeffs)] \<less\>- 0")
+
+  \ \ \ \ 'rfile.WriteLine(" \ notEstimable \<less\>- TRUE")
+
+  \ \ \ \ rfile.WriteLine("}")
+
+  \;
+
+  \ \ \ \ If (TrialByTreatment) Then
+
+  \ \ \ \ \ \ rfile.WriteLine("L.t \<less\>- kronecker(rep(1,trials),C.t)")
+
+  \ \ \ \ \ \ rfile.WriteLine("L.e \<less\>-
+  kronecker(C.e,rep(1,treatments))")
+
+  \ \ \ \ Else
+
+  \ \ \ \ \ \ rfile.WriteLine("L.t \<less\>- kronecker(rep(1,trials),C.t)")
+
+  \ \ \ \ \ \ rfile.WriteLine("L.e \<less\>-
+  kronecker(C.e,rep(1,treatments))")
+
+  \ \ \ \ End If
+
+  \ \ \ \ rfile.WriteLine("L.r \<less\>- kronecker(t(rep(1,reps-1)),C.full.e)")
+
+  \ \ \ \ rfile.WriteLine("L.r \<less\>- kronecker(L.r,rep(1,treatments))")
+
+  \ \ \ \ rfile.WriteLine("L.r \<less\>- L.r/(reps)")
+
+  \;
+
+  \ \ \ \ If (TrialByTreatment) Then
+
+  \ \ \ \ \ \ rfile.WriteLine("L.te = expand.incidence(C.e,C.t)")
+
+  \ \ \ \ \ \ rfile.WriteLine("L.txt \<less\>-
+  cbind(rep(1,treatments*trials),L.e,L.t, L.te, L.r)")
+
+  \ \ \ \ Else
+
+  \ \ \ \ \ \ rfile.WriteLine("L.te = expand.incidence(C.e,C.t,byRows=FALSE)")
+
+  \ \ \ \ \ \ rfile.WriteLine("L.txt \<less\>-
+  cbind(rep(1,treatments*trials),L.t, L.e,L.te, L.r)")
+
+  \ \ \ \ End If
+
+  \;
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("txt.lsmeans.tbl \<less\>- t(matrix(L.txt %*%
+  coeffs,nrow=treatments))")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("trt.means \<less\>- colMeans(txt.lsmeans.tbl)")
+
+  \ \ \ \ rfile.WriteLine("trial.means \<less\>- rowMeans(txt.lsmeans.tbl)")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("means.tbl \<less\>-
+  data.frame(trt=as.integer(levels(" + RWorkFiles_(4) +
+  "$Treatment)),arith=tapply(" + RWorkFiles_(4) + "$Plot.Mean, list(" +
+  RWorkFiles_(4) + "$Treatment),mean),lsmean=trt.means)")
+
+  \;
+
+  \ \ \ \ rfile.WriteExportTableCommand("means.tbl", ROutputTables_(1),
+  False, False)
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("columnIndexes \<less\>- attr(st.lm$x,'assign')")
+
+  \;
+
+  \ \ \ \ 'TODO: transform x matrix from lm
+
+  \ \ \ \ rfile.WriteLine("TreatmentX \<less\>-
+  incidence.matrix(st.tab,effect='Treatment')")
+
+  \ \ \ \ rfile.WriteLine("TrialZ \<less\>-
+  incidence.matrix(st.tab,effect='Trial')")
+
+  \ \ \ \ rfile.WriteLine("RepInTrialZ \<less\>-
+  interaction.matrix(st.tab,'Trial','RepNo')")
+
+  \;
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("N \<less\>- t(TreatmentX) %*% RepInTrialZ")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("t_delta \<less\>- t(TreatmentX) %*% TreatmentX")
+
+  \ \ \ \ rfile.WriteLine("v_delta \<less\>- t(RepInTrialZ) %*% RepInTrialZ")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("v_delta_inv \<less\>- invert.diagonal(v_delta)")
+
+  \ \ \ \ rfile.WriteLine("A \<less\>- t_delta - N %*% v_delta_inv %*% t(N)")
+
+  \;
+
+  \ \ \ \ If (mixedModel) Then
+
+  \ \ \ \ \ \ If (Not randomTreatments) Then
+
+  \ \ \ \ \ \ \ \ rfile.WriteLine("ems \<less\>- aov.tbl[4,3]")
+
+  \ \ \ \ \ \ Else
+
+  \ \ \ \ \ \ \ \ rfile.WriteLine("ems \<less\>- aov.tbl[4,3]")
+
+  \ \ \ \ \ \ End If
+
+  \ \ \ \ Else
+
+  \ \ \ \ \ \ rfile.WriteLine("ems \<less\>- aov.tbl[5,3]")
+
+  \ \ \ \ End If
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("covA \<less\>- pseudoinverse (A) * ems")
+
+  \;
+
+  \ \ \ \ rfile.WriteExportTableCommand("covA", ROutputTables_(2), False,
+  False)
+
+  \ \ \ \ rfile.WriteExportTableCommand("t_delta", ROutputTables_(3), False,
+  False)
+
+  \;
+
+  \ \ \ \ 'Note - this syntax is used by PlotTreatmentByTrialGraph, so
+
+  \ \ \ \ 'any change should be syncronized (Feb 26 15, PMC)
+
+  \ \ \ \ Dim code = "SmyCol" + Format(SmyColToAnalyze)
+
+  \;
+
+  \ \ \ \ rfile.WriteExportTableCommand("trial.means", "trialMeans." + code +
+  ".tab", False, False)
+
+  \ \ \ \ rfile.WriteExportTableCommand("txt.lsmeans.tbl", "trialTable." +
+  code + ".tab", False, False)
+
+  \ \ \ \ Dim MeanEffects As Boolean = True
+
+  \ \ \ \ If (MeanEffects) Then
+
+  \ \ \ \ \ \ rfile.WriteLine("grandmean \<less\>-
+  mean(unlist(txt.lsmeans.tbl))")
+
+  \;
+
+  \ \ \ \ \ \ rfile.WriteLine("trial.effects \<less\>-
+  trial.means-grandmean")
+
+  \ \ \ \ \ \ rfile.WriteLine("trt.effects \<less\>- trt.means-grandmean")
+
+  \ \ \ \ Else
+
+  \ \ \ \ \ \ If (TrialByTreatment) Then
+
+  \ \ \ \ \ \ \ \ rfile.WriteLine("additive.lm \<less\>- lm(Plot.Mean ~
+  Trial+Treatment + Trial:RepNo, data=" + RWorkFiles_(4) + ", model=FALSE)")
+
+  \ \ \ \ \ \ Else
+
+  \ \ \ \ \ \ \ \ rfile.WriteLine("additive.lm \<less\>- lm(Plot.Mean ~
+  Treatment+Trial + Trial:RepNo, data=" + RWorkFiles_(4) + ", model=FALSE)")
+
+  \ \ \ \ \ \ End If
+
+  \;
+
+  \ \ \ \ \ \ rfile.WriteLine("additive.labels \<less\>-
+  attr(additive.lm$terms, 'term.labels')")
+
+  \ \ \ \ \ \ rfile.WriteLine("additive.assign = additive.lm$assign")
+
+  \ \ \ \ \ \ rfile.WriteLine("additive.coef \<less\>-
+  additive.lm$coefficients")
+
+  \ \ \ \ \ \ rfile.WriteLine("e.beta \<less\>- additive.coef[additive.assign
+  == which(additive.labels=='Trial')]")
+
+  \ \ \ \ \ \ rfile.WriteLine("t.beta \<less\>- additive.coef[additive.assign
+  == which(additive.labels=='Treatment')]")
+
+  \;
+
+  \ \ \ \ \ \ rfile.WriteLine("e.mat \<less\>-
+  match.fun(additive.lm$contrasts[['Trial']])(length(e.beta)+1)")
+
+  \ \ \ \ \ \ rfile.WriteLine("t.mat \<less\>-
+  match.fun(additive.lm$contrasts[['Treatment']])(length(t.beta)+1)")
+
+  \;
+
+  \ \ \ \ \ \ rfile.WriteLine("trial.effects \<less\>- e.mat %*% e.beta")
+
+  \ \ \ \ \ \ rfile.WriteLine("trt.effects \<less\>- t.mat %*% t.beta")
+
+  \;
+
+  \ \ \ \ \ \ rfile.WriteLine("trial.effects \<less\>- trial.effects -
+  mean(trial.effects)")
+
+  \ \ \ \ \ \ rfile.WriteLine("trt.effects \<less\>- trt.effects -
+  mean(trt.effects)")
+
+  \;
+
+  \ \ \ \ \ \ rfile.WriteLine("trial.effects \<less\>-
+  as.vector(trial.effects)")
+
+  \ \ \ \ \ \ rfile.WriteLine("trt.effects \<less\>- as.vector(trt.effects)")
+
+  \ \ \ \ \ \ rfile.WriteLine("names(trial.effects) \<less\>-
+  additive.lm$xlevels[['Trial']]")
+
+  \ \ \ \ \ \ rfile.WriteLine("names(trt.effects) \<less\>-
+  additive.lm$xlevels[['Treatment']]")
+
+  \ \ \ \ End If
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("st.tab$TreatmentIdx \<less\>-
+  as.numeric(st.tab$Treatment)")
+
+  \ \ \ \ rfile.WriteLine("st.tab$TrialIdx \<less\>-
+  as.numeric(st.tab$Trial)")
+
+  \ \ \ \ rfile.WriteLine("st.tab$a \<less\>-
+  trt.effects[st.tab$TreatmentIdx]")
+
+  \ \ \ \ rfile.WriteLine("st.tab$b \<less\>-
+  trial.effects[st.tab$TrialIdx]")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("table.dat \<less\>-
+  gei.table.to.frame(t(txt.lsmeans.tbl), response = 'Plot.Mean',
+  TreatmentName='Treatment', TrialName='Trial')")
+
+  \ \ \ \ rfile.WriteLine("table.dat$a \<less\>-
+  trt.effects[table.dat$Treatment]")
+
+  \ \ \ \ rfile.WriteLine("table.dat$b \<less\>-
+  trial.effects[table.dat$Trial]")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("tdf.st.lm \<less\>- lm(Plot.Mean ~ Trial +
+  Treatment + Trial:RepNo + a:b,data=st.tab)")
+
+  \ \ \ \ rfile.WriteLine("print(summary(tdf.st.lm))")
+
+  \ \ \ \ rfile.WriteLine("tdf.st.tbl \<less\>- anova(tdf.st.lm)")
+
+  \ \ \ \ rfile.WriteLine("print(tdf.st.tbl)")
+
+  \ \ \ \ rfile.WriteLine("tdf.tbl.lm \<less\>- lm(Plot.Mean ~ Trial +
+  Treatment + a:b,data=table.dat)")
+
+  \ \ \ \ rfile.WriteLine("print(summary(tdf.tbl.lm))")
+
+  \ \ \ \ rfile.WriteLine("tdf.tbl \<less\>-anova(tdf.tbl.lm)")
+
+  \ \ \ \ rfile.WriteLine("print(tdf.tbl)")
+
+  \;
+
+  \ \ \ \ 'output must match
+
+  \ \ \ \ 'Treatment \ 15 \ \ \ \ \ 197.086417427338
+  \ \ \ \ \ \ \ 13.1390944951559 \ \ \ \ \ \ \ 14.7908162306421
+  \ \ \ \ \ \ \ 6.94977825975076e-37
+
+  \ \ \ \ 'Trial \ \ \ \ \ 35 \ \ \ \ \ 9770.23986297669
+  \ \ \ \ \ \ \ 279.149710370763 \ \ \ \ \ \ \ 314.241751473296
+  \ \ \ \ \ \ \ 0
+
+  \ \ \ \ 'eTreatment:eTrial \ 1 \ \ \ \ \ \ 70.1796381030913
+  \ \ \ \ \ \ \ 70.1796381030913 \ \ \ \ \ \ \ 64.1946977284348
+  \ \ \ \ \ \ \ 7.32747196252603e-15
+
+  \ \ \ \ 'Residuals \ 524 \ \ \ \ 572.853080819647
+  \ \ \ \ \ \ \ 1.0932310702665 1.60248317342151
+  \ \ \ \ \ \ \ 2.66642263824224e-12
+
+  \ \ \ \ 'Error \ \ \ \ \ 1620 \ \ \ 1105.18123572577
+  \ \ \ \ \ \ \ 0.682210639336895 \ \ \ \ \ \ NA \ \ \ \ \ NA
+
+  \ \ \ \ 'TODO:do we need this here or in special case code
+
+  \ \ \ \ rfile.WriteLine("tmp \<less\>- tdf.st.tbl[2,]")
+
+  \ \ \ \ rfile.WriteLine("tdf.st.tbl[2,] \<less\>- tdf.st.tbl[1,]")
+
+  \ \ \ \ rfile.WriteLine("tdf.st.tbl[1,] \<less\>- tmp")
+
+  \ \ \ \ rfile.WriteLine("tdf.st.tbl[3,] \<less\>- tdf.st.tbl[4,]")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("tdf.st.tbl[5,] \<less\>- aov.tbl[5,]")
+
+  \ \ \ \ rfile.WriteLine("tdf.st.tbl[4,] \<less\>-
+  aov.tbl[4,]-tdf.st.tbl[3,]")
+
+  \ \ \ \ rfile.WriteLine("tdf.st.tbl[4,3] \<less\>-
+  tdf.st.tbl[4,2]/tdf.st.tbl[4,1] ")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("Fval \<less\>- tdf.st.tbl[3,3]/tdf.st.tbl[4,3]")
+
+  \ \ \ \ rfile.WriteLine("tdf.st.tbl[3,4] \<less\>- Fval")
+
+  \ \ \ \ rfile.WriteLine("tdf.st.tbl[3,5] \<less\>- 1 - pf(Fval,
+  tdf.st.tbl[3,1], tdf.st.tbl[4,1])")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("Fval \<less\>- tdf.st.tbl[4,3]/tdf.st.tbl[5,3]")
+
+  \ \ \ \ rfile.WriteLine("tdf.st.tbl[4,4] \<less\>- Fval")
+
+  \ \ \ \ rfile.WriteLine("tdf.st.tbl[4,5] \<less\>- 1 - pf(Fval,
+  tdf.st.tbl[4,1], tdf.st.tbl[5,1])")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("rownames(tdf.st.tbl) \<less\>-
+  c('Treatment','Trial','eTreatment:eTrial','Residuals','Error')")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("write.table(tdf.st.tbl,file='" + ROutputTables_(4)
+  + "',row.names=TRUE,col.names=FALSE,sep='\\t')")
+
+  \ \ \ \ rfile.WriteLine("write.table(summary(tdf.tbl.lm)$coefficients,file='"
+  + ROutputTables_(5) + "',row.names=TRUE,col.names=FALSE,sep='\\t')")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("het.st.lm \<less\>- lm(Plot.Mean ~ Trial +
+  Treatment + Trial:RepNo + Treatment:b,data=st.tab)")
+
+  \ \ \ \ rfile.WriteLine("print(summary(het.st.lm))")
+
+  \ \ \ \ rfile.WriteLine("print(anova(het.st.lm))")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("het.tbl.lm \<less\>- lm(Plot.Mean ~ Trial +
+  Treatment + Treatment:b,data=st.tab)")
+
+  \ \ \ \ rfile.WriteLine("print(summary(het.tbl.lm))")
+
+  \ \ \ \ rfile.WriteLine("print(anova(het.tbl.lm))")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("het0.tbl.lm \<less\>- lm(Plot.Mean ~ 0+Treatment +
+  Treatment:b,data=table.dat)")
+
+  \ \ \ \ rfile.WriteLine("print(summary(het0.tbl.lm))")
+
+  \ \ \ \ rfile.WriteLine("print(anova(het0.tbl.lm))")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("het.st.tbl \<less\>- anova(het.st.lm)")
+
+  \;
+
+  \ \ \ \ 'TODO:do we need this here or in special case code
+
+  \ \ \ \ rfile.WriteLine("tmp \<less\>- het.st.tbl[2,]")
+
+  \ \ \ \ rfile.WriteLine("het.st.tbl[2,] \<less\>- het.st.tbl[1,]")
+
+  \ \ \ \ rfile.WriteLine("het.st.tbl[1,] \<less\>- tmp")
+
+  \ \ \ \ rfile.WriteLine("het.st.tbl[3,] \<less\>- het.st.tbl[4,]")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("het.st.tbl[5,] \<less\>- aov.tbl[5,]")
+
+  \ \ \ \ rfile.WriteLine("het.st.tbl[4,] \<less\>-
+  aov.tbl[4,]-het.st.tbl[3,]")
+
+  \ \ \ \ rfile.WriteLine("het.st.tbl[4,3] \<less\>-
+  het.st.tbl[4,2]/het.st.tbl[4,1] ")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("Fval \<less\>- het.st.tbl[3,3]/het.st.tbl[4,3]")
+
+  \ \ \ \ rfile.WriteLine("het.st.tbl[3,4] \<less\>- Fval")
+
+  \ \ \ \ rfile.WriteLine("het.st.tbl[3,5] \<less\>- 1 - pf(Fval,
+  het.st.tbl[3,1], het.st.tbl[4,1])")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("Fval \<less\>- het.st.tbl[4,3]/het.st.tbl[5,3]")
+
+  \ \ \ \ rfile.WriteLine("het.st.tbl[4,4] \<less\>- Fval")
+
+  \ \ \ \ rfile.WriteLine("het.st.tbl[4,5] \<less\>- 1 - pf(Fval,
+  het.st.tbl[4,1], het.st.tbl[5,1])")
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("rownames(het.st.tbl) \<less\>-
+  c('Treatment','Trial','Treatment:eTrial','Residuals','Error')")
+
+  \;
+
+  \;
+
+  \ \ \ \ rfile.WriteLine("write.table(het.st.tbl,file='" + ROutputTables_(6)
+  + "',row.names=TRUE,col.names=FALSE,sep='\\t')")
+
+  \ \ \ \ rfile.WriteLine("het0.tbl \<less\>-
+  summary(het0.tbl.lm)$coefficients")
+
+  \ \ \ \ rfile.WriteLine("het0.tbl \<less\>-
+  extract.slopes(het0.tbl,het.st.tbl[(dim(het.st.tbl)[1]-1),1])")
+
+  \ \ \ \ rfile.WriteLine("write.table(het0.tbl,file='" + ROutputTables_(7) +
+  "',row.names=TRUE,col.names=FALSE,sep='\\t')")
+
+  \;
+
+  \;
+
+  <section|Decomposing Interaction>
+
+  <subsection|Random Effect>
 
   In most cases, trials are assumed to be random effects. This forces
   interaction to be a random effect, <math|\<phi\><rsub|i
@@ -74,7 +911,7 @@
   regarded as another level of error. However, treatments may exhibit
   heterogeneous interactions (Steel p.399)
 
-  <subsubsection|Fixed Effect>
+  <subsection|Fixed Effect>
 
   <paragraph|Non additivity>
 
@@ -190,6 +1027,12 @@
   is the trial mean, averaged over all treatments. The proportionality
   constant is a function of the treatment, and is best measured as
   proportional to treatment mean across all trials.
+
+  \;
+
+  <section|Model Diagnostics>
+
+  print(summary(st.lm))
 
   \;
 
@@ -426,24 +1269,27 @@
 <\references>
   <\collection>
     <associate|auto-1|<tuple|1|?>>
-    <associate|auto-10|<tuple|3.1.0.3|?>>
-    <associate|auto-11|<tuple|3.2|?>>
-    <associate|auto-12|<tuple|3.3|?>>
-    <associate|auto-13|<tuple|3.4|?>>
-    <associate|auto-14|<tuple|3.5|?>>
-    <associate|auto-15|<tuple|3.6|?>>
-    <associate|auto-16|<tuple|3.7|?>>
-    <associate|auto-17|<tuple|3.7.1|?>>
-    <associate|auto-18|<tuple|4|?>>
-    <associate|auto-19|<tuple|1|?>>
+    <associate|auto-10|<tuple|4|?>>
+    <associate|auto-11|<tuple|5|?>>
+    <associate|auto-12|<tuple|5.1|?>>
+    <associate|auto-13|<tuple|3|?>>
+    <associate|auto-14|<tuple|5.2|?>>
+    <associate|auto-15|<tuple|5.3|?>>
+    <associate|auto-16|<tuple|5.4|?>>
+    <associate|auto-17|<tuple|5.5|?>>
+    <associate|auto-18|<tuple|5.6|?>>
+    <associate|auto-19|<tuple|5.7|?>>
     <associate|auto-2|<tuple|2|?>>
+    <associate|auto-20|<tuple|5.7.1|?>>
+    <associate|auto-21|<tuple|6|?>>
+    <associate|auto-22|<tuple|2|?>>
     <associate|auto-3|<tuple|2.1|?>>
-    <associate|auto-4|<tuple|2.1.1|?>>
-    <associate|auto-5|<tuple|2.1.2|?>>
-    <associate|auto-6|<tuple|2.1.2.1|?>>
-    <associate|auto-7|<tuple|2.1.2.2|?>>
-    <associate|auto-8|<tuple|3|?>>
-    <associate|auto-9|<tuple|3.1|?>>
+    <associate|auto-4|<tuple|1|?>>
+    <associate|auto-5|<tuple|3|?>>
+    <associate|auto-6|<tuple|3.1|?>>
+    <associate|auto-7|<tuple|3.2|?>>
+    <associate|auto-8|<tuple|1|?>>
+    <associate|auto-9|<tuple|2|?>>
   </collection>
 </references>
 

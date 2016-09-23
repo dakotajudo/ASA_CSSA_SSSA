@@ -1,5 +1,7 @@
 superimpose.plan <- function(plan,map.data,start.point,plot.dim=c(1,1),buffer.dim=c(0,0),sample.vgm=NULL) {
   
+  require(gstat)
+  
   trial.dim <- trial.dimensions(plan,plot.dim,buffer.dim)
   
   trial.dat <- subset(map.data,map.data$LonM<(start.point[1]+trial.dim[1]+3))
