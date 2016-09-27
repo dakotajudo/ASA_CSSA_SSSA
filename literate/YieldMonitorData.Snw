@@ -1,0 +1,106 @@
+\documentclass{report}
+\usepackage{amsmath}
+
+\begin{document}
+	
+<<>>=
+initwd <- getwd() 
+path = "~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R"
+for (nm in list.files(path)) {
+   source(file.path(path, nm))
+}
+setwd("~/Work/git/ASA_CSSA_SSSA/working")
+bestseed <- 1500
+set.seed(bestseed)
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","000000")
+
+#cbbPalette <- as.hexmode(c("000000", "E69F00", "56B4E9", "009E73", "F0E442", "0072B2", "D55E00", "CC79A7"))/2
+cbbPalette<-c("#734f80" "#2b5a74" "#004f39" "#787221" "#003959" "#6aaf00" "#663cd3")
+cbPalette <- c(cbPalette,cbbPalette)
+@
+
+<<>>=
+sample.vgm <- NULL
+
+swap.treatments <- function(source, destination) {
+  destination$trt <- source$trt
+  return(destination)
+}
+@
+
+
+Assume we have yield (or other agronomic assessment) data in spatial format, such as yield monitor data.
+For example, this data from the SDSU research statio near Beresford. This file has been edited from the original format and is comma-seperated.
+
+
+<<>>=
+raw.dat <- read.csv("../literate/data/sdsu/Swest_Corn2013-Clean.csv", header = TRUE)
+response <- "YldVolDry"
+@
+
+<<fig=TRUE,echo=false>>=
+hist(raw.dat[,response],main=response)
+@
+
+<<fig=TRUE,echo=false>>=
+ggplot(raw.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = YldVolDry),size = 1) + scale_colour_gradient(low=cbPalette[5], high=cbPalette[4])
+@
+
+<<>>=
+minLon <- min(raw.dat$Longitude)
+maxLon <- max(raw.dat$Longitude)
+minLat <- min(raw.dat$Latitude)
+maxLat <- max(raw.dat$Latitude)
+
+northBorder <- maxLat - 0.06*(maxLat-minLat)
+southBorder <- minLat + 0.09*(maxLat-minLat)
+eastBorder <- maxLon - 0.02*(maxLon-minLon)
+westBorder <- minLon + 0.02*(maxLon-minLon)
+
+trimmed.dat <- subset(raw.dat,raw.dat$Latitude>=southBorder)
+trimmed.dat <- subset(trimmed.dat,trimmed.dat$Latitude<=northBorder)
+trimmed.dat <- subset(trimmed.dat,trimmed.dat$Longitude<=eastBorder)
+trimmed.dat <- subset(trimmed.dat,trimmed.dat$Longitude>=westBorder)
+@
+
+<<fig=TRUE,echo=false>>=
+ggplot(trimmed.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = YldVolDry),size = 1) + scale_colour_gradient(low=cbPalette[5], high=cbPalette[4])
+@
+<<fig=TRUE,echo=false>>=
+ggplot(trimmed.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = YldVolDry),size = .5) + scale_colour_gradient(low=cbPalette[5], high=cbPalette[4])
+@
+convert to meters. 
+This will require an approximation, see \verb|http://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters|
+
+<<>>=
+trimmed.dat$LonM <- trimmed.dat$Longitude - min(trimmed.dat$Longitude)
+trimmed.dat$LatM <- trimmed.dat$Latitude - min(trimmed.dat$Latitude)
+latMid <- (min(trimmed.dat$Latitude) + max(trimmed.dat$Latitude))/2
+m_per_deg_lat = 111132.954 - 559.822 * cos( 2.0 * latMid ) + 1.175 * cos( 4.0 * latMid)
+m_per_deg_lon = (3.14159265359/180 ) * 6367449 * cos ( latMid )
+trimmed.dat$LonM <- trimmed.dat$LonM*m_per_deg_lon
+trimmed.dat$LatM <- trimmed.dat$LatM*m_per_deg_lat
+@
+
+<<fig=TRUE,echo=false>>=
+ggplot(trimmed.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 1) + scale_colour_gradient(low=cbPalette[5], high=cbPalette[4])
+@
+
+<<>>=
+library(gstat)
+sample.var <- variogram(YldVolDry~1, 
+   locations=~LonM+LatM, 
+   data=trimmed.dat)
+trimmed.vgm <- fit.variogram(sample.var, vgm("Exp"))
+if(!file.exists("trimmed.dat.Rda"))
+  save(trimmed.dat,file="trimmed.dat.Rda")
+  save(trimmed.vgm,file="trimmed.vgm.Rda")
+} 
+@
+
+<<>>=
+setwd(initwd)
+@
+
+\end{document}

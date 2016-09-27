@@ -86,7 +86,6 @@ rcb.analysis <- function(current.dat) {
     SD=SD,
     CV=CV,
     PerMeanDiff=PerMeanDiff,
-    
     EffectSize=effect.size
   ))
 }
