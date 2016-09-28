@@ -17,7 +17,7 @@ set.seed(bestseed)
 library(ggplot2)
 library(nlme)
 library(lsmeans)
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#000000")
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000")
 #cbbPalette <- as.hexmode(c("000000", "E69F00", "56B4E9", "009E73", "F0E442", "0072B2", "D55E00", "CC79A7"))/2
 cbbPalette<-c("#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
 cbPalette <- c(cbPalette,cbbPalette)
@@ -412,11 +412,11 @@ if(!file.exists("simulationsClasses.dat.Rda")) {
 }
 @
 
-<<fig=TRUE,echo=false>>=
+<<RestrictedPlans,fig=TRUE,echo=false>>=
 simulationsClasses.dat$map.plot
 @
 
-<<fig=TRUE,echo=false>>=
+<<PlansWithDegenerate,fig=TRUE,echo=false>>=
 simulationsClasses.dat$trt.p.plot
 @
 
@@ -445,7 +445,7 @@ if(!file.exists("simulations.dat.Rda")) {
 }
 @
 
-<<fig=TRUE,echo=false>>=
+<<FiveClassesPlot,fig=TRUE,echo=false>>=
 simulations.dat$trt.p.plot
 @
 
@@ -673,14 +673,41 @@ if(!file.exists("simulationsPooled.dat.Rda")) {
 }
 @
 
+<<ClassesPooled,fig=TRUE,echo=false>>=
+simulationsPooled.dat$trt.p.plot + scale_colour_manual(values=cbPalette)
+@
+
+<<ClassesKriged,fig=TRUE,echo=false>>=
+simulationsPooled.dat$aov$PlanNumber= as.factor(simulationsPooled.dat$aov$PlanNumber)
+ggplot(subset(simulationsPooled.dat$aov,simulationsPooled.dat$aov$Source=="Kriged"), 
+              aes(TrtP,color=PlanNumber,linetype=PlanNumber)) + 
+                   stat_density(geom="line",position="identity",size=1) + 
+                   facet_wrap(~Class) + scale_colour_manual(values=cbPalette)
+@
+
+<<ClassesErrors,fig=TRUE,echo=false>>=
+ggplot(subset(simulationsPooled.dat$aov,simulationsPooled.dat$aov$Source=="Errors"), 
+              aes(TrtP,color=PlanNumber,linetype=PlanNumber)) + 
+                   stat_density(geom="line",position="identity",size=1) + 
+                   facet_wrap(~Class) + scale_colour_manual(values=cbPalette)
+@
+
 <<fig=TRUE,echo=false>>=
-simulationsPooled.dat$plan.plot
+grid.arrange(arrangeGrob(
+   ggplot(subset(simulationsPooled.dat$aov,simulationsPooled.dat$aov$Source=="Kriged"), 
+                 aes(TrtP,color=PlanNumber,linetype=PlanNumber)) + 
+                      stat_density(geom="line",position="identity",size=1) + 
+                      facet_wrap(~Class) + scale_colour_manual(values=cbPalette),
+   ggplot(subset(simulationsPooled.dat$aov,simulationsPooled.dat$aov$Source=="Errors"), 
+              aes(TrtP,color=PlanNumber,linetype=PlanNumber)) + 
+                   stat_density(geom="line",position="identity",size=1) + 
+                   facet_wrap(~Class) + scale_colour_manual(values=cbPalette))
+                   )                      
 @
 
 Compute the achieved Type I error.
 
 <<>>=
-
 TypeIError <- simulationsPooled.dat$aov$TrtP <= 0.05
 ErrorCounts <- tapply(TypeIError, list(simulationsPooled.dat$aov$Source,simulationsPooled.dat$aov$Class), sum)
 TrialCounts <- tapply(TypeIError, list(simulationsPooled.dat$aov$Source,simulationsPooled.dat$aov$Class), length)
@@ -727,11 +754,11 @@ simulations.dat$plots$TypeIError <- TypeIError[as.character(simulations.dat$plot
 simulations.dat$plots$TypeIErrorSource <- as.factor(simulations.dat$plots$TypeIError):as.factor(simulations.dat$plots$Source)
 @
 
-<<fig=TRUE,echo=false>>=
+<<ErrorsMap,fig=TRUE,echo=false>>=
 ggplot(subset(simulations.dat$plots,simulations.dat$plots$Source=="Errors"), aes(LonM, LatM)) + geom_point(aes(colour = TypeIError),size=.2) + facet_wrap(~plan) + scale_colour_manual(values=cbPalette)
 @
 
-<<fig=TRUE,echo=false>>=
+<<KrigedMap,fig=TRUE,echo=false>>=
 ggplot(subset(simulations.dat$plots,simulations.dat$plots$Source=="Kriged"), aes(LonM, LatM)) + geom_point(aes(colour = TypeIError),size=.2) + facet_wrap(~plan) + scale_colour_manual(values=cbPalette)
 @
 
@@ -760,17 +787,18 @@ ggplot(plot.tbl, aes(Errors,Kriged)) + geom_point(aes(colour = Class),size=1)
 
 \subsectio{Source of Type I Errors}
 
-<<fig=TRUE,echo=false>>=
-ggplot(simulationsPooled.dat$aov, aes(ResMS,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
+<<ErrorSource,fig=TRUE,echo=false>>=
+resms.plot <- ggplot(simulationsPooled.dat$aov, aes(log(ResMS),color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
+repms.plot <- ggplot(simulationsPooled.dat$aov, aes(log(RepMS),color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
+trtms.plot <- ggplot(simulationsPooled.dat$aov, aes(log(TrtMS),color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
+grid.arrange(arrangeGrob(repms.plot, resms.plot, trtms.plot))
 @
 
 <<fig=TRUE,echo=false>>=
 ggplot(simulationsPooled.dat$aov, aes(CV,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
 @
 
-<<fig=TRUE,echo=false>>=
-ggplot(simulationsPooled.dat$aov, aes(RepMS,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
-@
+
 
 <<>>=
 tapply(simulationsPooled.dat$aov$ResMS,list(simulationsPooled.dat$aov$Source,simulationsPooled.dat$aov$Class),mean)
@@ -881,26 +909,37 @@ if(!file.exists("trend.Pooled.Rda")) {
 }
 @
 
-<<fig=TRUE,echo=false>>=
+<<TrendTreatmentSignificance,fig=TRUE,echo=false>>=
+grid.arrange(arrangeGrob(
 ggplot(trend.Pooled, aes(log(TrtPTrend),color=Class,linetype=Class)) + 
-   stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source)
+   stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette),
+   ggplot(trend.Pooled, aes(log(TrendP),color=Class,linetype=Class)) + 
+      stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)))
 @
 
-<<fig=TRUE,echo=false>>=   
-ggplot(trend.Pooled, aes(log(TrendP),color=Class,linetype=Class)) + 
-   stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source)
+
+<<TrendTreatmentSubset,fig=TRUE,echo=false>>=
+grid.arrange(arrangeGrob(
+ggplot(subset(trend.Pooled,trend.Pooled$Source=="Kriged"), aes(log(TrtPTrend),color=Class,linetype=Class)) + 
+   stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette),
+ggplot(subset(trend.Pooled,trend.Pooled$Source=="Kriged"), aes(log(TrendP),color=Class,linetype=Class)) + 
+      stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)))
 @
+
 
 What is the type I error with trend analysis?
 
 <<>>=
+tapply(trend.Pooled$TrtPTrend,list(trend.Pooled$Source, trend.Pooled$Class),mean)
+tapply(trend.Pooled$TrendP,list(trend.Pooled$Source, trend.Pooled$Class),mean)
+
 TrendIError <- trend.Pooled$TrtPTrend <= 0.05
 TrendIcounts <- tapply(TrendIError,list(trend.Pooled$Source, trend.Pooled$Class),sum)
 TrendItrials <- tapply(TrendIError,list(trend.Pooled$Source, trend.Pooled$Class),length)
 
-100*(TrendIcounts)/(TrendItrials)
+t(100*(TrendIcounts)/(TrendItrials))
+colMeans(t(100*(TrendIcounts)/(TrendItrials)))
 @
-
 
 
 \section{ATDC}
@@ -941,12 +980,12 @@ if(!file.exists("simulations100.dat.Rda")) {
 }
 @
 
-<<fig=TRUE,echo=false>>=
-ggplot(simulations100.dat$aov, aes(TrtP,color=Source)) + stat_density(geom="line",position="identity",size=1)
+<<ThousandProbDist,fig=TRUE,echo=false>>=
+ggplot(simulations100.dat$aov, aes(TrtP,color=Source)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)
 @
 
 <<fig=TRUE,echo=false>>=
-ggplot(simulations100.dat$aov, aes(TrtP)) + geom_histogram(bins=20,binwidth = 0.05) + facet_wrap(~Source)
+ggplot(simulations100.dat$aov, aes(TrtP)) + geom_histogram(bins=20,binwidth = 0.05) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
 @
 
 
@@ -961,7 +1000,7 @@ simulations100.dat$aov$plan <- as.factor(simulations100.dat$aov$plan)
 @
 
 <<fig=TRUE,echo=false>>=
-ggplot(subset(simulations100.dat$plots,simulations100.dat$plots$plan==1), aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(subset(simulations100.dat$plots,simulations100.dat$plots$plan==1), aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1) + scale_colour_manual(values=cbPalette)
 @
 
 Combined plot
@@ -1082,15 +1121,15 @@ acrossPooled.adtc$TypeIRatesKriged <- typeIRates[as.character(acrossPooled.adtc$
 acrossPooled.adtc$TypeIRatesErrors <- typeIRates[as.character(acrossPooled.adtc$plan),"Errors"]
 @
 
-<<fig=TRUE,echo=false>>=
+<<ADTCKriged,fig=TRUE,echo=false>>=
 grid.arrange(arrangeGrob(
-   ggplot(withinPooled.adtc, aes(SDofMeans, TypeIRatesKriged)) + geom_point(aes(color=Class),size=2),
-   ggplot(withinPooled.adtc, aes(MeanOfSD, TypeIRatesKriged)) + geom_point(aes(color=Class),size=2),
-   ggplot(acrossPooled.adtc, aes(SDofMeans, TypeIRatesKriged)) + geom_point(aes(color=Class),size=2),
-   ggplot(acrossPooled.adtc, aes(MeanOfSD, TypeIRatesKriged)) + geom_point(aes(color=Class),size=2)))
+   ggplot(withinPooled.adtc, aes(SDofMeans, TypeIRatesKriged)) + geom_point(aes(color=Class),size=1)  + scale_colour_manual(values=cbPalette),
+   ggplot(withinPooled.adtc, aes(MeanOfSD, TypeIRatesKriged)) + geom_point(aes(color=Class),size=1) + scale_colour_manual(values=cbPalette),
+   ggplot(acrossPooled.adtc, aes(SDofMeans, TypeIRatesKriged)) + geom_point(aes(color=Class),size=1) + scale_colour_manual(values=cbPalette),
+   ggplot(acrossPooled.adtc, aes(MeanOfSD, TypeIRatesKriged)) + geom_point(aes(color=Class),size=1) + scale_colour_manual(values=cbPalette)))
 @
 
-<<fig=TRUE,echo=false>>=
+<<ADTCErrors,fig=TRUE,echo=false>>=
 grid.arrange(arrangeGrob(
    ggplot(withinPooled.adtc, aes(SDofMeans, TypeIRatesErrors)) + geom_point(aes(color=Class),size=1),
    ggplot(withinPooled.adtc, aes(MeanOfSD, TypeIRatesErrors)) + geom_point(aes(color=Class),size=1),
@@ -1110,7 +1149,7 @@ ggplot(acrossPooled.adtc, aes(MeanOfSD,fill=Class)) + geom_histogram()))
 \section{Power Analysis}
 
 <<>>=
-power.analysis <- function(simulations, step.size=1/100) {
+power.analysis <- function(simulations, step.size=1/200, save.steps=FALSE) {
   simulations$aov$PlanNo <- as.factor(simulations$aov$plan):as.factor(simulations$aov$Number)
   simulations$plots$PlanNo <- as.factor(simulations$plots$plan):as.factor(simulations$plots$number)
   simulations$aov$Experiment <- as.factor(simulations$aov$Source):simulations$aov$PlanNo
@@ -1129,7 +1168,7 @@ power.analysis <- function(simulations, step.size=1/100) {
   simulations$aov$SigTrt <- NA
   simulations$aov$MeanSigTrtP <- NA
   simulations$aov$NCP <- NA
-  
+  simulations$aov$Step <- NA
   
   #for each plan and source, iterate over the set of trials.
   sources <- levels(as.factor(simulations$aov$Source))
@@ -1139,6 +1178,7 @@ power.analysis <- function(simulations, step.size=1/100) {
   if(step.size<1/5000) {
      step.size = 1/5000
   }
+  steps <- NULL
   for(source in sources) {
      print(source)
     for(plan in plans) {
@@ -1196,34 +1236,76 @@ power.analysis <- function(simulations, step.size=1/100) {
           #average treatment p
           simulations$aov$MeanSigTrtP[aov.inner.mask] <- mean(TrtPs)
           
-        RepDF <- simulations$aov$RepDF[aov.inner.mask]
-        ResDF <- simulations$aov$ResDF[aov.inner.mask]
-        PerMeanDiff <- simulations$aov$PerMeanDiff[aov.inner.mask]
+           RepDF <- simulations$aov$RepDF[aov.inner.mask]
+           ResDF <- simulations$aov$ResDF[aov.inner.mask]
+           PerMeanDiff <- simulations$aov$PerMeanDiff[aov.inner.mask]
 
-        EffectSize <- PerMeanDiff/CV
-        NCP <- sqrt(ResDF+1)*EffectSize
+           EffectSize <- PerMeanDiff/CV
+           NCP <- sqrt(ResDF+1)*EffectSize
         
-        simulations$aov$PostHocCalcPower[aov.inner.mask] <- post.hoc(effect.size=EffectSize, reps=(RepDF+1), osl=0.05, error.df=ResDF)$power
-        simulations$aov$PostHocCalcReps[aov.inner.mask] <- a.priori(effect.size=EffectSize, osl=0.05, power=0.80, error.df=ResDF)$reps
-        PostHocEffectSize <- sensitivity(osl=0.05, reps=(RepDF+1), error.df=ResDF) 
-        simulations$aov$PostHocCalcEffectSize[aov.inner.mask] <- PostHocEffectSize$effect.size
-        simulations$aov$PostHocCalcDiff[aov.inner.mask] = PostHocEffectSize$effect.size * CV
+           simulations$aov$PostHocCalcPower[aov.inner.mask] <- post.hoc(effect.size=EffectSize, reps=(RepDF+1), osl=0.05, error.df=ResDF)$power
+           simulations$aov$PostHocCalcReps[aov.inner.mask] <- a.priori(effect.size=EffectSize, osl=0.05, power=0.80, error.df=ResDF)$reps
+           PostHocEffectSize <- sensitivity(osl=0.05, reps=(RepDF+1), error.df=ResDF) 
+           simulations$aov$PostHocCalcEffectSize[aov.inner.mask] <- PostHocEffectSize$effect.size
+           simulations$aov$PostHocCalcDiff[aov.inner.mask] = PostHocEffectSize$effect.size * CV
         
-        simulations$aov$NCP[aov.inner.mask] <- NCP
+           simulations$aov$NCP[aov.inner.mask] <- NCP
+           
+           simulations$aov$Step[aov.inner.mask] <- current.step
         }
+        
+        if(save.steps) {
+           print(current.step)
+           if(is.null(steps)) {
+              steps <- simulations$aov
+           } else {
+              steps <- rbind(steps, simulations$aov)
+           }
+        }
+        
+         simulations$aov$PostHocMeasuredPower[aov.inner.mask] <- TotalSigTrt/TotalCount
+         
+         print(TotalSigTrt/TotalCount)
         if(TotalSigTrt/TotalCount>0.80) {
           break;
         }
       }
-      
-      simulations$aov$PostHocMeasuredPower[aov.inner.mask] <- TotalSigTrt/TotalCount
-        #we've now found an effect size
-        #compute posterior power
-
       }
     }
-  return(simulations$aov)
+    
+    if(save.steps) {
+       return(steps)
+    } else {
+      return(simulations$aov)
+    }
 }
+@
+
+<<>>=
+if(!file.exists("power.singleRCB.Rda")) {
+   #remove this if we refactor code above
+   simulationsSingleRCB.dat$aov$plan = "rcb"
+   simulationsSingleRCB.dat$aov$Source = simulationsSingleRCB.dat$aov$Model
+   simulationsSingleRCB.dat$plots$plan = "rcb"
+   simulationsSingleRCB.dat$plots$Source = simulationsSingleRCB.dat$plots$Model
+   simulationsSingleRCB.dat <- list(aov=simulationsSingleRCB.dat$aov,plots=simulationsSingleRCB.dat$plots)
+   power.singleRCB <- power.analysis(simulationsSingleRCB.dat,step.size=1/100,save.steps=TRUE)
+    save(power.singleRCB,file="power.singleRCB.Rda") 
+} else {
+   load(file="power.singleRCB.Rda")
+}
+
+tapply(power.singleRCB$SigTrt/power.singleRCB$TrtCount,list(power.singleRCB$Step),mean)
+tapply(power.singleRCB$SigTrt,list(power.singleRCB$Step),mean)
+tapply(power.singleRCB$MeanSigTrtP,list(power.singleRCB$Step),mean)
+tapply(power.singleRCB$PostHocMeasuredEffect,list(power.singleRCB$Step),mean)
+tapply(power.singleRCB$PostHocEffectSize,list(power.singleRCB$Step),mean)
+@
+
+
+<<PowerAnalysisProgress,fig=TRUE,echo=false>>=
+power.singleRCB$Step <- as.factor(power.singleRCB$Step)
+ggplot(power.singleRCB, aes(MeanSigTrtP,color=Step,linetype=Step)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)
 @
 
 <<>>=
@@ -1245,28 +1327,19 @@ tapply(power.measures$PostHocMeasuredPower,list(power.measures$Source),mean)
 tapply(power.errorsRCB$SigTrt,list(power.errorsRCB$Source),mean)
 @
 
-<<fig=TRUE,echo=false>>=
-ggplot(power.errorsRCB, aes(PostHocEffectSize,color=Source,linetype=Source)) + stat_density(geom="line",position="identity",size=1)
+<<PostHocRCBDistributions,fig=TRUE,echo=false>>=
+grid.arrange(arrangeGrob(
+ggplot(power.errorsRCB, aes(PostHocMeasuredEffect,color=Source,linetype=Source)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette),
+ggplot(power.errorsRCB, aes(PostHocEffectSize,color=Source,linetype=Source)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette),
+ggplot(power.errorsRCB, aes(MeanSigTrtP,color=Source,linetype=Source)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)))
 @
 
-<<fig=TRUE,echo=false>>=
-ggplot(power.errorsRCB, aes(PostHocMeasuredEffect,color=Source,linetype=Source)) + stat_density(geom="line",position="identity",size=1)
-@
 
 <<fig=TRUE,echo=false>>=
-ggplot(power.errorsRCB, aes(MeanSigTrtP,color=Source,linetype=Source)) + stat_density(geom="line",position="identity",size=1)
-@
-
-<<fig=TRUE,echo=false>>=
-ggplot(power.errorsRCB, aes(Source, PostHocEffectSize)) +geom_point(aes(colour = Source),size=1)
-@
-
-<<fig=TRUE,echo=false>>=
-ggplot(power.errorsRCB, aes(Source, PerMeanDiff)) +geom_point(aes(colour = Source),size=1)
-@
-
-<<fig=TRUE,echo=false>>=
-ggplot(power.errorsRCB, aes(Source, PostHocMeasuredEffect)) +geom_point(aes(colour = Source),size=1)
+grid.arrange(arrangeGrob(
+ggplot(power.errorsRCB, aes(Source, PostHocEffectSize)) +geom_point(aes(colour = Source),size=1),
+ggplot(power.errorsRCB, aes(Source, PerMeanDiff)) +geom_point(aes(colour = Source),size=1),
+ggplot(power.errorsRCB, aes(Source, PostHocMeasuredEffect)) +geom_point(aes(colour = Source),size=1)))
 @
  
 
@@ -1283,22 +1356,24 @@ power.simulationsClasses$PerMeanEffect <- 100*power.simulationsClasses$PostHocMe
 power.measures <- subset(power.simulationsClasses,!is.na(power.simulationsClasses$PostHocMeasuredPower))
 tapply(power.measures$PostHocMeasuredPower,list(power.measures$Source),mean)
 tapply(power.simulationsClasses$SigTrt,list(power.simulationsClasses$Source,power.simulationsClasses$plan),mean)
+power.simulationsClasses <- subset(power.simulationsClasses,power.simulationsClasses$plan!="Degenerate")
 @
 
-<<fig=TRUE,echo=false>>=
-ggplot(power.simulationsClasses, aes(PostHocEffectSize,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)+ facet_wrap(~Source)
+<<ClassesPowerMeasures,fig=TRUE,echo=false>>=
+grid.arrange(arrangeGrob(
+   ggplot(power.simulationsClasses, aes(plan, PostHocMeasuredEffect)) + geom_point(aes(colour = Source),size=1) + scale_colour_manual(values=cbPalette),
+ggplot(power.simulationsClasses, aes(plan, PostHocEffectSize)) + geom_point(aes(colour = Source),size=1) + scale_colour_manual(values=cbPalette),
+ggplot(power.simulationsClasses, aes(plan, MeanSigTrtP)) + geom_point(aes(colour = Source),size=1) + scale_colour_manual(values=cbPalette)
+))
 @
 
-<<fig=TRUE,echo=false>>=
-ggplot(power.simulationsClasses, aes(MeanSigTrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)+ facet_wrap(~Source)
-@
 
-<<fig=TRUE,echo=false>>=
-ggplot(power.simulationsClasses, aes(plan, PostHocMeasuredEffect)) +geom_point(aes(colour = Source),size=1)
-@
-
-<<fig=TRUE,echo=false>>=
-ggplot(power.simulationsClasses, aes(plan, PerMeanDiff)) +geom_point(aes(colour = Source),size=1)
+<<ClassesPowerDistributions,fig=TRUE,echo=false>>=
+grid.arrange(arrangeGrob(
+ggplot(power.simulationsClasses, aes(PostHocMeasuredEffect,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)+ facet_wrap(~Source) + scale_colour_manual(values=cbPalette),
+ggplot(power.simulationsClasses, aes(PostHocEffectSize,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)+ facet_wrap(~Source) + scale_colour_manual(values=cbPalette),
+ggplot(power.simulationsClasses, aes(MeanSigTrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)+ facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
+ ))
 @
 
 <<>>=
@@ -1316,20 +1391,23 @@ tapply(power.simulationsPooled$SigTrt,list(power.simulationsPooled$Source,power.
 @
 
 <<fig=TRUE,echo=false>>=
-ggplot(power.simulationsPooled, aes(PostHocEffectSize,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source)
+grid.arrange(arrangeGrob(
+ggplot(power.simulationsPooled, aes(PostHocMeasuredEffect,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=1)+ facet_wrap(~Source) + scale_colour_manual(values=cbPalette),
+ggplot(power.simulationsPooled, aes(PostHocEffectSize,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=1)+ facet_wrap(~Source) + scale_colour_manual(values=cbPalette),
+ggplot(power.simulationsPooled, aes(MeanSigTrtP,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=1)+ facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
+ ))
 @
 
-<<fig=TRUE,echo=false>>=
-ggplot(power.simulationsPooled, aes(MeanSigTrtP,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source)
-@
-
-<<fig=TRUE,echo=false>>=
-ggplot(power.simulationsPooled, aes(Class, PostHocMeasuredEffect)) + geom_point(aes(colour = Source),size=1)
-@
-
-<<fig=TRUE,echo=false>>=
+<<>>=
 power.simulationsPooled$PlanNum <- as.factor(power.simulationsPooled$PlanNumber)
-ggplot(power.simulationsPooled, aes(Class, PerMeanDiff)) + geom_point(aes(colour = PlanNum),size=1) + facet_wrap(~Source)
+@
+
+<<fig=TRUE,echo=false>>=
+grid.arrange(arrangeGrob(
+ggplot(power.simulationsPooled, aes(Class, PostHocMeasuredEffect)) + geom_point(aes(colour = PlanNum),size=1) + scale_colour_manual(values=cbPalette)+  facet_wrap(~Source),
+ggplot(power.simulationsPooled, aes(Class, PostHocEffectSize)) + geom_point(aes(colour = PlanNum),size=1) + scale_colour_manual(values=cbPalette)+  facet_wrap(~Source),
+ggplot(power.simulationsPooled, aes(Class, MeanSigTrtP)) + geom_point(aes(colour = PlanNum),size=1) + scale_colour_manual(values=cbPalette)+  facet_wrap(~Source)
+))
 @
 
 \section{Non-Estimable Replicate Variance}
@@ -1403,6 +1481,63 @@ ggplot(trend.Pooled, aes(log(TrtPTrend/TrtP),color=Class,linetype=Class)) +
 ggplot(trend.Pooled, aes(log(TrendResMS/ResMS),color=Class,linetype=Class)) + 
     stat_density(geom="line",position="identity",size=.5)
 @
+
+
+\section{Repeatability}
+
+<<>>=
+rcb.b.list <- generate.rcb.plans(reps=4,treatments=6,count=12)
+names(rcb.b.list) <- paste("rcb.b",1:12)
+if(!file.exists("simulationsRCB.b.dat.Rda")) {
+  simulationsRCB.b.dat <- simulate.plans(rcb.b.list, plots.list = trials.list)
+  save(simulationsRCB.b.dat,file="simulationsRCB.b.dat.Rda")
+} else {
+  load(file="simulationsRCB.b.dat.Rda")
+}
+@
+
+<<fig=TRUE,echo=false>>=
+simulationsRCB.b.dat$trt.p.plot + scale_colour_manual(values=cbPalette)
+@
+<<>>=
+t(summary.plan.simulations(simulationsRCB.b.dat)$TypeIError)
+@
+
+<<>>=
+rcb.c.list <- generate.rcb.plans(reps=4,treatments=6,count=12)
+names(rcb.c.list) <- paste("rcb.c",1:12)
+if(!file.exists("simulationsRCB.c.dat.Rda")) {
+  simulationsRCB.c.dat <- simulate.plans(rcb.c.list, plots.list = trials.list)
+  save(simulationsRCB.c.dat,file="simulationsRCB.c.dat.Rda")
+} else {
+  load(file="simulationsRCB.c.dat.Rda")
+}
+@
+
+<<>>=
+rep1 <- simulationsRCB.dat$aov
+rep2 <- simulationsRCB.b.dat$aov
+rep3 <- simulationsRCB.c.dat$aov
+rep1$Rep <- 1
+rep2$Rep <- 2
+rep3$Rep <- 3
+
+compRCB.aov <- rbind(rep1,rep2,rep3)
+compRCB.aov$Rep <- as.factor(compRCB.aov$Rep)
+compRCB.aov$PlanNumber <- as.factor(compRCB.aov$PlanNumber)
+grid.arrange(arrangeGrob(
+   ggplot(subset(compRCB.aov,compRCB.aov$Source=="Kriged"), 
+                 aes(TrtP,color=PlanNumber,linetype=PlanNumber)) + 
+                      stat_density(geom="line",position="identity",size=1) + 
+                      facet_wrap(~Rep) + scale_colour_manual(values=cbPalette),
+   ggplot(subset(compRCB.aov,compRCB.aov$Source=="Errors"), 
+              aes(TrtP,color=PlanNumber,linetype=PlanNumber)) + 
+                   stat_density(geom="line",position="identity",size=1) + 
+                   facet_wrap(~Rep) + scale_colour_manual(values=cbPalette))
+                   )
+t(summary.plan.simulations(simulationsRCB.c.dat)$TypeIError)
+@
+
 <<>>=
 setwd(initwd)
 @
