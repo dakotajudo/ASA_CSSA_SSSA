@@ -51,11 +51,16 @@ simulate.plan <- function(plan,
               plots=plots))
 }
 
-rcb.analysis <- function(current.dat) {
+rcb.analysis <- function(current.dat,REML=TRUE) {
   aov.tbl <- summary(aov(YldVolDry ~ as.factor(trt)+as.factor(rep),data=current.dat))
-  aov.mle <- lme(YldVolDry ~ as.factor(trt), random = ~ 1| as.factor(rep), data=current.dat)
-  
-  var.tbl <- VarCorr(aov.mle)
+  RepVar <- NA
+  ResVar <- NA
+  if(REML) {
+    aov.mle <- lme(YldVolDry ~ as.factor(trt), random = ~ 1| as.factor(rep), data=current.dat)
+    var.tbl <- VarCorr(aov.mle)
+    RepVar = as.numeric(var.tbl[1])
+    ResVar = as.numeric(var.tbl[2])
+  }
 
   #posthoc power
   means <- tapply(current.dat$YldVolDry,list(current.dat$trt),mean)
@@ -77,11 +82,11 @@ rcb.analysis <- function(current.dat) {
     TrtP = aov.tbl[[1]][1,5],
     RepDF = RepDF,
     RepMS = aov.tbl[[1]][2,3],
-    RepVar = as.numeric(var.tbl[1]),
+    RepVar = RepVar,
     RepP = aov.tbl[[1]][2,5],
     ResDF = aov.tbl[[1]][3,1],
     ResMS = ResMS,
-    ResVar=as.numeric(var.tbl[2]),
+    ResVar = ResVar,
     GrandMean=GrandMean,
     SD=SD,
     CV=CV,
@@ -165,7 +170,9 @@ overlay.field <- function(plan, field,
   return(plots)
 }
 
-simulate.plans <- function(plan.list, trial.data, plots.list=NULL, sample.vgm=NULL,plot.dim=c(1,1), buffer.dim=c(0,0),model="rcb",spacing=3) {
+simulate.plans <- function(plan.list, trial.data, plots.list=NULL, 
+                           sample.vgm=NULL,plot.dim=c(1,1), buffer.dim=c(0,0),
+                           model="rcb",spacing=3,analysis.fn=rcb.analysis) {
   
   tmp.plots <- NULL
   aov <- NULL
@@ -186,7 +193,7 @@ simulate.plans <- function(plan.list, trial.data, plots.list=NULL, sample.vgm=NU
   for(plot.idx in 1:length(plots.list)) {
     for (idx in 1:length(plan.list)) {
       current.plan <- plan.list[[idx]]
-      tmp <- simulate.plan(current.plan,field=NULL,plots=plots.list[[plot.idx]],model=model)
+      tmp <- simulate.plan(current.plan,field=NULL,plots=plots.list[[plot.idx]],model=model,analysis.fn=analysis.fn)
       
       if(!is.null(plan.names)) {
         tmp$plots$plan <- plan.names[idx]
@@ -229,10 +236,11 @@ simulate.plans <- function(plan.list, trial.data, plots.list=NULL, sample.vgm=NU
   rcbmap.dat <- subset(rcbmap.dat,rcbmap.dat$Source==levels(rcbmap.dat$Source)[1])
   
   rcbmap.dat$plan <- as.factor(rcbmap.dat$plan)
+  rcbmap.dat$PlanNumber <- as.factor(rcbmap.dat$PlanNumber)
+  map.plot <- ggplot(rcbmap.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=3) + facet_wrap(~PlanNumber)
+  aov$PlanNumber <- as.factor(aov$PlanNumber)
   
-  map.plot <- ggplot(rcbmap.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=3) + facet_wrap(~plan)
-  
-  plan.plot <- ggplot(aov, aes(TrtP,color=plan,linetype=plan)) + 
+  plan.plot <- ggplot(aov, aes(TrtP,color=PlanNumber,linetype=PlanNumber)) + 
                       stat_density(geom="line",position="identity",size=1) + 
                       facet_wrap(~Source)
   

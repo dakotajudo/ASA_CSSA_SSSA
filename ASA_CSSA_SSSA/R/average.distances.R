@@ -5,7 +5,7 @@ average.distances <- function(plan,include.treatments=TRUE,multiple=FALSE,refere
   #pairs.dat <- distances$means
   contrasts.dat <- distances$pairs
   
-  pairs.dat <- pair.distances(plan,reference=reference,plot.dim=plot.dim,row.buffer=buffer.dim)
+  pairs.dat <- pair.distances(plan,reference=reference,plot.dim=plot.dim,buffer.dim=buffer.dim)
   #contrasts.dat <- contrast.distances(plan,multiple=multiple,reference=reference,plot.dim=plot.dim,buffer.dim=buffer.dim)
   sd.plan <- sd(contrasts.dat$distance)
   

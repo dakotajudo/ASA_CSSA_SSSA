@@ -295,10 +295,10 @@ ggplot(simulationsSingleRCB.dat$aov, aes(CV)) + stat_density(geom="line",positio
 ggplot(uniformity.dat, aes(PerMeanDiff)) + stat_density(geom="line",position="identity",size=1)
 ggplot(simulationsSingleRCB.dat$aov, aes(PerMeanDiff)) + stat_density(geom="line",position="identity",size=1)
 
-ggplot(simulationsSingleRCB.dat$aov, aes(PostHocPower)) + stat_density(geom="line",position="identity",size=1)
-ggplot(simulationsSingleRCB.dat$aov, aes(PostHocReps)) + stat_density(geom="line",position="identity",size=1)
-ggplot(simulationsSingleRCB.dat$aov, aes(PostHocDiff)) + stat_density(geom="line",position="identity",size=1)
-ggplot(simulationsSingleRCB.dat$aov, aes(MeanSigTrtP)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsSingleRCB.dat$aov, aes(PostHocPower)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsSingleRCB.dat$aov, aes(PostHocReps)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsSingleRCB.dat$aov, aes(PostHocDiff)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsSingleRCB.dat$aov, aes(MeanSigTrtP)) + stat_density(geom="line",position="identity",size=1)
 
 ggplot(uniformity.dat, aes(CV, PerMeanDiff)) + geom_point(size=1)
 
@@ -523,9 +523,9 @@ ggplot(sim2.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),si
 
 ggplot(simulationsRCB.dat$aov, aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
 
-ggplot(simulationsRCB.dat$aov, aes(PostHocPower,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
-ggplot(simulationsRCB.dat$aov, aes(PostHocReps,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
-ggplot(simulationsRCB.dat$aov, aes(PostHocDiff,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsRCB.dat$aov, aes(PostHocPower,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsRCB.dat$aov, aes(PostHocReps,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsRCB.dat$aov, aes(PostHocDiff,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
 
 #ggplot(simulationsRCB.dat$aov, aes(TrtP)) + stat_density(geom="line",position="identity",size=1)
 
@@ -745,6 +745,11 @@ simulationsRCB.dat$aov$base <- "rcb"
 simulationsAdj.dat$aov$base <- "adj"
 simulationsRC.dat$aov$base <- "rc"  
 simulationsSpat.dat$aov$base <- "spat"
+dim(simulationsSV.dat$aov)
+dim(simulationsRCB.dat$aov)
+dim(simulationsAdj.dat$aov)
+dim(simulationsRC.dat$aov)
+dim(simulationsSpat.dat$aov)
 
 simulationsPooled.dat <- rbind(
   simulationsRCB.dat$aov,
@@ -757,16 +762,16 @@ simulationsPooled.dat$base <- as.factor(simulationsPooled.dat$base)
 ggplot(simulationsPooled.dat, aes(TrtP,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
 ggplot(simulationsPooled.dat, aes(ResMS,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
 
-ggplot(simulationsPooled.dat, aes(PostHocPower,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
-ggplot(simulationsPooled.dat, aes(PostHocReps,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
-ggplot(simulationsPooled.dat, aes(PostHocDiff,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsPooled.dat, aes(PostHocPower,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsPooled.dat, aes(PostHocReps,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsPooled.dat, aes(PostHocDiff,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
 
-TypeIIcounts <- tapply(simulationsPooled.dat$SigTrt,list(simulationsPooled.dat$base),sum)
-TypeIItrials <- tapply(simulationsPooled.dat$SigTrt,list(simulationsPooled.dat$base),length)
-TypeIIcounts
-TypeIItrials
-100*(TypeIIcounts)/(TypeIItrials*6)
-100*(TypeIItrials*6-TypeIIcounts)/(TypeIItrials*6)
+#TypeIIcounts <- tapply(simulationsPooled.dat$SigTrt,list(simulationsPooled.dat$base),sum)
+#TypeIItrials <- tapply(simulationsPooled.dat$SigTrt,list(simulationsPooled.dat$base),length)
+#TypeIIcounts
+#TypeIItrials
+#100*(TypeIIcounts)/(TypeIItrials*6)
+#100*(TypeIItrials*6-TypeIIcounts)/(TypeIItrials*6)
 ```
 
 Do rep variances contribute to Type I error?

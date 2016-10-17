@@ -1,0 +1,287 @@
+\documentclass{report}
+\usepackage{amsmath}
+
+\begin{document}
+	
+R preliminaries
+
+<<>>=
+initwd <- getwd() 
+path = "~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R"
+for (nm in list.files(path)) {
+   source(file.path(path, nm))
+}
+setwd("~/Work/git/ASA_CSSA_SSSA/working")
+bestseed <- 1500
+set.seed(bestseed)
+library(ggplot2)
+library(nlme)
+library(lsmeans)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000")
+#cbbPalette <- as.hexmode(c("000000", "E69F00", "56B4E9", "009E73", "F0E442", "0072B2", "D55E00", "CC79A7"))/2
+cbbPalette<-c("#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+cbPalette <- c(cbPalette,cbbPalette)
+@
+
+\section{Augmented Layouts}
+
+<<>>=
+arm.plot.dim <- c(4,6)
+arm.buffer.dim <- c(0.5,1)
+checks <- 97:100
+unreplicated <- 1:96
+set.seed(10000)
+@
+
+
+<<>>=
+aug8x16.plan <- data.frame(
+row=c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+      2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+      3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+      4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+      5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
+      6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+      7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+      8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8),
+col=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16),
+plotno=1:128
+)
+
+aug8x16.plan$blk <- aug8x16.plan$row
+aug8x16.plan$rep <- as.factor(aug8x16.plan$row)
+
+aug8x16adj0nonran1 <- aug8x16.plan
+aug8x16adj0nonran1$trt <- as.factor(c(99, 1, 2, 3, 97, 4, 5, 6, 100, 7, 8, 9, 98, 10, 11, 12, 100, 13, 14, 15, 98, 16, 17, 18, 99, 19, 20, 21, 97, 22, 23, 24, 98, 25, 26, 27, 97, 28, 29, 30, 99, 31, 32, 33, 100, 34, 35, 36, 97, 37, 38, 39, 100, 40, 41, 42, 98, 43, 44, 45, 99, 46, 47, 48, 100, 49, 50, 51, 99, 52, 53, 54, 97, 55, 56, 57, 98, 58, 59, 60, 97, 61, 62, 63, 100, 64, 65, 66, 98, 67, 68, 69, 99, 70, 71, 72, 98, 73, 74, 75, 99, 76, 77, 78, 97, 79, 80, 81, 100, 82, 83, 84, 99, 85, 86, 87, 98, 88, 89, 90, 100, 91, 92, 93, 97, 94, 95, 96))
+
+aug8x16adj1nonran1 <- aug8x16.plan
+
+aug8x16adj1nonran1$trt <- as.factor(c(99, 1, 2, 3, 97, 4, 5, 6, 100, 7, 8, 9, 98, 10, 11, 12, 24, 100, 13, 14, 15, 98, 16, 17, 18, 99, 19, 20, 21, 97, 22, 23, 35, 36, 98, 25, 26, 27, 97, 28, 29, 30, 99, 31, 32, 33, 100, 34, 46, 47, 48, 97, 37, 38, 39, 100, 40, 41, 42, 98, 43, 44, 45, 99, 100, 58, 59, 60, 99, 49, 50, 51, 97, 52, 53, 54, 98, 55, 56, 57, 69, 97, 70, 71, 72, 100, 61, 62, 63, 98, 64, 65, 66, 99, 67, 68, 80, 81, 98, 82, 83, 84, 99, 73, 74, 75, 97, 76, 77, 78, 100, 79, 91, 92, 93, 99, 94, 95, 96, 98, 85, 86, 87, 100, 88, 89, 90, 97))
+aug8x16adj2nonran1 <- aug8x16.plan
+
+aug8x16adj2nonran1$trt <- as.factor(c(99, 1, 2, 3, 97, 4, 5, 6, 100, 7, 8, 9, 98, 10, 11, 12, 23, 24, 100, 13, 14, 15, 98, 16, 17, 18, 99, 19, 20, 21, 97, 22, 98, 34, 35, 36, 97, 25, 26, 27, 99, 28, 29, 30, 100, 31, 32, 33, 44, 45, 97, 46, 47, 48, 100, 37, 38, 39, 98, 40, 41, 42, 99, 43, 100, 55, 56, 57, 99, 58, 59, 60, 97, 49, 50, 51, 98, 52, 53, 54, 65, 66, 97, 67, 68, 69, 100, 70, 71, 72, 98, 61, 62, 63, 99, 64, 98, 76, 77, 78, 99, 79, 80, 81, 97, 82, 83, 84, 100, 73, 74, 75, 86, 87, 99, 88, 89, 90, 98, 91, 92, 93, 100, 94, 95, 96, 97, 85))
+
+aug16x8.plan <- data.frame(
+row=c(1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16),
+col=c(1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8),
+plotno=1:128
+)
+
+aug16x8.plan$blk <- ceiling(aug16x8.plan$row/2)
+aug16x8.plan$rep <- as.factor(aug16x8.plan$blk)
+
+aug16x8adj0nonran1 <- aug16x8.plan
+aug16x8adj0nonran1$trt <- as.factor(c(99, 1, 2, 3, 97, 4, 5, 6, 100, 7, 8, 9, 98, 10, 11, 12, 100, 13, 14, 15, 98, 16, 17, 18, 99, 19, 20, 21, 97, 22, 23, 24, 98, 25, 26, 27, 97, 28, 29, 30, 99, 31, 32, 33, 100, 34, 35, 36, 97, 37, 38, 39, 100, 40, 41, 42, 98, 43, 44, 45, 99, 46, 47, 48, 100, 49, 50, 51, 99, 52, 53, 54, 97, 55, 56, 57, 98, 58, 59, 60, 97, 61, 62, 63, 100, 64, 65, 66, 98, 67, 68, 69, 99, 70, 71, 72, 98, 73, 74, 75, 99, 76, 77, 78, 97, 79, 80, 81, 100, 82, 83, 84, 99, 85, 86, 87, 98, 88, 89, 90, 100, 91, 92, 93, 97, 94, 95, 96))
+  
+aug16x8adj1nonran1 <- aug16x8.plan
+aug16x8adj1nonran1$trt <- as.factor(c(99, 1, 2, 3, 97, 4, 5, 6, 12, 100, 7, 8, 9, 98, 10, 11, 17, 18, 100, 13, 14, 15, 98, 16, 22, 23, 24, 99, 19, 20, 21, 97, 98, 28, 29, 30, 97, 25, 26, 27, 33, 99, 34, 35, 36, 100, 31, 32, 38, 39, 97, 40, 41, 42, 100, 37, 43, 44, 45, 98, 46, 47, 48, 99, 100, 49, 50, 51, 99, 52, 53, 54, 60, 97, 55, 56, 57, 98, 58, 59, 65, 66, 97, 61, 62, 63, 100, 64, 70, 71, 72, 98, 67, 68, 69, 99, 98, 76, 77, 78, 99, 73, 74, 75, 81, 97, 82, 83, 84, 100, 79, 80, 86, 87, 99, 88, 89, 90, 98, 85, 91, 92, 93, 100, 94, 95, 96, 97))
+
+aug16x8adj2nonran1 <- aug16x8.plan
+aug16x8adj2nonran1$trt <- as.factor(c(99, 1, 2, 3, 97, 4, 5, 6, 11, 12, 100, 7, 8, 9, 98, 10, 100, 16, 17, 18, 98, 13, 14, 15, 20, 21, 99, 22, 23, 24, 97, 19, 98, 25, 26, 27, 97, 28, 29, 30, 35, 36, 99, 31, 32, 33, 100, 34, 97, 40, 41, 42, 100, 37, 38, 39, 44, 45, 98, 46, 47, 48, 99, 43, 100, 49, 50, 51, 99, 52, 53, 54, 59, 60, 97, 55, 56, 57, 98, 58, 97, 64, 65, 66, 100, 61, 62, 63, 68, 69, 98, 70, 71, 72, 99, 67, 98, 73, 74, 75, 99, 76, 77, 78, 83, 84, 97, 79, 80, 81, 100, 82, 99, 88, 89, 90, 98, 85, 86, 87, 92, 93, 100, 94, 95, 96, 97, 91))
+
+aug32x4.plan <- data.frame(
+row=c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7,8,8,8,8,9,9,9,9,10,10,10,10,11,11,11,11,12,12,12,12,13,13,13,13,14,14,14,14,15,15,15,15,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,22,22,22,22,23,23,23,23,24,24,24,24,25,25,25,25,26,26,26,26,27,27,27,27,28,28,28,28,29,29,29,29,30,30,30,30,31,31,31,31,32,32,32,32),
+col=c(1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4),
+plotno=1:128
+)
+
+aug32x4.plan$blk <- ceiling(aug32x4.plan$row/4)
+aug32x4.plan$rep <- as.factor(aug32x4.plan$blk)
+
+aug32x4adj0nonran1 <- aug32x4.plan
+aug32x4adj0nonran1$trt <- as.factor(c(99, 1, 2, 3, 97, 4, 5, 6, 100, 7, 8, 9, 98, 10, 11, 12, 100, 13, 14, 15, 98, 16, 17, 18, 99, 19, 20, 21, 97, 22, 23, 24, 98, 25, 26, 27, 97, 28, 29, 30, 99, 31, 32, 33, 100, 34, 35, 36, 97, 37, 38, 39, 100, 40, 41, 42, 98, 43, 44, 45, 99, 46, 47, 48, 100, 49, 50, 51, 99, 52, 53, 54, 97, 55, 56, 57, 98, 58, 59, 60, 97, 61, 62, 63, 100, 64, 65, 66, 98, 67, 68, 69, 99, 70, 71, 72, 98, 73, 74, 75, 99, 76, 77, 78, 97, 79, 80, 81, 100, 82, 83, 84, 99, 85, 86, 87, 98, 88, 89, 90, 100, 91, 92, 93, 97, 94, 95, 96))
+  
+aug32x4adj1nonran1 <- aug32x4.plan
+aug32x4adj1nonran1$trt <- as.factor(c(99, 1, 2, 3, 6, 97, 4, 5, 8, 9, 100, 7, 10, 11, 12, 98, 100, 13, 14, 15, 18, 98, 16, 17, 20, 21, 99, 19, 22, 23, 24, 97, 98, 25, 26, 27, 30, 97, 28, 29, 32, 33, 99, 31, 34, 35, 36, 100, 97, 37, 38, 39, 42, 100, 40, 41, 44, 45, 98, 43, 46, 47, 48, 99, 100, 49, 50, 51, 54, 99, 52, 53, 56, 57, 97, 55, 58, 59, 60, 98, 97, 61, 62, 63, 66, 100, 64, 65, 68, 69, 98, 67, 70, 71, 72, 99, 98, 73, 74, 75, 78, 99, 76, 77, 80, 81, 97, 79, 82, 83, 84, 100, 99, 85, 86, 87, 90, 98, 88, 89, 92, 93, 100, 91, 94, 95, 96, 97))
+
+aug32x4adj2nonran1 <- aug32x4.plan
+aug32x4adj2nonran1$trt <- as.factor(c(99, 1, 2, 3, 5, 6, 97, 4, 100, 7, 8, 9, 11, 12, 98, 10, 100, 13, 14, 15, 17, 18, 98, 16, 99, 19, 20, 21, 23, 24, 97, 22, 98, 25, 26, 27, 29, 30, 97, 28, 99, 31, 32, 33, 35, 36, 100, 34, 97, 37, 38, 39, 41, 42, 100, 40, 98, 43, 44, 45, 47, 48, 99, 46, 100, 49, 50, 51, 53, 54, 99, 52, 97, 55, 56, 57, 59, 60, 98, 58, 97, 61, 62, 63, 65, 66, 100, 64, 98, 67, 68, 69, 71, 72, 99, 70, 98, 73, 74, 75, 77, 78, 99, 76, 97, 79, 80, 81, 83, 84, 100, 82, 99, 85, 86, 87, 89, 90, 98, 88, 100, 91, 92, 93, 95, 96, 97, 94))
+
+augplan8.lst <- list(
+  aug8x16adj0nonran1,
+  aug8x16adj1nonran1,
+  aug8x16adj2nonran1)
+  
+augplan16.lst <- list(
+  aug16x8adj0nonran1,
+  aug16x8adj1nonran1,
+  aug16x8adj2nonran1)
+  
+augplan32.lst <- list(  
+  aug32x4adj0nonran1,
+  aug32x4adj1nonran1,
+  aug32x4adj2nonran1)
+@
+
+\section{Simulating plot yields}
+
+<<>>=
+load(file="trimmed.dat.Rda")
+load(file="trimmed.vgm.Rda")   
+@
+
+<<>>=
+single.analysis <- function(current.dat) {
+  
+  #block <- current.dat$rep
+  #trt <- current.dat$trt
+  #Yield <- current.dat$YldVolDry
+  
+  rcb.dat <- subset(current.dat, as.numeric(as.character(current.dat$trt))>96)
+  rcb.res <- rcb.analysis(rcb.dat)
+  
+  #compute Type I and Type III anova
+  lm1 <- lm(YldVolDry ~ rep + trt, data=current.dat)
+  tbl1 <- anova(lm1)
+  rcb.res$RepIMS <- tbl1[[1,3]]
+  rcb.res$RepIDF  <- tbl1[[1,5]]
+  rcb.res$TrtIIIP  <- tbl1[[2,5]]
+  rcb.res$TrtIIIMS <- tbl1[[2,3]]
+  
+  lm2 <- lm(YldVolDry ~  trt + rep, data=current.dat)
+  tbl2 <- anova(lm2)
+  rcb.res$TrtIP  <- tbl2[[1,5]]
+  rcb.res$TrtIMS  <- tbl2[[1,3]]
+  rcb.res$RepIIIMS <- tbl2[[2,3]]
+  rcb.res$RepIIIDF <- tbl2[[2,5]]
+  
+  #df and residuals same for both
+  rcb.res$AugTrtDF <- tbl2[[1,1]]
+  rcb.res$AugRepDF <- tbl2[[2,1]]
+  rcb.res$AugResMS  <- tbl2[[3,3]]
+  rcb.res$AugResDF <-  tbl2[[3,1]]
+  
+  #trend analysis
+  trend.lm <- lm(YldVolDry ~ LonM + LatM + I(LonM^2) +  I(LatM^2) + I(LonM*LatM) +
+                     I(LonM^3) + I(LatM^3) + I(LonM*LonM*LatM) + I(LonM*LatM*LatM) + trt,data=current.dat)
+  tbl <- anova(trend.lm)
+  trt.lm <- lm(YldVolDry ~ trt,data=current.dat)
+  rcb.res$TrtDFTrend <- tbl["trt",1]
+  rcb.res$TrtPTrend <- tbl["trt",5]
+  rcb.res$TrendResMS <- tbl["Residuals",3]
+  rcb.res$TrendResDF <- tbl["Residuals",1]
+  
+  model.tbl <- anova(trt.lm,trend.lm)
+  rcb.res$TrendDF <- model.tbl$Df[2]
+  rcb.res$TrendMS <- (model.tbl$RSS[1] - model.tbl$RSS[2])/model.tbl$Df[2]
+  rcb.res$TrendF <- model.tbl$F[2]
+  rcb.res$TrendP <- model.tbl[2,"Pr(>F)"]
+  
+  #current.test <- DAU.test(block=rep, trt=trt, y=Yield, method="lsd", group=TRUE)
+  #current.effects <- current.test$means$mean.adj-mean(current.test$means$mean.adj)
+  return(rcb.res)
+}
+@
+
+<<>>=
+simulations8.dat <- simulate.plans(augplan8.lst,trimmed.dat,sample.vgm=trimmed.vgm, plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim,
+  analysis.fn=single.analysis)
+simulations16.dat <- simulate.plans(augplan16.lst,trimmed.dat,sample.vgm=trimmed.vgm, plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim,
+  analysis.fn=single.analysis)
+simulations32.dat <- simulate.plans(augplan32.lst,trimmed.dat,sample.vgm=trimmed.vgm, plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim,
+  analysis.fn=single.analysis)
+@
+
+<<CompTrtP,fig=TRUE,echo=false,width=7,height=4>>=
+grid.arrange(arrangeGrob(
+ggplot(simulations8.dat$aov, aes(TrtP,color=PlanNumber,linetype=PlanNumber)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette),
+ggplot(simulations16.dat$aov, aes(TrtP,color=PlanNumber,linetype=PlanNumber)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette),
+ggplot(simulations32.dat$aov, aes(TrtP,color=PlanNumber,linetype=PlanNumber)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)))
+@
+
+<<CompTrtIP,fig=TRUE,echo=false,width=7,height=4>>=
+grid.arrange(arrangeGrob(
+ggplot(simulations8.dat$aov, aes(TrtIP,color=PlanNumber,linetype=PlanNumber)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette),
+ggplot(simulations16.dat$aov, aes(TrtIP,color=PlanNumber,linetype=PlanNumber)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette),
+ggplot(simulations32.dat$aov, aes(TrtIP,color=PlanNumber,linetype=PlanNumber)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)
+))
+@
+
+<<CompTrtIIIP,fig=TRUE,echo=false,width=7,height=4>>=
+grid.arrange(arrangeGrob(
+ggplot(simulations8.dat$aov, aes(TrtIIIP,color=PlanNumber,linetype=PlanNumber)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette),
+ggplot(simulations16.dat$aov, aes(TrtIIIP,color=PlanNumber,linetype=PlanNumber)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette),
+ggplot(simulations32.dat$aov, aes(TrtIIIP,color=PlanNumber,linetype=PlanNumber)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)))
+@
+
+<<>>=
+simulations8.dat$aov$BlockSize <- 16
+simulations16.dat$aov$BlockSize <- 8
+simulations32.dat$aov$BlockSize <- 4
+
+simulations8.dat$aov$Adjacency <- 0
+simulations8.dat$aov$Adjacency[simulations8.dat$aov$PlanNumber==2] <- 1
+simulations8.dat$aov$Adjacency[simulations8.dat$aov$PlanNumber==3] <- 2
+
+simulations16.dat$aov$Adjacency <- 0
+simulations16.dat$aov$Adjacency[simulations16.dat$aov$PlanNumber==2] <- 1
+simulations16.dat$aov$Adjacency[simulations16.dat$aov$PlanNumber==3] <- 2
+
+simulations32.dat$aov$Adjacency <- 0
+simulations32.dat$aov$Adjacency[simulations32.dat$aov$PlanNumber==2] <- 1
+simulations32.dat$aov$Adjacency[simulations32.dat$aov$PlanNumber==3] <- 2
+
+simulations.aov <- rbind(simulations8.dat$aov,simulations16.dat$aov,simulations32.dat$aov)
+simulations.aov$BlockSize <- as.factor(simulations.aov$BlockSize)
+simulations.aov$Adjacency <- as.factor(simulations.aov$Adjacency)
+simulations.aov$Settings <- simulations.aov$BlockSize:simulations.aov$Adjacency
+@
+
+<<01RCBTrtP,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(simulations.aov, aes(TrtP,color=Adjacency,linetype=Adjacency)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~BlockSize)
+@
+
+<<02TrtIP,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(simulations.aov, aes(TrtIP,color=Adjacency,linetype=Adjacency)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)+ facet_wrap(~BlockSize)
+@
+
+<<03TrtIIIP,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(simulations.aov, aes(TrtIIIP,color=Adjacency,linetype=Adjacency)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)+ facet_wrap(~BlockSize)
+@
+
+<<04TrtPTrend,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(simulations.aov, aes(TrtPTrend,color=Adjacency,linetype=Adjacency)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~BlockSize)
+@
+
+<<05logTrendP,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(simulations.aov, aes(log(TrendP),color=Adjacency,linetype=Adjacency)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~BlockSize)
+@
+
+<<>>=
+log.centers <- (0:19)/20 + 0.025
+@
+
+ggplot(simulations.aov, aes(log(TrtPTrend),color=Adjacency,linetype=Adjacency)) + 
+stat_bin(position="dodge",center=log.centers) + facet_wrap(~BlockSize) +scale_colour_manual(values=cbPalette) 
+
+ggplot(simulations.aov, aes(log(TrtPTrend),color=Adjacency,linetype=Adjacency)) + geom_histogram(aes(x=TrtPTrend),breaks = log.centers)
+
+ggplot(simulations.aov, aes(log(TrtPTrend),color=Adjacency,linetype=Adjacency)) + 
+stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~BlockSize)
+
+
+<<06TrtPTrend,fig=TRUE,echo=false,width=7,height=4>>=
+ ggplot(simulations.aov, aes(log(TrtPTrend),color=Adjacency)) + 
+    geom_histogram(aes(x=log(TrtPTrend),y =..density..,color=Adjacency,fill=Adjacency),
+                    stat = 'bin',breaks = log(log.centers),
+                     position = "dodge")+ facet_wrap(~BlockSize) +
+                     geom_vline(xintercept = log(0.05),colour=cbPalette[13], linetype = "longdash")
+@
+
+ggplot(simulations.aov, aes(log(TrtPTrend),color=Adjacency,linetype=Adjacency))
+ggplot(simulations.aov) + geom_step(aes(log(TrtPTrend), y =..density..),
+            , color = Adjacency) 
+
+<<>>=
+setwd(initwd)
+@
+
+
+\end{document}

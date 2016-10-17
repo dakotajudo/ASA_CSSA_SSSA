@@ -16,7 +16,7 @@ library(ggplot2)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","000000")
 
 #cbbPalette <- as.hexmode(c("000000", "E69F00", "56B4E9", "009E73", "F0E442", "0072B2", "D55E00", "CC79A7"))/2
-cbbPalette<-c("#734f80" "#2b5a74" "#004f39" "#787221" "#003959" "#6aaf00" "#663cd3")
+cbbPalette<-c("#734f80","#2b5a74","#004f39","#787221","#003959","#6aaf00","#663cd3")
 cbPalette <- c(cbPalette,cbbPalette)
 @
 
@@ -43,9 +43,13 @@ response <- "YldVolDry"
 hist(raw.dat[,response],main=response)
 @
 
-<<fig=TRUE,echo=false>>=
-ggplot(raw.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = YldVolDry),size = 1) + scale_colour_gradient(low=cbPalette[5], high=cbPalette[4])
+<<00RawDataMap,fig=TRUE,echo=false,width=4,height=4.5>>=
+ggplot(raw.dat, aes(Longitude, Latitude)) + 
+geom_point(aes(colour = YldVolDry),size=1) + 
+scale_colour_gradient(low=cbPalette[5], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude", y="Latitude", title = "Yield Monitor Data")
 @
+
 
 <<>>=
 minLon <- min(raw.dat$Longitude)
@@ -64,12 +68,15 @@ trimmed.dat <- subset(trimmed.dat,trimmed.dat$Longitude<=eastBorder)
 trimmed.dat <- subset(trimmed.dat,trimmed.dat$Longitude>=westBorder)
 @
 
-<<fig=TRUE,echo=false>>=
-ggplot(trimmed.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = YldVolDry),size = 1) + scale_colour_gradient(low=cbPalette[5], high=cbPalette[4])
+
+<<01TrimmedDataMap,fig=TRUE,echo=false,width=4,height=4.5>>=
+ggplot(trimmed.dat, aes(Longitude, Latitude)) + 
+geom_point(aes(colour = YldVolDry),size=1) + 
+scale_colour_gradient(low=cbPalette[5], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude", y="Latitude", title = "Trimmed Yield Monitor Data")
 @
-<<fig=TRUE,echo=false>>=
-ggplot(trimmed.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = YldVolDry),size = .5) + scale_colour_gradient(low=cbPalette[5], high=cbPalette[4])
-@
+
+
 convert to meters. 
 This will require an approximation, see \verb|http://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters|
 
@@ -83,8 +90,11 @@ trimmed.dat$LonM <- trimmed.dat$LonM*m_per_deg_lon
 trimmed.dat$LatM <- trimmed.dat$LatM*m_per_deg_lat
 @
 
-<<fig=TRUE,echo=false>>=
-ggplot(trimmed.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 1) + scale_colour_gradient(low=cbPalette[5], high=cbPalette[4])
+<<02TrimmedMetricMap,fig=TRUE,echo=false,width=4,height=4.5>>=
+ggplot(trimmed.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = YldVolDry),size=1) + 
+scale_colour_gradient(low=cbPalette[5], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Converted Yield Monitor Data")
 @
 
 <<>>=
@@ -93,7 +103,7 @@ sample.var <- variogram(YldVolDry~1,
    locations=~LonM+LatM, 
    data=trimmed.dat)
 trimmed.vgm <- fit.variogram(sample.var, vgm("Exp"))
-if(!file.exists("trimmed.dat.Rda"))
+if(!file.exists("trimmed.dat.Rda")) {
   save(trimmed.dat,file="trimmed.dat.Rda")
   save(trimmed.vgm,file="trimmed.vgm.Rda")
 } 
