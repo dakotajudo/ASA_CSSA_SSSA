@@ -197,6 +197,14 @@ scale_fill_manual(values=cbPalette)
 #+  scale_colour_manual(values=cbPalette)
 @
 
+<<04SingleRCBECDF,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(simulationsSingleRCB.dat$aov, 
+              aes(TrtP)) + stat_ecdf(size=1) + 
+                      scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+annotate("text", x = 0.1, y = 0.90, label = "p=0.05",colour=cbPalette[13]) + geom_abline() +
+labs(colour = "Count", linetype ="Count",x="Prob(Treatment F)",title = "ECDF of Treatment p over 180 RCB Simulations")
+@
+
 Consider that by kriging, we've reduced variance. Later, when we compare trend analysis, we may want the original point-level variances. 
 
 <<>>=
@@ -399,6 +407,17 @@ ggplot(simulationsRCB.dat$aov, aes(TrtP,color=PlanNumber,linetype=PlanNumber)) +
 annotate("text", x = 0.2, y = 0.15, label = "p=0.05",colour=cbPalette[13]) +
 labs(colour = "Plan", linetype ="Plan",x="Prob(Treatment F)",title = "Distribution of Treatment p for 12 RCB Trials")
 @
+
+<<10TwelveRCBECDF,fig=TRUE,echo=false,width=7,height=4>>=
+#simulationsRCB.dat$trt.p.plot +
+ggplot(subset(simulationsRCB.dat$aov,simulationsRCB.dat$aov$Source=="Kriged"), 
+              aes(TrtP, colour = PlanNumber,linetype=PlanNumber)) + stat_ecdf() + 
+                      scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+annotate("text", x = 0.1, y = 0.90, label = "p=0.05",colour=cbPalette[13]) +
+labs(colour = "Plan", linetype ="Plan",x="Prob(Treatment F)",title = "ECDF of Treatment p for 12 RCB Trials")
+@
+
+
     
 
 Let's compare Type I error rates 
@@ -504,6 +523,14 @@ simulationsClasses.dat$trt.p.plot + scale_colour_manual(values=cbPalette) +
 geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
 annotate("text", x = 0.2, y = 5, label = "p=0.05",colour=cbPalette[13]) +
 labs(colour = "Plan", linetype ="Plan",x="Prob(Treatment F)",title = "Distribution of Treatment p for 6 Plans")
+@
+
+<<13PlansWithDegenerateECDF,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(simulationsClasses.dat$aov, 
+              aes(TrtP,linetype=plan,colour=plan)) + stat_ecdf(size=1) + 
+                      scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+annotate("text", x = 0.1, y = 0.90, label = "p=0.05",colour=cbPalette[13]) + geom_abline() +
+labs(colour = "Plan", linetype ="Plan",x="Prob(Treatment F)",title = "ECDF of Treatment p for 6 Plans")
 @
 
     
@@ -779,6 +806,15 @@ ggplot(subset(simulationsPooled.dat$aov,simulationsPooled.dat$aov$Source=="Krige
                    facet_wrap(~Class) + scale_colour_manual(values=cbPalette)
 @
 
+<<16ClassesECDF,fig=TRUE,echo=false,width=7,height=4>>=
+#simulationsRCB.dat$trt.p.plot +
+ggplot(subset(simulationsPooled.dat$aov,simulationsPooled.dat$aov$Source=="Kriged"), 
+              aes(TrtP, colour = Class,linetype=Class)) + stat_ecdf(size=1) + 
+                      scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+annotate("text", x = 0.1, y = 0.90, label = "p=0.05",colour=cbPalette[13]) + geom_abline() +
+labs(colour = "Plan", linetype ="Plan",x="Prob(Treatment F)",title = "ECDF of Treatment p for 5 Classes")
+@
+
 <<17ClassesErrors,fig=TRUE,echo=false,width=7,height=4>>=
 ggplot(subset(simulationsPooled.dat$aov,simulationsPooled.dat$aov$Source=="Errors"), 
               aes(TrtP,color=PlanNumber,linetype=PlanNumber)) + 
@@ -1032,6 +1068,13 @@ annotate("text", x = log(0.001), y = 0.1, label = "p=0.05",colour=cbPalette[13])
 #   ggplot(trend.Pooled, aes(log(TrendP),color=Class,linetype=Class)) + 
 #      stat_density(geom="line",position="identity",size=1) + geom_vline(xintercept =log(0.05),colour=cbPalette[13], linetype = "longdash") +
 #annotate("text", x = log(0.001), y = 0.1, label = "p=0.05",colour=cbPalette[13]) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)))
+@
+
+<<23TrendTreatmentSignificancec,fig=TRUE,echo=false,width=7,height=4>>=
+#grid.arrange(arrangeGrob(
+  ggplot(trend.Pooled, aes(TrtPTrend,color=Class,linetype=Class)) + 
+     stat_density(geom="line",position="identity",size=1) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+  annotate("text", x = 0.05, y = 0.1, label = "p=0.05",colour=cbPalette[13]) + facet_wrap(~Source, scales = "free") + scale_colour_manual(values=cbPalette)
 @
 
 <<>>=
@@ -1448,8 +1491,16 @@ ggplot(subset(simulations100.dat$plots,simulations100.dat$plots$plan==1), aes(Lo
 Combined plot
 
 <<>>=
+
+
 if(!file.exists("withinPooled.adtc.Rda")) {
   ##simulationsRCB.dat$aov,
+
+  simulationsDegenWithin.adtc <- compare.adtc(list(deg.plan),plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  simulationsDegenAcross.adtc <- compare.adtc(list(deg.plan),plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+  degenerate.aov <- subset(simulationsClasses.dat$aov,simulationsClasses.dat$aov$plan=="Degenerate")
+  degenerate.plots <- subset(simulationsClasses.dat$aov,simulationsClasses.dat$plots$plan=="Degenerate")
+  
   simulationsRCBWithin.adtc <- compare.adtc(rcb.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
   simulationsRCBAcross.adtc <- compare.adtc(rcb.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
 
@@ -1486,6 +1537,8 @@ if(!file.exists("withinPooled.adtc.Rda")) {
   simulationsSpat.dat$aov$Class <- "spat"
   simulationsSV.dat$aov$Class <- "sv"
   simulationsRCB.dat$aov$Class <- "rcb"
+  degenerate.aov$Class <- "deg"
+  degenerate.aov$plan <- "deg"
   
   adtcPooled.aov <- rbind(
     simulationsRCB.dat$aov,
@@ -1493,7 +1546,8 @@ if(!file.exists("withinPooled.adtc.Rda")) {
     simulationsRC.dat$aov,
     simulationsSpat.dat$aov,
     simulationsSV.dat$aov,
-    simulations100.dat$aov
+    simulations100.dat$aov,
+    degenerate.aov 
   )
   
   simulationsRCBWithin.adtc$Class <- "rcb"
@@ -1502,6 +1556,9 @@ if(!file.exists("withinPooled.adtc.Rda")) {
   simulationsSpatWithin.adtc$Class <- "spat"
   simulationsSVWithin.adtc$Class <- "sv"
   sim100Within.adtc$Class <- "rcb"
+  simulationsDegenWithin.adtc$plan <- "deg"
+  simulationsDegenWithin.adtc$Class <- "deg"
+  
   
   withinPooled.adtc  <- rbind(
     simulationsRCBWithin.adtc,
@@ -1509,7 +1566,8 @@ if(!file.exists("withinPooled.adtc.Rda")) {
     simulationsRCWithin.adtc,
     simulationsSpatWithin.adtc,
     simulationsSVWithin.adtc,
-    sim100Within.adtc)
+    sim100Within.adtc,
+    simulationsDegenWithin.adtc)
   
     simulationsRCBAcross.adtc$Class <- "rcb"
     simulationsAdjAcross.adtc$Class <- "adj"
@@ -1517,6 +1575,8 @@ if(!file.exists("withinPooled.adtc.Rda")) {
     simulationsSpatAcross.adtc$Class <- "spat"
     simulationsSVAcross.adtc$Class <- "sv"
     sim100Across.adtc$Class <- "rcb"
+    simulationsDegenAcross.adtc$plan <- "deg"
+    simulationsDegenAcross.adtc$Class <- "deg"
     
     acrossPooled.adtc  <- rbind(
     simulationsRCBAcross.adtc,
@@ -1524,7 +1584,8 @@ if(!file.exists("withinPooled.adtc.Rda")) {
     simulationsRCAcross.adtc,
     simulationsSpatAcross.adtc,
     simulationsSVAcross.adtc,
-    sim100Across.adtc)
+    sim100Across.adtc,
+    simulationsDegenAcross.adtc)
     save(acrossPooled.adtc,file="acrossPooled.adtc.Rda")
     save(withinPooled.adtc,file="withinPooled.adtc.Rda") 
     save(adtcPooled.aov,file="adtcPooled.aov.Rda") 
@@ -1580,7 +1641,24 @@ comb.adtc.dat <- data.frame(
              rep("SD of means (across)",length(acrossPooled.adtc$SDofMeans)),
              rep("Mean of sd (across)",length(acrossPooled.adtc$MeanOfSD)))
   )
-
+  comb2.adtc.dat <- data.frame(
+    ADTCMeasure = c(withinPooled.adtc$SDofMeans,
+                     withinPooled.adtc$MeanOfSD,
+                     acrossPooled.adtc$SDofMeans,
+                     acrossPooled.adtc$MeanOfSD),
+    TypeIError = c(withinPooled.adtc$TypeIRatesErrors,
+                   withinPooled.adtc$TypeIRatesErrors,
+                   acrossPooled.adtc$TypeIRatesErrors,
+                   acrossPooled.adtc$TypeIRatesErrors),
+    Class = c(withinPooled.adtc$Class,
+              withinPooled.adtc$Class,
+              acrossPooled.adtc$Class,
+              acrossPooled.adtc$Class),
+    Method = c(rep("SD of means (within)",length(withinPooled.adtc$SDofMeans)),
+               rep("Mean of sd (within)",length(withinPooled.adtc$MeanOfSD)),
+               rep("SD of means (across)",length(acrossPooled.adtc$SDofMeans)),
+               rep("Mean of sd (across)",length(acrossPooled.adtc$MeanOfSD)))
+    )
 @
 
 <<32ADTCKriged,fig=TRUE,echo=false,echo=false,width=7,height=4>>=
@@ -1593,19 +1671,21 @@ ggplot(comb.adtc.dat, aes(ADTCMeasure, TypeIError)) + geom_point(aes(color=Class
 @
 
 <<33ADTCErrors,fig=TRUE,echo=false,echo=false,width=7,height=4>>=
-grid.arrange(arrangeGrob(
-   ggplot(withinPooled.adtc, aes(SDofMeans, TypeIRatesErrors)) + geom_point(aes(color=Class),size=1) + scale_colour_manual(values=cbPalette),
-   ggplot(withinPooled.adtc, aes(MeanOfSD, TypeIRatesErrors)) + geom_point(aes(color=Class),size=1) + scale_colour_manual(values=cbPalette),
-   ggplot(acrossPooled.adtc, aes(SDofMeans, TypeIRatesErrors)) + geom_point(aes(color=Class),size=1) + scale_colour_manual(values=cbPalette),
-   ggplot(acrossPooled.adtc, aes(MeanOfSD, TypeIRatesErrors)) + geom_point(aes(color=Class),size=1) + scale_colour_manual(values=cbPalette)))
+
+#grid.arrange(arrangeGrob(
+#   ggplot(withinPooled.adtc, aes(SDofMeans, TypeIRatesErrors)) + geom_point(aes(color=Class),size=1) + scale_colour_manual(values=cbPalette),
+#   ggplot(withinPooled.adtc, aes(MeanOfSD, TypeIRatesErrors)) + geom_point(aes(color=Class),size=1) + scale_colour_manual(values=cbPalette),
+#   ggplot(acrossPooled.adtc, aes(SDofMeans, TypeIRatesErrors)) + geom_point(aes(color=Class),size=1) + scale_colour_manual(values=cbPalette),
+#   ggplot(acrossPooled.adtc, aes(MeanOfSD, TypeIRatesErrors)) + geom_point(aes(color=Class),size=1) + scale_colour_manual(values=cbPalette)))
+ggplot(comb2.adtc.dat, aes(ADTCMeasure, TypeIError)) + geom_point(aes(color=Class,shape=Class),size=1.5) + scale_colour_manual(values=cbPalette) + facet_wrap(~ Method,scales = "free")
 @
 
-<<fig=TRUE,echo=false,echo=false,width=7,height=4>>=
+<<34ADTCHistograms,fig=TRUE,echo=false,echo=false,width=7,height=4>>=
 grid.arrange(arrangeGrob(
-ggplot(withinPooled.adtc, aes(SDofMeans,fill=Class)) + geom_histogram(),
-ggplot(withinPooled.adtc, aes(MeanOfSD,fill=Class)) + geom_histogram(),
-ggplot(acrossPooled.adtc, aes(SDofMeans,fill=Class)) + geom_histogram(),
-ggplot(acrossPooled.adtc, aes(MeanOfSD,fill=Class)) + geom_histogram()))
+ggplot(withinPooled.adtc, aes(SDofMeans,fill=Class)) + geom_histogram()+ scale_fill_manual(values=cbPalette),
+ggplot(withinPooled.adtc, aes(MeanOfSD,fill=Class)) + geom_histogram()+ scale_fill_manual(values=cbPalette),
+ggplot(acrossPooled.adtc, aes(SDofMeans,fill=Class)) + geom_histogram()+ scale_fill_manual(values=cbPalette),
+ggplot(acrossPooled.adtc, aes(MeanOfSD,fill=Class)) + geom_histogram()+ scale_fill_manual(values=cbPalette)))
 @
 
 

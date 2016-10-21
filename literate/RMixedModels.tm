@@ -1,4 +1,4 @@
-<TeXmacs|1.99.4>
+<TeXmacs|1.99.5>
 
 <style|generic>
 
@@ -39,10 +39,89 @@
   In this document we provide R code formatted for presentation. Plots will
   be generated in Sweave.
 
+  <subsection|Theory>
+
+  <subsection|Single Trial>
+
+  Geisbrecht, et al, give the model as (with notational differences)
+
+  <\equation*>
+    <with|font-series|bold|y>=<with|font-series|bold|1>\<mu\>+<with|font-series|bold|Z><with|font-series|bold|u>+<with|font-series|bold|X><with|font-series|bold|\<beta\>>+<with|font-series|bold|\<epsilon\>>
+  </equation*>
+
+  and\ 
+
+  <\equation*>
+    Var<around*|[|<with|font-series|bold|y>|]>=\<sigma\><rsup|2><rsub|b><with|font-series|bold|Z
+    Z><rsup|t>+\<sigma\><rsub|\<epsilon\>><rsup|2><with|font-series|bold|I><rsub|b>\<otimes\><with|font-series|bold|I><rsub|t>
+  </equation*>
+
+  This form suggests a method to accomodate missing observations. We note
+  that OLS minimizes
+
+  <\equation*>
+    <around*|(|y-X\<beta\>|)><rsup|t><around*|(|y-X\<beta\>|)><rsup|>
+  </equation*>
+
+  We then extend to GLS using a weight matrix that includes correlations.
+  This provides the a best unbiased linear estimate of <math|\<beta\>>
+
+  <\equation*>
+    <around*|(|y-X\<beta\>|)><rsup|t>V<rsup|-1><around*|(|y-X\<beta\>|)><rsup|>
+  </equation*>
+
+  GLS is minimized by setting partial derivatives w.r.t <math|\<beta\>> to 0,
+  which gives the normal equations
+
+  <\equation*>
+    X<rsup|t>V<rsup|-1>X<wide|\<beta\>|^>=X<rsup|t>V<rsup|-1>y
+  </equation*>
+
+  This leads to a solution
+
+  <\equation*>
+    <wide|\<beta\>|^><rsub|GLS>=<around*|(|X<rsup|t>V<rsup|-1>X|)><rsup|-1>X<rsup|t>V<rsup|-1>y
+  </equation*>
+
+  with\ 
+
+  <\eqnarray*>
+    <tformat|<table|<row|<cell|Var<around*|[|<with|font-series|bold|<wide|\<beta\>|^><rsub|GLS>>|]>>|<cell|=>|<cell|<around*|(|X<rsup|t>V<rsup|-1>X|)><rsup|-1>X<rsup|t>V<rsup|-1>Var<around*|[|y|]>V<rsup|-1>X<around*|(|X<rsup|t>V<rsup|-1>X|)><rsup|-1>>>|<row|<cell|>|<cell|=>|<cell|<around*|(|X<rsup|t>V<rsup|-1>X|)><rsup|-1>>>>>
+  </eqnarray*>
+
+  The standard errors of <math|<with|font-series|bold|<wide|\<beta\>|^><rsub|GLS>>>
+  come from the main diagonal.
+
+  \;
+
+  <subsubsection|Combined Trials>
+
+  \;
+
+  <em|<strong|A Bayesian Approach for Assessing the Stability of
+  Genotypes<em|>><strong|>>, Jose Miguel Cotes, Jose Crossa, Adhemar Sanches,
+  and Paul L. Cornelius, <with|font-shape|italic|Crop Science>. 46:2654\U2665
+  (2006)
+
+  Assume a MET with <math|a> environments, <math|r<rsub|i>> blocks in each
+  environment and <math|b=\<Sigma\>r<rsub|i>>, <math|g> genotypes,
+  <math|n<rsub|i>> observations in each environment, <math|m<rsub|k>> the
+  number of enviroments where the <math|k<rsup|th>> genotype was evaluated
+  and <math|n=\<Sigma\>n<rsub|i>> observations.
+
+  <\equation*>
+    \<b-y\> = \<b-up-X\>\<b-beta\> \<noplus\>+\<b-Z\><rsub|1>\<b-up-u\><rsub|1>
+    +\<b-Z\><rsub|2>\<b-up-u\><rsub|2>+<below|<above|<big|sum>|g>|k=1>\<b-Z\><rsub|3<around*|(|k|)>>\<b-up-u\><rsub|3<around*|(|k|)>>+\<b-1\><rsub|n<rsub|i>>\<otimes\>\<b-up-e\><rsub|i>
+  </equation*>
+
+  <\eqnarray*>
+    <tformat|<table|<row|<cell|\<b-beta\>
+    \<noplus\>>|<cell|=>|<cell|<around*|[|\<mu\><rsub|1>,\<mu\><rsub|2>,\<ldots\>,\<mu\><rsub|g>|]>>>|<row|<cell|\<b-up-u\><rsub|1>>|<cell|\<sim\>>|<cell|\<cal-N\><around*|(|<with|font-series|bold|0>,\<sigma\><rsub|u<rsub|1>><rsup|2>|)>>>|<row|<cell|\<b-up-u\><rsub|2>>|<cell|\<sim\>>|<cell|\<cal-N\><around*|(|0,\<sigma\><rsub|u<rsub|2>><rsup|2>|)>>>|<row|<cell|\<b-up-u\><rsub|3<around*|(|k|)>>>|<cell|\<sim\>>|<cell|\<cal-N\><around*|(|0,\<sigma\><rsub|u<rsub|3<around*|(|k|)>>><rsup|2>|)>>>|<row|<cell|\<b-up-e\><rsub|i><rsub|>>|<cell|\<sim\>>|<cell|\<cal-N\><around*|(|0,\<sigma\><rsub|e<rsub|i>><rsup|2>|)>\<nocomma\>>>>>
+  </eqnarray*>
+
   <subsection|Workflow>
 
-  We will structure this document on the workflow for analysis of variance of
-  a simple linear model.
+  Given a sequence of steps in the analysis of experimental data,
 
   <\enumerate>
     <item>Data Entry
@@ -60,22 +139,88 @@
     <item>Presentation
   </enumerate>
 
+  how easily can an unfamiliar analysis package be inserted into a familiar
+  routine?
+
   <section|Data Entry>
 
-  We'll document two data sets here; a third, larger set will be coded in
-  ???.
+  We'll demonstrate analysis with three data sets of increasing complexity.\ 
 
-  <subsection|Simple RCB with missing values (Geisbrecht)>
+  <\enumerate-numeric>
+    <item>Simulated Data for an RCBD with Two Missing Observations.
+
+    Data were simulated with means
+
+    <big-table|<tabular|<tformat|<table|<row|<cell|>|<cell|>|<cell|>>|<row|<cell|>|<cell|>|<cell|>>|<row|<cell|>|<cell|>|<cell|>>|<row|<cell|>|<cell|>|<cell|>>|<row|<cell|>|<cell|>|<cell|>>>>>|>
+
+    <item>Series of Similar Experiments
+
+    From Steel and Torrie, Exercise 16.8.1.
+
+    <\quote-env>
+      Twelve strains of soybeans were compared in a randomized complete block
+      experiment with three blocks at each of three locations in North
+      Carolina. Yields given here are in grams per plot.
+    </quote-env>
+
+    <\with|par-mode|center>
+      <tabular*|<tformat|<cwith|2|-1|1|1|cell-halign|l>|<cwith|2|-1|2|-1|cell-halign|r>|<table|<row|<cell|<with|font-series|bold|Source>>|<cell|<with|font-series|bold|d.f.>>|<cell|<with|font-series|bold|SS>>|<cell|<with|font-series|bold|MS>>|<cell|<with|font-series|bold|Variance>>|<cell|<with|font-series|bold|AOV>>>|<row|<cell|Genotypes>|<cell|11>|<cell|925090>|<cell|84099>|<cell|>|<cell|>>|<row|<cell|Environments>|<cell|2>|<cell|3113626>|<cell|1556813>|<cell|<math|\<sigma\><rsup|2><rsub|u<rsub|1>>>>|<cell|42798>>|<row|<cell|GEI>|<cell|22>|<cell|532900>|<cell|24223>|<cell|<math|\<sigma\><rsup|2><rsub|u<rsub|2>>>>|<cell|1504>>|<row|<cell|Blocks
+      in Environments>|<cell|6>|<cell|69256>|<cell|11543>|<cell|<math|\<sigma\><rsup|2><rsub|u<rsub|3>>>>|<cell|-680>>|<row|<cell|Residual>|<cell|66>|<cell|1300723>|<cell|19708>|<cell|<math|\<sigma\><rsub|e><rsup|2>>>|<cell|19708>>>>>
+    </with>
+
+    \;
+
+    While this does improve upon a negative variance estimate, the variance
+    estimate for environment seems inflated, while GEI variance may be
+    under-estimated. Is this the methodology, or just the specific
+    implementation?
+
+    <item>Multienvironment Breeding Trial
+
+    Data are from <verbatim|Alvarado, Gregorio; López, Marco; Vargas, Mateo;
+    Pacheco, Ángela; Rodríguez, Francisco; Burgueño, Juan; Crossa, José,
+    2015-06-08, "META-R (Multi Environment Trail Analysis with R for Windows)
+    Version 5.0", http://hdl.handle.net/11529/10201 International Maize and
+    Wheat Improvement Center [Distributor] V16 [Version]>
+
+    This is an improved version from the 2013 release. Version 1 was uploaded
+    Jun 17, 2015, this is version 4.
+
+    <item><verbatim|Vargas, Mateo; Combs, Emily; Alvarado, Gregorio; Atlin,
+    Gary; Crossa, José, 2015-06-17, "META-SAS: A Suite of SAS Programs to
+    Analyze Multienvironment", http://hdl.handle.net/11529/10217
+    International Maize and Wheat Improvement Center [Distributor] V4
+    [Version]>
+  </enumerate-numeric>
+
+  Homogeneity of variance is one of the more commonly violated assumptions
+  regarding the analysis of variance of combined trials. Consider, if we
+  analyze each of the four trials in the sample data set individually, using
+  standard AOV,
+
+  <\with|par-mode|center>
+    <tabular*|<tformat|<cwith|2|-1|1|1|cell-halign|l>|<table|<row|<cell|<with|font-series|bold|Environment>>|<cell|<with|font-series|bold|Residual
+    MS>>>|<row|<cell|Brookings 2003>|<cell|0.174>>|<row|<cell|Brookings
+    2004>|<cell|0.408>>|<row|<cell|Brookings
+    2005>|<cell|0.098>>|<row|<cell|Brookings 2006>|<cell|0.108>>>>>
+  </with>
+
+  A general rule of thumb is that if, of a range of residual MS, the largest
+  is less than <math|3\<times\>> the smallest, then variance can be assumed
+  to be homogeneous. Thus, we would exclude Brookings 2004 if we want valid
+  AOV.
+
+  I've found no specific mechanism to specify the structure of residual
+  variance in <verbatim|lmer>; the prior REML package, <verbatim|lme>, does
+  allow a structured residual variance but does not handle crossed effects
+  simply.
+
+  <subsection|Simulated Data for an RCBD with Two Missing Observations>
+
+  I prefer to work with data frames to prevent cluttering the name space with
+  similar variables.
 
   <\program|r|default>
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      \;
-    <|unfolded-prog-io>
-      \;
-    </unfolded-prog-io|>
-
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
@@ -93,9 +238,7 @@
 
       \ \ \ )
 
-      #some packages choke on missing values
-
-      Table5.7 \<less\>- subset(Table5.7, !is.na(Table5.7$obs))
+      \;
 
       Table5.7treatments \<less\>- length(levels(Table5.7$trt))
     <|unfolded-prog-io>
@@ -129,23 +272,47 @@
 
       + \ \ \ )
 
-      \<gtr\> #some packages choke on missing values
-
-      \<gtr\> Table5.7 \<less\>- subset(Table5.7, !is.na(Table5.7$obs))
+      \<gtr\>\ 
 
       \<gtr\> Table5.7treatments \<less\>- length(levels(Table5.7$trt))
     </unfolded-prog-io|>
 
     <\textput>
+      I like to include NA when entering data to be clear that missing values
+      are present, but some packages do not handle NA very well, so I also
+      subset.\ 
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7 \<less\>- subset(Table5.7, !is.na(Table5.7$obs))
+    <|unfolded-prog-io>
+      Table5.7 \<less\>- subset(Table5.7, !is.na(Table5.7$obs))
+    </unfolded-prog-io|>
+
+    <\textput>
+      I will later be extracting parameters based on the number of
+      treatments. This removes the need for magic numbers.
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7treatments \<less\>- length(levels(Table5.7$trt))
+    <|unfolded-prog-io>
+      Table5.7treatments \<less\>- length(levels(Table5.7$trt))
+    </unfolded-prog-io|>
+
+    <\textput>
+      \;
+    </textput>
+
+    <\textput>
       <subsection|Series of Similar Experiments>
 
-      Exercise 16.8.1
-
-      <\quote-env>
-        \ Twelve strains of soybeans were compared in a randomized complete
-        block experiment with three blocks at each of three locations in
-        North Carolina. Yields given here are in grams per plot.
-      </quote-env>
+      If the data are structured, we can save space by creating variables
+      programmatically.
     </textput>
 
     <\unfolded-prog-io>
@@ -295,25 +462,9 @@
 
     <\textput>
       <subsection|Sample RCBD Data>
-
-      <verbatim|Vargas, Mateo; Combs, Emily; Alvarado, Gregorio; Atlin, Gary;
-      Crossa, José, 2015-06-17, "META-SAS: A Suite of SAS Programs to Analyze
-      Multienvironment", http://hdl.handle.net/11529/10217 International
-      Maize and Wheat Improvement Center [Distributor] V4 [Version]>
-
-      \;
-
-      <verbatim|Alvarado, Gregorio; López, Marco; Vargas, Mateo; Pacheco,
-      Ángela; Rodríguez, Francisco; Burgueño, Juan; Crossa, José, 2015-06-08,
-      "META-R (Multi Environment Trail Analysis with R for Windows) Version
-      5.0", http://hdl.handle.net/11529/10201 International Maize and Wheat
-      Improvement Center [Distributor] V16 [Version]>
     </textput>
 
     \;
-
-    This is an improved version from the 2013 release. Version 1 was uploaded
-    Jun 17, 2015, this is version 4.
 
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
@@ -323,14 +474,14 @@
       rcbd.dat \<less\>- read.csv("sample RCBD data.csv",header=TRUE)
 
       setwd("~/Work/git/ASA_CSSA_SSSA/working")
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
     <|unfolded-prog-io>
       setwd("~/Work/git/ASA_CSSA_SSSA/literate")
 
       \<gtr\> rcbd.dat \<less\>- read.csv("sample RCBD data.csv",header=TRUE)
 
       \<gtr\> setwd("~/Work/git/ASA_CSSA_SSSA/working")
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -370,59 +521,62 @@
       rcbd.dat$BLK \<less\>- as.factor(rcbd.dat$BLK)
 
       rcbd.dat$Entry \<less\>- as.factor(rcbd.dat$Entry)
-
-      levels(rcbd.dat$Repe)
-
-      levels(rcbd.dat$BLK)
-
-      levels(rcbd.dat$Entry)
     <|unfolded-prog-io>
       rcbd.dat$Repe \<less\>- as.factor(rcbd.dat$Repe)
 
       \<gtr\> rcbd.dat$BLK \<less\>- as.factor(rcbd.dat$BLK)
 
       \<gtr\> rcbd.dat$Entry \<less\>- as.factor(rcbd.dat$Entry)
-
-      \<gtr\> levels(rcbd.dat$Repe)
-
-      [1] "1" "2" "3"
-
-      \<gtr\> levels(rcbd.dat$BLK)
-
-      \ [1] "1" \ "2" \ "3" \ "4" \ "5" \ "6" \ "7" \ "8" \ "9" \ "10" "11"
-      "12" "13" "14"
-
-      [15] "15" "16" "17" "18" "19" "20" "21" "22" "23" "24"
-
-      \<gtr\> levels(rcbd.dat$Entry)
-
-      \ [1] "1" \ "2" \ "3" \ "4" \ "5" \ "6" \ "7" \ "8" \ "9" \ "10" "11"
-      "12" "13" "14"
-
-      [15] "15" "16" "17" "18" "19" "20" "21" "22" "23" "24" "25" "26" "27"
-      "28"
-
-      [29] "29" "30" "31" "32"
     </unfolded-prog-io|>
 
     <\textput>
       <section|Model Fitting>
 
-      For simple models, I like to remove the intercept. This won't always
-      work particularly for models with interaction
+      Traditionally, MET have been analyzed using analysis of variance based
+      on ordinary least methods. Briefly, we define the linear system of
+      equations
+
+      <\equation*>
+        <tabular|<tformat|<table|<row|<cell|\<b-up-y\>>|<cell|=>|<cell|\<b-up-X\>\<b-beta\>
+        \<noplus\>+\<b-up-e\>>>>>>
+      </equation*>
+
+      where <math|\<b-up-X\>> defines the design of the experiment,
+      <math|\<b-up-y\>> are observed values and <math|\<b-beta\>> are
+      parameters of interest (i.e. variety means). Estimates are found by
+
+      <\equation*>
+        <wide|\<b-beta\>|^>=<around*|(|\<b-up-X\><rsup|t>\<b-up-X\>|)><rsup|-1>\<b-up-X\><rsup|t>\<b-up-y\>
+      </equation*>
+
+      minimizing
+
+      <\equation*>
+        \<Sigma\>\<b-up-e\><rsub|i><rsup|2>=\<b-up-e\><rsup|t>\<b-up-e\>=<around*|(|\<b-up-y\>-\<b-up-X\>\<b-beta\>|)><rsup|t><around*|(|\<b-up-y\>-\<b-up-X\>\<b-beta\>|)>
+      </equation*>
+
+      \;
+
+      We use <verbatim|lm> to fit a model using OLS. For simple models, I
+      like to remove the intercept. This won't always work particularly for
+      models with interaction.
     </textput>
 
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
       Table5.7.lm \<less\>- lm(obs ~ 0 + trt+rep, data = Table5.7)
+    <|unfolded-prog-io>
+      Table5.7.lm \<less\>- lm(obs ~ 0 + trt+rep, data = Table5.7)
+    </unfolded-prog-io|>
 
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
       Ex16.8.1.lm \<less\>- lm(Yield ~ Trial:Rep + Variety*Trial,
       data=Ex16.8.1)
     <|unfolded-prog-io>
-      Table5.7.lm \<less\>- lm(obs ~ 0 + trt+rep, data = Table5.7)
-
-      \<gtr\> Ex16.8.1.lm \<less\>- lm(Yield ~ Trial:Rep + Variety*Trial,
+      Ex16.8.1.lm \<less\>- lm(Yield ~ Trial:Rep + Variety*Trial,
       data=Ex16.8.1)
     </unfolded-prog-io|>
 
@@ -480,11 +634,7 @@
     <|unfolded-prog-io>
       summary(Table5.7.lm)
 
-      anova(Table5.7.lm)
-
-      anova(Table5.7.red.lm,Table5.7.lm)
-
-      vcov(Table5.7.lm)
+      \;
 
       #summary(Ex16.8.1.lm)
 
@@ -548,7 +698,25 @@
 
       \;
 
-      \<gtr\> anova(Table5.7.lm)
+      \<gtr\>\ 
+
+      \<gtr\> #summary(Ex16.8.1.lm)
+
+      \<gtr\> #anova(Ex16.8.1.lm)
+
+      \<gtr\> #anova(Ex16.8.1.red.lm,Ex16.8.1.lm)
+
+      \<gtr\> #vcov(Ex16.8.1.lm)
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      anova(Table5.7.lm)
+
+      anova(Table5.7.red.lm,Table5.7.lm)
+    <|unfolded-prog-io>
+      anova(Table5.7.lm)
 
       Analysis of Variance Table
 
@@ -587,8 +755,14 @@
       ---
 
       Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    </unfolded-prog-io|>
 
-      \<gtr\> vcov(Table5.7.lm)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      vcov(Table5.7.lm)
+    <|unfolded-prog-io>
+      vcov(Table5.7.lm)
 
       \ \ \ \ \ \ \ \ \ \ \ trt1 \ \ \ \ \ \ trt2 \ \ \ \ \ \ trt3
       \ \ \ \ \ \ trt4 \ \ \ \ \ \ trt5 \ \ \ \ \ \ trt6
@@ -636,14 +810,6 @@
       rep3 \ 0.2629283 \ 0.5039458 \ 0.2848389
 
       rep4 \ 0.2629283 \ 0.2848389 \ 0.5039458
-
-      \<gtr\> #summary(Ex16.8.1.lm)
-
-      \<gtr\> #anova(Ex16.8.1.lm)
-
-      \<gtr\> #anova(Ex16.8.1.red.lm,Ex16.8.1.lm)
-
-      \<gtr\> #vcov(Ex16.8.1.lm)
     </unfolded-prog-io|>
 
     <\textput>
@@ -709,15 +875,81 @@
 
       \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error t value Pr(\<gtr\>\|t\|) \ 
 
-      2 - 1 == 0 \ \ 0.9895 \ \ \ \ 1.0255 \ \ 0.965 \ \ 0.7219 \ 
+      2 - 1 == 0 \ \ 0.9895 \ \ \ \ 1.0255 \ \ 0.965 \ \ 0.7220 \ 
 
-      3 - 1 == 0 \ \ 1.3970 \ \ \ \ 1.0255 \ \ 1.362 \ \ 0.4638 \ 
+      3 - 1 == 0 \ \ 1.3970 \ \ \ \ 1.0255 \ \ 1.362 \ \ 0.4642 \ 
 
-      4 - 1 == 0 \ \ 0.9570 \ \ \ \ 1.0255 \ \ 0.933 \ \ 0.7430 \ 
+      4 - 1 == 0 \ \ 0.9570 \ \ \ \ 1.0255 \ \ 0.933 \ \ 0.7432 \ 
 
-      5 - 1 == 0 \ \ 1.6520 \ \ \ \ 1.0255 \ \ 1.611 \ \ 0.3321 \ 
+      5 - 1 == 0 \ \ 1.6520 \ \ \ \ 1.0255 \ \ 1.611 \ \ 0.3318 \ 
 
-      6 - 1 == 0 \ \ 3.1345 \ \ \ \ 1.0255 \ \ 3.056 \ \ 0.0295 *
+      6 - 1 == 0 \ \ 3.1345 \ \ \ \ 1.0255 \ \ 3.056 \ \ 0.0298 *
+
+      ---
+
+      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+      (Adjusted p values reported -- single-step method)
+
+      \;
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(glht(Table5.7.lm,linfct=mcp(trt="Tukey")))
+    <|unfolded-prog-io>
+      summary(glht(Table5.7.lm,linfct=mcp(trt="Tukey")))
+
+      \;
+
+      \ \ \ \ \ \ \ \ \ Simultaneous Tests for General Linear Hypotheses
+
+      \;
+
+      Multiple Comparisons of Means: Tukey Contrasts
+
+      \;
+
+      \;
+
+      Fit: lm(formula = obs ~ 0 + trt + rep, data = Table5.7)
+
+      \;
+
+      Linear Hypotheses:
+
+      \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error t value Pr(\<gtr\>\|t\|) \ 
+
+      2 - 1 == 0 \ \ 0.9895 \ \ \ \ 1.0255 \ \ 0.965 \ \ \ 0.920 \ 
+
+      3 - 1 == 0 \ \ 1.3970 \ \ \ \ 1.0255 \ \ 1.362 \ \ \ 0.745 \ 
+
+      4 - 1 == 0 \ \ 0.9570 \ \ \ \ 1.0255 \ \ 0.933 \ \ \ 0.930 \ 
+
+      5 - 1 == 0 \ \ 1.6520 \ \ \ \ 1.0255 \ \ 1.611 \ \ \ 0.603 \ 
+
+      6 - 1 == 0 \ \ 3.1345 \ \ \ \ 1.0255 \ \ 3.056 \ \ \ 0.077 .
+
+      3 - 2 == 0 \ \ 0.4075 \ \ \ \ 0.8107 \ \ 0.503 \ \ \ 0.995 \ 
+
+      4 - 2 == 0 \ -0.0325 \ \ \ \ 0.8107 \ -0.040 \ \ \ 1.000 \ 
+
+      5 - 2 == 0 \ \ 0.6625 \ \ \ \ 0.8107 \ \ 0.817 \ \ \ 0.958 \ 
+
+      6 - 2 == 0 \ \ 2.1450 \ \ \ \ 0.8107 \ \ 2.646 \ \ \ 0.152 \ 
+
+      4 - 3 == 0 \ -0.4400 \ \ \ \ 0.8107 \ -0.543 \ \ \ 0.993 \ 
+
+      5 - 3 == 0 \ \ 0.2550 \ \ \ \ 0.8107 \ \ 0.315 \ \ \ 0.999 \ 
+
+      6 - 3 == 0 \ \ 1.7375 \ \ \ \ 0.8107 \ \ 2.143 \ \ \ 0.322 \ 
+
+      5 - 4 == 0 \ \ 0.6950 \ \ \ \ 0.8107 \ \ 0.857 \ \ \ 0.950 \ 
+
+      6 - 4 == 0 \ \ 2.1775 \ \ \ \ 0.8107 \ \ 2.686 \ \ \ 0.143 \ 
+
+      6 - 5 == 0 \ \ 1.4825 \ \ \ \ 0.8107 \ \ 1.829 \ \ \ 0.479 \ 
 
       ---
 
@@ -744,12 +976,23 @@
       \;
     </textput>
 
+    <section|Presentation>
+
+    \;
+
+    We note that lsmeans and glht are not strictly compatible, even though
+    the terminology is the same
+
+    \;
+
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
       library(lsmeans)
 
       lsmeans(Table5.7.lm,cld ~ trt)
+
+      #lsmeans(Table5.7.lm,pairwise ~ trt)
     <|unfolded-prog-io>
       library(lsmeans)
 
@@ -780,9 +1023,9 @@
       P value adjustment: tukey method for comparing a family of 6 estimates\ 
 
       significance level used: alpha = 0.05\ 
-    </unfolded-prog-io|>
 
-    <section|Presentation>
+      \<gtr\> #lsmeans(Table5.7.lm,pairwise ~ trt)
+    </unfolded-prog-io|>
 
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
@@ -857,12 +1100,7 @@
 
       \ \ \ model.tbl$letters \<less\>- letters[model.tbl[,effect]]
 
-      \ \ \ model.tbl$ErrorType \<less\>- "SE"
-
-      \ \ \ #set standard names for plotting from lsmeans table
-
-      \ \ \ names(model.tbl) \<less\>- c("Treatment", "Mean", "Error", "df",
-      "Lower", "Upper", "Group", "Letters", "ErrorType")
+      \ \ \ names(model.tbl) \<less\>- c("Treatment","Mean","Error","df","Lower","Upper","Group","Letters")
 
       \ \ \ return(model.tbl)
 
@@ -904,17 +1142,9 @@
 
       + \ \ \ model.tbl$letters \<less\>- letters[model.tbl[,effect]]
 
-      + \ \ \ model.tbl$ErrorType \<less\>- "SE"
+      + \ \ \ names(model.tbl) \<less\>- c("Treatment","Mean","Error","df","Lower","Upper","G
 
-      + \ \ \ #set standard names for plotting from lsmeans table
-
-      + \ \ \ names(model.tbl) \<less\>- c("Treatment", "Mean", "Error",
-      "df", "Lower", "Uppe
-
-      \<less\>"Treatment", "Mean", "Error", "df", "Lower", "Upper", "Group",
-      "Letters", "E
-
-      \<less\>r", "df", "Lower", "Upper", "Group", "Letters", "ErrorType")
+      \<less\>"Treatment","Mean","Error","df","Lower","Upper","Group","Letters")
 
       + \ \ \ return(model.tbl)
 
@@ -929,19 +1159,15 @@
 
       \ \ \ dodge \<less\>- position_dodge(width = 0.9)
 
-      \ \ \ #give oureslves room for letters
-
       \ \ \ upper.lim \<less\>- max(model.tbl$Upper)
 
       \ \ \ upper.lim \<less\>- \ upper.lim + 0.1*upper.lim\ 
 
       \ \ \ limits \<less\>- aes(ymax = model.tbl$Upper, ymin =
-      model.tbl$Lower) \ \ 
+      model.tbl$Lower)
 
-      \ \ \ return(ggplot(data = model.tbl,\ 
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ aes(x = Treatment, y = Mean, fill =
-      Treatment)) +\ 
+      \ \ \ return(ggplot(data = model.tbl, aes(x = Treatment, y = Mean, fill
+      = Treatment)) +\ 
 
       \ \ \ \ \ geom_bar(stat = "identity", position = dodge) +
 
@@ -955,11 +1181,6 @@
 
       \ \ \ \ \ geom_text(aes(x=model.tbl$Treatment,y=upper.lim,label=Letters))
 
-      \ \ \ # \ theme(axis.text.x=element_blank(),
-      axis.ticks.x=element_blank(),
-
-      \ \ \ # \ \ \ \ \ \ \ axis.title.x=element_blank())
-
       \ \ \ )
 
       }
@@ -969,19 +1190,17 @@
 
       + \ \ \ dodge \<less\>- position_dodge(width = 0.9)
 
-      + \ \ \ #give oureslves room for letters
-
       + \ \ \ upper.lim \<less\>- max(model.tbl$Upper)
 
       + \ \ \ upper.lim \<less\>- \ upper.lim + 0.1*upper.lim\ 
 
       + \ \ \ limits \<less\>- aes(ymax = model.tbl$Upper, ymin =
-      model.tbl$Lower) \ \ 
+      model.tbl$Lower)
 
-      + \ \ \ return(ggplot(data = model.tbl,\ 
+      + \ \ \ return(ggplot(data = model.tbl, aes(x = Treatment, y = Mean,
+      fill = Trea
 
-      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ aes(x = Treatment, y = Mean, fill =
-      Treatment)) +\ 
+      \<less\>odel.tbl, aes(x = Treatment, y = Mean, fill = Treatment)) +\ 
 
       + \ \ \ \ \ geom_bar(stat = "identity", position = dodge) +
 
@@ -994,11 +1213,6 @@
       + \ \ \ \ \ scale_fill_manual(values=cbPalette) +
 
       + \ \ \ \ \ geom_text(aes(x=model.tbl$Treatment,y=upper.lim,label=Letters))
-
-      + \ \ \ # \ theme(axis.text.x=element_blank(),
-      axis.ticks.x=element_blank(),
-
-      + \ \ \ # \ \ \ \ \ \ \ axis.title.x=element_blank())
 
       + \ \ \ )
 
@@ -1015,11 +1229,7 @@
 
       \ \ \ \ \ \ plot.lsmeans.tbl(
 
-      \ \ \ \ \ \ \ \ \ make.plot.table(model,
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ form=form,effect=effect),
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ formula=formula,title=title))
+      \ \ \ \ \ \ \ \ \ make.plot.table(model,form=form,effect=effect),formula=formula,title=title))
 
       }
     <|unfolded-prog-io>
@@ -1030,11 +1240,9 @@
 
       + \ \ \ \ \ \ plot.lsmeans.tbl(
 
-      + \ \ \ \ \ \ \ \ \ make.plot.table(model,
+      + \ \ \ \ \ \ \ \ \ make.plot.table(model,form=form,effect=effect),formula=formula,tit
 
-      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ form=form,effect=effect),
-
-      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ formula=formula,title=title))
+      \<less\>model,form=form,effect=effect),formula=formula,title=title))
 
       + }
     </unfolded-prog-io|>
@@ -1054,11 +1262,302 @@
 
       \<gtr\> Table5.7.lm.plot;v()
 
-      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F6267207B2031203120312073726762207D206465660A312031203120737267620A312E3037207365746C696E6577696474680A5B5D203020736574646173680A0A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A302E303020302E3030203238382E3030203238382E303020722070330A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A32392E38392033312E3335203238322E3532203236362E363120636C0A2F6267207B20302E3932313620302E3932313620302E393231362073726762207D206465660A32392E38392033312E3335203235322E3633203233352E323620722070320A312031203120737267620A302E3533207365746C696E6577696474680A5B5D203020736574646173680A30207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A32392E38392037302E3034206D0A3235322E36332030206C0A6F0A6E700A32392E3839203133302E3831206D0A3235322E36332030206C0A6F0A6E700A32392E3839203139312E3538206D0A3235322E36332030206C0A6F0A6E700A32392E3839203235322E3335206D0A3235322E36332030206C0A6F0A312E3037207365746C696E6577696474680A5B5D203020736574646173680A6E700A32392E38392033392E3636206D0A3235322E36332030206C0A6F0A6E700A32392E3839203130302E3433206D0A3235322E36332030206C0A6F0A6E700A32392E3839203136312E3230206D0A3235322E36332030206C0A6F0A6E700A32392E3839203232312E3937206D0A3235322E36332030206C0A6F0A6E700A35342E33342033312E3335206D0A30203233352E3236206C0A6F0A6E700A39352E30382033312E3335206D0A30203233352E3236206C0A6F0A6E700A3133352E38332033312E3335206D0A30203233352E3236206C0A6F0A6E700A3137362E35382033312E3335206D0A30203233352E3236206C0A6F0A6E700A3231372E33332033312E3335206D0A30203233352E3236206C0A6F0A6E700A3235382E30372033312E3335206D0A30203233352E3236206C0A6F0A2F6267207B20302E3630303020302E3630303020302E363030302073726762207D206465660A33362E3030202D32312E31312033362E3637203131382E393720722070320A2F6267207B20302E3930323020302E3632333520302073726762207D206465660A37362E3735202D32312E31312033362E3637203134392E303420722070320A2F6267207B20302E3333373320302E3730353920302E393133372073726762207D206465660A3131372E3439202D32312E31312033362E3637203136312E343220722070320A2F6267207B203020302E3631393620302E343531302073726762207D206465660A3135382E3234202D32312E31312033362E3637203134382E303520722070320A2F6267207B203020302E3434373120302E363938302073726762207D206465660A3139382E3939202D32312E31312033362E3637203136392E313720722070320A2F6267207B20302E3833353320302E3336383620302073726762207D206465660A3233392E3734202D32312E31312033362E3637203231342E323120722070320A302030203020737267620A312E3030207365746D697465726C696D69740A6E700A34392E3234203135332E3638206D0A31302E31392030206C0A6F0A6E700A35342E3334203135332E3638206D0A30202D3131312E3634206C0A6F0A6E700A34392E32342034322E3034206D0A31302E31392030206C0A6F0A6E700A38392E3939203136352E3536206D0A31302E31392030206C0A6F0A6E700A39352E3038203136352E3536206D0A30202D37352E3237206C0A6F0A6E700A38392E39392039302E3239206D0A31302E31392030206C0A6F0A6E700A3133302E3734203137372E3934206D0A31302E31382030206C0A6F0A6E700A3133352E3833203137372E3934206D0A30202D37352E3237206C0A6F0A6E700A3133302E3734203130322E3637206D0A31302E31382030206C0A6F0A6E700A3137312E3438203136342E3537206D0A31302E31392030206C0A6F0A6E700A3137362E3538203136342E3537206D0A30202D37352E3237206C0A6F0A6E700A3137312E34382038392E3330206D0A31302E31392030206C0A6F0A6E700A3231322E3233203138352E3639206D0A31302E31392030206C0A6F0A6E700A3231372E3333203138352E3639206D0A30202D37352E3237206C0A6F0A6E700A3231322E3233203131302E3432206D0A31302E31392030206C0A6F0A6E700A3235322E3938203233302E3733206D0A31302E31392030206C0A6F0A6E700A3235382E3037203233302E3733206D0A30202D37352E3236206C0A6F0A6E700A3235322E3938203135352E3437206D0A31302E31392030206C0A6F0A2F466F6E74312066696E64666F6E7420313120730A35342E3334203235312E393720286129202E35203020740A3137362E3538203235312E393720286129202E35203020740A39352E3038203235312E393720286129202E35203020740A0A3133352E3833203235312E393720286129202E35203020740A3231372E3333203235312E393720286129202E35203020740A3235382E3037203235312E393720286129202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E74203920730A302E3330323020302E3330323020302E3330323020737267620A32342E39362033362E3432202832292031203020740A32342E39362039372E3139202834292031203020740A32342E3936203135372E3936202836292031203020740A32342E3936203231382E3734202838292031203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E3230303020302E3230303020302E3230303020737267620A312E3037207365746C696E6577696474680A5B5D203020736574646173680A30207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A32372E31352033392E3636206D0A322E37342030206C0A6F0A6E700A32372E3135203130302E3433206D0A322E37342030206C0A6F0A6E700A32372E3135203136312E3230206D0A322E37342030206C0A6F0A6E700A32372E3135203232312E3937206D0A322E37342030206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E3230303020302E3230303020302E3230303020737267620A312E3037207365746C696E6577696474680A5B5D203020736574646173680A30207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A0A35342E33342032382E3631206D0A3020322E3734206C0A6F0A6E700A39352E30382032382E3631206D0A3020322E3734206C0A6F0A6E700A3133352E38332032382E3631206D0A3020322E3734206C0A6F0A6E700A3137362E35382032382E3631206D0A3020322E3734206C0A6F0A6E700A3231372E33332032382E3631206D0A3020322E3734206C0A6F0A6E700A3235382E30372032382E3631206D0A3020322E3734206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E74203920730A302E3330323020302E3330323020302E3330323020737267620A35342E33342031392E393520283129202E35203020740A39352E30382031392E393520283229202E35203020740A3133352E38332031392E393520283329202E35203020740A3137362E35382031392E393520283429202E35203020740A3231372E33332031392E393520283529202E35203020740A3235382E30372031392E393520283629202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313120730A302030203020737267620A3133312E313420372E36372028542920302074610A2D312E3332302028726561746D656E74292074622067720A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313120730A302030203020737267620A31352E3537203134382E393820284D65616E29202E3520393020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313320730A302030203020737267620A3135362E3230203237332E313920286C6D29202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
+      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F6267207B2031203120312073726762207D206465660A312031203120737267620A312E3037207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A302E303020302E3030203238382E3030203238382E303020722070330A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A32392E38392033312E3335203238322E3532203236362E363120636C0A2F6267207B20302E3932313620302E3932313620302E393231362073726762207D206465660A32392E38392033312E3335203235322E3633203233352E323620722070320A312031203120737267620A302E3533207365746C696E6577696474680A5B5D203020736574646173680A30207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A32392E38392037302E3034206D0A3235322E36332030206C0A6F0A6E700A32392E3839203133302E3831206D0A3235322E36332030206C0A6F0A6E700A32392E3839203139312E3538206D0A3235322E36332030206C0A6F0A6E700A32392E3839203235322E3335206D0A3235322E36332030206C0A6F0A312E3037207365746C696E6577696474680A5B5D203020736574646173680A6E700A32392E38392033392E3636206D0A3235322E36332030206C0A6F0A6E700A32392E3839203130302E3433206D0A3235322E36332030206C0A6F0A6E700A32392E3839203136312E3230206D0A3235322E36332030206C0A6F0A6E700A32392E3839203232312E3937206D0A3235322E36332030206C0A6F0A6E700A35342E33342033312E3335206D0A30203233352E3236206C0A6F0A6E700A39352E30382033312E3335206D0A30203233352E3236206C0A6F0A6E700A3133352E38332033312E3335206D0A30203233352E3236206C0A6F0A6E700A3137362E35382033312E3335206D0A30203233352E3236206C0A6F0A6E700A3231372E33332033312E3335206D0A30203233352E3236206C0A6F0A6E700A3235382E30372033312E3335206D0A30203233352E3236206C0A6F0A2F6267207B20302E3630303020302E3630303020302E363030302073726762207D206465660A33362E3030202D32312E31312033362E3637203131382E393720722070320A2F6267207B20302E3930323020302E3632333520302073726762207D206465660A37362E3735202D32312E31312033362E3637203134392E303420722070320A2F6267207B20302E3333373320302E3730353920302E393133372073726762207D206465660A3131372E3439202D32312E31312033362E3637203136312E343220722070320A2F6267207B203020302E3631393620302E343531302073726762207D206465660A3135382E3234202D32312E31312033362E3637203134382E303520722070320A2F6267207B203020302E3434373120302E363938302073726762207D206465660A3139382E3939202D32312E31312033362E3637203136392E313720722070320A2F6267207B20302E3833353320302E3336383620302073726762207D206465660A3233392E3734202D32312E31312033362E3637203231342E323120722070320A302030203020737267620A312E3030207365746D697465726C696D69740A6E700A34392E3234203135332E3638206D0A31302E31392030206C0A6F0A6E700A35342E3334203135332E3638206D0A30202D3131312E3634206C0A6F0A6E700A34392E32342034322E3034206D0A31302E31392030206C0A6F0A6E700A38392E3939203136352E3536206D0A31302E31392030206C0A6F0A6E700A39352E3038203136352E3536206D0A30202D37352E3237206C0A6F0A6E700A38392E39392039302E3239206D0A31302E31392030206C0A6F0A6E700A3133302E3734203137372E3934206D0A31302E31382030206C0A6F0A6E700A3133352E3833203137372E3934206D0A30202D37352E3237206C0A6F0A6E700A3133302E3734203130322E3637206D0A31302E31382030206C0A6F0A6E700A3137312E3438203136342E3537206D0A31302E31392030206C0A6F0A6E700A3137362E3538203136342E3537206D0A30202D37352E3237206C0A6F0A6E700A3137312E34382038392E3330206D0A31302E31392030206C0A6F0A6E700A3231322E3233203138352E3639206D0A31302E31392030206C0A6F0A6E700A3231372E3333203138352E3639206D0A30202D37352E3237206C0A6F0A6E700A3231322E3233203131302E3432206D0A31302E31392030206C0A6F0A6E700A3235322E3938203233302E3733206D0A31302E31392030206C0A6F0A6E700A3235382E3037203233302E3733206D0A30202D37352E3236206C0A6F0A6E700A3235322E3938203135352E3437206D0A31302E31392030206C0A6F0A2F466F6E74312066696E64666F6E7420313120730A35342E3334203235312E393720286129202E35203020740A3137362E3538203235312E393720286129202E35203020740A39352E3038203235312E393720286129202E35203020740A3133352E3833203235312E393720286129202E35203020740A3231372E3333203235312E393720286129202E35203020740A3235382E3037203235312E393720286129202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E74203920730A302E3330323020302E3330323020302E3330323020737267620A32342E39362033362E3432202832292031203020740A32342E39362039372E3139202834292031203020740A32342E3936203135372E3936202836292031203020740A32342E3936203231382E3734202838292031203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E3230303020302E3230303020302E3230303020737267620A312E3037207365746C696E6577696474680A5B5D203020736574646173680A30207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A32372E31352033392E3636206D0A322E37342030206C0A6F0A6E700A32372E3135203130302E3433206D0A322E37342030206C0A6F0A6E700A32372E3135203136312E3230206D0A322E37342030206C0A6F0A6E700A32372E3135203232312E3937206D0A322E37342030206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E3230303020302E3230303020302E3230303020737267620A312E3037207365746C696E6577696474680A5B5D203020736574646173680A30207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A35342E33342032382E3631206D0A3020322E3734206C0A6F0A6E700A39352E30382032382E3631206D0A3020322E3734206C0A6F0A6E700A3133352E38332032382E3631206D0A3020322E3734206C0A6F0A6E700A3137362E35382032382E3631206D0A0A3020322E3734206C0A6F0A6E700A3231372E33332032382E3631206D0A3020322E3734206C0A6F0A6E700A3235382E30372032382E3631206D0A3020322E3734206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E74203920730A302E3330323020302E3330323020302E3330323020737267620A35342E33342031392E393520283129202E35203020740A39352E30382031392E393520283229202E35203020740A3133352E38332031392E393520283329202E35203020740A3137362E35382031392E393520283429202E35203020740A3231372E33332031392E393520283529202E35203020740A3235382E30372031392E393520283629202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313120730A302030203020737267620A3133312E313420372E36372028542920302074610A2D312E3332302028726561746D656E74292074622067720A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313120730A302030203020737267620A31352E3537203134382E393820284D65616E29202E3520393020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313320730A302030203020737267620A3135362E3230203237332E313920286C6D29202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
       </unfolded-prog-io|>
 
+    \;
+
     <\textput>
-      <section|Automation>
+      <section|Architecture>
+
+      Each of the functions invoked inthe preceding examples are simply the
+      <with|font-series|bold|generic> names of a larger family of related
+      functions. Every R object has an associated type or class, and when a
+      generic function is invoked with an R object as a parameter, the R
+      interpreter will dispatch the appropriate specific instance of a
+      generic function.
+
+      \;
+
+      For example, the result of an lm evaluation is an instance of the lm
+      class:
+
+      <subsection|Classes>
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      class(Table5.7.lm)
+    <|unfolded-prog-io>
+      class(Table5.7.lm)
+
+      [1] "lm"
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      mode(Table5.7.lm)
+    <|unfolded-prog-io>
+      mode(Table5.7.lm)
+
+      [1] "list"
+    </unfolded-prog-io|>
+
+    <\textput>
+      <subsection|Generic Functions>
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary
+    <|unfolded-prog-io>
+      summary
+
+      function (object, ...)\ 
+
+      UseMethod("summary")
+
+      \<less\>bytecode: 0x7fe9479735c8\<gtr\>
+
+      \<less\>environment: namespace:base\<gtr\>
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      showMethods("summary")
+    <|unfolded-prog-io>
+      showMethods("summary")
+
+      \;
+
+      Function "summary":
+
+      \ \<less\>not an S4 generic function\<gtr\>
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      head(summary.lm)
+    <|unfolded-prog-io>
+      head(summary.lm)
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      1 function (object, correlation = FALSE, symbolic.cor = FALSE,\ 
+
+      2 \ \ \ \ ...) \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      3 { \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      4 \ \ \ \ z \<less\>- object \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      5 \ \ \ \ p \<less\>- z$rank \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      6 \ \ \ \ rdf \<less\>- z$df.residual
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+    </unfolded-prog-io|>
+
+    <\textput>
+      \;
+
+      Note that summary.lm both overrides (by extending to the lm class) and
+      overloads (by adding additional parameters) the generic summary
+      function.
+
+      \;
+
+      When a workflow is based on generic functions, new packages can be
+      easily inserted into the workflow when package authors provide
+      appropriaextensions to generic functions.
+
+      \;
+
+      Some generic functions have default implementations that work for any
+      type of R object.
+
+      \;
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      print(anova(Table5.7.lm))
+    <|unfolded-prog-io>
+      print(anova(Table5.7.lm))
+
+      Analysis of Variance Table
+
+      \;
+
+      Response: obs
+
+      \ \ \ \ \ \ \ \ \ \ Df Sum Sq Mean Sq F value \ \ Pr(\<gtr\>F) \ \ \ 
+
+      trt \ \ \ \ \ \ \ 6 659.37 109.895 83.5934 1.26e-09 ***
+
+      rep \ \ \ \ \ \ \ 3 \ 17.57 \ \ 5.858 \ 4.4561 \ 0.02316 * \ 
+
+      Residuals 13 \ 17.09 \ \ 1.315 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      ---
+
+      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(anova(Table5.7.lm))
+    <|unfolded-prog-io>
+      summary(anova(Table5.7.lm))
+
+      \ \ \ \ \ \ \ Df \ \ \ \ \ \ \ \ \ \ \ \ Sum Sq \ \ \ \ \ \ \ \ \ Mean
+      Sq \ \ \ \ \ \ \ \ \ \ F value \ \ \ \ \ 
+
+      \ Min. \ \ : 3.000 \ \ Min. \ \ : 17.09 \ \ Min. \ \ : \ 1.315 \ \ Min.
+      \ \ : 4.456 \ 
+
+      \ 1st Qu.: 4.500 \ \ 1st Qu.: 17.33 \ \ 1st Qu.: \ 3.586 \ \ 1st
+      Qu.:24.240 \ 
+
+      \ Median : 6.000 \ \ Median : 17.57 \ \ Median : \ 5.858 \ \ Median
+      :44.025 \ 
+
+      \ Mean \ \ : 7.333 \ \ Mean \ \ :231.35 \ \ Mean \ \ : 39.023 \ \ Mean
+      \ \ :44.025 \ 
+
+      \ 3rd Qu.: 9.500 \ \ 3rd Qu.:338.47 \ \ 3rd Qu.: 57.877 \ \ 3rd
+      Qu.:63.809 \ 
+
+      \ Max. \ \ :13.000 \ \ Max. \ \ :659.37 \ \ Max. \ \ :109.895 \ \ Max.
+      \ \ :83.593 \ 
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ NA's
+      \ \ :1 \ \ \ \ \ \ 
+
+      \ \ \ \ \ Pr(\<gtr\>F) \ \ \ \ \ \ \ 
+
+      \ Min. \ \ :0.000000 \ 
+
+      \ 1st Qu.:0.005791 \ 
+
+      \ Median :0.011582 \ 
+
+      \ Mean \ \ :0.011582 \ 
+
+      \ 3rd Qu.:0.017372 \ 
+
+      \ Max. \ \ :0.023163 \ 
+
+      \ NA's \ \ :1 \ \ \ \ \ \ \ \ 
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      class(anova(Table5.7.lm))
+    <|unfolded-prog-io>
+      class(anova(Table5.7.lm))
+
+      [1] "anova" \ \ \ \ \ "data.frame"
+    </unfolded-prog-io|>
+
+    <\textput>
+      But some generic functions do not provide defaults:
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      VarCorr(Table5.7.lm)
+    <|unfolded-prog-io>
+      VarCorr(Table5.7.lm)
+
+      Error: could not find function "VarCorr"
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      plot
+
+      showMethods("plot")
+
+      anova
+
+      showMethods("anova")
+
+      update
+
+      showMethods("update")
+    <|unfolded-prog-io>
+      plot
+
+      function (x, y, ...)\ 
+
+      UseMethod("plot")
+
+      \<less\>bytecode: 0x7fe9474d3580\<gtr\>
+
+      \<less\>environment: namespace:graphics\<gtr\>
+
+      \<gtr\> showMethods("plot")
+
+      \;
+
+      Function "plot":
+
+      \ \<less\>not an S4 generic function\<gtr\>
+
+      \<gtr\> anova
+
+      function (object, ...)\ 
+
+      UseMethod("anova")
+
+      \<less\>bytecode: 0x7fe946975c28\<gtr\>
+
+      \<less\>environment: namespace:stats\<gtr\>
+
+      \<gtr\> showMethods("anova")
+
+      \;
+
+      Function "anova":
+
+      \ \<less\>not an S4 generic function\<gtr\>
+
+      \<gtr\> update
+
+      function (object, ...)\ 
+
+      UseMethod("update")
+
+      \<less\>bytecode: 0x7fe947bda8d8\<gtr\>
+
+      \<less\>environment: namespace:stats\<gtr\>
+
+      \<gtr\> showMethods("update")
+
+      \;
+
+      Function "update":
+
+      \ \<less\>not an S4 generic function\<gtr\>
+    </unfolded-prog-io|>
+
+    <\textput>
+      <subsection|Automation>
+
+      When a full complement of generic functions are provided, much of the
+      analysis process can be automated, i.e.\ 
+
+      \;
     </textput>
 
     <\unfolded-prog-io>
@@ -1122,143 +1621,29 @@
     </unfolded-prog-io|>
 
     <\textput>
-      <section|Architecture>
-
-      <subsection|Classes>
-    </textput>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      class(Table5.7.lm)print
-    <|unfolded-prog-io>
-      class(Table5.7.lm)print
-
-      Error: unexpected symbol in "class(Table5.7.lm)print"
-    </unfolded-prog-io|>
-
-    <\textput>
-      <subsection|Generic Functions>
-    </textput>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      plot
-
-      showMethods("plot")
-
-      summary
-
-      showMethods("summary")
-
-      anova
-
-      showMethods("anova")
-
-      update
-
-      showMethods("update")
-    <|unfolded-prog-io>
-      plot
-
-      function (x, y, ...)\ 
-
-      UseMethod("plot")
-
-      \<less\>bytecode: 0x7fa01bce0d80\<gtr\>
-
-      \<less\>environment: namespace:graphics\<gtr\>
-
-      \<gtr\> showMethods("plot")
-
-      \;
-
-      Function "plot":
-
-      \ \<less\>not an S4 generic function\<gtr\>
-
-      \<gtr\> summary
-
-      function (object, ...)\ 
-
-      UseMethod("summary")
-
-      \<less\>bytecode: 0x7fa01b209430\<gtr\>
-
-      \<less\>environment: namespace:base\<gtr\>
-
-      \<gtr\> showMethods("summary")
-
-      \;
-
-      Function "summary":
-
-      \ \<less\>not an S4 generic function\<gtr\>
-
-      \<gtr\> anova
-
-      function (object, ...)\ 
-
-      UseMethod("anova")
-
-      \<less\>bytecode: 0x7fa01a5bde28\<gtr\>
-
-      \<less\>environment: namespace:stats\<gtr\>
-
-      \<gtr\> showMethods("anova")
-
-      \;
-
-      Function "anova":
-
-      \ \<less\>not an S4 generic function\<gtr\>
-
-      \<gtr\> update
-
-      function (object, ...)\ 
-
-      UseMethod("update")
-
-      \<less\>bytecode: 0x7fa01c03bcd8\<gtr\>
-
-      \<less\>environment: namespace:stats\<gtr\>
-
-      \<gtr\> showMethods("update")
-
-      \;
-
-      Function "update":
-
-      \ \<less\>not an S4 generic function\<gtr\>
-    </unfolded-prog-io|>
-
-    <\textput>
-      <subsection|Dynamic Dispatch>
-    </textput>
-
-    <\input>
-      <with|color|red|\<gtr\> >
-    <|input>
-      \;
-    </input>
-
-    <\textput>
       <section|Advantages of Mixed Model Analysis.>
+
+      When data are balanced, variance components for mixed-effects models
+      (i.e. fixed treatments and random blocks) can be computed from an
+      analysis of variance of a linear model by setting mean squares equal to
+      their expected values and solving algebraically.
+
+      <big-table|<tabular|<tformat|<table|<row|<cell|Source>|<cell|d.f.>|<cell|MS>>|<row|<cell|Treatment>|<cell|<math|t-1>>|<cell|>>|<row|<cell|Replicate>|<cell|<math|r-1>>|<cell|s>>|<row|<cell|Residual>|<cell|<math|<around*|(|t-1|)><around*|(|r-1|)>>>|<cell|<math|\<sigma\><rsup|2>>>>>>>|>
+
+      \;
+
+      When data are not balanced, effects can be confounded, are there may
+      not be a unique decomposition of the sums of squares.
     </textput>
 
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
-      Table5.7b.lm \<less\>- lm(obs ~ rep+trt, data = Table5.7)
+      anova(lm(obs ~ trt+rep, data = Table5.7))
 
-      anova(Table5.7.lm)
-
-      anova(Table5.7b.lm)
+      anova(lm(obs ~ rep+trt, data = Table5.7))
     <|unfolded-prog-io>
-      Table5.7b.lm \<less\>- lm(obs ~ rep+trt, data = Table5.7)
-
-      \<gtr\> anova(Table5.7.lm)
+      anova(lm(obs ~ trt+rep, data = Table5.7))
 
       Analysis of Variance Table
 
@@ -1266,19 +1651,19 @@
 
       Response: obs
 
-      \ \ \ \ \ \ \ \ \ \ Df Sum Sq Mean Sq F value \ \ Pr(\<gtr\>F) \ \ \ 
+      \ \ \ \ \ \ \ \ \ \ Df Sum Sq Mean Sq F value \ Pr(\<gtr\>F) \ 
 
-      trt \ \ \ \ \ \ \ 6 659.37 109.895 83.5934 1.26e-09 ***
+      trt \ \ \ \ \ \ \ 5 16.879 \ 3.3759 \ 2.5679 0.07928 .
 
-      rep \ \ \ \ \ \ \ 3 \ 17.57 \ \ 5.858 \ 4.4561 \ 0.02316 * \ 
+      rep \ \ \ \ \ \ \ 3 17.575 \ 5.8582 \ 4.4561 0.02316 *
 
-      Residuals 13 \ 17.09 \ \ 1.315 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+      Residuals 13 17.090 \ 1.3146 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
       ---
 
       Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-      \<gtr\> anova(Table5.7b.lm)
+      \<gtr\> anova(lm(obs ~ rep+trt, data = Table5.7))
 
       Analysis of Variance Table
 
@@ -1298,6 +1683,13 @@
 
       Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     </unfolded-prog-io|>
+
+    <\textput>
+      Linear mixed effect models are typically expressed using the Laird-Ward
+      notation.
+
+      \;
+    </textput>
 
     <\textput>
       <subsection|Advantage of linear models>
@@ -1335,27 +1727,20 @@
 
       \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
 
-      "lm.fit" \ \ \ \ \ 0.24 \ \ \ 92.31 \ \ \ \ \ \ 0.24 \ \ \ \ 92.31
-
-      "lapply" \ \ \ \ \ 0.02 \ \ \ \ 7.69 \ \ \ \ \ \ 0.02 \ \ \ \ \ 7.69
+      "lm.fit" \ \ \ \ \ \ 0.1 \ \ \ \ \ 100 \ \ \ \ \ \ \ 0.1
+      \ \ \ \ \ \ 100
 
       \;
 
       $by.total
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
+      \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "lm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.26 \ \ \ 100.00 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
+      "lm.fit" \ \ \ \ \ \ \ 0.1 \ \ \ \ \ \ 100 \ \ \ \ \ \ 0.1
+      \ \ \ \ \ 100
 
-      "lm.fit" \ \ \ \ \ \ \ \ \ \ \ 0.24 \ \ \ \ 92.31 \ \ \ \ \ 0.24
-      \ \ \ 92.31
-
-      "lapply" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 7.69 \ \ \ \ \ 0.02
-      \ \ \ \ 7.69
-
-      ".getXlevels" \ \ \ \ \ \ 0.02 \ \ \ \ \ 7.69 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
+      "lm" \ \ \ \ \ \ \ \ \ \ \ 0.1 \ \ \ \ \ \ 100 \ \ \ \ \ \ 0.0
+      \ \ \ \ \ \ \ 0
 
       \;
 
@@ -1367,7 +1752,7 @@
 
       $sampling.time
 
-      [1] 0.26
+      [1] 0.1
 
       \;
 
@@ -1397,6 +1782,114 @@
       ---
 
       Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    </unfolded-prog-io|>
+
+    <\textput>
+      <subsection|Problems with the linear model>
+
+      Example 2
+
+      \;
+
+      If data are balanced, we can estimate variances from the expected means
+      squares,
+
+      <\with|par-mode|center>
+        <tabular*|<tformat|<cwith|2|-1|2|2|cell-halign|l>|<cwith|2|-1|3|3|cell-halign|l>|<cwith|2|-1|1|1|cell-halign|l>|<table|<row|<cell|<with|font-series|bold|Source>>|<cell|<with|font-series|bold|d.f.>>|<cell|<with|font-series|bold|Expected
+        Mean Squares>>|<cell|>>|<row|<cell|Genotypes>|<cell|<math|g-1>>|<cell|<math|\<sigma\><rsub|e><rsup|2>+b\<sigma\><rsub|u<rsub|3>>+a
+        b\<theta\><rsub|\<beta\>><rsup|2>>>|<cell|>>|<row|<cell|Environments>|<cell|<math|a-1>>|<cell|<math|\<sigma\><rsub|e><rsup|2>+g\<sigma\><rsup|2><rsub|u<rsub|2>>+b\<sigma\><rsub|u<rsub|3>>+g
+        b\<sigma\><rsup|2><rsub|u<rsub|1>>>>|<cell|>>|<row|<cell|Blocks in
+        Environments>|<cell|<math|a<around*|(|b-1|)>>>|<cell|<math|\<sigma\><rsub|e><rsup|2>><math|+g\<sigma\><rsup|2><rsub|u<rsub|2>>>>|<cell|>>|<row|<cell|GEI>|<cell|<math|<around*|(|a-1|)><around*|(|g-1|)>>>|<cell|<math|\<sigma\><rsub|e><rsup|2>+b\<sigma\><rsub|u<rsub|3>><rsup|2>>>|<cell|>>|<row|<cell|Residual>|<cell|<math|a<around*|(|g-1|)><around*|(|g
+        b - g-1|)>>>|<cell|<math|\<sigma\><rsub|e><rsup|2>>>|<cell|>>>>>
+      </with>
+
+      \;
+
+      For example,\ 
+
+      <\eqnarray*>
+        <tformat|<table|<row|<cell|MS<rsub|GEI>>|<cell|=>|<cell|\<sigma\><rsub|e><rsup|2>+b\<sigma\><rsub|u<rsub|3>><rsup|2>>>|<row|<cell|MS<rsub|e>>|<cell|=>|<cell|\<sigma\><rsub|e><rsup|2>>>|<row|<cell|\<sigma\><rsub|u<rsub|3>><rsup|2>>|<cell|=>|<cell|<around*|(|MS<rsub|GEI>-MS<rsub|e>|)>/b>>>>
+      </eqnarray*>
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Ex16.8.1.lm \<less\>- lm(Yield ~ Trial:Rep + Variety*Trial,
+      data=Ex16.8.1)
+
+      anova(Ex16.8.1.lm)
+
+      lsmeans(Ex16.8.1.lm,cld ~ Variety)
+    <|unfolded-prog-io>
+      Ex16.8.1.lm \<less\>- lm(Yield ~ Trial:Rep + Variety*Trial,
+      data=Ex16.8.1)
+
+      \<gtr\> anova(Ex16.8.1.lm)
+
+      Analysis of Variance Table
+
+      \;
+
+      Response: Yield
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ Df \ Sum Sq Mean Sq F value
+      \ \ \ Pr(\<gtr\>F) \ \ \ 
+
+      Variety \ \ \ \ \ \ 11 \ 925090 \ \ 84099 \ 4.2673 8.696e-05 ***
+
+      Trial \ \ \ \ \ \ \ \ \ 2 3113626 1556813 78.9943 \<less\> 2.2e-16 ***
+
+      Trial:Rep \ \ \ \ \ 6 \ \ 69256 \ \ 11543 \ 0.5857 \ \ \ 0.7405 \ \ \ 
+
+      Trial:Variety 22 \ 532900 \ \ 24223 \ 1.2291 \ \ \ 0.2557 \ \ \ 
+
+      Residuals \ \ \ \ 66 1300723 \ \ 19708
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      ---
+
+      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+      \<gtr\> lsmeans(Ex16.8.1.lm,cld ~ Variety)
+
+      NOTE: Results may be misleading due to involvement in interactions
+
+      \ Variety \ \ \ \ \ lsmean \ \ \ \ \ \ SE df lower.CL upper.CL .group
+
+      \ R75-12 \ \ \ \ 1175.889 46.79497 66 1082.460 1269.318 \ 1 \ \ \ 
+
+      \ N72-3058 \ \ 1330.667 46.79497 66 1237.237 1424.096 \ 12 \ \ 
+
+      \ Tracy \ \ \ \ \ 1369.889 46.79497 66 1276.460 1463.318 \ 123 \ 
+
+      \ R73-81 \ \ \ \ 1373.778 46.79497 66 1280.349 1467.207 \ 123 \ 
+
+      \ Centennial 1394.778 46.79497 66 1301.349 1488.207 \ 123 \ 
+
+      \ N73-882 \ \ \ 1396.667 46.79497 66 1303.237 1490.096 \ 123 \ 
+
+      \ N73-877 \ \ \ 1403.333 46.79497 66 1309.904 1496.763 \ \ 23 \ 
+
+      \ D74-7741 \ \ 1406.444 46.79497 66 1313.015 1499.874 \ \ 23 \ 
+
+      \ N73-693 \ \ \ 1436.222 46.79497 66 1342.793 1529.651 \ \ 23 \ 
+
+      \ N72-137 \ \ \ 1483.889 46.79497 66 1390.460 1577.318 \ \ 23 \ 
+
+      \ N73-1102 \ \ 1501.444 46.79497 66 1408.015 1594.874 \ \ 23 \ 
+
+      \ N72-3148 \ \ 1566.000 46.79497 66 1472.571 1659.429 \ \ \ 3 \ 
+
+      \;
+
+      Results are averaged over the levels of: Trial, Rep\ 
+
+      Confidence level used: 0.95\ 
+
+      P value adjustment: tukey method for comparing a family of 12 estimates\ 
+
+      significance level used: alpha = 0.05\ 
     </unfolded-prog-io|>
 
     \;
@@ -1458,6 +1951,8 @@
     <|unfolded-prog-io>
       library(nlme)
 
+      packageDescription("nlme")
+
       \;
 
       Table5.7.lme \<less\>- lme(obs ~ 0+trt, random = ~ 1 \| rep,
@@ -1484,6 +1979,90 @@
       summary(glht(Table5.7.lme,linfct=mcp(trt="Tukey")))
     <|unfolded-prog-io>
       library(nlme)
+
+      \<gtr\> packageDescription("nlme")
+
+      Package: nlme
+
+      Version: 3.1-128
+
+      Date: 2016-05-04
+
+      Priority: recommended
+
+      Title: Linear and Nonlinear Mixed Effects Models
+
+      Authors@R: c(person("Jos'e", "Pinheiro", role = "aut", comment = "S
+
+      \ \ \ \ \ \ \ version"), person("Douglas", "Bates", role = "aut",
+      comment =
+
+      \ \ \ \ \ \ \ "up to 2007"), person("Saikat", "DebRoy", role = "ctb",
+
+      \ \ \ \ \ \ \ comment = "up to 2002"), person("Deepayan", "Sarkar",
+      role =
+
+      \ \ \ \ \ \ \ "ctb", comment = "up to 2005"), person("EISPACK authors",
+
+      \ \ \ \ \ \ \ role = "ctb", comment = "src/rs.f"), person("Siem",
+
+      \ \ \ \ \ \ \ "Heisterkamp", role = "ctb", comment = "Author fixed
+      sigma"),
+
+      \ \ \ \ \ \ \ person("Bert", "Van Willigen",role = "ctb", comment =
+
+      \ \ \ \ \ \ \ "Programmer fixed sigma"), person("R-core", email =
+
+      \ \ \ \ \ \ \ "R-core@R-project.org", role = c("aut", "cre")))
+
+      Description: Fit and compare Gaussian linear and nonlinear
+
+      \ \ \ \ \ \ \ mixed-effects models.
+
+      Depends: R (\<gtr\>= 3.0.2)
+
+      Imports: graphics, stats, utils, lattice
+
+      Suggests: Hmisc, MASS
+
+      LazyData: yes
+
+      ByteCompile: yes
+
+      Encoding: UTF-8
+
+      License: GPL (\<gtr\>= 2) \| file LICENCE
+
+      BugReports: http://bugs.r-project.org
+
+      NeedsCompilation: yes
+
+      Packaged: 2016-05-09 08:38:54 UTC; maechler
+
+      Author: Jos'e Pinheiro [aut] (S version), Douglas Bates [aut] (up to
+
+      \ \ \ \ \ \ \ 2007), Saikat DebRoy [ctb] (up to 2002), Deepayan Sarkar
+
+      \ \ \ \ \ \ \ [ctb] (up to 2005), EISPACK authors [ctb] (src/rs.f),
+      Siem
+
+      \ \ \ \ \ \ \ Heisterkamp [ctb] (Author fixed sigma), Bert Van Willigen
+
+      \ \ \ \ \ \ \ [ctb] (Programmer fixed sigma), R-core [aut, cre]
+
+      Maintainer: R-core \<less\>R-core@R-project.org\<gtr\>
+
+      Repository: CRAN
+
+      Date/Publication: 2016-05-10 11:40:55
+
+      Built: R 3.3.1; x86_64-apple-darwin13.4.0; 2016-06-24 18:37:31 UTC;
+
+      \ \ \ \ \ \ \ unix
+
+      \;
+
+      -- File: /Library/Frameworks/R.framework/Versions/3.3/Resources/library/nlme/Meta/package.rds\ 
 
       \<gtr\>\ 
 
@@ -1615,15 +2194,15 @@
 
       \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error z value Pr(\<gtr\>\|z\|) \ \ 
 
-      2 - 1 == 0 \ \ 0.9633 \ \ \ \ 1.0197 \ \ 0.945 \ 0.73108 \ \ 
+      2 - 1 == 0 \ \ 0.9633 \ \ \ \ 1.0197 \ \ 0.945 \ 0.73100 \ \ 
 
-      3 - 1 == 0 \ \ 1.3708 \ \ \ \ 1.0197 \ \ 1.344 \ 0.44592 \ \ 
+      3 - 1 == 0 \ \ 1.3708 \ \ \ \ 1.0197 \ \ 1.344 \ 0.44576 \ \ 
 
-      4 - 1 == 0 \ \ 0.9308 \ \ \ \ 1.0197 \ \ 0.913 \ 0.75413 \ \ 
+      4 - 1 == 0 \ \ 0.9308 \ \ \ \ 1.0197 \ \ 0.913 \ 0.75415 \ \ 
 
-      5 - 1 == 0 \ \ 1.6258 \ \ \ \ 1.0197 \ \ 1.594 \ 0.30085 \ \ 
+      5 - 1 == 0 \ \ 1.6258 \ \ \ \ 1.0197 \ \ 1.594 \ 0.30053 \ \ 
 
-      6 - 1 == 0 \ \ 3.1083 \ \ \ \ 1.0197 \ \ 3.048 \ 0.00899 **
+      6 - 1 == 0 \ \ 3.1083 \ \ \ \ 1.0197 \ \ 3.048 \ 0.00906 **
 
       ---
 
@@ -1767,7 +2346,7 @@
 
       5 - 2 == 0 \ \ 0.6625 \ \ \ \ 0.8119 \ \ 0.816 \ \ 0.9642 \ 
 
-      6 - 2 == 0 \ \ 2.1450 \ \ \ \ 0.8119 \ \ 2.642 \ \ 0.0861 .
+      6 - 2 == 0 \ \ 2.1450 \ \ \ \ 0.8119 \ \ 2.642 \ \ 0.0862 .
 
       4 - 3 == 0 \ -0.4400 \ \ \ \ 0.8119 \ -0.542 \ \ 0.9943 \ 
 
@@ -1777,9 +2356,9 @@
 
       5 - 4 == 0 \ \ 0.6950 \ \ \ \ 0.8119 \ \ 0.856 \ \ 0.9561 \ 
 
-      6 - 4 == 0 \ \ 2.1775 \ \ \ \ 0.8119 \ \ 2.682 \ \ 0.0774 .
+      6 - 4 == 0 \ \ 2.1775 \ \ \ \ 0.8119 \ \ 2.682 \ \ 0.0777 .
 
-      6 - 5 == 0 \ \ 1.4825 \ \ \ \ 0.8119 \ \ 1.826 \ \ 0.4454 \ 
+      6 - 5 == 0 \ \ 1.4825 \ \ \ \ 0.8119 \ \ 1.826 \ \ 0.4455 \ 
 
       ---
 
@@ -1875,8 +2454,99 @@
 
       \<gtr\> lme.plot;v()
 
-      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A0A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F6267207B2031203120312073726762207D206465660A312031203120737267620A312E3037207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A302E303020302E3030203238382E3030203238382E303020722070330A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A32392E38392033312E3335203238322E3532203236362E363120636C0A2F6267207B20302E3932313620302E3932313620302E393231362073726762207D206465660A32392E38392033312E3335203235322E3633203233352E323620722070320A312031203120737267620A302E3533207365746C696E6577696474680A5B5D203020736574646173680A30207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A32392E38392037332E3938206D0A3235322E36332030206C0A6F0A6E700A32392E3839203132392E3738206D0A3235322E36332030206C0A6F0A6E700A32392E3839203138352E3538206D0A3235322E36332030206C0A6F0A6E700A32392E3839203234312E3338206D0A3235322E36332030206C0A6F0A312E3037207365746C696E6577696474680A5B5D203020736574646173680A6E700A32392E38392034362E3038206D0A3235322E36332030206C0A6F0A6E700A32392E3839203130312E3838206D0A3235322E36332030206C0A6F0A6E700A32392E3839203135372E3638206D0A3235322E36332030206C0A6F0A6E700A32392E3839203231332E3438206D0A3235322E36332030206C0A6F0A6E700A35342E33342033312E3335206D0A30203233352E3236206C0A6F0A6E700A39352E30382033312E3335206D0A30203233352E3236206C0A6F0A6E700A3133352E38332033312E3335206D0A30203233352E3236206C0A6F0A6E700A3137362E35382033312E3335206D0A30203233352E3236206C0A6F0A6E700A3231372E33332033312E3335206D0A30203233352E3236206C0A6F0A6E700A3235382E30372033312E3335206D0A30203233352E3236206C0A6F0A2F6267207B20302E3630303020302E3630303020302E363030302073726762207D206465660A33362E3030202D392E37322033362E3637203130392E393720722070320A2F6267207B20302E3930323020302E3632333520302073726762207D206465660A37362E3735202D392E37322033362E3637203133362E383520722070320A2F6267207B20302E3333373320302E3730353920302E393133372073726762207D206465660A3131372E3439202D392E37322033362E3637203134382E323220722070320A2F6267207B203020302E3631393620302E343531302073726762207D206465660A3135382E3234202D392E37322033362E3637203133352E393420722070320A2F6267207B203020302E3434373120302E363938302073726762207D206465660A3139382E3939202D392E37322033362E3637203135352E333320722070320A2F6267207B20302E3833353320302E3336383620302073726762207D206465660A3233392E3734202D392E37322033362E3637203139362E363920722070320A302030203020737267620A312E3030207365746D697465726C696D69740A6E700A34392E3234203135382E3437206D0A31302E31392030206C0A6F0A6E700A35342E3334203135382E3437206D0A30202D3131362E3433206C0A6F0A6E700A34392E32342034322E3034206D0A31302E31392030206C0A6F0A6E700A38392E3939203137312E3932206D0A31302E31392030206C0A6F0A6E700A39352E3038203137312E3932206D0A30202D38392E3538206C0A6F0A6E700A38392E39392038322E3334206D0A31302E31392030206C0A6F0A6E700A3133302E3734203138332E3239206D0A31302E31382030206C0A6F0A6E700A3133352E3833203138332E3239206D0A30202D38392E3539206C0A6F0A6E700A3133302E37342039332E3730206D0A31302E31382030206C0A6F0A6E700A3137312E3438203137312E3032206D0A31302E31392030206C0A6F0A6E700A3137362E3538203137312E3032206D0A30202D38392E3539206C0A6F0A6E700A3137312E34382038312E3433206D0A31302E31392030206C0A6F0A6E700A3231322E3233203139302E3431206D0A31302E31392030206C0A6F0A6E700A3231372E3333203139302E3431206D0A30202D38392E3539206C0A6F0A6E700A3231322E3233203130302E3832206D0A31302E31392030206C0A6F0A6E700A3235322E3938203233312E3737206D0A31302E31392030206C0A6F0A6E700A3235382E3037203233312E3737206D0A30202D38392E3539206C0A6F0A6E700A3235322E3938203134322E3138206D0A31302E31392030206C0A6F0A2F466F6E74312066696E64666F6E7420313120730A35342E3334203235312E393720286229202E35203020740A3137362E3538203235312E39372028616229202E35203020740A39352E3038203235312E39372028616229202E35203020740A3133352E3833203235312E39372028616229202E35203020740A3231372E3333203235312E39372028616229202E35203020740A3235382E3037203235312E393720286129202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E74203920730A302E3330323020302E3330323020302E3330323020737267620A32342E39362034322E3835202832292031203020740A32342E39362039382E3635202834292031203020740A32342E3936203135342E3435202836292031203020740A32342E3936203231302E3235202838292031203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E3230303020302E3230303020302E3230303020737267620A312E3037207365746C696E6577696474680A5B5D203020736574646173680A30207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A32372E31352034362E3038206D0A322E37342030206C0A6F0A6E700A32372E3135203130312E3838206D0A322E37342030206C0A6F0A6E700A32372E3135203135372E3638206D0A322E37342030206C0A6F0A6E700A32372E3135203231332E3438206D0A322E37342030206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E3230303020302E3230303020302E3230303020737267620A312E3037207365746C696E6577696474680A5B5D203020736574646173680A30207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A35342E33342032382E3631206D0A3020322E3734206C0A6F0A6E700A39352E30382032382E3631206D0A3020322E3734206C0A6F0A6E700A3133352E38332032382E3631206D0A3020322E3734206C0A6F0A6E700A3137362E35382032382E3631206D0A3020322E3734206C0A6F0A6E700A3231372E33332032382E3631206D0A3020322E3734206C0A6F0A6E700A3235382E30372032382E3631206D0A3020322E3734206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E74203920730A302E3330323020302E3330323020302E3330323020737267620A35342E33342031392E393520283129202E35203020740A39352E30382031392E393520283229202E35203020740A3133352E38332031392E393520283329202E35203020740A3137362E35382031392E393520283429202E35203020740A3231372E33332031392E393520283529202E35203020740A3235382E30372031392E393520283629202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313120730A302030203020737267620A3133312E313420372E36372028542920302074610A2D312E3332302028726561746D656E74292074622067720A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313120730A302030203020737267620A31352E3537203134382E393820284D65616E29202E3520393020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313320730A302030203020737267620A3135362E3230203237332E313920286C6D6529202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
+      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F6267207B2031203120312073726762207D206465660A312031203120737267620A312E3037207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A302E303020302E3030203238382E3030203238382E303020722070330A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A32392E38392033312E3335203238322E3532203236362E363120636C0A2F6267207B20302E3932313620302E3932313620302E393231362073726762207D206465660A32392E38392033312E3335203235322E3633203233352E323620722070320A312031203120737267620A302E3533207365746C696E6577696474680A5B5D203020736574646173680A30207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A32392E38392037332E3938206D0A3235322E36332030206C0A6F0A6E700A32392E3839203132392E3738206D0A3235322E36332030206C0A6F0A6E700A32392E3839203138352E3538206D0A3235322E36332030206C0A6F0A6E700A32392E3839203234312E3338206D0A3235322E36332030206C0A6F0A312E3037207365746C696E6577696474680A5B5D203020736574646173680A6E700A32392E38392034362E3038206D0A3235322E36332030206C0A6F0A6E700A32392E3839203130312E3838206D0A3235322E36332030206C0A6F0A6E700A32392E3839203135372E3638206D0A3235322E36332030206C0A6F0A6E700A32392E3839203231332E3438206D0A3235322E36332030206C0A6F0A6E700A35342E33342033312E3335206D0A30203233352E3236206C0A6F0A6E700A39352E30382033312E3335206D0A30203233352E3236206C0A6F0A6E700A3133352E38332033312E3335206D0A30203233352E3236206C0A6F0A6E700A3137362E35382033312E3335206D0A30203233352E3236206C0A6F0A6E700A3231372E33332033312E3335206D0A30203233352E3236206C0A6F0A6E700A3235382E30372033312E3335206D0A30203233352E3236206C0A6F0A2F6267207B20302E3630303020302E3630303020302E363030302073726762207D206465660A33362E3030202D392E37322033362E3637203130392E393720722070320A2F6267207B20302E3930323020302E3632333520302073726762207D206465660A37362E3735202D392E37322033362E3637203133362E383520722070320A2F6267207B20302E3333373320302E3730353920302E393133372073726762207D206465660A3131372E3439202D392E37322033362E3637203134382E323220722070320A2F6267207B203020302E3631393620302E343531302073726762207D206465660A3135382E3234202D392E37322033362E3637203133352E393420722070320A2F6267207B203020302E3434373120302E363938302073726762207D206465660A3139382E3939202D392E37322033362E3637203135352E333320722070320A2F6267207B20302E3833353320302E3336383620302073726762207D206465660A3233392E3734202D392E37322033362E3637203139362E363920722070320A302030203020737267620A312E3030207365746D697465726C696D69740A6E700A34392E3234203135382E3437206D0A31302E31392030206C0A6F0A6E700A35342E3334203135382E3437206D0A30202D3131362E3433206C0A6F0A6E700A34392E32342034322E3034206D0A31302E31392030206C0A6F0A6E700A38392E3939203137312E3932206D0A31302E31392030206C0A6F0A6E700A39352E3038203137312E3932206D0A30202D38392E3538206C0A6F0A6E700A38392E39392038322E3334206D0A31302E31392030206C0A6F0A6E700A3133302E3734203138332E3239206D0A31302E31382030206C0A6F0A6E700A3133352E3833203138332E3239206D0A30202D38392E3539206C0A6F0A6E700A3133302E37342039332E3730206D0A31302E31382030206C0A6F0A6E700A3137312E3438203137312E3032206D0A31302E31392030206C0A6F0A6E700A3137362E3538203137312E3032206D0A30202D38392E3539206C0A6F0A6E700A3137312E34382038312E3433206D0A31302E31392030206C0A6F0A6E700A3231322E3233203139302E3431206D0A31302E31392030206C0A6F0A6E700A3231372E3333203139302E3431206D0A30202D38392E3539206C0A6F0A6E700A3231322E3233203130302E3832206D0A31302E31392030206C0A6F0A6E700A3235322E3938203233312E3737206D0A31302E31392030206C0A6F0A6E700A3235382E3037203233312E3737206D0A30202D38392E3539206C0A6F0A6E700A3235322E3938203134322E3138206D0A31302E31392030206C0A6F0A2F466F6E74312066696E64666F6E7420313120730A35342E3334203235312E393720286229202E35203020740A3137362E3538203235312E39372028616229202E35203020740A39352E3038203235312E39372028616229202E35203020740A3133352E3833203235312E39372028616229202E35203020740A3231372E3333203235312E39372028616229202E35203020740A3235382E3037203235312E393720286129202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E74203920730A302E3330323020302E3330323020302E3330323020737267620A32342E39362034322E3835202832292031203020740A32342E39362039382E3635202834292031203020740A32342E3936203135342E3435202836292031203020740A32342E3936203231302E3235202838292031203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E3230303020302E3230303020302E3230303020737267620A312E3037207365746C696E6577696474680A5B5D203020736574646173680A30207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A32372E31352034362E3038206D0A322E37342030206C0A6F0A6E700A32372E3135203130312E3838206D0A322E37342030206C0A6F0A6E700A32372E3135203135372E3638206D0A322E37342030206C0A6F0A6E700A32372E3135203231332E3438206D0A322E37342030206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E3230303020302E3230303020302E3230303020737267620A312E3037207365746C696E6577696474680A5B5D203020736574646173680A30207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A35342E33342032382E3631206D0A3020322E3734206C0A6F0A6E700A39352E30382032382E3631206D0A3020322E3734206C0A6F0A6E700A3133352E38332032382E3631206D0A3020322E3734206C0A6F0A6E700A3137362E35382032382E3631206D0A3020322E3734206C0A6F0A6E700A3231372E33332032382E3631206D0A3020322E3734206C0A6F0A6E700A3235382E30372032382E3631206D0A3020322E3734206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E74203920730A302E3330323020302E3330323020302E3330323020737267620A35342E33342031392E393520283129202E35203020740A39352E30382031392E393520283229202E35203020740A3133352E38332031392E393520283329202E35203020740A3137362E35382031392E393520283429202E35203020740A3231372E33332031392E393520283529202E35203020740A3235382E30372031392E393520283629202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313120730A302030203020737267620A3133312E313420372E36372028542920302074610A2D312E3332302028726561746D656E74292074622067720A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313120730A302030203020737267620A31352E3537203134382E393820284D65616E29202E3520393020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313320730A302030203020737267620A3135362E3230203237332E313920286C6D6529202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
       </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      print(vtbl \<less\>- vcov(Table5.7.lme))
+    <|unfolded-prog-io>
+      print(vtbl \<less\>- vcov(Table5.7.lme))
+
+      \ \ \ \ \ \ \ \ \ \ trt1 \ \ \ \ \ trt2 \ \ \ \ \ trt3 \ \ \ \ \ trt4
+      \ \ \ \ \ trt5 \ \ \ \ \ trt6
+
+      trt1 0.9328210 0.2227121 0.2227121 0.2227121 0.2227121 0.2227121
+
+      trt2 0.2227121 0.5523330 0.2227121 0.2227121 0.2227121 0.2227121
+
+      trt3 0.2227121 0.2227121 0.5523330 0.2227121 0.2227121 0.2227121
+
+      trt4 0.2227121 0.2227121 0.2227121 0.5523330 0.2227121 0.2227121
+
+      trt5 0.2227121 0.2227121 0.2227121 0.2227121 0.5523330 0.2227121
+
+      trt6 0.2227121 0.2227121 0.2227121 0.2227121 0.2227121 0.5523330
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      sqrt(vtbl[1,1]);sqrt(vtbl[2,2])
+    <|unfolded-prog-io>
+      sqrt(vtbl[1,1]);sqrt(vtbl[2,2])
+
+      [1] 0.9658266
+
+      [1] 0.7431911
+    </unfolded-prog-io|>
+
+    <\textput>
+      Corresponding errors from lsmeans(Table5.7.lme,cld ~ trt) are 0.9658266
+      and 0.7431911
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      sqrt(vtbl[1,1]+vtbl[2,2]-vtbl[1,2]-vtbl[2,1])
+    <|unfolded-prog-io>
+      sqrt(vtbl[1,1]+vtbl[2,2]-vtbl[1,2]-vtbl[2,1])
+
+      [1] 1.019671
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      sqrt(vtbl[3,3]+vtbl[2,2]-vtbl[3,2]-vtbl[2,3])
+    <|unfolded-prog-io>
+      sqrt(vtbl[3,3]+vtbl[2,2]-vtbl[3,2]-vtbl[2,3])
+
+      [1] 0.8119371
+    </unfolded-prog-io|>
+
+    <\textput>
+      Corresponding errors from glht(Table5.7.lme,linfct=mcp(trt="Tukey"))
+      are 1.0197 and 0.8119.
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      coef(Table5.7.lme)
+    <|unfolded-prog-io>
+      coef(Table5.7.lme)
+
+      \ \ \ \ \ \ trt1 \ trt2 \ \ trt3 \ \ trt4 \ \ trt5 trt6 (Intercept)
+
+      1 3.941652 4.905 5.3125 4.8725 5.5675 7.05 \ -1.0952879
+
+      2 3.941652 4.905 5.3125 4.8725 5.5675 7.05 \ \ 0.9185912
+
+      3 3.941652 4.905 5.3125 4.8725 5.5675 7.05 \ -0.0346458
+
+      4 3.941652 4.905 5.3125 4.8725 5.5675 7.05 \ \ 0.2113425
+    </unfolded-prog-io|>
+
+    <\textput>
+      \;
+    </textput>
+
+    <subsection|Example 2>
+
+    \;
 
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
@@ -2824,12 +3494,6 @@
       8: In RET$pfunction("adjusted", ...) : Completion with error \<gtr\>
       abseps
 
-      9: In RET$pfunction("adjusted", ...) : Completion with error \<gtr\>
-      abseps
-
-      10: In RET$pfunction("adjusted", ...) : Completion with error \<gtr\>
-      abseps
-
       \<gtr\> cld(glht(Ex16.8.1.lme,linfct=mcp(Variety="Tukey",interaction_average
       = TRUE
 
@@ -2851,7 +3515,7 @@
       \ \ \ \ \ \ "ab" \ \ \ \ \ \ "ab" \ \ \ \ \ \ "ac" \ \ \ \ \ \ \ "c"
       \ \ \ \ \ \ "ac"\ 
 
-      There were 13 warnings (use warnings() to see them)
+      There were 14 warnings (use warnings() to see them)
     </unfolded-prog-io|>
 
     <\textput>
@@ -2862,7 +3526,13 @@
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
       rcbd.dat$Block \<less\>- rcbd.dat$Loca:rcbd.dat$Repe
+    <|unfolded-prog-io>
+      rcbd.dat$Block \<less\>- rcbd.dat$Loca:rcbd.dat$Repe
+    </unfolded-prog-io|>
 
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
       if(!file.exists("meta.lme.Rda")) {
 
       \ \ Rprof("meta.lme.prof")
@@ -2885,15 +3555,29 @@
 
       \ \ \ save(cotes.lme, file="cotes.lme.Rda")
 
+      \ } else {
+
+      \ \ \ load(file="meta.lme.Rda")
+
+      \ \ \ load(file="cotes.lme.Rda")
+
       \ }
 
-      summaryRprof("meta.lme.prof")
+      meta.lme.summary \<less\>- summaryRprof("meta.lme.prof")
 
-      summaryRprof("cotes.lme.prof")
+      cotes.lme.summary \<less\>- summaryRprof("cotes.lme.prof")
+
+      head(meta.lme.summary[[1]])
+
+      head(meta.lme.summary[[2]])
+
+      head(cotes.lme.summary[[1]])
+
+      head(cotes.lme.summary[[2]])
+
+      \;
     <|unfolded-prog-io>
-      rcbd.dat$Block \<less\>- rcbd.dat$Loca:rcbd.dat$Repe
-
-      \<gtr\> if(!file.exists("meta.lme.Rda")) {
+      if(!file.exists("meta.lme.Rda")) {
 
       + \ \ Rprof("meta.lme.prof")
 
@@ -2921,476 +3605,611 @@
 
       + \ \ \ save(cotes.lme, file="cotes.lme.Rda")
 
+      + \ } else {
+
+      + \ \ \ load(file="meta.lme.Rda")
+
+      + \ \ \ load(file="cotes.lme.Rda")
+
       + \ }
 
-      \<gtr\> summaryRprof("meta.lme.prof")
+      \<gtr\> meta.lme.summary \<less\>- summaryRprof("meta.lme.prof")
 
-      $by.self
+      \<gtr\> cotes.lme.summary \<less\>- summaryRprof("cotes.lme.prof")
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
-      total.pct
+      \<gtr\> head(meta.lme.summary[[1]])
 
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.20 \ \ \ 89.97
-      \ \ \ \ \ \ 5.20 \ \ \ \ 89.97
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
 
-      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ 2.77
-      \ \ \ \ \ \ 0.44 \ \ \ \ \ 7.61
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 3.12 \ \ \ 89.66 \ \ \ \ \ \ 3.12
+      \ \ \ \ 89.66
 
-      "array" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ 2.77
-      \ \ \ \ \ \ 0.32 \ \ \ \ \ 5.54
+      "array" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ 4.02 \ \ \ \ \ \ 0.36
+      \ \ \ \ 10.34
 
-      "fitted.lmeStruct" \ \ \ \ \ 0.14 \ \ \ \ 2.42 \ \ \ \ \ \ 0.14
-      \ \ \ \ \ 2.42
+      "as.double" \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ 4.02 \ \ \ \ \ \ 0.14
+      \ \ \ \ \ 4.02
 
-      "solve.default" \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 1.04 \ \ \ \ \ \ 0.32
-      \ \ \ \ \ 5.54
+      "solve.default" \ \ \ \ \ 0.04 \ \ \ \ 1.15 \ \ \ \ \ \ 0.20
+      \ \ \ \ \ 5.75
 
-      "crossprod" \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.69 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.69
+      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.57 \ \ \ \ \ \ 0.18
+      \ \ \ \ \ 5.17
 
-      "as.numeric" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.35 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.35
+      "crossprod" \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.57 \ \ \ \ \ \ 0.02
+      \ \ \ \ \ 0.57
 
-      \;
-
-      $by.total
+      \<gtr\> head(meta.lme.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct
       self.time self.pct
 
-      "lme" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.78 \ \ \ 100.00
+      "lme" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 3.48 \ \ \ 100.00
       \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      "lme.formula" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.78 \ \ \ 100.00
+      "lme.formula" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 3.48 \ \ \ 100.00
       \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.20 \ \ \ \ 89.97
-      \ \ \ \ \ 5.20 \ \ \ 89.97
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 3.12 \ \ \ \ 89.66
+      \ \ \ \ \ 3.12 \ \ \ 89.66
 
-      "FUN" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.46 \ \ \ \ 77.16
+      "FUN" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2.64 \ \ \ \ 75.86
       \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      "Initialize" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.18 \ \ \ \ 72.32
+      "Initialize" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2.48 \ \ \ \ 71.26
       \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      "Initialize.lmeStruct" \ \ \ \ \ \ 4.18 \ \ \ \ 72.32 \ \ \ \ \ 0.00
+      "Initialize.lmeStruct" \ \ \ \ \ \ 2.48 \ \ \ \ 71.26 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "Initialize.reStruct" \ \ \ \ \ \ \ 4.18 \ \ \ \ 72.32 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
+      \<gtr\> head(cotes.lme.summary[[1]])
 
-      "MEEM" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.18 \ \ \ \ 72.32
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.18 \ \ \ \ 72.32
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "logLik" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.56 \ \ \ \ \ 9.69
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.52 \ \ \ \ \ 9.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "logLik.lmeStructInt" \ \ \ \ \ \ \ 0.52 \ \ \ \ \ 9.00 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "nlminb" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.52 \ \ \ \ \ 9.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "objective" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.52 \ \ \ \ \ 9.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.44 \ \ \ \ \ 7.61
-      \ \ \ \ \ 0.16 \ \ \ \ 2.77
-
-      "array" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.32 \ \ \ \ \ 5.54
-      \ \ \ \ \ 0.16 \ \ \ \ 2.77
-
-      "solve.default" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.32 \ \ \ \ \ 5.54
-      \ \ \ \ \ 0.06 \ \ \ \ 1.04
-
-      "solve" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.32 \ \ \ \ \ 5.54
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "fdHess" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.26 \ \ \ \ \ 4.50
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lmeApVar" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.26 \ \ \ \ \ 4.50
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "getFixDF" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.18 \ \ \ \ \ 3.11
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "MEdecomp" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ \ 2.77
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "fitted.lmeStruct" \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ \ 2.42
-      \ \ \ \ \ 0.14 \ \ \ \ 2.42
-
-      "MEestimate" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ \ 2.42
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "fitted" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ \ 2.42
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "t" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 1.04 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "crossprod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.69
-      \ \ \ \ \ 0.04 \ \ \ \ 0.69
-
-      "logLik.reStruct" \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.69
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "recalc" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.69
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "recalc.modelStruct" \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.69 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "recalc.reStruct" \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.69
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.numeric" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.35
-      \ \ \ \ \ 0.02 \ \ \ \ 0.35
-
-      \;
-
-      $sample.interval
-
-      [1] 0.02
-
-      \;
-
-      $sampling.time
-
-      [1] 5.78
-
-      \;
-
-      \<gtr\> summaryRprof("cotes.lme.prof")
-
-      $by.self
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
       total.pct
 
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 97.84 \ \ \ 86.28
-      \ \ \ \ \ 97.84 \ \ \ \ 86.28
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 60.42 \ \ \ 89.67
+      \ \ \ \ \ 60.42 \ \ \ \ 89.67
 
-      "recalc.varFunc" \ \ \ \ \ \ \ \ \ 8.54 \ \ \ \ 7.53 \ \ \ \ \ \ 8.56
-      \ \ \ \ \ 7.55
+      "recalc.varFunc" \ \ \ \ \ \ 3.26 \ \ \ \ 4.84 \ \ \ \ \ \ 3.32
+      \ \ \ \ \ 4.93
 
-      "as.double" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.30 \ \ \ \ 3.79
-      \ \ \ \ \ \ 4.30 \ \ \ \ \ 3.79
+      "as.double" \ \ \ \ \ \ \ \ \ \ \ 2.08 \ \ \ \ 3.09 \ \ \ \ \ \ 2.08
+      \ \ \ \ \ 3.09
 
-      "is.finite" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.06 \ \ \ \ 0.93
-      \ \ \ \ \ \ 1.06 \ \ \ \ \ 0.93
+      "logLik.reStruct" \ \ \ \ \ 0.50 \ \ \ \ 0.74 \ \ \ \ \ 51.54
+      \ \ \ \ 76.49
 
-      "logLik.reStruct" \ \ \ \ \ \ \ \ 0.70 \ \ \ \ 0.62 \ \ \ \ \ 84.46
-      \ \ \ \ 74.48
+      "is.finite" \ \ \ \ \ \ \ \ \ \ \ 0.40 \ \ \ \ 0.59 \ \ \ \ \ \ 0.40
+      \ \ \ \ \ 0.59
 
-      "any" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.24 \ \ \ \ 0.21
-      \ \ \ \ \ \ 0.24 \ \ \ \ \ 0.21
+      "as.numeric" \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ 0.15 \ \ \ \ \ \ 0.10
+      \ \ \ \ \ 0.15
 
-      "getwd" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.22 \ \ \ \ 0.19
-      \ \ \ \ \ \ 0.22 \ \ \ \ \ 0.19
+      \<gtr\> head(cotes.lme.summary[[2]])
 
-      "solve.default" \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.04 \ \ \ \ \ 16.48
-      \ \ \ \ 14.53
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "unlist" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.04
-      \ \ \ \ \ \ 0.14 \ \ \ \ \ 0.12
+      "lme" \ \ \ \ \ \ \ \ \ \ \ \ \ 67.38 \ \ \ 100.00 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
 
-      "[[" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.04
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.04
+      "lme.formula" \ \ \ \ \ 67.38 \ \ \ 100.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      "crossprod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.04
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.04
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 60.42 \ \ \ \ 89.67 \ \ \ \ 60.42
+      \ \ \ 89.67
 
-      "length" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.04
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.04
+      "recalc" \ \ \ \ \ \ \ \ \ \ 54.86 \ \ \ \ 81.42 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
 
-      "logLik" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ 92.56 \ \ \ \ 81.62
+      "logLik" \ \ \ \ \ \ \ \ \ \ 54.48 \ \ \ \ 80.85 \ \ \ \ \ 0.04
+      \ \ \ \ 0.06
 
-      "solve" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ 16.50 \ \ \ \ 14.55
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ 54.38 \ \ \ \ 80.71 \ \ \ \ \ 0.02
+      \ \ \ \ 0.03
 
-      "coef\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.42 \ \ \ \ \ 0.37
-
-      "coef" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.40 \ \ \ \ \ 0.35
-
-      "coef\<less\>-.modelStruct" \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.40 \ \ \ \ \ 0.35
-
-      "Sys.time" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.04
-
-      "deparse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.04
-
-      "abs" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-
-      "aperm.default" \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.02
-
-      "as.list" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-
-      "mode" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-
-      "paste" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-
-      "pmatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-
-      "stopifnot" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-
-      "structure" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-
-      \;
-
-      $by.total
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time
-      total.pct self.time self.pct
-
-      "lme" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 113.40
-      \ \ \ 100.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lme.formula" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 113.40 \ \ \ 100.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 97.84
-      \ \ \ \ 86.28 \ \ \ \ 97.84 \ \ \ 86.28
-
-      "recalc" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 93.04
-      \ \ \ \ 82.05 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "logLik" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 92.56
-      \ \ \ \ 81.62 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 92.42
-      \ \ \ \ 81.50 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "logLik.lmeStruct" \ \ \ \ \ \ \ \ \ \ \ \ \ 92.42 \ \ \ \ 81.50
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "nlminb" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 92.42
-      \ \ \ \ 81.50 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "objective" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 92.42 \ \ \ \ 81.50
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "recalc.modelStruct" \ \ \ \ \ \ \ \ \ \ \ 92.16 \ \ \ \ 81.27
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "logLik.reStruct" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 84.46 \ \ \ \ 74.48
-      \ \ \ \ \ 0.70 \ \ \ \ 0.62
-
-      "recalc.reStruct" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 84.46 \ \ \ \ 74.48
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "FUN" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 20.62
-      \ \ \ \ 18.18 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "solve" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 16.50
-      \ \ \ \ 14.55 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "solve.default" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 16.48 \ \ \ \ 14.53
-      \ \ \ \ \ 0.04 \ \ \ \ 0.04
-
-      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 16.48
-      \ \ \ \ 14.53 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lmeApVar" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 16.46
-      \ \ \ \ 14.51 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "fdHess" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 16.44
-      \ \ \ \ 14.50 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "recalc.varFunc" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 8.56 \ \ \ \ \ 7.55
-      \ \ \ \ \ 8.54 \ \ \ \ 7.53
-
-      "NextMethod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 8.56
-      \ \ \ \ \ 7.55 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "recalc.varIdent" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 8.56 \ \ \ \ \ 7.55
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.double" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.30
-      \ \ \ \ \ 3.79 \ \ \ \ \ 4.30 \ \ \ \ 3.79
-
-      "lapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.18
-      \ \ \ \ \ 3.69 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "Initialize" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.08
-      \ \ \ \ \ 3.60 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "Initialize.lmeStruct" \ \ \ \ \ \ \ \ \ \ 4.08 \ \ \ \ \ 3.60
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "Initialize.reStruct" \ \ \ \ \ \ \ \ \ \ \ 4.06 \ \ \ \ \ 3.58
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "MEEM" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.06
-      \ \ \ \ \ 3.58 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "is.finite" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.06
-      \ \ \ \ \ 0.93 \ \ \ \ \ 1.06 \ \ \ \ 0.93
-
-      "coef\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.42
-      \ \ \ \ \ 0.37 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "coef" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.40
-      \ \ \ \ \ 0.35 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "coef\<less\>-.modelStruct" \ \ \ \ \ \ \ \ \ \ \ \ 0.40 \ \ \ \ \ 0.35
-      \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "getGroupsFormula" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.40 \ \ \ \ \ 0.35
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "getGroupsFormula.default" \ \ \ \ \ \ 0.40 \ \ \ \ \ 0.35
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "coef.varIdent" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.38 \ \ \ \ \ 0.34
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "coef\<less\>-.varIdent" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.38
-      \ \ \ \ \ 0.34 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "MEestimate" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.36
-      \ \ \ \ \ 0.32 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.formula" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.30
-      \ \ \ \ \ 0.26 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "eval" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.30
-      \ \ \ \ \ 0.26 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "parse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.30
-      \ \ \ \ \ 0.26 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "srcfilecopy" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.28 \ \ \ \ \ 0.25
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "any" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.24
-      \ \ \ \ \ 0.21 \ \ \ \ \ 0.24 \ \ \ \ 0.21
-
-      "getwd" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.22
-      \ \ \ \ \ 0.19 \ \ \ \ \ 0.22 \ \ \ \ 0.19
-
-      "unlist" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.14
-      \ \ \ \ \ 0.12 \ \ \ \ \ 0.04 \ \ \ \ 0.04
-
-      "pdFactor" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.05 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "pdFactor.reStruct" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.05
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "t" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.05 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "[[" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.04 \ \ \ \ \ 0.04 \ \ \ \ 0.04
-
-      "crossprod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.04 \ \ \ \ \ 0.04 \ \ \ \ 0.04
-
-      "length" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.04 \ \ \ \ \ 0.04 \ \ \ \ 0.04
-
-      "Sys.time" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.04 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "deparse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.04 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "getFixDF" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.04 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "splitFormula" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "abs" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "aperm.default" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "as.list" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "mode" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "paste" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "pmatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "stopifnot" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      "structure" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.02 \ \ \ \ 0.02
-
-      ".POSIXct" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".deparseOpts" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "Initialize.varIdent" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "aperm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "asOneSidedFormula" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "coef.modelStruct" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "do.call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "pdFactor.pdLogChol" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      \;
-
-      $sample.interval
-
-      [1] 0.02
-
-      \;
-
-      $sampling.time
-
-      [1] 113.4
-
-      \;
+      \<gtr\>\ 
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
-      detach("package:nlme")
+      VarCorr(meta.lme)
+
+      VarCorr(cotes.lme)
     <|unfolded-prog-io>
-      detach("package:nlme")
+      VarCorr(meta.lme)
+
+      Block = pdLogChol(1)\ 
+
+      \ \ \ \ \ \ \ \ \ \ \ \ Variance \ StdDev \ \ 
+
+      (Intercept) 0.1416624 0.3763806
+
+      Residual \ \ \ 0.9411682 0.9701382
+
+      \<gtr\> VarCorr(cotes.lme)
+
+      Block = pdLogChol(1)\ 
+
+      \ \ \ \ \ \ \ \ \ \ \ \ Variance \ \ StdDev \ \ 
+
+      (Intercept) 0.06096255 0.2469060
+
+      Residual \ \ \ 0.45344977 0.6733868
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      #detach("package:nlme")
+    <|unfolded-prog-io>
+      #detach("package:nlme")
+    </unfolded-prog-io|>
+
+    <\input>
+      <with|color|red|\<gtr\> >
+    <|input>
+      \;
+    </input>
+
+    <\textput>
+      <\textput>
+        <section|glmmPQL>
+      </textput>
+
+      \;
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      library(MASS)
+
+      packageDescription("MASS")
+    <|unfolded-prog-io>
+      library(MASS)
+
+      \<gtr\> packageDescription("MASS")
+
+      Package: MASS
+
+      Priority: recommended
+
+      Version: 7.3-45
+
+      Date: 2015-11-10
+
+      Revision: $Rev: 3453 $
+
+      Depends: R (\<gtr\>= 3.1.0), grDevices, graphics, stats, utils
+
+      Imports: methods
+
+      Suggests: lattice, nlme, nnet, survival
+
+      Authors@R: c(person("Brian", "Ripley", role = c("aut", "cre", "cph"),
+
+      \ \ \ \ \ \ \ email = "ripley@stats.ox.ac.uk"), person("Bill",
+      "Venables",
+
+      \ \ \ \ \ \ \ role = "ctb"), person(c("Douglas", "M."), "Bates", role =
+
+      \ \ \ \ \ \ \ "ctb"), person("Kurt", "Hornik", role = "trl", comment =
+
+      \ \ \ \ \ \ \ "partial port ca 1998"), person("Albrecht", "Gebhardt",
+      role
+
+      \ \ \ \ \ \ \ = "trl", comment = "partial port ca 1998"),
+      person("David",
+
+      \ \ \ \ \ \ \ "Firth", role = "ctb"))
+
+      Description: Functions and datasets to support Venables and Ripley,
+
+      \ \ \ \ \ \ \ "Modern Applied Statistics with S" (4th edition, 2002).
+
+      Title: Support Functions and Datasets for Venables and Ripley's MASS
+
+      LazyData: yes
+
+      ByteCompile: yes
+
+      License: GPL-2 \| GPL-3
+
+      URL: http://www.stats.ox.ac.uk/pub/MASS4/
+
+      NeedsCompilation: yes
+
+      Packaged: 2016-04-21 09:06:13 UTC; ripley
+
+      Author: Brian Ripley [aut, cre, cph], Bill Venables [ctb], Douglas M.
+
+      \ \ \ \ \ \ \ Bates [ctb], Kurt Hornik [trl] (partial port ca 1998),
+
+      \ \ \ \ \ \ \ Albrecht Gebhardt [trl] (partial port ca 1998), David
+      Firth
+
+      \ \ \ \ \ \ \ [ctb]
+
+      Maintainer: Brian Ripley \<less\>ripley@stats.ox.ac.uk\<gtr\>
+
+      Repository: CRAN
+
+      Date/Publication: 2016-04-21 11:13:45
+
+      Built: R 3.3.1; x86_64-apple-darwin13.4.0; 2016-06-24 18:37:19 UTC;
+
+      \ \ \ \ \ \ \ unix
+
+      \;
+
+      -- File: /Library/Frameworks/R.framework/Versions/3.3/Resources/library/MASS/Meta/package.rds
+      </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7.glmmPQL \<less\>- glmmPQL(obs ~ 0 + trt, random = ~ 1 \|
+      rep,family=gaussian, data = Table5.7)
+    <|unfolded-prog-io>
+      Table5.7.glmmPQL \<less\>- glmmPQL(obs ~ 0 + trt, random = ~ 1 \|
+      rep,family=gaussi
+
+      \<less\>QL(obs ~ 0 + trt, random = ~ 1 \| rep,family=gaussian, data =
+      Table5.7)
+
+      iteration 1
+
+      iteration 2
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      plot(Table5.7.glmmPQL);v()
+    <|unfolded-prog-io>
+      plot(Table5.7.glmmPQL);v()
+
+      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A3131392E39392031322E3030202846697474656420762920302074610A2D302E3330302028616C756573292074622067720A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A31342E36322039302E383720285374616E64617264697A292039302074610A2D302E3138302028656420726573696475616C73292074622067720A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A34392E30322035302E3830203235382E3939203235322E393920636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37322E3039203235322E3939206D0A3020352E3637206C0A6F0A6E700A3131352E3835203235322E3939206D0A3020352E3637206C0A6F0A6E700A3135392E3630203235322E3939206D0A3020352E3637206C0A6F0A6E700A3230332E3336203235322E3939206D0A3020352E3637206C0A6F0A6E700A3234372E3132203235322E3939206D0A3020352E3637206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A34392E30322039362E3532206D0A2D352E36372030206C0A6F0A6E700A34392E3032203135302E3630206D0A2D352E36372030206C0A6F0A6E700A34392E3032203230342E3639206D0A2D352E36372030206C0A6F0A2F466F6E74312066696E64666F6E7420313020730A33372E36392039322E393320282D31292031203020740A33372E3639203134372E3031202830292031203020740A33372E3639203230312E3130202831292031203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37322E30392035302E3830206D0A30202D352E3637206C0A6F0A6E700A3131352E38352035302E3830206D0A30202D352E3637206C0A6F0A6E700A3135392E36302035302E3830206D0A30202D352E3637206C0A6F0A6E700A3230332E33362035302E3830206D0A30202D352E3637206C0A6F0A6E700A3234372E31322035302E3830206D0A30202D352E3637206C0A6F0A2F466F6E74312066696E64666F6E7420313020730A37322E30392033322E323920283429202E35203020740A3131352E38352033322E323920283529202E35203020740A3135392E36302033322E323920283629202E35203020740A3230332E33362033322E323920283729202E35203020740A3234372E31322033322E323920283829202E35203020740A6E700A3235382E39392039362E3532206D0A352E36372030206C0A6F0A6E700A3235382E3939203135302E3630206D0A352E36372030206C0A6F0A6E700A3235382E3939203230342E3639206D0A352E36372030206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A34392E30322035302E3830203235382E3939203235322E393920636C0A302E3930323020302E3930323020302E3930323020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A34392E3032203130312E3335206D0A3230392E39372030206C0A6F0A6E700A34392E3032203135312E3930206D0A3230392E39372030206C0A6F0A6E700A34392E3032203230322E3435206D0A3230392E39372030206C0A6F0A6E700A3130312E35322035302E3830206D0A30203230322E3139206C0A6F0A6E700A3135342E30312035302E3830206D0A30203230322E3139206C0A6F0A6E700A3230362E35302035302E3830206D0A30203230322E3139206C0A6F0A3020302E35303230203120737267620A36312E3932203133312E393120332E303020632070310A39322E3333203139342E323220332E303020632070310A3135372E3139203137392E363920332E303020632070310A38312E31372037322E363520332E303020632070310A36332E33342038372E343620332E303020632070310A3234362E3130203137352E373120332E303020632070310A3135302E3832203136362E373120332E303020632070310A3135322E3234203138322E363320332E303020632070310A3138312E3233203130362E303620332E303020632070310A3137302E3037203139342E393520332E303020632070310A3131302E3137203231372E303620332E303020632070310A3132382E3030203230312E313320332E303020632070310A36372E3938203230372E333220332E303020632070310A3230342E30322039312E363120332E303020632070310A3133392E3136203132302E353520332E303020632070310A3130382E37352036332E323220332E303020632070310A3133382E3835203133332E363820332E303020632070310A3231342E3837203135352E343220332E303020632070310A3132312E3031203131352E323620332E303020632070310A3135302E3030203138312E353920332E303020632070310A3131392E3539203234302E353820332E303020632070310A37382E38332039332E383920332E303020632070310A302030203020737267620A6E700A34392E3032203135302E3630206D0A3230392E39372030206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A34392E30322035302E3830203230392E3937203230322E313920722070310A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
+      </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      qqnorm(Table5.7.glmmPQL);v()
+    <|unfolded-prog-io>
+      qqnorm(Table5.7.glmmPQL);v()
+
+      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A39322E39382031322E303020285374616E64617264697A2920302074610A2D302E3138302028656420726573696475616C73292074622067720A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A31342E36322037342E383620285175616E74696C6573206F66207374616E64617264206E6F72292039302074610A302E33303020286D616C292074622067720A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A34392E30322035302E3830203235382E3939203235322E393920636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A39362E3530203235322E3939206D0A3020352E3637206C0A6F0A6E700A3135322E3636203235322E3939206D0A3020352E3637206C0A6F0A6E700A3230382E3833203235322E3939206D0A3020352E3637206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A34392E30322036332E3234206D0A2D352E36372030206C0A6F0A6E700A34392E3032203130372E3537206D0A2D352E36372030206C0A6F0A6E700A34392E3032203135312E3930206D0A2D352E36372030206C0A6F0A6E700A34392E3032203139362E3233206D0A2D352E36372030206C0A6F0A6E700A34392E3032203234302E3536206D0A2D352E36372030206C0A6F0A2F466F6E74312066696E64666F6E7420313020730A33372E36392035392E363520282D32292031203020740A33372E3639203130332E393820282D31292031203020740A33372E3639203134382E3331202830292031203020740A33372E3639203139322E3634202831292031203020740A33372E3639203233362E3937202832292031203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A39362E35302035302E3830206D0A30202D352E3637206C0A6F0A6E700A3135322E36362035302E3830206D0A30202D352E3637206C0A6F0A6E700A3230382E38332035302E3830206D0A30202D352E3637206C0A6F0A2F466F6E74312066696E64666F6E7420313020730A39362E35302033322E323920282D3129202E35203020740A3135322E36362033322E323920283029202E35203020740A3230382E38332033322E323920283129202E35203020740A6E700A3235382E39392036332E3234206D0A352E36372030206C0A6F0A6E700A3235382E3939203130372E3537206D0A352E36372030206C0A6F0A6E700A3235382E3939203135312E3930206D0A352E36372030206C0A6F0A6E700A3235382E3939203139362E3233206D0A352E36372030206C0A6F0A6E700A3235382E3939203234302E3536206D0A352E36372030206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A34392E30322035302E3830203235382E3939203235322E393920636C0A3020302E35303230203120737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A3133332E3235203133392E313020332E303020632070310A3139372E3936203138312E383020332E303020632070310A3138322E3836203136342E373020332E303020632070310A37312E37312038352E383720332E303020632070310A38372E31302039382E333720332E303020632070310A3137382E3733203135392E353120332E303020632070310A3136392E3339203135342E343220332E303020632070310A3138352E3932203137352E373320332E303020632070310A3130362E3430203132322E303020332E303020632070310A3139382E3732203138382E343920332E303020632070310A3232312E3638203231372E393320332E303020632070310A3230352E3134203139362E313520332E303020632070310A3231312E3536203230352E343220332E303020632070310A39312E3430203130372E363520332E303020632070310A3132312E3435203133332E373220332E303020632070310A36312E39322036332E323220332E303020632070310A3133352E3039203134342E323820332E303020632070310A3135372E3636203134392E333720332E303020632070310A3131352E3936203132382E303720332E303020632070310A3138342E3834203137302E303720332E303020632070310A3234362E3130203234302E353820332E303020632070310A39332E3737203131352E333020332E303020632070310A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A34392E30322035302E3830203230392E3937203230322E313920722070310A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
+      </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(Table5.7.glmmPQL)
+    <|unfolded-prog-io>
+      summary(Table5.7.glmmPQL)
+
+      Linear mixed-effects model fit by maximum likelihood
+
+      \ Data: Table5.7\ 
+
+      \ \ AIC BIC logLik
+
+      \ \ \ NA \ NA \ \ \ \ NA
+
+      \;
+
+      Random effects:
+
+      \ Formula: ~1 \| rep
+
+      \ \ \ \ \ \ \ \ (Intercept) \ Residual
+
+      StdDev: \ \ \ 0.818606 0.9764266
+
+      \;
+
+      Variance function:
+
+      \ Structure: fixed weights
+
+      \ Formula: ~invwt\ 
+
+      Fixed effects: obs ~ 0 + trt\ 
+
+      \ \ \ \ \ \ \ \ Value Std.Error DF \ t-value p-value
+
+      trt1 3.940864 0.9679091 13 4.071523 \ 0.0013
+
+      trt2 4.905000 0.7470520 13 6.565808 \ 0.0000
+
+      trt3 5.312500 0.7470520 13 7.111286 \ 0.0000
+
+      trt4 4.872500 0.7470520 13 6.522304 \ 0.0000
+
+      trt5 5.567500 0.7470520 13 7.452627 \ 0.0000
+
+      trt6 7.050000 0.7470520 13 9.437095 \ 0.0000
+
+      \ Correlation:\ 
+
+      \ \ \ \ \ trt1 \ trt2 \ trt3 \ trt4 \ trt5\ 
+
+      trt2 0.319 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      trt3 0.319 0.413 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      trt4 0.319 0.413 0.413 \ \ \ \ \ \ \ \ \ \ \ 
+
+      trt5 0.319 0.413 0.413 0.413 \ \ \ \ \ 
+
+      trt6 0.319 0.413 0.413 0.413 0.413
+
+      \;
+
+      Standardized Within-Group Residuals:
+
+      \ \ \ \ \ \ \ Min \ \ \ \ \ \ \ \ Q1 \ \ \ \ \ \ \ Med
+      \ \ \ \ \ \ \ \ Q3 \ \ \ \ \ \ \ Max\ 
+
+      -1.6157824 -0.7811466 \ 0.1933771 \ 0.7529711 \ 1.6636381\ 
+
+      \;
+
+      Number of Observations: 22
+
+      Number of Groups: 4\ 
+    </unfolded-prog-io|>
+
+    <\textput>
+      Note that the summary function fails to report AIC, BIC and logLik.
+      Perhaps the generic functions have been over-riden.\ 
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      logLik(Table5.7.glmmPQL)
+    <|unfolded-prog-io>
+      logLik(Table5.7.glmmPQL)
+
+      'log Lik.' NA (df=8)
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      logLik.glmmPQL
+    <|unfolded-prog-io>
+      logLik.glmmPQL
+
+      Error: object 'logLik.glmmPQL' not found
+    </unfolded-prog-io|>
+
+    <\textput>
+      It looks like logLik might be overriden but is not visible. We can go
+      to the source code to confirm this. The following is found in
+      MASS/R/glmmPQL.R
+
+      \;
+
+      logLik.glmmPQL \<less\>- function (object, ...)
+
+      {
+
+      \ \ \ \ p \<less\>- object$dims$ncol[object$dims$Q + 1]
+
+      \ \ \ \ N \<less\>- object$dims$N
+
+      \ \ \ \ val \<less\>- as.numeric(NA)
+
+      \ \ \ \ attr(val, "nall") \<less\>- N
+
+      \ \ \ \ attr(val, "nobs") \<less\>- N
+
+      \ \ \ \ attr(val, "df") \<less\>- p +
+      length(coef(object[["modelStruct"]])) + 1
+
+      \ \ \ \ class(val) \<less\>- "logLik"
+
+      \ \ \ \ val
+
+      }
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7.red.glmmPQL \<less\>- update(Table5.7.glmmPQL, . ~ . -trt)
+    <|unfolded-prog-io>
+      Table5.7.red.glmmPQL \<less\>- update(Table5.7.glmmPQL, . ~ . -trt)
+
+      iteration 1
+
+      iteration 2
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      anova(Table5.7.glmmPQL)
+
+      anova(Table5.7.glmmPQL,Table5.7.red.glmmPQL)
+    <|unfolded-prog-io>
+      anova(Table5.7.glmmPQL)
+
+      Error in anova.glmmPQL(Table5.7.glmmPQL) :\ 
+
+      \ \ 'anova' is not available for PQL fits
+
+      \<gtr\> anova(Table5.7.glmmPQL,Table5.7.red.glmmPQL)
+
+      Error in anova.glmmPQL(Table5.7.glmmPQL, Table5.7.red.glmmPQL) :\ 
+
+      \ \ 'anova' is not available for PQL fits
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      vcov(Table5.7.glmmPQL)
+
+      coef(Table5.7.glmmPQL)
+    <|unfolded-prog-io>
+      vcov(Table5.7.glmmPQL)
+
+      \ \ \ \ \ \ \ \ \ \ trt1 \ \ \ \ \ trt2 \ \ \ \ \ trt3 \ \ \ \ \ trt4
+      \ \ \ \ \ trt5 \ \ \ \ \ trt6
+
+      trt1 0.6813440 0.1675289 0.1675289 0.1675289 0.1675289 0.1675289
+
+      trt2 0.1675289 0.4058812 0.1675289 0.1675289 0.1675289 0.1675289
+
+      trt3 0.1675289 0.1675289 0.4058812 0.1675289 0.1675289 0.1675289
+
+      trt4 0.1675289 0.1675289 0.1675289 0.4058812 0.1675289 0.1675289
+
+      trt5 0.1675289 0.1675289 0.1675289 0.1675289 0.4058812 0.1675289
+
+      trt6 0.1675289 0.1675289 0.1675289 0.1675289 0.1675289 0.4058812
+
+      \<gtr\> coef(Table5.7.glmmPQL)
+
+      \ \ \ \ \ \ trt1 \ trt2 \ \ trt3 \ \ trt4 \ \ trt5 trt6 (Intercept)
+
+      1 3.940864 4.905 5.3125 4.8725 5.5675 7.05 \ -1.1050558
+
+      2 3.940864 4.905 5.3125 4.8725 5.5675 7.05 \ \ 0.9267833
+
+      3 3.940864 4.905 5.3125 4.8725 5.5675 7.05 \ -0.0348070
+
+      4 3.940864 4.905 5.3125 4.8725 5.5675 7.05 \ \ 0.2130795
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      class(Table5.7.glmmPQL) \ \ \ \ \ 
+
+      #methods("vcov");methods("anova") \ 
+
+      \;
+
+      summary(aov(Table5.7.glmmPQL))
+
+      VarCorr(Table5.7.glmmPQL)
+
+      fixef(Table5.7.glmmPQL)
+
+      summary(glht(Table5.7.glmmPQL,linfct=mcp(trt="Dunnett")))
+
+      cld(glht(Table5.7.glmmPQL,linfct=mcp(trt="Tukey")),decreasing=TRUE)
+
+      lsmeans(Table5.7.glmmPQL,cld ~ trt)
+    <|unfolded-prog-io>
+      class(Table5.7.glmmPQL) \ \ \ \ \ 
+
+      [1] "glmmPQL" "lme" \ \ \ 
+
+      \<gtr\> #methods("vcov");methods("anova") \ 
+
+      \<gtr\>\ 
+
+      \<gtr\> summary(aov(Table5.7.glmmPQL))
+
+      Error in eval(expr, envir, enclos) : object 'obs' not found
+
+      \<gtr\> VarCorr(Table5.7.glmmPQL)
+
+      rep = pdLogChol(1)\ 
+
+      \ \ \ \ \ \ \ \ \ \ \ \ Variance \ StdDev \ \ 
+
+      (Intercept) 0.6701158 0.8186060
+
+      Residual \ \ \ 0.9534090 0.9764266
+
+      \<gtr\> fixef(Table5.7.glmmPQL)
+
+      \ \ \ \ trt1 \ \ \ \ trt2 \ \ \ \ trt3 \ \ \ \ trt4 \ \ \ \ trt5
+      \ \ \ \ trt6\ 
+
+      3.940864 4.905000 5.312500 4.872500 5.567500 7.050000\ 
+
+      \<gtr\> summary(glht(Table5.7.glmmPQL,linfct=mcp(trt="Dunnett")))
+
+      \;
+
+      \ \ \ \ \ \ \ \ \ Simultaneous Tests for General Linear Hypotheses
+
+      \;
+
+      Multiple Comparisons of Means: Dunnett Contrasts
+
+      \;
+
+      \;
+
+      Fit: glmmPQL(fixed = obs ~ 0 + trt, random = ~1 \| rep, family =
+      gaussian,\ 
+
+      \ \ \ \ data = Table5.7)
+
+      \;
+
+      Linear Hypotheses:
+
+      \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error z value Pr(\<gtr\>\|z\|) \ \ 
+
+      2 - 1 == 0 \ \ 0.9641 \ \ \ \ 0.8673 \ \ 1.112 \ 0.60798 \ \ 
+
+      3 - 1 == 0 \ \ 1.3716 \ \ \ \ 0.8673 \ \ 1.582 \ 0.30748 \ \ 
+
+      4 - 1 == 0 \ \ 0.9316 \ \ \ \ 0.8673 \ \ 1.074 \ 0.63572 \ \ 
+
+      5 - 1 == 0 \ \ 1.6266 \ \ \ \ 0.8673 \ \ 1.876 \ 0.17967 \ \ 
+
+      6 - 1 == 0 \ \ 3.1091 \ \ \ \ 0.8673 \ \ 3.585 \ 0.00126 **
+
+      ---
+
+      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+      (Adjusted p values reported -- single-step method)
+
+      \;
+
+      \<gtr\> cld(glht(Table5.7.glmmPQL,linfct=mcp(trt="Tukey")),decreasing=TRUE)
+
+      \ \ \ 1 \ \ \ 2 \ \ \ 3 \ \ \ 4 \ \ \ 5 \ \ \ 6\ 
+
+      \ "b" \ "b" "ab" \ "b" "ab" \ "a"\ 
+
+      \<gtr\> lsmeans(Table5.7.glmmPQL,cld ~ trt)
+
+      \ trt \ \ lsmean \ \ \ \ \ \ \ SE df lower.CL upper.CL .group
+
+      \ 1 \ \ 3.940864 0.9679091 13 1.849823 6.031904 \ 1 \ \ \ 
+
+      \ 4 \ \ 4.872500 0.7470520 13 3.258592 6.486408 \ 1 \ \ \ 
+
+      \ 2 \ \ 4.905000 0.7470520 13 3.291092 6.518908 \ 1 \ \ \ 
+
+      \ 3 \ \ 5.312500 0.7470520 13 3.698592 6.926408 \ 1 \ \ \ 
+
+      \ 5 \ \ 5.567500 0.7470520 13 3.953592 7.181408 \ 1 \ \ \ 
+
+      \ 6 \ \ 7.050000 0.7470520 13 5.436092 8.663908 \ 1 \ \ \ 
+
+      \;
+
+      Results are given on the identity (not the response) scale.\ 
+
+      Confidence level used: 0.95\ 
+
+      P value adjustment: tukey method for comparing a family of 6 estimates\ 
+
+      significance level used: alpha = 0.05\ 
     </unfolded-prog-io|>
 
     <\input>
@@ -3408,42 +4227,17 @@
     <|unfolded-prog-io>
       library(lme4)
 
+      packageDescription("lme4")
+
       Table5.7.lmer \<less\>- lmer(obs ~ 0+trt + (1 \| rep), data=Table5.7)
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mode(Table5.7.lmer)
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ class(Table5.7.lmer)
-
-      Ex16.8.1.lmer \<less\>- lmer(Yield ~ 0 + Variety + (1 \| Trial/Rep) +
-      (1 \| Trial:Variety), data=Ex16.8.1)
-
-      anova(Table5.7.lmer)
-
-      anova(Ex16.8.1.lmer) \ \ \ \ 
-
-      Table5.7.red.lmer \<less\>- update(Table5.7.lmer, . ~ . -trt)
-
-      anova(Table5.7.red.lmer,Table5.7.lmer)
-
-      \;
-
-      VarCorr(Table5.7.lmer)
-
-      fixef(Table5.7.lmer)
-
-      ranef(Table5.7.lmer)
-
-      \;
-
-      summary(glht(Table5.7.lmer,linfct=mcp(trt="Dunnett")))
-
-      cld(glht(Table5.7.lmer,linfct=mcp(trt="Tukey")),decreasing=TRUE)
-
-      \;
-
-      print(Table5.7.lmer.tbl \<less\>- lsmeans(Table5.7.lmer,cld ~ trt))
     <|unfolded-prog-io>
       library(lme4)
+
+      Loading required package: Matrix
 
       \;
 
@@ -3451,13 +4245,104 @@
 
       \;
 
-      The following object is masked from 'package:glmmADMB':
+      The following object is masked from 'package:nlme':
 
       \;
 
-      \ \ \ \ VarCorr
+      \ \ \ \ lmList
 
       \;
+
+      \<gtr\> packageDescription("lme4")
+
+      Package: lme4
+
+      Version: 1.1-12
+
+      Title: Linear Mixed-Effects Models using 'Eigen' and S4
+
+      Authors@R: c(person("Douglas","Bates", role="aut"),
+
+      \ \ \ \ \ \ \ person("Martin","Maechler", role="aut"),
+
+      \ \ \ \ \ \ \ person("Ben","Bolker",email="bbolker+lme4@gmail.com",
+
+      \ \ \ \ \ \ \ role=c("aut","cre")),
+      person("Steven","Walker",role="aut"),
+
+      \ \ \ \ \ \ \ person("Rune Haubo Bojesen","Christensen", role="ctb"),
+
+      \ \ \ \ \ \ \ person("Henrik","Singmann", role="ctb"), person("Bin",
+      "Dai",
+
+      \ \ \ \ \ \ \ role="ctb"), person("Gabor", "Grothendieck", role="ctb"),
+
+      \ \ \ \ \ \ \ person("Peter", "Green", role="ctb"))
+
+      Contact: LME4 Authors \<less\>lme4-authors@lists.r-forge.r-project.org\<gtr\>
+
+      Description: Fit linear and generalized linear mixed-effects models.
+
+      \ \ \ \ \ \ \ The models and their components are represented using S4
+
+      \ \ \ \ \ \ \ classes and methods. \ The core computational algorithms
+      are
+
+      \ \ \ \ \ \ \ implemented using the 'Eigen' C++ library for numerical
+
+      \ \ \ \ \ \ \ linear algebra and 'RcppEigen' "glue".
+
+      Depends: R (\<gtr\>= 3.0.2), Matrix (\<gtr\>= 1.1.1), methods, stats
+
+      LinkingTo: Rcpp (\<gtr\>= 0.10.5), RcppEigen
+
+      Imports: graphics, grid, splines, utils, parallel, MASS, lattice,
+
+      \ \ \ \ \ \ \ nlme (\<gtr\>= 3.1-123), minqa (\<gtr\>= 1.1.15), nloptr
+      (\<gtr\>= 1.0.4)
+
+      Suggests: knitr, boot, PKPDmodels, MEMSS, testthat (\<gtr\>= 0.8.1),
+
+      \ \ \ \ \ \ \ ggplot2, mlmRev, optimx (\<gtr\>= 2013.8.6), gamm4,
+      pbkrtest,
+
+      \ \ \ \ \ \ \ HSAUR2, numDeriv
+
+      VignetteBuilder: knitr
+
+      LazyData: yes
+
+      License: GPL (\<gtr\>= 2)
+
+      URL: https://github.com/lme4/lme4/ http://lme4.r-forge.r-project.org/
+
+      BugReports: https://github.com/lme4/lme4/issues
+
+      NeedsCompilation: yes
+
+      Packaged: 2016-04-16 03:11:44 UTC; bolker
+
+      Author: Douglas Bates [aut], Martin Maechler [aut], Ben Bolker [aut,
+
+      \ \ \ \ \ \ \ cre], Steven Walker [aut], Rune Haubo Bojesen Christensen
+
+      \ \ \ \ \ \ \ [ctb], Henrik Singmann [ctb], Bin Dai [ctb], Gabor
+
+      \ \ \ \ \ \ \ Grothendieck [ctb], Peter Green [ctb]
+
+      Maintainer: Ben Bolker \<less\>bbolker+lme4@gmail.com\<gtr\>
+
+      Repository: CRAN
+
+      Date/Publication: 2016-04-16 20:40:11
+
+      Built: R 3.3.0; x86_64-apple-darwin13.4.0; 2016-05-05 12:10:45 UTC;
+
+      \ \ \ \ \ \ \ unix
+
+      \;
+
+      -- File: /Library/Frameworks/R.framework/Versions/3.3/Resources/library/lme4/Meta/package.rds\ 
 
       \<gtr\> Table5.7.lmer \<less\>- lmer(obs ~ 0+trt + (1 \| rep),
       data=Table5.7)
@@ -3473,30 +4358,36 @@
       attr(,"package")
 
       [1] "lme4"
+    </unfolded-prog-io|>
 
-      \<gtr\> Ex16.8.1.lmer \<less\>- lmer(Yield ~ 0 + Variety + (1 \|
-      Trial/Rep) + (1 \| Trial:Va
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      plot(Table5.7.lmer);v()
 
-      \<less\>ld ~ 0 + Variety + (1 \| Trial/Rep) + (1 \| Trial:Variety),
-      data=Ex16.8.1)
+      qqnorm(Table5.7.lmer);v()
+    <|unfolded-prog-io>
+      plot(Table5.7.lmer);v()
 
-      \<gtr\> anova(Table5.7.lmer)
+      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A3135342E30312031322E303020286669747465645C282E5C2929202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A31342E3632203135312E3930202872657369645C282E2C2074797065203D202270656172736F6E225C2929202E3520393020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A34392E30322035302E3830203235382E3939203235322E393920636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37312E3731203235322E3939206D0A3020352E3637206C0A6F0A6E700A3131352E3635203235322E3939206D0A3020352E3637206C0A6F0A6E700A3135392E3539203235322E3939206D0A3020352E3637206C0A6F0A6E700A3230332E3534203235322E3939206D0A3020352E3637206C0A6F0A6E700A3234372E3438203235322E3939206D0A3020352E3637206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A34392E30322039352E3231206D0A2D352E36372030206C0A6F0A6E700A34392E3032203135302E3536206D0A2D352E36372030206C0A6F0A6E700A34392E3032203230352E3932206D0A2D352E36372030206C0A6F0A2F466F6E74312066696E64666F6E7420313020730A33372E36392039312E363220282D31292031203020740A33372E3639203134362E3937202830292031203020740A33372E3639203230322E3333202831292031203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37312E37312035302E3830206D0A30202D352E3637206C0A6F0A6E700A3131352E36352035302E3830206D0A30202D352E3637206C0A6F0A6E700A3135392E35392035302E3830206D0A30202D352E3637206C0A6F0A6E700A3230332E35342035302E3830206D0A30202D352E3637206C0A6F0A6E700A3234372E34382035302E3830206D0A30202D352E3637206C0A6F0A2F466F6E74312066696E64666F6E7420313020730A37312E37312033322E323920283429202E35203020740A3131352E36352033322E323920283529202E35203020740A3135392E35392033322E323920283629202E35203020740A3230332E35342033322E323920283729202E35203020740A3234372E34382033322E323920283829202E35203020740A6E700A3235382E39392039352E3231206D0A352E36372030206C0A6F0A6E700A3235382E3939203135302E3536206D0A352E36372030206C0A6F0A6E700A3235382E3939203230352E3932206D0A352E36372030206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A34392E30322035302E3830203235382E3939203235322E393920636C0A302E3930323020302E3930323020302E3930323020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A34392E3032203130312E3335206D0A3230392E39372030206C0A6F0A6E700A34392E3032203135312E3930206D0A3230392E39372030206C0A6F0A6E700A34392E3032203230322E3435206D0A3230392E39372030206C0A6F0A6E700A3130312E35322035302E3830206D0A30203230322E3139206C0A6F0A6E700A3135342E30312035302E3830206D0A30203230322E3139206C0A6F0A6E700A3230362E35302035302E3830206D0A30203230322E3139206C0A6F0A3020302E35303230203120737267620A36312E3932203133312E333420332E303020632070310A39322E3436203139332E363220332E303020632070310A3135372E3630203137392E303820332E303020632070310A38312E32352037322E313120332E303020632070310A36332E33342038362E393220332E303020632070310A3234362E3130203137362E313020332E303020632070310A3135302E3431203136372E313120332E303020632070310A3135312E3834203138332E303220332E303020632070310A3138302E3935203130362E343920332E303020632070310A3136392E3735203139352E333420332E303020632070310A3130392E3935203231362E393720332E303020632070310A3132372E3836203230312E303520332E303020632070310A36372E3632203230372E313920332E303020632070310A3230342E32312039312E353920332E303020632070310A3133392E3037203132302E353120332E303020632070310A3130382E35322036332E323220332E303020632070310A3133382E3637203133332E373420332E303020632070310A3231352E3032203135352E343720332E303020632070310A3132302E3736203131352E333420332E303020632070310A3134392E3837203138312E363220332E303020632070310A3131392E3333203234302E353820332E303020632070310A37382E34332039332E393320332E303020632070310A302030203020737267620A6E700A0A34392E3032203135302E3536206D0A3230392E39372030206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A34392E30322035302E3830203230392E3937203230322E313920722070310A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>\ 
 
-      Analysis of Variance Table
+      \<gtr\> qqnorm(Table5.7.lmer);v()
 
-      \ \ \ \ Df Sum Sq Mean Sq F value
+      Error in min(x, na.rm = na.rm) : invalid 'type' (list) of argument
 
-      trt \ 6 153.19 \ 25.532 \ 19.365
+      In addition: Warning message:
 
-      \<gtr\> anova(Ex16.8.1.lmer) \ \ \ \ 
+      In is.na(y) : is.na() applied to non-(list or vector) of type 'S4'
+    </unfolded-prog-io|>
 
-      Analysis of Variance Table
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7.red.lmer \<less\>- update(Table5.7.lmer, . ~ . -trt)
 
-      \ \ \ \ \ \ \ \ Df \ Sum Sq Mean Sq F value
-
-      Variety 12 3325873 \ 277156 \ 14.566
-
-      \<gtr\> Table5.7.red.lmer \<less\>- update(Table5.7.lmer, . ~ . -trt)
+      anova(Table5.7.red.lmer,Table5.7.lmer)
+    <|unfolded-prog-io>
+      Table5.7.red.lmer \<less\>- update(Table5.7.lmer, . ~ . -trt)
 
       \<gtr\> anova(Table5.7.red.lmer,Table5.7.lmer)
 
@@ -3528,6 +4419,297 @@
       ---
 
       Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      anova(Table5.7.lmer)
+    <|unfolded-prog-io>
+      anova(Table5.7.lmer)
+
+      Analysis of Variance Table
+
+      \ \ \ \ Df Sum Sq Mean Sq F value
+
+      trt \ 6 153.19 \ 25.532 \ 19.365
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      coef(Table5.7.lmer)
+
+      vcov(Table5.7.lmer)
+    <|unfolded-prog-io>
+      coef(Table5.7.lmer)
+
+      $rep
+
+      \ \ (Intercept) \ \ \ \ trt1 \ trt2 \ \ trt3 \ \ trt4 \ \ trt5 trt6
+
+      1 -1.09528612 3.941652 4.905 5.3125 4.8725 5.5675 7.05
+
+      2 \ 0.91858973 3.941652 4.905 5.3125 4.8725 5.5675 7.05
+
+      3 -0.03464577 3.941652 4.905 5.3125 4.8725 5.5675 7.05
+
+      4 \ 0.21134216 3.941652 4.905 5.3125 4.8725 5.5675 7.05
+
+      \;
+
+      attr(,"class")
+
+      [1] "coef.mer"
+
+      \<gtr\> vcov(Table5.7.lmer)
+
+      6 x 6 Matrix of class "dpoMatrix"
+
+      \ \ \ \ \ \ \ \ \ \ trt1 \ \ \ \ \ trt2 \ \ \ \ \ trt3 \ \ \ \ \ trt4
+      \ \ \ \ \ trt5 \ \ \ \ \ trt6
+
+      trt1 0.9328203 0.2227107 0.2227107 0.2227107 0.2227107 0.2227107
+
+      trt2 0.2227107 0.5523320 0.2227107 0.2227107 0.2227107 0.2227107
+
+      trt3 0.2227107 0.2227107 0.5523320 0.2227107 0.2227107 0.2227107
+
+      trt4 0.2227107 0.2227107 0.2227107 0.5523320 0.2227107 0.2227107
+
+      trt5 0.2227107 0.2227107 0.2227107 0.2227107 0.5523320 0.2227107
+
+      trt6 0.2227107 0.2227107 0.2227107 0.2227107 0.2227107 0.5523320
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      \;
+
+      class(Table5.7.lmer)
+
+      mode(Table5.7.lmer)
+
+      methods("summary")
+
+      methods(class="lmerMod")
+
+      Ex16.8.1.lmer \<less\>- lmer(Yield ~ 0 + Variety + (1 \| Trial/Rep) +
+      (1 \| Trial:Variety), data=Ex16.8.1)
+
+      \;
+
+      anova(Ex16.8.1.lmer) \ \ \ \ 
+
+      \;
+
+      \;
+
+      VarCorr(Table5.7.lmer)
+
+      fixef(Table5.7.lmer)
+
+      ranef(Table5.7.lmer)
+
+      \;
+
+      summary(glht(Table5.7.lmer,linfct=mcp(trt="Dunnett")))
+
+      cld(glht(Table5.7.lmer,linfct=mcp(trt="Tukey")),decreasing=TRUE)
+
+      \;
+
+      lsmeans(Table5.7.lmer,cld ~ trt)
+    <|unfolded-prog-io>
+      \;
+
+      \<gtr\> class(Table5.7.lmer)
+
+      [1] "lmerMod"
+
+      attr(,"package")
+
+      [1] "lme4"
+
+      \<gtr\> mode(Table5.7.lmer)
+
+      [1] "S4"
+
+      \<gtr\> methods("summary")
+
+      \ [1] summary,ANY-method \ \ \ \ \ \ \ \ \ \ \ \ summary,diagonalMatrix-method\ 
+
+      \ [3] summary,sparseMatrix-method \ \ \ summary.Date
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      \ [5] summary.PDF_Dictionary* \ \ \ \ \ \ \ summary.PDF_Stream*
+      \ \ \ \ \ \ \ \ \ \ 
+
+      \ [7] summary.POSIXct \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.POSIXlt
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      \ [9] summary.aareg* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.aov
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [11] summary.aovlist* \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.aspell*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [13] summary.cch* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.check_packages_in_dir*
+
+      [15] summary.connection \ \ \ \ \ \ \ \ \ \ \ \ summary.corAR1*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [17] summary.corARMA* \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.corCAR1*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [19] summary.corCompSymm* \ \ \ \ \ \ \ \ \ \ summary.corExp*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [21] summary.corGaus* \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.corIdent*
+      \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [23] summary.corLin* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.corNatural*
+      \ \ \ \ \ \ \ \ \ \ 
+
+      [25] summary.corRatio* \ \ \ \ \ \ \ \ \ \ \ \ \ summary.corSpher*
+      \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [27] summary.corStruct* \ \ \ \ \ \ \ \ \ \ \ \ summary.corSymm*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [29] summary.coxph* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.coxph.penal*
+      \ \ \ \ \ \ \ \ \ 
+
+      [31] summary.data.frame \ \ \ \ \ \ \ \ \ \ \ \ summary.default
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [33] summary.ecdf* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.factor
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [35] summary.ggplot* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.glht*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [37] summary.glht.list* \ \ \ \ \ \ \ \ \ \ \ \ summary.glm
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [39] summary.gls* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.infl*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [41] summary.lm \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.lmList*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [43] summary.lmList4* \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.lme*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [45] summary.loess* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.loglm*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [47] summary.lsm.list* \ \ \ \ \ \ \ \ \ \ \ \ \ summary.manova
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [49] summary.matrix \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.mcmc*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [51] summary.mcmc.list* \ \ \ \ \ \ \ \ \ \ \ \ summary.merMod*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [53] summary.mlm* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.modelStruct*
+      \ \ \ \ \ \ \ \ \ 
+
+      [55] summary.negbin* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.nls*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [57] summary.nlsList* \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.packageStatus*
+      \ \ \ \ \ \ \ 
+
+      [59] summary.pdBlocked* \ \ \ \ \ \ \ \ \ \ \ \ summary.pdCompSymm*
+      \ \ \ \ \ \ \ \ \ \ 
+
+      [61] summary.pdDiag* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.pdIdent*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [63] summary.pdLogChol* \ \ \ \ \ \ \ \ \ \ \ \ summary.pdMat*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [65] summary.pdNatural* \ \ \ \ \ \ \ \ \ \ \ \ summary.pdSymm*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [67] summary.polr* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.ppr*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [69] summary.prcomp* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.princomp*
+      \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [71] summary.proc_time \ \ \ \ \ \ \ \ \ \ \ \ \ summary.pyears*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [73] summary.ratetable* \ \ \ \ \ \ \ \ \ \ \ \ summary.reStruct*
+      \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [75] summary.ref.grid* \ \ \ \ \ \ \ \ \ \ \ \ \ summary.rlm*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [77] summary.shingle* \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.srcfile
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [79] summary.srcref \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.stepfun
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [81] summary.stl* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.summary.merMod*
+      \ \ \ \ \ \ 
+
+      [83] summary.survexp* \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.survfit*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [85] summary.survfitms* \ \ \ \ \ \ \ \ \ \ \ \ summary.survreg*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [87] summary.table \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.trellis*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [89] summary.tukeysmooth* \ \ \ \ \ \ \ \ \ \ summary.varComb*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [91] summary.varConstPower* \ \ \ \ \ \ \ \ summary.varExp*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [93] summary.varFixed* \ \ \ \ \ \ \ \ \ \ \ \ \ summary.varFunc*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [95] summary.varIdent* \ \ \ \ \ \ \ \ \ \ \ \ \ summary.varPower*
+      \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [97] summary.yearmon* \ \ \ \ \ \ \ \ \ \ \ \ \ \ summary.yearqtr*
+      \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [99] summary.zoo* \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      see '?methods' for accessing help and source code
+
+      \<gtr\> methods(class="lmerMod")
+
+      [1] getL show
+
+      see '?methods' for accessing help and source code
+
+      \<gtr\> Ex16.8.1.lmer \<less\>- lmer(Yield ~ 0 + Variety + (1 \|
+      Trial/Rep) + (1 \| Trial:Va
+
+      \<less\>ld ~ 0 + Variety + (1 \| Trial/Rep) + (1 \| Trial:Variety),
+      data=Ex16.8.1)
+
+      \<gtr\>\ 
+
+      \<gtr\> anova(Ex16.8.1.lmer) \ \ \ \ 
+
+      Analysis of Variance Table
+
+      \ \ \ \ \ \ \ \ Df \ Sum Sq Mean Sq F value
+
+      Variety 12 3325873 \ 277156 \ 14.566
+
+      \<gtr\>\ 
 
       \<gtr\>\ 
 
@@ -3586,15 +4768,15 @@
 
       \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error z value Pr(\<gtr\>\|z\|) \ \ 
 
-      2 - 1 == 0 \ \ 0.9633 \ \ \ \ 1.0197 \ \ 0.945 \ 0.73112 \ \ 
+      2 - 1 == 0 \ \ 0.9633 \ \ \ \ 1.0197 \ \ 0.945 \ 0.73119 \ \ 
 
-      3 - 1 == 0 \ \ 1.3708 \ \ \ \ 1.0197 \ \ 1.344 \ 0.44595 \ \ 
+      3 - 1 == 0 \ \ 1.3708 \ \ \ \ 1.0197 \ \ 1.344 \ 0.44623 \ \ 
 
-      4 - 1 == 0 \ \ 0.9308 \ \ \ \ 1.0197 \ \ 0.913 \ 0.75400 \ \ 
+      4 - 1 == 0 \ \ 0.9308 \ \ \ \ 1.0197 \ \ 0.913 \ 0.75397 \ \ 
 
-      5 - 1 == 0 \ \ 1.6258 \ \ \ \ 1.0197 \ \ 1.594 \ 0.30039 \ \ 
+      5 - 1 == 0 \ \ 1.6258 \ \ \ \ 1.0197 \ \ 1.594 \ 0.30056 \ \ 
 
-      6 - 1 == 0 \ \ 3.1083 \ \ \ \ 1.0197 \ \ 3.048 \ 0.00877 **
+      6 - 1 == 0 \ \ 3.1083 \ \ \ \ 1.0197 \ \ 3.048 \ 0.00869 **
 
       ---
 
@@ -3612,8 +4794,9 @@
 
       \<gtr\>\ 
 
-      \<gtr\> print(Table5.7.lmer.tbl \<less\>- lsmeans(Table5.7.lmer,cld ~
-      trt))
+      \<gtr\> lsmeans(Table5.7.lmer,cld ~ trt)
+
+      Loading required namespace: pbkrtest
 
       \ trt \ \ lsmean \ \ \ \ \ \ \ SE \ \ \ df lower.CL upper.CL .group
 
@@ -3683,44 +4866,32 @@
 
       \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
 
-      ".Call" \ \ \ \ \ \ \ \ \ 0.30 \ \ \ 78.95 \ \ \ \ \ \ 0.30
-      \ \ \ \ 78.95
+      ".Call" \ \ \ \ \ \ \ \ \ 0.16 \ \ \ 88.89 \ \ \ \ \ \ 0.16
+      \ \ \ \ 88.89
 
-      "FUN" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 5.26 \ \ \ \ \ \ 0.04
-      \ \ \ \ 10.53
-
-      "KhatriRao" \ \ \ \ \ 0.02 \ \ \ \ 5.26 \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-
-      "rbind" \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 5.26 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 5.26
-
-      "structure" \ \ \ \ \ 0.02 \ \ \ \ 5.26 \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
+      "KhatriRao" \ \ \ \ \ 0.02 \ \ \ 11.11 \ \ \ \ \ \ 0.02 \ \ \ \ 11.11
 
       \<gtr\> head(meta.lmer.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "lmer" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.38 \ \ \ 100.00 \ \ \ \ \ \ 0.0
+      "lmer" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.18 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 78.95 \ \ \ \ \ \ 0.3
-      \ \ \ 78.95
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ 88.89 \ \ \ \ \ 0.16
+      \ \ \ 88.89
 
-      "\<Anonymous\>" \ \ \ \ \ \ \ 0.30 \ \ \ \ 78.95 \ \ \ \ \ \ 0.0
+      "\<Anonymous\>" \ \ \ \ \ \ \ 0.14 \ \ \ \ 77.78 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "do.call" \ \ \ \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 78.95 \ \ \ \ \ \ 0.0
+      "do.call" \ \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ 77.78 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "optimizeLmer" \ \ \ \ \ \ 0.30 \ \ \ \ 78.95 \ \ \ \ \ \ 0.0
+      "optimizeLmer" \ \ \ \ \ \ 0.14 \ \ \ \ 77.78 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "optwrap" \ \ \ \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 78.95 \ \ \ \ \ \ 0.0
+      "optwrap" \ \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ 77.78 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
-
-      \<gtr\> \ \ \ \ \ \ \ \ \ \ \ \ \ 
-
-      \<gtr\>\ 
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -3753,10 +4924,11 @@
 
       + \ \ Rprof("cotes.lmer.prof")
 
-      + \ \ cotes.lmer \<less\>- lmer(YLD ~ Entry + (1 \| Loca:Repe) + (Entry
-      \| Loca), data=r
+      + \ \ cotes.lmer \<less\>- lmer(YLD ~ 0 + Entry + (1 \| Loca:Repe) + (0
+      + Entry \| Loca)
 
-      \<less\>~ Entry + (1 \| Loca:Repe) + (Entry \| Loca), data=rcbd.dat)
+      \<less\>~ 0 + Entry + (1 \| Loca:Repe) + (0 + Entry \| Loca),
+      data=rcbd.dat)
 
       + \ \ Rprof(NULL)
 
@@ -3775,44 +4947,44 @@
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
       total.pct
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ 9109.20 \ \ \ 97.11 \ \ \ 9122.54
-      \ \ \ \ 97.25
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ 5241.20 \ \ \ 97.37 \ \ \ 5253.06
+      \ \ \ \ 97.59
 
-      "spos" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 50.54 \ \ \ \ 0.54 \ \ \ \ \ 51.92
+      "spos" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 29.48 \ \ \ \ 0.55 \ \ \ \ \ 29.86
       \ \ \ \ \ 0.55
 
-      "$" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 49.06 \ \ \ \ 0.52 \ \ \ \ 122.18
-      \ \ \ \ \ 1.30
+      "$" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 25.86 \ \ \ \ 0.48
+      \ \ \ \ \ 58.10 \ \ \ \ \ 1.08
 
-      "as.environment" \ \ \ \ 48.26 \ \ \ \ 0.51 \ \ \ \ \ 48.62
-      \ \ \ \ \ 0.52
+      "as.environment" \ \ \ \ 18.06 \ \ \ \ 0.34 \ \ \ \ \ 18.06
+      \ \ \ \ \ 0.34
 
-      "deriv12" \ \ \ \ \ \ \ \ \ \ \ 28.44 \ \ \ \ 0.30 \ \ \ 8795.94
-      \ \ \ \ 93.77
+      "\<Anonymous\>" \ \ \ \ \ \ \ 14.28 \ \ \ \ 0.27 \ \ \ \ 256.24
+      \ \ \ \ \ 4.76
 
-      "\<Anonymous\>" \ \ \ \ \ \ \ 21.64 \ \ \ \ 0.23 \ \ \ \ 602.58
-      \ \ \ \ \ 6.42
+      "deriv12" \ \ \ \ \ \ \ \ \ \ \ 13.32 \ \ \ \ 0.25 \ \ \ 5137.46
+      \ \ \ \ 95.44
 
       \<gtr\> head(cotes.lmer.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "lmer" \ \ \ \ \ \ \ \ \ \ \ 9380.06 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "lmer" \ \ \ \ \ \ \ \ \ \ \ 5382.82 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "optimizeLmer" \ \ \ 9379.80 \ \ \ 100.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
+      "optimizeLmer" \ \ \ 5382.68 \ \ \ 100.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      "optwrap" \ \ \ \ \ \ \ \ 9379.70 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "optwrap" \ \ \ \ \ \ \ \ 5382.64 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ 9122.54 \ \ \ \ 97.25 \ \ 9109.20
-      \ \ \ 97.11
+      ".Call" \ \ \ \ \ \ \ \ \ \ 5253.06 \ \ \ \ 97.59 \ \ 5241.20
+      \ \ \ 97.37
 
-      "deriv12" \ \ \ \ \ \ \ \ 8795.94 \ \ \ \ 93.77 \ \ \ \ 28.44
-      \ \ \ \ 0.30
+      "deriv12" \ \ \ \ \ \ \ \ 5137.46 \ \ \ \ 95.44 \ \ \ \ 13.32
+      \ \ \ \ 0.25
 
-      "fun" \ \ \ \ \ \ \ \ \ \ \ \ 8714.08 \ \ \ \ 92.90 \ \ \ \ 15.92
-      \ \ \ \ 0.17
+      "fun" \ \ \ \ \ \ \ \ \ \ \ \ 5093.90 \ \ \ \ 94.63 \ \ \ \ \ 7.22
+      \ \ \ \ 0.13
     </unfolded-prog-io|>
 
     from cotes.lmer
@@ -3863,13 +5035,16 @@
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
-      detach("package:lme4")
+      #detach("package:lme4")
     <|unfolded-prog-io>
       detach("package:lme4")
     </unfolded-prog-io|>
 
     <\textput>
       <section|blmer>
+
+      Maximum a posteriori estimation for linear and generalized linear
+      mixed-effects models in a Bayesian setting.
     </textput>
 
     <\unfolded-prog-io>
@@ -3877,98 +5052,106 @@
     <|unfolded-prog-io>
       library(blme)
 
-      Table5.7.blmer \<less\>- blmer(obs ~ trt + (1 \| rep), data=Table5.7)
-
-      \;
-
-      Ex16.8.1.default.blmer \<less\>- blmer(Yield ~ 0 + Variety + (1 \|
-      Trial/Rep) + (1 \| Trial:Variety), data=Ex16.8.1)
-
-      Ex16.8.1.blmer \<less\>- blmer(Yield ~ Variety + (1 \| Trial/Rep) + (1
-      \| Trial:Variety), fixef.prior = normal, data=Ex16.8.1)
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-
-      anova(Table5.7.blmer)
-
-      summary(Table5.7.blmer)
-
-      Table5.7.red.blmer \<less\>- update(Table5.7.blmer, . ~ . -trt)
-
-      anova(Table5.7.red.blmer,Table5.7.blmer)
-
-      anova(Table5.7.default.blmer,Table5.7.blmer)
-
-      \;
-
-      Table5.7.normal.blmer \<less\>- blmer(obs ~ trt + (1 \| rep),
-      data=Table5.7, fixef.prior = normal)
-
-      summary(Table5.7.normal.blmer)
-
-      \;
-
-      summary(glht(Table5.7.blmer,linfct=mcp(trt="Dunnett")))
-
-      cld(glht(Table5.7.blmer,linfct=mcp(trt="Tukey")),decreasing=TRUE)
-
-      lsmeans(Table5.7.blmer,cld ~ trt)
+      packageDescription("blme")
     <|unfolded-prog-io>
       library(blme)
 
-      Loading required package: lme4
+      \<gtr\> packageDescription("blme")
 
-      \<gtr\> Table5.7.blmer \<less\>- blmer(obs ~ trt + (1 \| rep),
+      Package: blme
+
+      Version: 1.0-4
+
+      Date: 2015-06-13
+
+      Title: Bayesian Linear Mixed-Effects Models
+
+      Author: Vincent Dorie \<less\>vjd4@nyu.edu\<gtr\>
+
+      Maintainer: Vincent Dorie \<less\>vjd4@nyu.edu\<gtr\>
+
+      Description: Maximum a posteriori estimation for linear and
+
+      \ \ \ \ \ \ \ generalized linear mixed-effects models in a Bayesian
+
+      \ \ \ \ \ \ \ setting. Extends 'lme4' by Douglas Bates, Martin
+      Maechler,
+
+      \ \ \ \ \ \ \ Ben Bolker, and Steve Walker.
+
+      Depends: R (\<gtr\>= 3.0-0), lme4 (\<gtr\>= 1.0-6)
+
+      Imports: methods, stats, utils
+
+      Suggests: testthat (\<gtr\>= 0.9-0)
+
+      License: GPL (\<gtr\>= 2)
+
+      URL: https://github.com/vdorie/blme
+
+      BugReports: https://github.com/vdorie/blme/issues
+
+      NeedsCompilation: no
+
+      Packaged: 2015-06-13 17:22:47 UTC; vdorie
+
+      Repository: CRAN
+
+      Date/Publication: 2015-06-14 01:21:14
+
+      Built: R 3.3.0; ; 2016-05-05 12:41:41 UTC; unix
+
+      \;
+
+      -- File: /Library/Frameworks/R.framework/Versions/3.3/Resources/library/blme/Meta/package.rds
+      </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7.blmer \<less\>- blmer(obs ~ 0 + trt + (1 \| rep), fixef.prior
+      = normal, data=Table5.7)
+
+      Table5.7.default.blmer \<less\>- blmer(obs ~ 0 + trt + (1 \| rep),
       data=Table5.7)
+    <|unfolded-prog-io>
+      Table5.7.blmer \<less\>- blmer(obs ~ 0 + trt + (1 \| rep), fixef.prior
+      = normal, da
 
-      \<gtr\>\ 
+      \<less\>bs ~ 0 + trt + (1 \| rep), fixef.prior = normal, data=Table5.7)
 
-      \<gtr\> Ex16.8.1.default.blmer \<less\>- blmer(Yield ~ 0 + Variety + (1
-      \| Trial/Rep) + (1\ 
+      \<gtr\> Table5.7.default.blmer \<less\>- blmer(obs ~ 0 + trt + (1 \|
+      rep), data=Table5.7)
+    </unfolded-prog-io|>
 
-      \<less\> blmer(Yield ~ 0 + Variety + (1 \| Trial/Rep) + (1 \|
-      Trial:Variety), data=Ex1
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      plot(Table5.7.blmer);v()
 
-      \<less\> + (1 \| Trial/Rep) + (1 \| Trial:Variety), data=Ex16.8.1)
+      qqnorm(Table5.7.blmer);v()
+    <|unfolded-prog-io>
+      plot(Table5.7.blmer);v()
 
-      Warning message:
+      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A3135342E30312031322E303020286669747465645C282E5C2929202E35203020740A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A31342E3632203135312E3930202872657369645C282E2C2074797065203D202270656172736F6E225C2929202E3520393020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A34392E30322035302E3830203235382E3939203235322E393920636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37382E3833203235322E3939206D0A3020352E3637206C0A6F0A6E700A3131392E3331203235322E3939206D0A3020352E3637206C0A6F0A6E700A3135392E3739203235322E3939206D0A3020352E3637206C0A6F0A6E700A3230302E3237203235322E3939206D0A3020352E3637206C0A6F0A6E700A3234302E3735203235322E3939206D0A3020352E3637206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A34392E30322039352E3432206D0A2D352E36372030206C0A6F0A6E700A34392E3032203135312E3433206D0A2D352E36372030206C0A6F0A6E700A34392E3032203230372E3433206D0A2D352E36372030206C0A6F0A2F466F6E74312066696E64666F6E7420313020730A33372E36392039312E383320282D31292031203020740A33372E3639203134372E3834202830292031203020740A33372E3639203230332E3834202831292031203020740A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37382E38332035302E3830206D0A30202D352E3637206C0A6F0A6E700A3131392E33312035302E3830206D0A30202D352E3637206C0A6F0A6E700A3135392E37392035302E3830206D0A30202D352E3637206C0A6F0A6E700A3230302E32372035302E3830206D0A30202D352E3637206C0A6F0A6E700A3234302E37352035302E3830206D0A30202D352E3637206C0A6F0A2F466F6E74312066696E64666F6E7420313020730A37382E38332033322E323920283429202E35203020740A3131392E33312033322E323920283529202E35203020740A3135392E37392033322E323920283629202E35203020740A3230302E32372033322E323920283729202E35203020740A3234302E37352033322E323920283829202E35203020740A6E700A3235382E39392039352E3432206D0A352E36372030206C0A6F0A6E700A3235382E3939203135312E3433206D0A352E36372030206C0A6F0A6E700A3235382E3939203230372E3433206D0A352E36372030206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A34392E30322035302E3830203235382E3939203235322E393920636C0A302E3930323020302E3930323020302E3930323020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A34392E3032203130312E3335206D0A3230392E39372030206C0A6F0A6E700A34392E3032203135312E3930206D0A3230392E39372030206C0A6F0A6E700A34392E3032203230322E3435206D0A3230392E39372030206C0A6F0A6E700A3130312E35322035302E3830206D0A30203230322E3139206C0A6F0A6E700A3135342E30312035302E3830206D0A30203230322E3139206C0A6F0A6E700A3230362E35302035302E3830206D0A30203230322E3139206C0A6F0A3020302E35303230203120737267620A36312E3932203134322E393120332E303020632070310A39302E3035203230352E393120332E303020632070310A3135302E3036203139312E323120332E303020632070310A37392E37332038322E393920332E303020632070310A36332E32332039372E393720332E303020632070310A3234362E3130203136382E313020332E303020632070310A3135372E3936203135392E303020332E303020632070310A3135392E3237203137352E313020332E303020632070310A3138362E30392039372E363820332E303020632070310A3137352E3737203138372E353620332E303020632070310A3131332E3935203231382E373720332E303020632070310A3133302E3435203230322E363720332E303020632070310A37342E3332203230392E373620332E303020632070310A3230302E37382039312E393220332E303020632070310A3134302E3737203132312E313820332E303020632070310A3131322E36332036332E323220332E303020632070310A3134312E3930203133322E343920332E303020632070310A3231322E3233203135342E343720332E303020632070310A3132352E3431203131332E383720332E303020632070310A3135322E3233203138302E393320332E303020632070310A3132342E3039203234302E353820332E303020632070310A38352E37382039332E313020332E303020632070310A302030203020737267620A6E700A34392E3032203135312E3433206D0A3230392E39372030206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A34392E30322035302E3830203230392E3937203230322E313920722070310A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A302E303020302E3030203238382E3030203238382E303020636C0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>\ 
 
-      In get("checkConv", lme4Namespace)(attr(opt, "derivs"), opt$par, \ :
+      \<gtr\> qqnorm(Table5.7.blmer);v()
 
-      \ \ Model failed to converge with max\|grad\| = 1.1541 (tol = 0.002,
-      component 1)
+      Error in min(x, na.rm = na.rm) : invalid 'type' (list) of argument
 
-      \<gtr\> Ex16.8.1.blmer \<less\>- blmer(Yield ~ Variety + (1 \|
-      Trial/Rep) + (1 \| Trial:Vari
+      In addition: Warning message:
 
-      \<less\>ield ~ Variety + (1 \| Trial/Rep) + (1 \| Trial:Variety),
-      fixef.prior = normal
+      In is.na(y) : is.na() applied to non-(list or vector) of type 'S4'
+    </unfolded-prog-io|>
 
-      \<less\>l/Rep) + (1 \| Trial:Variety), fixef.prior = normal,
-      data=Ex16.8.1) \ \ \ \ \ \ \ \ \ 
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(Table5.7.blmer)
 
-      \<less\>y), fixef.prior = normal, data=Ex16.8.1)
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-
-      Warning messages:
-
-      1: In get("checkConv", lme4Namespace)(attr(opt, "derivs"), opt$par, \ :
-
-      \ \ unable to evaluate scaled gradient
-
-      2: In get("checkConv", lme4Namespace)(attr(opt, "derivs"), opt$par, \ :
-
-      \ \ Model failed to converge: degenerate \ Hessian with 1 negative
-      eigenvalues
-
-      \<gtr\> anova(Table5.7.blmer)
-
-      Analysis of Variance Table
-
-      \ \ \ \ Df Sum Sq Mean Sq F value
-
-      trt \ 5 17.109 \ 3.4218 \ 2.9302
-
-      \<gtr\> summary(Table5.7.blmer)
+      anova(Table5.7.blmer)
+    <|unfolded-prog-io>
+      summary(Table5.7.blmer)
 
       Cov prior \ : rep ~ wishart(df = 3.5, scale = Inf, posterior.scale =
       cov, common.scale = TRUE)
@@ -4040,8 +5223,16 @@
       trt5 -0.598 \ 0.686 \ 0.686 \ 0.686 \ \ \ \ \ \ 
 
       trt6 -0.598 \ 0.686 \ 0.686 \ 0.686 \ 0.686
+    </unfolded-prog-io|>
 
-      \<gtr\> Table5.7.red.blmer \<less\>- update(Table5.7.blmer, . ~ . -trt)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7.red.blmer \<less\>- update(Table5.7.blmer, . ~ . -trt)
+
+      anova(Table5.7.red.blmer,Table5.7.blmer)
+    <|unfolded-prog-io>
+      Table5.7.red.blmer \<less\>- update(Table5.7.blmer, . ~ . -trt)
 
       \<gtr\> anova(Table5.7.red.blmer,Table5.7.blmer)
 
@@ -4073,16 +5264,292 @@
       ---
 
       Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      class(Table5.7.blmer)
+
+      anova(Table5.7.default.blmer,Table5.7.blmer)
+    <|unfolded-prog-io>
+      class(Table5.7.blmer)
+
+      [1] "blmerMod"
+
+      attr(,"package")
+
+      [1] "blme"
 
       \<gtr\> anova(Table5.7.default.blmer,Table5.7.blmer)
 
-      Error in anova(Table5.7.default.blmer, Table5.7.blmer) :\ 
+      refitting model(s) with ML (instead of REML)
 
-      \ \ object 'Table5.7.default.blmer' not found
+      Data: Table5.7
 
-      \<gtr\>\ 
+      Models:
 
-      \<gtr\> Table5.7.normal.blmer \<less\>- blmer(obs ~ trt + (1 \| rep),
+      Table5.7.default.blmer: obs ~ trt + (1 \| rep)
+
+      Table5.7.blmer: obs ~ trt + (1 \| rep)
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Df \ \ \ AIC \ \ BIC
+      \ logLik deviance Chisq Chi Df
+
+      Table5.7.default.blmer \ 8 83.702 92.43 -33.851 \ \ 67.702
+      \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      Table5.7.blmer \ \ \ \ \ \ \ \ \ 8 83.702 92.43 -33.851 \ \ 67.702
+      \ \ \ \ 0 \ \ \ \ \ 0
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Pr(\<gtr\>Chisq)
+
+      Table5.7.default.blmer \ \ \ \ \ \ \ \ \ \ 
+
+      Table5.7.blmer \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Ex16.8.1.default.blmer \<less\>- blmer(Yield ~ 0 + Variety + (1 \|
+      Trial/Rep) + (1 \| Trial:Variety), data=Ex16.8.1)
+
+      print(summary(Ex16.8.1.default.blmer),correlation=FALSE)
+    <|unfolded-prog-io>
+      Ex16.8.1.default.blmer \<less\>- blmer(Yield ~ 0 + Variety + (1 \|
+      Trial/Rep) + (1\ 
+
+      \<less\> blmer(Yield ~ 0 + Variety + (1 \| Trial/Rep) + (1 \|
+      Trial:Variety), data=Ex1
+
+      \<less\> + (1 \| Trial/Rep) + (1 \| Trial:Variety), data=Ex16.8.1)
+
+      Warning message:
+
+      In get("checkConv", lme4Namespace)(attr(opt, "derivs"), opt$par, \ :
+
+      \ \ Model failed to converge with max\|grad\| = 1.1541 (tol = 0.002,
+      component 1)
+
+      \<gtr\> print(summary(Ex16.8.1.default.blmer),correlation=FALSE)
+
+      Cov prior \ : Trial:Variety ~ wishart(df = 3.5, scale = Inf,
+      posterior.scale = cov, common.scale = TRUE)
+
+      \ \ \ \ \ \ \ \ \ \ \ : Rep:Trial ~ wishart(df = 3.5, scale = Inf,
+      posterior.scale = cov, common.scale = TRUE)
+
+      \ \ \ \ \ \ \ \ \ \ \ : Trial ~ wishart(df = 3.5, scale = Inf,
+      posterior.scale = cov, common.scale = TRUE)
+
+      Prior dev \ : 6.2965
+
+      \;
+
+      Linear mixed model fit by REML ['blmerMod']
+
+      Formula: Yield ~ 0 + Variety + (1 \| Trial/Rep) + (1 \| Trial:Variety)
+
+      \ \ \ Data: Ex16.8.1
+
+      \;
+
+      REML criterion at convergence: 1261.2
+
+      \;
+
+      Scaled residuals:\ 
+
+      \ \ \ \ \ Min \ \ \ \ \ \ 1Q \ \ Median \ \ \ \ \ \ 3Q \ \ \ \ \ Max\ 
+
+      -2.18119 -0.59626 -0.08897 \ 0.60429 \ 2.99319\ 
+
+      \;
+
+      Random effects:
+
+      \ Groups \ \ \ \ \ \ \ Name \ \ \ \ \ \ \ Variance Std.Dev.
+
+      \ Trial:Variety (Intercept) \ 2079 \ \ \ \ 45.60 \ 
+
+      \ Rep:Trial \ \ \ \ (Intercept) \ 1486 \ \ \ \ 38.55 \ 
+
+      \ Trial \ \ \ \ \ \ \ \ (Intercept) 31253 \ \ \ 176.78 \ 
+
+      \ Residual \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 18590 \ \ \ 136.35 \ 
+
+      Number of obs: 108, groups: \ Trial:Variety, 36; Rep:Trial, 9; Trial, 3
+
+      \;
+
+      Fixed effects:
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error t value
+
+      VarietyCentennial \ \ 1394.8 \ \ \ \ \ 115.5 \ \ 12.08
+
+      VarietyD74-7741 \ \ \ \ 1406.4 \ \ \ \ \ 115.5 \ \ 12.18
+
+      VarietyN72-137 \ \ \ \ \ 1483.9 \ \ \ \ \ 115.5 \ \ 12.85
+
+      VarietyN72-3058 \ \ \ \ 1330.7 \ \ \ \ \ 115.5 \ \ 11.52
+
+      VarietyN72-3148 \ \ \ \ 1566.0 \ \ \ \ \ 115.5 \ \ 13.56
+
+      VarietyN73-1102 \ \ \ \ 1501.4 \ \ \ \ \ 115.5 \ \ 13.00
+
+      VarietyN73-693 \ \ \ \ \ 1436.2 \ \ \ \ \ 115.5 \ \ 12.43
+
+      VarietyN73-877 \ \ \ \ \ 1403.3 \ \ \ \ \ 115.5 \ \ 12.15
+
+      VarietyN73-882 \ \ \ \ \ 1396.7 \ \ \ \ \ 115.5 \ \ 12.09
+
+      VarietyR73-81 \ \ \ \ \ \ 1373.8 \ \ \ \ \ 115.5 \ \ 11.89
+
+      VarietyR75-12 \ \ \ \ \ \ 1175.9 \ \ \ \ \ 115.5 \ \ 10.18
+
+      VarietyTracy \ \ \ \ \ \ \ 1369.9 \ \ \ \ \ 115.5 \ \ 11.86
+
+      convergence code: 0
+
+      Model failed to converge with max\|grad\| = 1.1541 (tol = 0.002,
+      component 1)
+
+      \;
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Ex16.8.1.blmer \<less\>- blmer(Yield ~ Variety + (1 \| Trial/Rep) + (1
+      \| Trial:Variety), fixef.prior = normal, data=Ex16.8.1)
+
+      print(summary(Ex16.8.1.blmer),correlation=FALSE)
+    <|unfolded-prog-io>
+      Ex16.8.1.blmer \<less\>- blmer(Yield ~ Variety + (1 \| Trial/Rep) + (1
+      \| Trial:Vari
+
+      \<less\>ield ~ Variety + (1 \| Trial/Rep) + (1 \| Trial:Variety),
+      fixef.prior = normal
+
+      \<less\>l/Rep) + (1 \| Trial:Variety), fixef.prior = normal,
+      data=Ex16.8.1)
+
+      Warning messages:
+
+      1: In get("checkConv", lme4Namespace)(attr(opt, "derivs"), opt$par, \ :
+
+      \ \ unable to evaluate scaled gradient
+
+      2: In get("checkConv", lme4Namespace)(attr(opt, "derivs"), opt$par, \ :
+
+      \ \ Model failed to converge: degenerate \ Hessian with 1 negative
+      eigenvalues
+
+      \<gtr\> print(summary(Ex16.8.1.blmer),correlation=FALSE)
+
+      Cov prior \ : Trial:Variety ~ wishart(df = 3.5, scale = Inf,
+      posterior.scale = cov, common.scale = TRUE)
+
+      \ \ \ \ \ \ \ \ \ \ \ : Rep:Trial ~ wishart(df = 3.5, scale = Inf,
+      posterior.scale = cov, common.scale = TRUE)
+
+      \ \ \ \ \ \ \ \ \ \ \ : Trial ~ wishart(df = 3.5, scale = Inf,
+      posterior.scale = cov, common.scale = TRUE)
+
+      Fixef prior: normal(sd = c(10, 2.5, ...), corr = c(0 ...), common.scale
+      = TRUE)
+
+      Prior dev \ : 168.7405
+
+      \;
+
+      Linear mixed model fit by REML ['blmerMod']
+
+      Formula: Yield ~ Variety + (1 \| Trial/Rep) + (1 \| Trial:Variety)
+
+      \ \ \ Data: Ex16.8.1
+
+      \;
+
+      REML criterion at convergence: 1267.8
+
+      \;
+
+      Scaled residuals:\ 
+
+      \ \ \ \ Min \ \ \ \ \ 1Q \ Median \ \ \ \ \ 3Q \ \ \ \ Max\ 
+
+      -2.2907 -0.5932 -0.0640 \ 0.6009 \ 3.1871\ 
+
+      \;
+
+      Random effects:
+
+      \ Groups \ \ \ \ \ \ \ Name \ \ \ \ \ \ \ Variance Std.Dev.
+
+      \ Trial:Variety (Intercept) \ 2603 \ \ \ \ 51.02 \ 
+
+      \ Rep:Trial \ \ \ \ (Intercept) \ 6772 \ \ \ \ 82.29 \ 
+
+      \ Trial \ \ \ \ \ \ \ \ (Intercept) 25292 \ \ \ 159.03 \ 
+
+      \ Residual \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 16276 \ \ \ 127.58 \ 
+
+      Number of obs: 108, groups: \ Trial:Variety, 36; Rep:Trial, 9; Trial, 3
+
+      \;
+
+      Fixed effects:
+
+      \;
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error t value
+
+      (Intercept) \ \ \ \ 1387.205 \ \ \ 105.797 \ 13.112
+
+      VarietyD74-7741 \ \ 11.120 \ \ \ \ 67.725 \ \ 0.164
+
+      VarietyN72-137 \ \ \ 86.580 \ \ \ \ 67.725 \ \ 1.278
+
+      VarietyN72-3058 \ -62.715 \ \ \ \ 67.725 \ -0.926
+
+      VarietyN72-3148 \ 166.586 \ \ \ \ 67.725 \ \ 2.460
+
+      VarietyN73-1102 \ 103.685 \ \ \ \ 67.725 \ \ 1.531
+
+      VarietyN73-693 \ \ \ 40.135 \ \ \ \ 67.725 \ \ 0.593
+
+      VarietyN73-877 \ \ \ \ 8.089 \ \ \ \ 67.725 \ \ 0.119
+
+      VarietyN73-882 \ \ \ \ 1.593 \ \ \ \ 67.725 \ \ 0.024
+
+      VarietyR73-81 \ \ \ -20.709 \ \ \ \ 67.725 \ -0.306
+
+      VarietyR75-12 \ \ -213.526 \ \ \ \ 67.725 \ -3.153
+
+      VarietyTracy \ \ \ \ -24.498 \ \ \ \ 67.725 \ -0.362
+
+      convergence code: 0
+
+      unable to evaluate scaled gradient
+
+      Model failed to converge: degenerate \ Hessian with 1 negative
+      eigenvalues
+
+      \;
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7.normal.blmer \<less\>- blmer(obs ~ trt + (1 \| rep),
+      data=Table5.7, fixef.prior = normal)
+
+      summary(Table5.7.normal.blmer)
+    <|unfolded-prog-io>
+      Table5.7.normal.blmer \<less\>- blmer(obs ~ trt + (1 \| rep),
       data=Table5.7, fixef.
 
       \<less\>blmer(obs ~ trt + (1 \| rep), data=Table5.7, fixef.prior =
@@ -4163,10 +5630,18 @@
       trt5 -0.477 \ 0.596 \ 0.596 \ 0.596 \ \ \ \ \ \ 
 
       trt6 -0.477 \ 0.596 \ 0.596 \ 0.596 \ 0.596
+    </unfolded-prog-io|>
 
-      \<gtr\>\ 
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(glht(Table5.7.blmer,linfct=mcp(trt="Dunnett")))
 
-      \<gtr\> summary(glht(Table5.7.blmer,linfct=mcp(trt="Dunnett")))
+      cld(glht(Table5.7.blmer,linfct=mcp(trt="Tukey")),decreasing=TRUE)
+
+      lsmeans(Table5.7.blmer,cld ~ trt)
+    <|unfolded-prog-io>
+      summary(glht(Table5.7.blmer,linfct=mcp(trt="Dunnett")))
 
       \;
 
@@ -4188,15 +5663,15 @@
 
       \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error z value Pr(\<gtr\>\|z\|) \ \ 
 
-      2 - 1 == 0 \ \ 0.9791 \ \ \ \ 0.9638 \ \ 1.016 \ 0.67733 \ \ 
+      2 - 1 == 0 \ \ 0.9791 \ \ \ \ 0.9638 \ \ 1.016 \ 0.67761 \ \ 
 
-      3 - 1 == 0 \ \ 1.3866 \ \ \ \ 0.9638 \ \ 1.439 \ 0.38590 \ \ 
+      3 - 1 == 0 \ \ 1.3866 \ \ \ \ 0.9638 \ \ 1.439 \ 0.38601 \ \ 
 
-      4 - 1 == 0 \ \ 0.9466 \ \ \ \ 0.9638 \ \ 0.982 \ 0.70224 \ \ 
+      4 - 1 == 0 \ \ 0.9466 \ \ \ \ 0.9638 \ \ 0.982 \ 0.70230 \ \ 
 
-      5 - 1 == 0 \ \ 1.6416 \ \ \ \ 0.9638 \ \ 1.703 \ 0.24766 \ \ 
+      5 - 1 == 0 \ \ 1.6416 \ \ \ \ 0.9638 \ \ 1.703 \ 0.24793 \ \ 
 
-      6 - 1 == 0 \ \ 3.1241 \ \ \ \ 0.9638 \ \ 3.241 \ 0.00496 **
+      6 - 1 == 0 \ \ 3.1241 \ \ \ \ 0.9638 \ \ 3.241 \ 0.00468 **
 
       ---
 
@@ -4281,45 +5756,45 @@
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
       total.pct
 
-      ".findMethodInTable" \ \ \ \ \ 0.18 \ \ \ \ 22.5 \ \ \ \ \ \ 0.18
-      \ \ \ \ \ 22.5
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ 25.00
+      \ \ \ \ \ \ 0.24 \ \ \ \ 75.00
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ \ 15.0
-      \ \ \ \ \ \ 0.60 \ \ \ \ \ 75.0
+      "\<Anonymous\>" \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ 12.50
+      \ \ \ \ \ \ 0.26 \ \ \ \ 81.25
 
-      "standardGeneric" \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 7.5 \ \ \ \ \ \ 0.24
-      \ \ \ \ \ 30.0
+      "$" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ 12.50
+      \ \ \ \ \ \ 0.04 \ \ \ \ 12.50
 
-      "$" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 7.5
-      \ \ \ \ \ \ 0.14 \ \ \ \ \ 17.5
+      ".findMethodInTable" \ \ \ \ \ 0.02 \ \ \ \ 6.25 \ \ \ \ \ \ 0.04
+      \ \ \ \ 12.50
 
-      "exists" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 7.5
-      \ \ \ \ \ \ 0.06 \ \ \ \ \ \ 7.5
+      "intI" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 6.25
+      \ \ \ \ \ \ 0.04 \ \ \ \ 12.50
 
-      "\<Anonymous\>" \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 5.0
-      \ \ \ \ \ \ 0.68 \ \ \ \ \ 85.0
+      "is" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 6.25
+      \ \ \ \ \ \ 0.04 \ \ \ \ 12.50
 
       \<gtr\> head(meta.blmer.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "blmer" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.80 \ \ \ \ 100.0 \ \ \ \ \ 0.00
-      \ \ \ \ \ \ \ 0
+      "blmer" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.32 \ \ \ 100.00 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
 
-      "optimizeLmer" \ \ \ \ \ \ 0.70 \ \ \ \ \ 87.5 \ \ \ \ \ 0.00
-      \ \ \ \ \ \ \ 0
+      "do.call" \ \ \ \ \ \ \ \ \ \ \ 0.28 \ \ \ \ 87.50 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
 
-      "optwrap" \ \ \ \ \ \ \ \ \ \ \ 0.70 \ \ \ \ \ 87.5 \ \ \ \ \ 0.00
-      \ \ \ \ \ \ \ 0
+      "\<Anonymous\>" \ \ \ \ \ \ \ 0.26 \ \ \ \ 81.25 \ \ \ \ \ 0.04
+      \ \ \ \ 12.5
 
-      "\<Anonymous\>" \ \ \ \ \ \ \ 0.68 \ \ \ \ \ 85.0 \ \ \ \ \ 0.04
-      \ \ \ \ \ \ \ 5
+      "optimizeLmer" \ \ \ \ \ \ 0.26 \ \ \ \ 81.25 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
 
-      "do.call" \ \ \ \ \ \ \ \ \ \ \ 0.68 \ \ \ \ \ 85.0 \ \ \ \ \ 0.00
-      \ \ \ \ \ \ \ 0
+      "optwrap" \ \ \ \ \ \ \ \ \ \ \ 0.26 \ \ \ \ 81.25 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
 
-      "fn" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.62 \ \ \ \ \ 77.5 \ \ \ \ \ 0.00
-      \ \ \ \ \ \ \ 0
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.24 \ \ \ \ 75.00 \ \ \ \ \ 0.08
+      \ \ \ \ 25.0
     </unfolded-prog-io|>
 
     <\textput>
@@ -4344,875 +5819,6 @@
     </unfolded-prog-io|>
 
     <\textput>
-      <section|MCMCglmm>
-    </textput>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      library(MCMCglmm)
-
-      Table5.7.mcmc1 \<less\>- MCMCglmm(fixed=obs ~ 0+trt, random = ~ rep,
-      data=Table5.7, verbose=FALSE)
-
-      #Table5.7.red.mcmc1 \<less\>- update(Table5.7.mcmc1,fixed=obs ~ 1)
-
-      Table5.7.red.mcmc1 \<less\>- MCMCglmm(fixed=obs ~ 1, random = ~ rep,
-      data=Table5.7, verbose=FALSE)
-    <|unfolded-prog-io>
-      library(MCMCglmm)
-
-      Loading required package: coda
-
-      Loading required package: ape
-
-      \<gtr\> Table5.7.mcmc1 \<less\>- MCMCglmm(fixed=obs ~ 0+trt, random = ~
-      rep, data=Table5.7
-
-      \<less\>m(fixed=obs ~ 0+trt, random = ~ rep, data=Table5.7,
-      verbose=FALSE)
-
-      \<gtr\> #Table5.7.red.mcmc1 \<less\>- update(Table5.7.mcmc1,fixed=obs ~
-      1)
-
-      \<gtr\> Table5.7.red.mcmc1 \<less\>- MCMCglmm(fixed=obs ~ 1, random = ~
-      rep, data=Table5.7
-
-      \<less\>Cglmm(fixed=obs ~ 1, random = ~ rep, data=Table5.7,
-      verbose=FALSE)
-    </unfolded-prog-io|>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      summary(Table5.7.mcmc1)$Gcovariances
-
-      summary(Table5.7.mcmc1)$Rcovariances
-    <|unfolded-prog-io>
-      summary(Table5.7.mcmc1)$Gcovariances
-
-      \ \ \ \ post.mean \ \ \ \ l-95% CI u-95% CI eff.samp
-
-      rep 0.7863117 5.232217e-61 3.038209 317.3878
-
-      \<gtr\> summary(Table5.7.mcmc1)$Rcovariances
-
-      \ \ \ \ \ \ post.mean \ l-95% CI u-95% CI eff.samp
-
-      units \ 2.279324 0.6605399 4.596721 510.3675
-    </unfolded-prog-io|>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      summary(Table5.7.red.mcmc1)$DIC-summary(Table5.7.mcmc1)$DIC
-
-      summary(Table5.7.mcmc1)$solutions
-    <|unfolded-prog-io>
-      summary(Table5.7.red.mcmc1)$DIC-summary(Table5.7.mcmc1)$DIC
-
-      [1] -0.1776275
-
-      \<gtr\> summary(Table5.7.mcmc1)$solutions
-
-      \ \ \ \ \ post.mean l-95% CI u-95% CI eff.samp pMCMC
-
-      trt1 \ 3.978425 1.834016 6.172881 1000.000 0.004
-
-      trt2 \ 4.899063 3.265426 6.664809 1468.890 0.002
-
-      trt3 \ 5.322857 3.805037 6.968376 1000.000 0.001
-
-      trt4 \ 4.820730 3.219441 6.679806 1000.000 0.001
-
-      trt5 \ 5.541614 3.604581 7.022304 1000.000 0.001
-
-      trt6 \ 6.999381 5.208332 8.775090 1348.181 0.001
-    </unfolded-prog-io|>
-
-    \;
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      mcmcGLMM.tbl \<less\>- summary(Table5.7.mcmc1)$solutions
-    <|unfolded-prog-io>
-      mcmcGLMM.tbl \<less\>- summary(Table5.7.mcmc1)$solutions
-    </unfolded-prog-io|>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      if(!file.exists("meta.mcmc.Rda")) {
-
-      \ \ \ Rprof("meta.MCMCglmm.prof")
-
-      \ \ \ meta.mcmc \<less\>- MCMCglmm(fixed=YLD ~ 0 + Entry, random = ~
-      Loca + Loca:Entry + Loca:Repe, data=rcbd.dat,verbose=FALSE)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ YLD ~ Entry
-      + (1 \| Loca/Repe) + (1 \| Loca:Entry)
-
-      \ \ \ Rprof(NULL)
-
-      \ \ \ Rprof("meta.cotes.MCMCglmm.prof")
-
-      \ \ \ cotes.mcmc \<less\>- MCMCglmm(fixed=YLD ~ 0 + Entry, random = ~
-      Loca + idh(Entry):Loca + \ Loca:Repe,rcov=~idh(Loca):units,data=rcbd.dat,verbose=FALSE)
-
-      \ \ \ Rprof(NULL)
-
-      \ \ \ save(meta.mcmc,file="meta.mcmc.Rda")
-
-      \ \ \ save(cotes.mcmc,file="cotes.mcmc.Rda")
-
-      \ \ \ 
-
-      } else {
-
-      \ \ \ load(file="meta.mcmc.Rda")
-
-      \ \ \ load(file="cotes.mcmc.Rda")
-
-      }
-
-      summaryRprof("meta.MCMCglmm.prof")
-
-      summaryRprof("meta.cotes.MCMCglmm.prof")
-
-      \;
-    <|unfolded-prog-io>
-      if(!file.exists("meta.mcmc.Rda")) {
-
-      + \ \ \ Rprof("meta.MCMCglmm.prof")
-
-      + \ \ \ meta.mcmc \<less\>- MCMCglmm(fixed=YLD ~ 0 + Entry, random = ~
-      Loca + Loca:Entr
-
-      \<less\>fixed=YLD ~ 0 + Entry, random = ~ Loca + Loca:Entry +
-      Loca:Repe, data=rcbd.d
-
-      \<less\>dom = ~ Loca + Loca:Entry + Loca:Repe,
-      data=rcbd.dat,verbose=FALSE)
-
-      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ YLD ~
-      Entry + (1 \| Loca/Repe) + (1 \| Loca:Ent
-
-      \<less\> \ \ \ \ YLD ~ Entry + (1 \| Loca/Repe) + (1 \| Loca:Entry)
-
-      + \ \ \ Rprof(NULL)
-
-      + \ \ \ Rprof("meta.cotes.MCMCglmm.prof")
-
-      + \ \ \ cotes.mcmc \<less\>- MCMCglmm(fixed=YLD ~ 0 + Entry, random = ~
-      Loca + idh(Entr
-
-      \<less\>(fixed=YLD ~ 0 + Entry, random = ~ Loca + idh(Entry):Loca +
-      \ Loca:Repe,rcov=
-
-      \<less\>ndom = ~ Loca + idh(Entry):Loca +
-      \ Loca:Repe,rcov=~idh(Loca):units,data=rcbd
-
-      \<less\>:Loca + \ Loca:Repe,rcov=~idh(Loca):units,data=rcbd.dat,verbose=FALSE)
-
-      + \ \ \ Rprof(NULL)
-
-      + \ \ \ save(meta.mcmc,file="meta.mcmc.Rda")
-
-      + \ \ \ save(cotes.mcmc,file="cotes.mcmc.Rda")
-
-      + \ \ \ 
-
-      + } else {
-
-      + \ \ \ load(file="meta.mcmc.Rda")
-
-      + \ \ \ load(file="cotes.mcmc.Rda")
-
-      + }
-
-      \<gtr\> summaryRprof("meta.MCMCglmm.prof")
-
-      $by.self
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
-      total.pct
-
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 9.62 \ \ \ 97.96
-      \ \ \ \ \ \ 9.62 \ \ \ \ 97.96
-
-      "buildZ" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.61
-      \ \ \ \ \ \ 0.12 \ \ \ \ \ 1.22
-
-      "MCMCglmm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.20
-      \ \ \ \ \ \ 9.82 \ \ \ 100.00
-
-      ".getClassFromCache" \ \ \ \ \ 0.02 \ \ \ \ 0.20 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.20
-
-      "==" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.20
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-
-      "NextMethod" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.20
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-
-      "as.double" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.20
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-
-      "is.na" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.20
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-
-      "validObject" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.20
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-
-      \;
-
-      $by.total
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct
-      self.time self.pct
-
-      "MCMCglmm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 9.82 \ \ \ 100.00
-      \ \ \ \ \ 0.02 \ \ \ \ 0.20
-
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 9.62 \ \ \ \ 97.96
-      \ \ \ \ \ 9.62 \ \ \ 97.96
-
-      "buildZ" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ \ \ 1.22
-      \ \ \ \ \ 0.06 \ \ \ \ 0.61
-
-      ".nextMethod" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.41
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "callNextMethod" \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.41 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "initialize" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.41
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "new" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.41
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "standardGeneric" \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.41 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      ".getClassFromCache" \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20 \ \ \ \ \ 0.02
-      \ \ \ \ 0.20
-
-      "==" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.02 \ \ \ \ 0.20
-
-      "NextMethod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.02 \ \ \ \ 0.20
-
-      "as.double" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.02 \ \ \ \ 0.20
-
-      "is.na" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.02 \ \ \ \ 0.20
-
-      "validObject" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.02 \ \ \ \ 0.20
-
-      ".a.e.comb" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".local" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "Matrix" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "[" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "[.data.frame" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "[.factor" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "[\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.20 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "all.equal" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "asMethod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as_CspClass" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "getClass" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "isSymmetric" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "isTRUE" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "replCmat4" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "which" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.20
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      \;
-
-      $sample.interval
-
-      [1] 0.02
-
-      \;
-
-      $sampling.time
-
-      [1] 9.82
-
-      \;
-
-      \<gtr\> summaryRprof("meta.cotes.MCMCglmm.prof")
-
-      $by.self
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
-      total.pct
-
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 14.80 \ \ \ 96.48
-      \ \ \ \ \ 14.80 \ \ \ \ 96.48
-
-      "buildZ" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 0.52
-      \ \ \ \ \ \ 0.46 \ \ \ \ \ 3.00
-
-      ".getClassFromCache" \ \ \ \ \ 0.04 \ \ \ \ 0.26 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.26
-
-      "@\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.26
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-
-      "paste" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.26
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-
-      "initialize" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13
-      \ \ \ \ \ \ 0.12 \ \ \ \ \ 0.78
-
-      "callNextMethod" \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13 \ \ \ \ \ \ 0.10
-      \ \ \ \ \ 0.65
-
-      ".requirePackage" \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.26
-
-      "base::cbind" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-
-      "getClassDef" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-
-      ".cbind2Csp" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-
-      ".identC" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-
-      "==" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-
-      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-
-      "as.function" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-
-      "diff.default" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.13
-
-      "environment" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-
-      "getNamespace" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.13
-
-      "gsub" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-
-      "lm.fit" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-
-      "mean.default" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.13
-
-      "t" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.13
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-
-      \;
-
-      $by.total
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct
-      self.time self.pct
-
-      "MCMCglmm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 15.34 \ \ \ 100.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 14.80 \ \ \ \ 96.48
-      \ \ \ \ 14.80 \ \ \ 96.48
-
-      "buildZ" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.46 \ \ \ \ \ 3.00
-      \ \ \ \ \ 0.08 \ \ \ \ 0.52
-
-      "Matrix" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ \ 0.91
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "standardGeneric" \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ \ 0.91
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "initialize" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ \ \ 0.78
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "new" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ \ \ 0.78
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "callNextMethod" \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ \ 0.65
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      ".nextMethod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.39
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.39
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "is" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.39
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "validObject" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.39
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "which" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.39
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".getClassFromCache" \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26 \ \ \ \ \ 0.04
-      \ \ \ \ 0.26
-
-      "@\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.26 \ \ \ \ \ 0.04 \ \ \ \ 0.26
-
-      "paste" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.04 \ \ \ \ 0.26
-
-      ".requirePackage" \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "base::cbind" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "getClassDef" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      ".classEnv" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "[" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "anyStrings" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "cBind" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "isTRUE" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "subCsp_cols" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "validityMethod" \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".cbind2Csp" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      ".identC" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "==" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "as.function" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "diff.default" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "environment" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "getNamespace" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "gsub" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "lm.fit" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "mean.default" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "t" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.02 \ \ \ \ 0.13
-
-      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".findMethodInTable" \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      ".local" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".quickCoerceSelect" \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      ".selectSuperClasses" \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "\<Anonymous\>" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "all.equal" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "asMethod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "attr.all_Mat" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "attrSlotNames" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "attrSlots" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "body\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.13 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "callGeneric" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "cbind" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "cbind2" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "cbind2sparse" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "diff" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "doTryCatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "drop" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "eval" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "getClass" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "isSymmetric" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "loadMethod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "mean" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "possibleExtends" \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "sapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "slotNames" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "try" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "tryCatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "tryCatchList" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "tryCatchOne" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.13
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      \;
-
-      $sample.interval
-
-      [1] 0.02
-
-      \;
-
-      $sampling.time
-
-      [1] 15.34
-
-      \;
-
-      \<gtr\>\ 
-    </unfolded-prog-io|>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      detach("package:MCMCglmm")
-    <|unfolded-prog-io>
-      detach("package:MCMCglmm")
-    </unfolded-prog-io|>
-
-    <\input>
-      <with|color|red|\<gtr\> >
-    <|input>
-      \;
-    </input>
-
-    <\textput>
-      <section|minque>
-    </textput>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      library(minque)
-
-      Table5.7.minque \<less\>- lmm(obs ~ trt \| rep, data=Table5.7,
-      method="reml")
-
-      Table5.7.red.minque \<less\>- lmm(obs ~ 1 \| rep, data=Table5.7,
-      method="reml")
-
-      \;
-
-      #anova(Table5.7.minque1)
-
-      #summary(aov(Table5.7.minque1))
-
-      Table5.7.minque[[1]]$Var
-
-      Table5.7.minque[[1]]$FixedEffect
-
-      Table5.7.minque[[1]]$RandomEffect
-    <|unfolded-prog-io>
-      library(minque)
-
-      \<gtr\> Table5.7.minque \<less\>- lmm(obs ~ trt \| rep, data=Table5.7,
-      method="reml")
-
-      \<gtr\> Table5.7.red.minque \<less\>- lmm(obs ~ 1 \| rep,
-      data=Table5.7, method="reml")
-
-      \<gtr\>\ 
-
-      \<gtr\> #anova(Table5.7.minque1)
-
-      \<gtr\> #summary(aov(Table5.7.minque1))
-
-      \<gtr\> Table5.7.minque[[1]]$Var
-
-      $obs
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ Est \ \ \ \ \ \ \ SE \ \ \ Chi_sq
-      \ \ \ \ P_value
-
-      V(rep) 0.8908509 0.9355256 0.9067732 0.170486016
-
-      V(e) \ \ 1.3184829 0.5171070 6.5011201 0.005390328
-
-      \;
-
-      \<gtr\> Table5.7.minque[[1]]$FixedEffect
-
-      $obs
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ Est \ \ \ \ \ \ \ SE \ \ \ \ z_value
-      \ \ \ P_value
-
-      mu \ \ \ \ \ 5.2748586 0.5621356 \ 9.38360581 0.00000000
-
-      trt(4) -0.4023586 0.5594916 -0.71915041 0.47204825
-
-      trt(5) \ 0.2926414 0.5594916 \ 0.52304881 0.60094029
-
-      trt(6) \ 1.7751414 0.5594916 \ 3.17277592 0.00150989
-
-      trt(3) \ 0.0376414 0.5594916 \ 0.06727787 0.94636050
-
-      trt(2) -0.3698586 0.5594916 -0.66106196 0.50857258
-
-      trt(1) -1.3332070 0.7527878 -1.77102637 0.07655632
-
-      \;
-
-      \<gtr\> Table5.7.minque[[1]]$RandomEffect
-
-      $obs
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Pre \ \ \ \ \ \ \ SE \ \ \ \ z_value
-      \ \ \ P_value
-
-      rep(1) -1.23876186 0.7179364 -1.72544785 0.08444679
-
-      rep(2) \ 1.03891934 0.7179364 \ 1.44709099 0.14787144
-
-      rep(3) -0.03918274 0.7273426 -0.05387109 0.95703787
-
-      rep(4) \ 0.23902527 0.7273426 \ 0.32862817 0.74243676
-
-      \;
-    </unfolded-prog-io|>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      Ex16.8.1.minque \<less\>- lmm(Yield ~ Variety \| Trial/Rep +
-      Variety:Trial, data=Ex16.8.1, method="reml")
-    <|unfolded-prog-io>
-      Ex16.8.1.minque \<less\>- lmm(Yield ~ Variety \| Trial/Rep +
-      Variety:Trial, data=Ex
-
-      \<less\>eld ~ Variety \| Trial/Rep + Variety:Trial, data=Ex16.8.1,
-      method="reml")
-    </unfolded-prog-io|>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      if(!file.exists("meta.minque.Rda")) {
-
-      \ \ Rprof("meta.minque.prof")
-
-      \ \ meta.minque \<less\>- lmm(YLD ~ Entry \| Loca/Repe + Loca:Entry,
-      data=rcbd.dat, method="reml")
-
-      \ \ Rprof(NULL)
-
-      \ \ save(meta.minque,file="meta.minque.Rda")
-
-      } else {
-
-      \ \ load(file="meta.minque.Rda")
-
-      }
-
-      meta.minque.summary \<less\>- summaryRprof("meta.minque.prof")
-
-      head(meta.minque.summary[[1]])
-
-      head(meta.minque.summary[[2]])
-    <|unfolded-prog-io>
-      if(!file.exists("meta.minque.Rda")) {
-
-      + \ \ Rprof("meta.minque.prof")
-
-      + \ \ meta.minque \<less\>- lmm(YLD ~ Entry \| Loca/Repe + Loca:Entry,
-      data=rcbd.dat, m
-
-      \<less\>~ Entry \| Loca/Repe + Loca:Entry, data=rcbd.dat,
-      method="reml")
-
-      + \ \ Rprof(NULL)
-
-      + \ \ save(meta.minque,file="meta.minque.Rda")
-
-      + } else {
-
-      + \ \ load(file="meta.minque.Rda")
-
-      + }
-
-      \<gtr\> meta.minque.summary \<less\>- summaryRprof("meta.minque.prof")
-
-      \<gtr\> head(meta.minque.summary[[1]])
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
-      total.pct
-
-      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 19.94 \ \ \ 92.92 \ \ \ \ \ 19.94
-      \ \ \ \ 92.92
-
-      "sort.int" \ \ \ \ \ \ \ \ \ \ \ \ 0.48 \ \ \ \ 2.24 \ \ \ \ \ \ 0.60
-      \ \ \ \ \ 2.80
-
-      "t.default" \ \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ 0.65 \ \ \ \ \ \ 0.14
-      \ \ \ \ \ 0.65
-
-      "is.na" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ 0.47
-      \ \ \ \ \ \ 0.10 \ \ \ \ \ 0.47
-
-      "standardGeneric" \ \ \ \ \ 0.08 \ \ \ \ 0.37 \ \ \ \ \ \ 1.12
-      \ \ \ \ \ 5.22
-
-      "Ops.factor" \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 0.37 \ \ \ \ \ \ 0.80
-      \ \ \ \ \ 3.73
-
-      \<gtr\> head(meta.minque.summary[[2]])
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
-
-      "lmm" \ \ \ \ \ \ \ \ \ \ \ \ \ 21.46 \ \ \ 100.00 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "lmm1" \ \ \ \ \ \ \ \ \ \ \ \ 21.46 \ \ \ 100.00 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "genmod.reml" \ \ \ \ \ 20.38 \ \ \ \ 94.97 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "reml0" \ \ \ \ \ \ \ \ \ \ \ 20.38 \ \ \ \ 94.97 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ 19.94 \ \ \ \ 92.92 \ \ \ \ 19.94
-      \ \ \ 92.92
-
-      "genmod" \ \ \ \ \ \ \ \ \ \ 19.18 \ \ \ \ 89.38 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-    </unfolded-prog-io|>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      detach("package:minque")
-    <|unfolded-prog-io>
-      detach("package:minque")
-    </unfolded-prog-io|>
-
-    <\textput>
       <section|glmmADMB>
 
       glmmADMB is not available fron CRAN so must be installed via
@@ -5220,42 +5826,15 @@
       <verbatim|install.packages("glmmADMB",
       repos=c("http://glmmadmb.r-forge.r-project.org/repos",
       getOption("repos")),type="source")>
-
-      \;
-
-      We need to remember the the default family is \Ppoisson\Q
     </textput>
 
-    <\folded-prog-io>
+    <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
-    <|folded-prog-io>
+    <|unfolded-prog-io>
       library(glmmADMB)
 
-      Table5.7.admb \<less\>- glmmadmb(obs ~ 0+trt, random = ~ 1 \| rep,
-      family = "gaussian", data = Table5.7)
-
-      summary(Table5.7.admb)
-
-      #anova(Table5.7.admb)
-
-      summary(aov(Table5.7.admb))
-
-      Table5.7.red.admb \<less\>- update(Table5.7.admb, . ~ . -trt)
-
-      \;
-
-      VarCorr(Table5.7.admb)
-
-      fixef(Table5.7.admb)
-
-      ranef(Table5.7.admb)
-
-      summary(glht(Table5.7.admb,linfct=mcp(trt="Dunnett")))
-
-      cld(glht(Table5.7.admb,linfct=mcp(trt="Tukey")),decreasing=TRUE)$mcletters$Letters
-
-      print(Table5.7.admb.tbl \<less\>- lsmeans(Table5.7.admb,cld ~ trt))
-    <|folded-prog-io>
+      packageDescription("glmmADMB")
+    <|unfolded-prog-io>
       library(glmmADMB)
 
       \;
@@ -5280,8 +5859,315 @@
 
       \;
 
-      \<gtr\> Table5.7.admb \<less\>- glmmadmb(obs ~ 0+trt, random = ~ 1 \|
-      rep, family = "gaussi
+      \<gtr\> packageDescription("glmmADMB")
+
+      Package: glmmADMB
+
+      Version: 0.8.3.3
+
+      Revision: $Revision: 284 $
+
+      Date: 2016-01-19
+
+      Title: Generalized Linear Mixed Models using 'AD Model Builder'
+
+      Author: Hans Skaug \<less\>Hans.Skaug@mi.uib.no\<gtr\>, Dave Fournier
+
+      \ \ \ \ \ \ \ \<less\>otter@otter-rsch.com\<gtr\>, Anders Nielsen
+      \<less\>andersn@hawaii.edu\<gtr\>,
+
+      \ \ \ \ \ \ \ Arni Magnusson \<less\>arnima@hafro.is\<gtr\>, and Ben
+      Bolker
+
+      \ \ \ \ \ \ \ \<less\>bolker@mcmaster.ca\<gtr\>
+
+      Maintainer: Ben Bolker \<less\>bolker@mcmaster.ca\<gtr\>
+
+      LazyData: yes
+
+      BuildVignettes: no
+
+      VignetteBuilder: knitr
+
+      Description: Fits mixed-effects models using a variety of
+
+      \ \ \ \ \ \ \ distributions.
+
+      Imports: stats, Matrix, nlme, R2admb, stringr, plyr, coda
+
+      Depends: R (\<gtr\>= 2.13), methods, MASS
+
+      Suggests: lattice, lme4, mlmRev, plotMCMC, ggplot2, bbmle, pscl,
+
+      \ \ \ \ \ \ \ knitr, car
+
+      License: BSD_2_clause + file LICENSE
+
+      URL: http://glmmadmb.r-forge.r-project.org, http://admb-project.org
+
+      BuildVignette: no
+
+      Collate: 'anova.glmm.admb.R' 'getdata.R' 'glmm.admb.R' .....
+
+      NeedsCompilation: no
+
+      Packaged: 2016-01-20 02:03:14 UTC; bolker
+
+      Built: R 3.3.1; ; 2016-10-17 03:06:25 UTC; unix
+
+      \;
+
+      -- File: /Users/peter/Library/R/3.3/library/glmmADMB/Meta/package.rds\ 
+    </unfolded-prog-io|>
+
+    <\textput>
+      We need to remember the the default family is \Ppoisson\Q
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7.admb \<less\>- glmmadmb(obs ~ trt, random = ~ 1 \| rep, family
+      = "gaussian", data = Table5.7)
+    <|unfolded-prog-io>
+      Table5.7.admb \<less\>- glmmadmb(obs ~ trt, random = ~ 1 \| rep, family
+      = "gaussian
+
+      \<less\>(obs ~ trt, random = ~ 1 \| rep, family = "gaussian", data =
+      Table5.7)
+
+      Warning message:
+
+      In eval(expr, envir, enclos) : sd.est not defined for this family
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(Table5.7.admb)
+
+      anova(Table5.7.admb)
+    <|unfolded-prog-io>
+      summary(Table5.7.admb)
+
+      \;
+
+      Call:
+
+      glmmadmb(formula = obs ~ 0 + trt, data = Table5.7, family = "gaussian",\ 
+
+      \ \ \ \ random = ~1 \| rep)
+
+      \;
+
+      AIC: 83.7\ 
+
+      \;
+
+      Coefficients:
+
+      \ \ \ \ \ Estimate Std. Error z value Pr(\<gtr\>\|z\|) \ \ \ 
+
+      trt1 \ \ \ 3.941 \ \ \ \ \ 0.826 \ \ \ 4.77 \ 1.8e-06 ***
+
+      trt2 \ \ \ 4.905 \ \ \ \ \ 0.637 \ \ \ 7.70 \ 1.4e-14 ***
+
+      trt3 \ \ \ 5.313 \ \ \ \ \ 0.637 \ \ \ 8.34 \ \<less\> 2e-16 ***
+
+      trt4 \ \ \ 4.873 \ \ \ \ \ 0.637 \ \ \ 7.65 \ 2.0e-14 ***
+
+      trt5 \ \ \ 5.568 \ \ \ \ \ 0.637 \ \ \ 8.74 \ \<less\> 2e-16 ***
+
+      trt6 \ \ \ 7.050 \ \ \ \ \ 0.637 \ \ 11.07 \ \<less\> 2e-16 ***
+
+      ---
+
+      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+      \;
+
+      Number of observations: total=22, rep=4\ 
+
+      Random effect variance(s):
+
+      Group=rep
+
+      \ \ \ \ \ \ \ \ \ \ \ \ Variance StdDev
+
+      (Intercept) \ \ 0.6701 0.8186
+
+      \;
+
+      Residual variance: 0.97642 (std. err.: 0.16343)
+
+      \;
+
+      Log-likelihood: -33.851\ 
+
+      Warning message:
+
+      In .local(x, sigma, ...) :
+
+      \ \ 'sigma' and 'rdig' arguments are present for compatibility only:
+      ignored
+
+      \<gtr\> anova(Table5.7.admb)
+
+      Error in anova.glmmadmb(Table5.7.admb) : Two or more model fits
+      required.
+    </unfolded-prog-io|>
+
+    <\textput>
+      Since anova doesn't work for a single admb model, we might be tempted
+      to try aov. Don't. Notice the error d.f.
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(aov(Table5.7.admb))
+    <|unfolded-prog-io>
+      summary(aov(Table5.7.admb))
+
+      \ \ \ \ \ \ \ \ \ \ Df Sum Sq Mean Sq F value \ \ Pr(\<gtr\>F) \ \ \ 
+
+      trt \ \ \ \ \ \ \ 6 \ 659.4 \ 109.90 \ \ 50.72 1.59e-09 ***
+
+      Residuals 16 \ \ 34.7 \ \ \ 2.17 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      ---
+
+      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7.red.admb \<less\>- update(Table5.7.admb, . ~ . -trt)
+
+      anova(Table5.7.admb,Table5.7.red.admb)
+    <|unfolded-prog-io>
+      Table5.7.red.admb \<less\>- update(Table5.7.admb, . ~ . -trt)
+
+      Warning message:
+
+      In eval(expr, envir, enclos) : sd.est not defined for this family
+
+      \<gtr\> anova(Table5.7.admb,Table5.7.red.admb)
+
+      Analysis of Deviance Table
+
+      \;
+
+      Model 1: obs ~ 1
+
+      Model 2: obs ~ trt
+
+      \ \ NoPar \ LogLik Df Deviance Pr(\<gtr\>Chi) \ 
+
+      1 \ \ \ \ 3 -40.032 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      2 \ \ \ \ 8 -33.851 \ 5 \ \ 12.361 \ 0.03016 *
+
+      ---
+
+      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+      Warning message:
+
+      In anova.glmmadmb(Table5.7.admb, Table5.7.red.admb) :
+
+      \ \ rearranging models in order of increasing complexity
+    </unfolded-prog-io|>
+
+    <\textput>
+      If we fit the first model by excluding the intercept, as with previous
+      examples, the update fails. This is not a problem for lme or lmer\ 
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      glmmadmb(obs ~ 0, random = ~ 1 \| rep, family = "gaussian", data =
+      Table5.7)
+
+      lme(obs ~ 0, random = ~ 1 \| rep, data = Table5.7)
+
+      lmer(obs ~ 0 + (1 \| rep), data = Table5.7)
+    <|unfolded-prog-io>
+      glmmadmb(obs ~ 0, random = ~ 1 \| rep, family = "gaussian", data =
+      Table5.7)
+
+      Error in svd(x, 0, 0) : a dimension is zero
+
+      \<gtr\> lme(obs ~ 0, random = ~ 1 \| rep, data = Table5.7)
+
+      Linear mixed-effects model fit by REML
+
+      \ \ Data: Table5.7\ 
+
+      \ \ Log-restricted-likelihood: -47.20862
+
+      \ \ Fixed: obs ~ 0\ 
+
+      numeric(0)
+
+      \;
+
+      Random effects:
+
+      \ Formula: ~1 \| rep
+
+      \ \ \ \ \ \ \ \ (Intercept) Residual
+
+      StdDev: \ \ \ 5.453238 \ 1.37886
+
+      \;
+
+      Number of Observations: 22
+
+      Number of Groups: 4\ 
+
+      \<gtr\> lmer(obs ~ 0 + (1 \| rep), data = Table5.7)
+
+      Linear mixed model fit by maximum likelihood \ ['lmerMod']
+
+      Formula: obs ~ 0 + (1 \| rep)
+
+      \ \ \ Data: Table5.7
+
+      \ \ \ \ \ AIC \ \ \ \ \ BIC \ \ logLik deviance df.resid\ 
+
+      \ 98.4172 100.5993 -47.2086 \ 94.4172 \ \ \ \ \ \ 20\ 
+
+      Random effects:
+
+      \ Groups \ \ Name \ \ \ \ \ \ \ Std.Dev.
+
+      \ rep \ \ \ \ \ (Intercept) 5.453 \ \ 
+
+      \ Residual \ \ \ \ \ \ \ \ \ \ \ \ 1.379 \ \ 
+
+      Number of obs: 22, groups: \ rep, 4
+
+      No fixed effect coefficients
+    </unfolded-prog-io|>
+
+    <\folded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|folded-prog-io>
+      \;
+
+      VarCorr(Table5.7.admb)
+
+      summary(glht(Table5.7.admb,linfct=mcp(trt="Dunnett")))
+
+      cld(glht(Table5.7.admb,linfct=mcp(trt="Tukey")),decreasing=TRUE)
+
+      lsmeans(Table5.7.admb,cld ~ trt)
+    <|folded-prog-io>
+      Table5.7.admb \<less\>- glmmadmb(obs ~ 0+trt, random = ~ 1 \| rep,
+      family = "gaussi
 
       \<less\>(obs ~ 0+trt, random = ~ 1 \| rep, family = "gaussian", data =
       Table5.7)
@@ -5353,7 +6239,10 @@
       \ \ 'sigma' and 'rdig' arguments are present for compatibility only:
       ignored
 
-      \<gtr\> #anova(Table5.7.admb)
+      \<gtr\> anova(Table5.7.admb)
+
+      Error in anova.glmmadmb(Table5.7.admb) : Two or more model fits
+      required.
 
       \<gtr\> summary(aov(Table5.7.admb))
 
@@ -5371,8 +6260,6 @@
 
       Error in svd(x, 0, 0) : a dimension is zero
 
-      \<gtr\>\ 
-
       \<gtr\> VarCorr(Table5.7.admb)
 
       Group=rep
@@ -5387,29 +6274,6 @@
 
       \ \ 'sigma' and 'rdig' arguments are present for compatibility only:
       ignored
-
-      \<gtr\> fixef(Table5.7.admb)
-
-      \ \ \ \ trt1 \ \ \ \ trt2 \ \ \ \ trt3 \ \ \ \ trt4 \ \ \ \ trt5
-      \ \ \ \ trt6\ 
-
-      3.940880 4.905023 5.312527 4.872522 5.567530 7.050047\ 
-
-      \<gtr\> ranef(Table5.7.admb)
-
-      $rep
-
-      \ \ (Intercept)
-
-      1 \ -1.1050480
-
-      2 \ \ 0.9267537
-
-      3 \ -0.0348296
-
-      4 \ \ 0.2130608
-
-      \;
 
       \<gtr\> summary(glht(Table5.7.admb,linfct=mcp(trt="Dunnett")))
 
@@ -5436,15 +6300,15 @@
 
       \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error z value Pr(\<gtr\>\|z\|) \ \ 
 
-      2 - 1 == 0 \ \ 0.9641 \ \ \ \ 0.8675 \ \ 1.111 \ 0.60819 \ \ 
+      2 - 1 == 0 \ \ 0.9641 \ \ \ \ 0.8675 \ \ 1.111 \ 0.60838 \ \ 
 
-      3 - 1 == 0 \ \ 1.3716 \ \ \ \ 0.8675 \ \ 1.581 \ 0.30753 \ \ 
+      3 - 1 == 0 \ \ 1.3716 \ \ \ \ 0.8675 \ \ 1.581 \ 0.30722 \ \ 
 
-      4 - 1 == 0 \ \ 0.9316 \ \ \ \ 0.8675 \ \ 1.074 \ 0.63569 \ \ 
+      4 - 1 == 0 \ \ 0.9316 \ \ \ \ 0.8675 \ \ 1.074 \ 0.63612 \ \ 
 
-      5 - 1 == 0 \ \ 1.6267 \ \ \ \ 0.8675 \ \ 1.875 \ 0.17996 \ \ 
+      5 - 1 == 0 \ \ 1.6267 \ \ \ \ 0.8675 \ \ 1.875 \ 0.17962 \ \ 
 
-      6 - 1 == 0 \ \ 3.1092 \ \ \ \ 0.8675 \ \ 3.584 \ 0.00132 **
+      6 - 1 == 0 \ \ 3.1092 \ \ \ \ 0.8675 \ \ 3.584 \ 0.00171 **
 
       ---
 
@@ -5454,16 +6318,13 @@
 
       \;
 
-      \<gtr\> cld(glht(Table5.7.admb,linfct=mcp(trt="Tukey")),decreasing=TRUE)$mcletters$
-
-      \<less\>nfct=mcp(trt="Tukey")),decreasing=TRUE)$mcletters$Letters
+      \<gtr\> cld(glht(Table5.7.admb,linfct=mcp(trt="Tukey")),decreasing=TRUE)
 
       \ \ \ 1 \ \ \ 2 \ \ \ 3 \ \ \ 4 \ \ \ 5 \ \ \ 6\ 
 
       \ "b" \ "b" "ab" \ "b" "ab" \ "a"\ 
 
-      \<gtr\> print(Table5.7.admb.tbl \<less\>- lsmeans(Table5.7.admb,cld ~
-      trt))
+      \<gtr\> lsmeans(Table5.7.admb,cld ~ trt)
 
       \ trt \ \ lsmean \ \ \ \ \ SE df asymp.LCL asymp.UCL .group
 
@@ -5489,6 +6350,67 @@
 
       significance level used: alpha = 0.05\ 
     </folded-prog-io|>
+
+    <\textput>
+      \;
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Ex16.8.1.admb \<less\>- glmmadmb(Yield ~ 0 + Variety,random= ~ (1 \|
+      Trial/Rep) + (1 \| Trial:Variety), family = "gaussian", data=Ex16.8.1)
+    <|unfolded-prog-io>
+      Ex16.8.1.admb \<less\>- glmmadmb(Yield ~ 0 + Variety,random= ~ (1 \|
+      Trial/Rep) + (
+
+      \<less\>(Yield ~ 0 + Variety,random= ~ (1 \| Trial/Rep) + (1 \|
+      Trial:Variety), family
+
+      \<less\>m= ~ (1 \| Trial/Rep) + (1 \| Trial:Variety), family =
+      "gaussian", data=Ex16.8
+
+      \<less\>\| Trial:Variety), family = "gaussian", data=Ex16.8.1)
+
+      Warning message:
+
+      In eval(expr, envir, enclos) : sd.est not defined for this family
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Ex16.8.1.cotes.admb \<less\>- glmmadmb(Yield ~ 0 + Variety,random= ~ (1
+      \| Trial/Rep) + (0 + Variety \| Trial), family = "gaussian",
+      data=Ex16.8.1)
+    <|unfolded-prog-io>
+      Ex16.8.1.cotes.admb \<less\>- glmmadmb(Yield ~ 0 + Variety,random= ~ (1
+      \| Trial/Re
+
+      \<less\>mmadmb(Yield ~ 0 + Variety,random= ~ (1 \| Trial/Rep) + (0 +
+      Variety \| Trial)
+
+      \<less\>,random= ~ (1 \| Trial/Rep) + (0 + Variety \| Trial), family =
+      "gaussian", dat
+
+      \<less\> + (0 + Variety \| Trial), family = "gaussian", data=Ex16.8.1)
+
+      Parameters were estimated, but standard errors were not: the most
+      likely problem is that the curvature at MLE was zero or negative
+
+      Error in glmmadmb(Yield ~ 0 + Variety, random = ~(1 \| Trial/Rep) + (0
+      + \ :\ 
+
+      \ \ The function maximizer failed (couldn't find parameter file)
+      Troubleshooting steps include (1) run with 'save.dir' set and inspect
+      output files; (2) change run parameters: see '?admbControl';(3) re-run
+      with debug=TRUE for more information on failure mode
+
+      In addition: Warning message:
+
+      running command './glmmadmb -maxfn 500 -maxph 5 -noinit -shess' had
+      status 1\ 
+    </unfolded-prog-io|>
 
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
@@ -5543,49 +6465,69 @@
 
       \<gtr\> head(meta.admb.summary[[1]])
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
+      total.pct
 
-      "scan" \ \ \ \ \ \ \ \ \ \ \ 1.30 \ \ \ 71.43 \ \ \ \ \ \ 1.30
-      \ \ \ \ 71.43
+      "scan" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ 35.71
+      \ \ \ \ \ \ 0.12 \ \ \ \ 42.86
 
-      "readLines" \ \ \ \ \ \ 0.24 \ \ \ 13.19 \ \ \ \ \ \ 0.24 \ \ \ \ 13.19
+      "readLines" \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ 28.57 \ \ \ \ \ \ 0.08
+      \ \ \ \ 28.57
 
-      "system" \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 4.40 \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 4.40
+      "close.connection" \ \ \ \ \ 0.04 \ \ \ 14.29 \ \ \ \ \ \ 0.04
+      \ \ \ \ 14.29
 
-      ".External2" \ \ \ \ \ 0.06 \ \ \ \ 3.30 \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 3.30
+      ".External2" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 7.14 \ \ \ \ \ \ 0.02
+      \ \ \ \ \ 7.14
 
-      "file" \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 2.20 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 2.20
+      "file" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 7.14
+      \ \ \ \ \ \ 0.02 \ \ \ \ \ 7.14
 
-      "read.table" \ \ \ \ \ 0.02 \ \ \ \ 1.10 \ \ \ \ \ \ 1.34 \ \ \ \ 73.63
+      "system" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 7.14
+      \ \ \ \ \ \ 0.02 \ \ \ \ \ 7.14
 
       \<gtr\> head(meta.admb.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "glmmadmb" \ \ \ \ \ \ \ \ 1.82 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "glmmadmb" \ \ \ \ \ \ \ \ 0.28 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "par_read" \ \ \ \ \ \ \ \ 1.58 \ \ \ \ 86.81 \ \ \ \ \ 0.00
+      "par_read" \ \ \ \ \ \ \ \ 0.22 \ \ \ \ 78.57 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "read.table" \ \ \ \ \ \ 1.34 \ \ \ \ 73.63 \ \ \ \ \ 0.02 \ \ \ \ 1.10
+      "scan" \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ \ 42.86 \ \ \ \ \ 0.10
+      \ \ \ 35.71
 
-      "rt" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.32 \ \ \ \ 72.53 \ \ \ \ \ 0.00
+      "read.table" \ \ \ \ \ \ 0.12 \ \ \ \ 42.86 \ \ \ \ \ 0.00 \ \ \ \ 0.00
+
+      "rt" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ \ 42.86 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "scan" \ \ \ \ \ \ \ \ \ \ \ \ 1.30 \ \ \ \ 71.43 \ \ \ \ \ 1.30
-      \ \ \ 71.43
-
-      "readLines" \ \ \ \ \ \ \ 0.24 \ \ \ \ 13.19 \ \ \ \ \ 0.24 \ \ \ 13.19
+      "readLines" \ \ \ \ \ \ \ 0.08 \ \ \ \ 28.57 \ \ \ \ \ 0.08 \ \ \ 28.57
     </unfolded-prog-io|>
 
     <\textput>
-      <section|glmmLasso>
+      if(!file.exists("cotes.admb.Rda")) {
 
-      Note that glmmLasso is different about random effects
+      \ \ Rprof("cotes.admb.prof")
+
+      \ \ cotes.admb \<less\>- glmmadmb(YLD ~ 0 + Entry,random= ~ (1 \|
+      Loca/Repe) + (0 + Entry \| Loca), family = "gaussian", data=rcbd.dat)
+
+      \ \ Rprof(NULL)
+
+      \ \ save(meta.admb,file="meta.cotes.Rda")
+
+      } else {
+
+      \ \ load(file="meta.cotes.Rda")
+
+      }
+    </textput>
+
+    <\textput>
+      <section|glmmLasso>
     </textput>
 
     <\unfolded-prog-io>
@@ -5593,33 +6535,199 @@
     <|unfolded-prog-io>
       library(glmmLasso)
 
-      Table5.7.glmmLasso \<less\>- glmmLasso(fix = obs ~ trt, rnd = list(rep
-      = ~1), lambda = 200, data = Table5.7)
+      packageDescription("glmmLasso")
+    <|unfolded-prog-io>
+      library(glmmLasso)
 
-      #Table5.7.red.glmmLasso \<less\>- glmmLasso(fix = obs ~ 1, rnd =
-      list(rep = ~1), lambda = 200, data = Table5.7)
+      \<gtr\> packageDescription("glmmLasso")
 
-      #Table5.7.red.glmmLasso \<less\>- update(Table5.7.glmmLasso, . ~ .
-      -trt)
+      Package: glmmLasso
+
+      Type: Package
+
+      Title: Variable Selection for Generalized Linear Mixed Models by
+
+      \ \ \ \ \ \ \ L1-Penalized Estimation
+
+      Version: 1.4.4
+
+      Date: 2016-05-28
+
+      Author: Andreas Groll
+
+      Maintainer: Andreas Groll \<less\>groll@mathematik.uni-muenchen.de\<gtr\>
+
+      Description: A variable selection approach for generalized linear
+
+      \ \ \ \ \ \ \ mixed models by L1-penalized estimation is provided.
+
+      Imports: minqa, Matrix
+
+      License: GPL-2
+
+      Repository: CRAN
+
+      NeedsCompilation: no
+
+      Packaged: 2016-05-27 15:00:44 UTC; user
+
+      Date/Publication: 2016-05-27 17:27:35
+
+      Built: R 3.3.0; ; 2016-05-28 10:38:53 UTC; unix
 
       \;
+
+      -- File: /Library/Frameworks/R.framework/Versions/3.3/Resources/library/glmmLasso/Meta/package.rds
+      </unfolded-prog-io|>
+
+    <\textput>
+      Note that glmmLasso is different about random effects
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7.glmmLasso \<less\>- glmmLasso(fix = obs ~ trt, rnd = list(rep
+      = ~1), lambda = 200, data = Table5.7)
+    <|unfolded-prog-io>
+      Table5.7.glmmLasso \<less\>- glmmLasso(fix = obs ~ trt, rnd = list(rep
+      = ~1), lamb
+
+      \<less\>mLasso(fix = obs ~ trt, rnd = list(rep = ~1), lambda = 200,
+      data = Table5.7)
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      plot(Table5.7.glmmLasso)
+    <|unfolded-prog-io>
+      plot(Table5.7.glmmLasso)
+
+      Error in plot.glmmLasso(Table5.7.glmmLasso) : No smooth terms to plot!
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(Table5.7.glmmLasso)
+
+      anova(Table5.7.glmmLasso)
+    <|unfolded-prog-io>
+      summary(Table5.7.glmmLasso)
+
+      Call:
+
+      glmmLasso(fix = obs ~ trt, rnd = list(rep = ~1), data = Table5.7,\ 
+
+      \ \ \ \ lambda = 200)
+
+      \;
+
+      \;
+
+      Fixed Effects:
+
+      \;
+
+      Coefficients:
+
+      \ \ \ \ \ \ \ \ \ \ \ \ Estimate StdErr z.value p.value
+
+      (Intercept) \ 4.79649 \ \ \ \ NA \ \ \ \ \ NA \ \ \ \ \ NA
+
+      trt2 \ \ \ \ \ \ \ -0.25786 \ \ \ \ NA \ \ \ \ \ NA \ \ \ \ \ NA
+
+      trt3 \ \ \ \ \ \ \ -0.46764 \ \ \ \ NA \ \ \ \ \ NA \ \ \ \ \ NA
+
+      trt4 \ \ \ \ \ \ \ -0.19793 \ \ \ \ NA \ \ \ \ \ NA \ \ \ \ \ NA
+
+      trt5 \ \ \ \ \ \ \ -0.49482 \ \ \ \ NA \ \ \ \ \ NA \ \ \ \ \ NA
+
+      trt6 \ \ \ \ \ \ \ \ 0.00000 \ \ \ \ NA \ \ \ \ \ NA \ \ \ \ \ NA
+
+      \;
+
+      Random Effects:
+
+      \;
+
+      StdDev:
+
+      \ \ \ \ \ \ \ \ \ rep
+
+      rep 1.463278
+
+      \<gtr\> anova(Table5.7.glmmLasso)
+
+      Error in UseMethod("anova") :\ 
+
+      \ \ no applicable method for 'anova' applied to an object of class
+      "glmmLasso"
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7.red.glmmLasso \<less\>- update(Table5.7.glmmLasso, . ~ . -trt)
+
+      Table5.7.red.glmmLasso \<less\>- glmmLasso(fix = obs ~ 0, rnd =
+      list(rep = ~1), lambda = 200, data = Table5.7)
+    <|unfolded-prog-io>
+      Table5.7.red.glmmLasso \<less\>- update(Table5.7.glmmLasso, . ~ . -trt)
+
+      Error in formula.default(object) : invalid formula
+
+      \<gtr\> Table5.7.red.glmmLasso \<less\>- glmmLasso(fix = obs ~ 0, rnd =
+      list(rep = ~1), la
+
+      \<less\> glmmLasso(fix = obs ~ 0, rnd = list(rep = ~1), lambda = 200,
+      data = Table5.
+
+      \<less\>rnd = list(rep = ~1), lambda = 200, data = Table5.7)
+
+      Error in est.glmmLasso.RE(fix = fix, rnd = rnd, data = data, lambda =
+      lambda, \ :\ 
+
+      \ \ Length of vector defining the grouping of the variables doesn't
+      match with\ 
+
+      \ \ \ \ \ \ \ \ \ the formula!
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7.red.glmmLasso \<less\>- update(Table5.7.glmmLasso, . ~ . -trt)
+
+      #
+
+      #
+
+      glmmLasso(fix = obs ~ 0 + trt, rnd = list(rep = ~1), lambda = 200,
+      control=list(center=FALSE), data = Table5.7)
+
+      glmmLasso(fix = obs ~ trt, rnd = list(rep = ~1), lambda = 200, data =
+      Table5.7,final.re=TRUE) \ \ \ \ \ \ \ \ \ 
 
       Table5.7.glmmLasso$coefficients
 
       Table5.7.glmmLasso$StdDev
 
-      #anova(Table5.7.glmmLasso)
+      \;
 
       #summary(aov(Table5.7.glmmLasso))
 
       Table5.7.glmmLasso$ranef
 
-      summary(Table5.7.glmmLasso)
-    <|unfolded-prog-io>
-      library(glmmLasso)
+      \;
 
-      \<gtr\> Table5.7.glmmLasso \<less\>- glmmLasso(fix = obs ~ trt, rnd =
-      list(rep = ~1), lamb
+      VarCorr(Table5.7.glmmLasso)
+
+      class(Table5.7.glmmLasso)
+    <|unfolded-prog-io>
+      Table5.7.glmmLasso \<less\>- glmmLasso(fix = obs ~ trt, rnd = list(rep
+      = ~1), lamb
 
       \<less\>mLasso(fix = obs ~ trt, rnd = list(rep = ~1), lambda = 200,
       data = Table5.7)
@@ -5635,7 +6743,83 @@
       \<gtr\> #Table5.7.red.glmmLasso \<less\>- update(Table5.7.glmmLasso, .
       ~ . -trt)
 
-      \<gtr\>\ 
+      \<gtr\> glmmLasso(fix = obs ~ 0 + trt, rnd = list(rep = ~1), lambda =
+      200, control=
+
+      \<less\> trt, rnd = list(rep = ~1), lambda = 200,
+      control=list(center=FALSE), data =
+
+      \<less\>, lambda = 200, control=list(center=FALSE), data = Table5.7)
+
+      Call:
+
+      glmmLasso(fix = obs ~ 0 + trt, rnd = list(rep = ~1), data = Table5.7,\ 
+
+      \ \ \ \ lambda = 200, control = list(center = FALSE))
+
+      \;
+
+      Fixed Effects:
+
+      \;
+
+      Coefficients:
+
+      trt1 trt2 trt3 trt4 trt5 trt6\ 
+
+      \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0\ 
+
+      \;
+
+      Random Effects:
+
+      \;
+
+      StdDev:
+
+      \ \ \ \ \ \ \ \ \ rep
+
+      rep 5.499208
+
+      \<gtr\> glmmLasso(fix = obs ~ trt, rnd = list(rep = ~1), lambda = 200,
+      data = Table
+
+      \<less\>, rnd = list(rep = ~1), lambda = 200, data =
+      Table5.7,final.re=TRUE) \ \ \ \ \ \ \ 
+
+      \<less\>mbda = 200, data = Table5.7,final.re=TRUE) \ \ \ \ \ \ \ \ \ 
+
+      Call:
+
+      glmmLasso(fix = obs ~ trt, rnd = list(rep = ~1), data = Table5.7,\ 
+
+      \ \ \ \ lambda = 200, final.re = TRUE)
+
+      \;
+
+      Fixed Effects:
+
+      \;
+
+      Coefficients:
+
+      (Intercept) \ \ \ \ \ \ \ trt2 \ \ \ \ \ \ \ trt3 \ \ \ \ \ \ \ trt4
+      \ \ \ \ \ \ \ trt5 \ \ \ \ \ \ \ trt6\ 
+
+      \ 5.42611951 -0.01924209 -0.50857059 \ 0.12056606 \ 0.30141514
+      \ 0.00000000\ 
+
+      \;
+
+      Random Effects:
+
+      \;
+
+      StdDev:
+
+      \ \ \ \ \ \ \ \ \ \ rep
+
+      rep 0.9692994
 
       \<gtr\> Table5.7.glmmLasso$coefficients
 
@@ -5651,7 +6835,12 @@
 
       rep 1.463278
 
-      \<gtr\> #anova(Table5.7.glmmLasso)
+      \<gtr\> anova(Table5.7.glmmLasso)
+
+      Error in UseMethod("anova") :\ 
+
+      \ \ no applicable method for 'anova' applied to an object of class
+      "glmmLasso"
 
       \<gtr\> #summary(aov(Table5.7.glmmLasso))
 
@@ -5704,6 +6893,17 @@
       \ \ \ \ \ \ \ \ \ rep
 
       rep 1.463278
+
+      \<gtr\> VarCorr(Table5.7.glmmLasso)
+
+      Error in UseMethod("VarCorr") :\ 
+
+      \ \ no applicable method for 'VarCorr' applied to an object of class
+      "glmmLasso"
+
+      \<gtr\> class(Table5.7.glmmLasso)
+
+      [1] "glmmLasso"
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -5716,155 +6916,720 @@
       Error in plot.glmmLasso(Table5.7.glmmLasso) : No smooth terms to plot!
     </unfolded-prog-io|>
 
+    <\input>
+      <with|color|red|\<gtr\> >
+    <|input>
+      Ex16.8.1$Interaction \<less\>- Ex16.8.1$Trial:Ex16.8.1$Variety
+
+      Ex16.8.1.glmmLasso \<less\>- glmmLasso(fix = Yield ~ 0+Variety, rnd =
+      list(Trial = ~1, Block = ~1,Interaction=~1), lambda = 200, data =
+      Ex16.8.1,control=glmmLassoControl(center=FALSE))
+
+      Ex16.8.1.glmmLasso \<less\>- glmmLasso(fix = Yield ~ Variety, rnd =
+      list(Trial = ~1, Block = ~1,Interaction=~1), lambda = 200, data =
+      Ex16.8.1)
+    </input>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Ex16.8.1.red.glmmLasso \<less\>- glmmLasso(fix = Yield ~ Variety, rnd =
+      list(Trial = ~1, Block = ~1), lambda = 200, data = Ex16.8.1)
+
+      anova(Ex16.8.1.glmmLasso,Ex16.8.1.red.glmmLasso)
+    <|unfolded-prog-io>
+      Ex16.8.1.red.glmmLasso \<less\>- glmmLasso(fix = Yield ~ Variety, rnd =
+      list(Trial
+
+      \<less\> glmmLasso(fix = Yield ~ Variety, rnd = list(Trial = ~1, Block
+      = ~1), lambda
+
+      \<less\>ariety, rnd = list(Trial = ~1, Block = ~1), lambda = 200, data
+      = Ex16.8.1)
+
+      \<gtr\> anova(Ex16.8.1.glmmLasso,Ex16.8.1.red.glmmLasso)
+
+      Error in UseMethod("anova") :\ 
+
+      \ \ no applicable method for 'anova' applied to an object of class
+      "glmmLasso"
+    </unfolded-prog-io|>
+
     <\textput>
-      <section|glmmPQL>
+      <section|minque>
     </textput>
 
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
-      library(MASS)
+      library(minque)
 
-      Table5.7.glmmPQL \<less\>- glmmPQL(obs ~ trt, random = ~ 1 \|
-      rep,family=gaussian, data = Table5.7)
+      packageDescription("minque")\ 
 
-      Table5.7.red.glmmPQL\<less\>- update(Table5.7.glmmPQL, . ~ . -trt)
+      Table5.7.minque \<less\>- lmm(obs ~ trt \| rep, data=Table5.7,
+      method="reml")
 
-      #summary(Table5.7.glmmPQL)
+      \;
 
-      #anova(Table5.7.glmmPQL)
+      #anova(Table5.7.minque1)
 
-      #summary(aov(Table5.7.glmmPQL))
+      #summary(aov(Table5.7.minque1))
 
-      VarCorr(Table5.7.glmmPQL)
+      Table5.7.minque[[1]]$Var
 
-      fixef(Table5.7.glmmPQL)
+      Table5.7.minque[[1]]$FixedEffect
 
-      summary(glht(Table5.7.glmmPQL,linfct=mcp(trt="Dunnett")))
-
-      cld(glht(Table5.7.glmmPQL,linfct=mcp(trt="Tukey")),decreasing=TRUE)
-
-      print(Table5.7.glmmPQL.tbl \<less\>- lsmeans(Table5.7.glmmPQL,cld ~
-      trt))
+      Table5.7.minque[[1]]$RandomEffect
     <|unfolded-prog-io>
-      library(MASS)
+      library(minque)
 
-      \<gtr\> Table5.7.glmmPQL \<less\>- glmmPQL(obs ~ trt, random = ~ 1 \|
-      rep,family=gaussian,\ 
+      \<gtr\> packageDescription("minque")\ 
 
-      \<less\>QL(obs ~ trt, random = ~ 1 \| rep,family=gaussian, data =
-      Table5.7)
+      Package: minque
 
-      iteration 1
+      Type: Package
 
-      iteration 2
+      Title: An R Package for Linear Mixed Model Analyses
 
-      \<gtr\> Table5.7.red.glmmPQL\<less\>- update(Table5.7.glmmPQL, . ~ .
-      -trt)
+      Version: 1.1
 
-      iteration 1
+      Date: 2014-09-06
 
-      iteration 2
+      Author: Jixiang Wu
 
-      \<gtr\> #summary(Table5.7.glmmPQL)
+      Maintainer: Jixiang Wu \<less\>qgtools@gmail.com\<gtr\>
 
-      \<gtr\> #anova(Table5.7.glmmPQL)
+      Description: This package offers three important components: (1) to
 
-      \<gtr\> #summary(aov(Table5.7.glmmPQL))
+      \ \ \ \ \ \ \ construct a use-defined linear mixed model, (2) to employ
+      one
 
-      \<gtr\> VarCorr(Table5.7.glmmPQL)
+      \ \ \ \ \ \ \ of linear mixed model approaches: minimum norm quadratic
 
-      rep = pdLogChol(1)\ 
+      \ \ \ \ \ \ \ unbiased estimation (MINQUE) (Rao, 1971) for variance
 
-      \ \ \ \ \ \ \ \ \ \ \ \ Variance \ StdDev \ \ 
+      \ \ \ \ \ \ \ component estimation and random effect prediction; and
+      (3) to
 
-      (Intercept) 0.6701158 0.8186060
+      \ \ \ \ \ \ \ employ a jackknife resampling technique to conduct
+      various
 
-      Residual \ \ \ 0.9534090 0.9764266
+      \ \ \ \ \ \ \ statistical tests. In addition, this package provides the
 
-      \<gtr\> fixef(Table5.7.glmmPQL)
+      \ \ \ \ \ \ \ function for model or data evaluations.This R package
+      offers
 
-      (Intercept) \ \ \ \ \ \ \ trt2 \ \ \ \ \ \ \ trt3 \ \ \ \ \ \ \ trt4
-      \ \ \ \ \ \ \ trt5 \ \ \ \ \ \ \ trt6\ 
+      \ \ \ \ \ \ \ fast computations for large data sets analyses for
+      various
 
-      \ \ 3.9408638 \ \ 0.9641362 \ \ 1.3716362 \ \ 0.9316362 \ \ 1.6266362
-      \ \ 3.1091362\ 
+      \ \ \ \ \ \ \ irregular data structures.
 
-      \<gtr\> summary(glht(Table5.7.glmmPQL,linfct=mcp(trt="Dunnett")))
+      License: GPL-2
 
-      \;
+      LazyLoad: yes
 
-      \ \ \ \ \ \ \ \ \ Simultaneous Tests for General Linear Hypotheses
+      Depends: klaR, stats,utils,Matrix
 
-      \;
+      Packaged: 2014-09-07 14:17:02 UTC; user1
 
-      Multiple Comparisons of Means: Dunnett Contrasts
+      NeedsCompilation: no
 
-      \;
+      Repository: CRAN
 
-      \;
+      Date/Publication: 2014-09-08 06:58:28
 
-      Fit: glmmPQL(fixed = obs ~ trt, random = ~1 \| rep, family = gaussian,\ 
-
-      \ \ \ \ data = Table5.7)
+      Built: R 3.3.0; ; 2016-05-05 06:02:27 UTC; unix
 
       \;
 
-      Linear Hypotheses:
+      -- File: /Library/Frameworks/R.framework/Versions/3.3/Resources/library/minque/Meta/package.rds\ 
 
-      \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error z value Pr(\<gtr\>\|z\|) \ \ 
+      \<gtr\> Table5.7.minque \<less\>- lmm(obs ~ trt \| rep, data=Table5.7,
+      method="reml")
 
-      2 - 1 == 0 \ \ 0.9641 \ \ \ \ 0.8673 \ \ 1.112 \ 0.60805 \ \ 
+      \<gtr\>\ 
 
-      3 - 1 == 0 \ \ 1.3716 \ \ \ \ 0.8673 \ \ 1.582 \ 0.30700 \ \ 
+      \<gtr\> #anova(Table5.7.minque1)
 
-      4 - 1 == 0 \ \ 0.9316 \ \ \ \ 0.8673 \ \ 1.074 \ 0.63565 \ \ 
+      \<gtr\> #summary(aov(Table5.7.minque1))
 
-      5 - 1 == 0 \ \ 1.6266 \ \ \ \ 0.8673 \ \ 1.876 \ 0.17977 \ \ 
+      \<gtr\> Table5.7.minque[[1]]$Var
 
-      6 - 1 == 0 \ \ 3.1091 \ \ \ \ 0.8673 \ \ 3.585 \ 0.00124 **
+      $obs
 
-      ---
+      \ \ \ \ \ \ \ \ \ \ \ \ \ Est \ \ \ \ \ \ \ SE \ \ \ Chi_sq
+      \ \ \ \ P_value
 
-      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+      V(rep) 0.8908509 0.9355256 0.9067732 0.170486016
 
-      (Adjusted p values reported -- single-step method)
-
-      \;
-
-      \<gtr\> cld(glht(Table5.7.glmmPQL,linfct=mcp(trt="Tukey")),decreasing=TRUE)
-
-      \ \ \ 1 \ \ \ 2 \ \ \ 3 \ \ \ 4 \ \ \ 5 \ \ \ 6\ 
-
-      \ "b" \ "b" "ab" \ "b" "ab" \ "a"\ 
-
-      \<gtr\> print(Table5.7.glmmPQL.tbl \<less\>-
-      lsmeans(Table5.7.glmmPQL,cld ~ trt))
-
-      \ trt \ \ lsmean \ \ \ \ \ \ \ SE df lower.CL upper.CL .group
-
-      \ 1 \ \ 3.940864 0.9679091 \ 3 0.860545 7.021183 \ 1 \ \ \ 
-
-      \ 4 \ \ 4.872500 0.7470520 \ 3 2.495047 7.249953 \ 1 \ \ \ 
-
-      \ 2 \ \ 4.905000 0.7470520 \ 3 2.527547 7.282453 \ 1 \ \ \ 
-
-      \ 3 \ \ 5.312500 0.7470520 \ 3 2.935047 7.689953 \ 1 \ \ \ 
-
-      \ 5 \ \ 5.567500 0.7470520 \ 3 3.190047 7.944953 \ 1 \ \ \ 
-
-      \ 6 \ \ 7.050000 0.7470520 \ 3 4.672547 9.427453 \ 1 \ \ \ 
+      V(e) \ \ 1.3184829 0.5171070 6.5011201 0.005390328
 
       \;
 
-      Results are given on the identity (not the response) scale.\ 
+      \<gtr\> Table5.7.minque[[1]]$FixedEffect
 
-      Confidence level used: 0.95\ 
+      $obs
 
-      P value adjustment: tukey method for comparing a family of 6 estimates\ 
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ Est \ \ \ \ \ \ \ SE \ \ \ \ z_value
+      \ \ \ P_value
 
-      significance level used: alpha = 0.05\ 
+      mu \ \ \ \ \ 5.2748586 0.5621356 \ 9.38360581 0.00000000
+
+      trt(4) -0.4023586 0.5594916 -0.71915041 0.47204825
+
+      trt(5) \ 0.2926414 0.5594916 \ 0.52304881 0.60094029
+
+      trt(6) \ 1.7751414 0.5594916 \ 3.17277592 0.00150989
+
+      trt(3) \ 0.0376414 0.5594916 \ 0.06727787 0.94636050
+
+      trt(2) -0.3698586 0.5594916 -0.66106196 0.50857258
+
+      trt(1) -1.3332070 0.7527878 -1.77102637 0.07655632
+
+      \;
+
+      \<gtr\> Table5.7.minque[[1]]$RandomEffect
+
+      $obs
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Pre \ \ \ \ \ \ \ SE \ \ \ \ z_value
+      \ \ \ P_value
+
+      rep(1) -1.23876186 0.7179364 -1.72544785 0.08444679
+
+      rep(2) \ 1.03891934 0.7179364 \ 1.44709099 0.14787144
+
+      rep(3) -0.03918274 0.7273426 -0.05387109 0.95703787
+
+      rep(4) \ 0.23902527 0.7273426 \ 0.32862817 0.74243676
+
+      \;
     </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(Table5.7.minque)
+
+      anova(Table5.7.minque)
+    <|unfolded-prog-io>
+      summary(Table5.7.minque)
+
+      \ \ \ \ \ \ Length Class \ Mode \ \ 
+
+      reml \ 5 \ \ \ \ \ -none- list \ \ 
+
+      ALPHA 1 \ \ \ \ \ -none- numeric
+
+      \<gtr\> anova(Table5.7.minque)
+
+      Error in UseMethod("anova") :\ 
+
+      \ \ no applicable method for 'anova' applied to an object of class
+      "list"
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Table5.7.red.minque \<less\>- update(Table5.7.red.minque, .~ . - trt)
+
+      Table5.7.red.minque \<less\>- lmm(obs ~ 1 \| rep, data=Table5.7,
+      method="reml")
+
+      anova(Table5.7.minque,Table5.7.red.minque)
+    <|unfolded-prog-io>
+      Table5.7.red.minque \<less\>- update(Table5.7.red.minque, .~ . - trt)
+
+      Error in update.default(Table5.7.red.minque, . ~ . - trt) :\ 
+
+      \ \ need an object with call component
+
+      \<gtr\> Table5.7.red.minque \<less\>- lmm(obs ~ 1 \| rep,
+      data=Table5.7, method="reml")
+
+      \<gtr\> anova(Table5.7.minque,Table5.7.red.minque)
+
+      Error in UseMethod("anova") :\ 
+
+      \ \ no applicable method for 'anova' applied to an object of class
+      "list"
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      Ex16.8.1.minque \<less\>- lmm(Yield ~ Variety \| Trial/Rep +
+      Variety:Trial, data=Ex16.8.1, method="reml")
+    <|unfolded-prog-io>
+      Ex16.8.1.minque \<less\>- lmm(Yield ~ Variety \| Trial/Rep +
+      Variety:Trial, data=Ex
+
+      \<less\>eld ~ Variety \| Trial/Rep + Variety:Trial, data=Ex16.8.1,
+      method="reml")
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      if(!file.exists("meta.minque.Rda")) {
+
+      \ \ Rprof("meta.minque.prof")
+
+      \ \ meta.minque \<less\>- lmm(YLD ~ Entry \| Loca/Repe + Loca:Entry,
+      data=rcbd.dat, method="reml")
+
+      \ \ Rprof(NULL)
+
+      \ \ save(meta.minque,file="meta.minque.Rda")
+
+      } else {
+
+      \ \ load(file="meta.minque.Rda")
+
+      }
+
+      meta.minque.summary \<less\>- summaryRprof("meta.minque.prof")
+
+      head(meta.minque.summary[[1]])
+
+      head(meta.minque.summary[[2]])
+    <|unfolded-prog-io>
+      if(!file.exists("meta.minque.Rda")) {
+
+      + \ \ Rprof("meta.minque.prof")
+
+      + \ \ meta.minque \<less\>- lmm(YLD ~ Entry \| Loca/Repe + Loca:Entry,
+      data=rcbd.dat, m
+
+      \<less\>~ Entry \| Loca/Repe + Loca:Entry, data=rcbd.dat,
+      method="reml")
+
+      + \ \ Rprof(NULL)
+
+      + \ \ save(meta.minque,file="meta.minque.Rda")
+
+      + } else {
+
+      + \ \ load(file="meta.minque.Rda")
+
+      + }
+
+      \<gtr\> meta.minque.summary \<less\>- summaryRprof("meta.minque.prof")
+
+      \<gtr\> head(meta.minque.summary[[1]])
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
+
+      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ 9.06 \ \ \ 91.33 \ \ \ \ \ \ 9.06
+      \ \ \ \ 91.33
+
+      "t.default" \ \ \ \ \ \ \ 0.32 \ \ \ \ 3.23 \ \ \ \ \ \ 0.32
+      \ \ \ \ \ 3.23
+
+      "Ops.factor" \ \ \ \ \ \ 0.14 \ \ \ \ 1.41 \ \ \ \ \ \ 0.32
+      \ \ \ \ \ 3.23
+
+      "sort.int" \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 0.81 \ \ \ \ \ \ 0.10
+      \ \ \ \ \ 1.01
+
+      "noNA.levels" \ \ \ \ \ 0.04 \ \ \ \ 0.40 \ \ \ \ \ \ 0.06
+      \ \ \ \ \ 0.60
+
+      "NextMethod" \ \ \ \ \ \ 0.04 \ \ \ \ 0.40 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 0.40
+
+      \<gtr\> head(meta.minque.summary[[2]])
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
+
+      "lmm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 9.92 \ \ \ 100.00 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+
+      "lmm1" \ \ \ \ \ \ \ \ \ \ \ \ \ 9.92 \ \ \ 100.00 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+
+      "genmod.reml" \ \ \ \ \ \ 9.52 \ \ \ \ 95.97 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+
+      "reml0" \ \ \ \ \ \ \ \ \ \ \ \ 9.52 \ \ \ \ 95.97 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+
+      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 9.06 \ \ \ \ 91.33 \ \ \ \ \ 9.06
+      \ \ \ 91.33
+
+      "genmod" \ \ \ \ \ \ \ \ \ \ \ 8.96 \ \ \ \ 90.32 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      #detach("package:minque")
+    <|unfolded-prog-io>
+      detach("package:minque")
+    </unfolded-prog-io|>
+
+    <\textput>
+      <section|MCMCglmm>
+    </textput>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      library(MCMCglmm)
+
+      packageDescription("MCMCglmm") \ \ \ 
+
+      Table5.7.mcmc1 \<less\>- MCMCglmm(fixed=obs ~ 0+trt, random = ~ rep,
+      data=Table5.7, verbose=FALSE)
+
+      #Table5.7.red.mcmc1 \<less\>- update(Table5.7.mcmc1,fixed=obs ~ 1)
+
+      Table5.7.red.mcmc1 \<less\>- MCMCglmm(fixed=obs ~ 1, random = ~ rep,
+      data=Table5.7, verbose=FALSE)
+    <|unfolded-prog-io>
+      library(MCMCglmm)
+
+      Loading required package: coda
+
+      Loading required package: ape
+
+      \<gtr\> packageDescription("MCMCglmm") \ \ \ 
+
+      Package: MCMCglmm
+
+      Version: 2.22.1
+
+      Date: 2015-09-21
+
+      Title: MCMC Generalised Linear Mixed Models
+
+      Depends: Matrix, coda, ape
+
+      Imports: corpcor, tensorA, cubature, methods
+
+      Suggests: rgl, combinat, mvtnorm, orthopolynom
+
+      Author: Jarrod Hadfield
+
+      Maintainer: Jarrod Hadfield \<less\>j.hadfield@ed.ac.uk\<gtr\>
+
+      Description: MCMC Generalised Linear Mixed Models.
+
+      License: GPL (\<gtr\>= 2)
+
+      NeedsCompilation: yes
+
+      Packaged: 2016-01-30 12:16:26 UTC; ripley
+
+      Repository: CRAN
+
+      Date/Publication: 2016-01-30 13:41:43
+
+      Built: R 3.3.0; x86_64-apple-darwin13.4.0; 2016-05-05 03:35:22 UTC;
+
+      \ \ \ \ \ \ \ unix
+
+      \;
+
+      -- File: /Library/Frameworks/R.framework/Versions/3.3/Resources/library/MCMCglmm/Meta/package.rds\ 
+
+      \<gtr\> Table5.7.mcmc1 \<less\>- MCMCglmm(fixed=obs ~ 0+trt, random = ~
+      rep, data=Table5.7
+
+      \<less\>m(fixed=obs ~ 0+trt, random = ~ rep, data=Table5.7,
+      verbose=FALSE)
+
+      \<gtr\> #Table5.7.red.mcmc1 \<less\>- update(Table5.7.mcmc1,fixed=obs ~
+      1)
+
+      \<gtr\> Table5.7.red.mcmc1 \<less\>- MCMCglmm(fixed=obs ~ 1, random = ~
+      rep, data=Table5.7
+
+      \<less\>Cglmm(fixed=obs ~ 1, random = ~ rep, data=Table5.7,
+      verbose=FALSE)
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(Table5.7.mcmc1)$Gcovariances
+
+      summary(Table5.7.mcmc1)$Rcovariances
+    <|unfolded-prog-io>
+      summary(Table5.7.mcmc1)$Gcovariances
+
+      \ \ \ \ \ post.mean \ \ \ \ \ l-95% CI \ \ \ u-95% CI eff.samp
+
+      rep 0.09949345 8.699999e-127 0.004938485 251.6083
+
+      \<gtr\> summary(Table5.7.mcmc1)$Rcovariances
+
+      \ \ \ \ \ \ post.mean \ l-95% CI u-95% CI eff.samp
+
+      units \ 2.452165 0.8851592 4.312951 830.4315
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(Table5.7.red.mcmc1)$DIC
+
+      summary(Table5.7.mcmc1)$DIC
+
+      summary(Table5.7.red.mcmc1)$DIC-summary(Table5.7.mcmc1)$DIC
+
+      summary(Table5.7.mcmc1)$solutions
+    <|unfolded-prog-io>
+      summary(Table5.7.red.mcmc1)$DIC
+
+      [1] 85.07655
+
+      \<gtr\> summary(Table5.7.mcmc1)$DIC
+
+      [1] 87.04165
+
+      \<gtr\> summary(Table5.7.red.mcmc1)$DIC-summary(Table5.7.mcmc1)$DIC
+
+      [1] -1.965105
+
+      \<gtr\> summary(Table5.7.mcmc1)$solutions
+
+      \ \ \ \ \ post.mean l-95% CI u-95% CI eff.samp pMCMC
+
+      trt1 \ 3.990190 2.068299 6.374902 1000.000 0.001
+
+      trt2 \ 4.933365 3.359641 6.397682 1000.000 0.001
+
+      trt3 \ 5.296939 3.710035 6.852011 1139.663 0.001
+
+      trt4 \ 4.872741 3.320137 6.524613 1613.970 0.001
+
+      trt5 \ 5.548225 4.034436 7.026171 1000.000 0.001
+
+      trt6 \ 7.059606 5.437773 8.618825 1000.000 0.001
+    </unfolded-prog-io|>
+
+    \;
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      mcmcGLMM.tbl \<less\>- summary(Table5.7.mcmc1)$solutions
+    <|unfolded-prog-io>
+      mcmcGLMM.tbl \<less\>- summary(Table5.7.mcmc1)$solutions
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      if(!file.exists("meta.mcmc.Rda")) {
+
+      \ \ \ Rprof("meta.MCMCglmm.prof")
+
+      \ \ \ meta.mcmc \<less\>- MCMCglmm(fixed=YLD ~ 0 + Entry, random = ~
+      Loca + Loca:Entry + Loca:Repe, data=rcbd.dat,verbose=FALSE)
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ YLD ~ Entry
+      + (1 \| Loca/Repe) + (1 \| Loca:Entry)
+
+      \ \ \ Rprof(NULL)
+
+      \ \ \ Rprof("meta.cotes.MCMCglmm.prof")
+
+      \ \ \ cotes.mcmc \<less\>- MCMCglmm(fixed=YLD ~ 0 + Entry, random = ~
+      Loca + idh(Entry):Loca + \ Loca:Repe,rcov=~idh(Loca):units,data=rcbd.dat,verbose=FALSE)
+
+      \ \ \ Rprof(NULL)
+
+      \ \ \ save(meta.mcmc,file="meta.mcmc.Rda")
+
+      \ \ \ save(cotes.mcmc,file="cotes.mcmc.Rda")
+
+      \ \ \ 
+
+      } else {
+
+      \ \ \ load(file="meta.mcmc.Rda")
+
+      \ \ \ load(file="cotes.mcmc.Rda")
+
+      }
+
+      meta.MCMCglmm.summary \<less\>- summaryRprof("meta.MCMCglmm.prof")
+
+      head(meta.MCMCglmm.summary[[1]])
+
+      head(meta.MCMCglmm.summary[[2]])
+
+      meta.cotes.MCMCglmm.summary \<less\>-
+      summaryRprof("meta.cotes.MCMCglmm.prof")
+
+      head(meta.cotes.MCMCglmm.summary[[1]])
+
+      head(meta.cotes.MCMCglmm.summary[[2]])
+    <|unfolded-prog-io>
+      if(!file.exists("meta.mcmc.Rda")) {
+
+      + \ \ \ Rprof("meta.MCMCglmm.prof")
+
+      + \ \ \ meta.mcmc \<less\>- MCMCglmm(fixed=YLD ~ 0 + Entry, random = ~
+      Loca + Loca:Entr
+
+      \<less\>fixed=YLD ~ 0 + Entry, random = ~ Loca + Loca:Entry +
+      Loca:Repe, data=rcbd.d
+
+      \<less\>dom = ~ Loca + Loca:Entry + Loca:Repe,
+      data=rcbd.dat,verbose=FALSE)
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ YLD ~
+      Entry + (1 \| Loca/Repe) + (1 \| Loca:Ent
+
+      \<less\> \ \ \ \ YLD ~ Entry + (1 \| Loca/Repe) + (1 \| Loca:Entry)
+
+      + \ \ \ Rprof(NULL)
+
+      + \ \ \ Rprof("meta.cotes.MCMCglmm.prof")
+
+      + \ \ \ cotes.mcmc \<less\>- MCMCglmm(fixed=YLD ~ 0 + Entry, random = ~
+      Loca + idh(Entr
+
+      \<less\>(fixed=YLD ~ 0 + Entry, random = ~ Loca + idh(Entry):Loca +
+      \ Loca:Repe,rcov=
+
+      \<less\>ndom = ~ Loca + idh(Entry):Loca +
+      \ Loca:Repe,rcov=~idh(Loca):units,data=rcbd
+
+      \<less\>:Loca + \ Loca:Repe,rcov=~idh(Loca):units,data=rcbd.dat,verbose=FALSE)
+
+      + \ \ \ Rprof(NULL)
+
+      + \ \ \ save(meta.mcmc,file="meta.mcmc.Rda")
+
+      + \ \ \ save(cotes.mcmc,file="cotes.mcmc.Rda")
+
+      + \ \ \ 
+
+      + } else {
+
+      + \ \ \ load(file="meta.mcmc.Rda")
+
+      + \ \ \ load(file="cotes.mcmc.Rda")
+
+      + }
+
+      \<gtr\> meta.MCMCglmm.summary \<less\>-
+      summaryRprof("meta.MCMCglmm.prof")
+
+      \<gtr\> head(meta.MCMCglmm.summary[[1]])
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
+      total.pct
+
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.82 \ \ \ 97.57
+      \ \ \ \ \ \ 4.82 \ \ \ \ 97.57
+
+      "buildZ" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.40
+      \ \ \ \ \ \ 0.08 \ \ \ \ \ 1.62
+
+      ".getClassFromCache" \ \ \ \ \ 0.02 \ \ \ \ 0.40 \ \ \ \ \ \ 0.02
+      \ \ \ \ \ 0.40
+
+      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.40
+      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.40
+
+      "as.matrix" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.40
+      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.40
+
+      "is.environment" \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.40 \ \ \ \ \ \ 0.02
+      \ \ \ \ \ 0.40
+
+      \<gtr\> head(meta.MCMCglmm.summary[[2]])
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct
+      self.time self.pct
+
+      "MCMCglmm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.94 \ \ \ 100.00
+      \ \ \ \ \ 0.00 \ \ \ \ 0.00
+
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.82 \ \ \ \ 97.57
+      \ \ \ \ \ 4.82 \ \ \ 97.57
+
+      "buildZ" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ \ 1.62
+      \ \ \ \ \ 0.02 \ \ \ \ 0.40
+
+      "standardGeneric" \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.81 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+
+      ".getClassFromCache" \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.40 \ \ \ \ \ 0.02
+      \ \ \ \ 0.40
+
+      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.40
+      \ \ \ \ \ 0.02 \ \ \ \ 0.40
+
+      \<gtr\> meta.cotes.MCMCglmm.summary \<less\>-
+      summaryRprof("meta.cotes.MCMCglmm.prof")
+
+      \<gtr\> head(meta.cotes.MCMCglmm.summary[[1]])
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
+
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 7.26 \ \ \ 97.58 \ \ \ \ \ \ 7.26
+      \ \ \ \ 97.58
+
+      "getClassDef" \ \ \ \ \ 0.06 \ \ \ \ 0.81 \ \ \ \ \ \ 0.06
+      \ \ \ \ \ 0.81
+
+      "buildZ" \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.27 \ \ \ \ \ \ 0.14
+      \ \ \ \ \ 1.88
+
+      "as" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.27 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 0.54
+
+      "which" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.27 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 0.54
+
+      "apply" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.27 \ \ \ \ \ \ 0.02
+      \ \ \ \ \ 0.27
+
+      \<gtr\> head(meta.cotes.MCMCglmm.summary[[2]])
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
+
+      "MCMCglmm" \ \ \ \ \ \ \ \ \ 7.44 \ \ \ 100.00 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 7.26 \ \ \ \ 97.58 \ \ \ \ \ 7.26
+      \ \ \ 97.58
+
+      "buildZ" \ \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ \ 1.88 \ \ \ \ \ 0.02
+      \ \ \ \ 0.27
+
+      "getClassDef" \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.81 \ \ \ \ \ 0.06
+      \ \ \ \ 0.81
+
+      ".nextMethod" \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.81 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+
+      "Matrix" \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.81 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      #detach("package:MCMCglmm")
+    <|unfolded-prog-io>
+      #detach("package:MCMCglmm")
+    </unfolded-prog-io|>
+
+    <\input>
+      <with|color|red|\<gtr\> >
+    <|input>
+      \;
+    </input>
 
     \;
 
@@ -5881,23 +7646,10 @@
     <|unfolded-prog-io>
       library(INLA)
 
+      packageDescription("INLA")\ 
+
       Table5.7.inla \<less\>- inla(obs ~ trt + f(rep, model="iid"),
       data=Table5.7)
-
-      Table5.7.red.inla \<less\>- inla(obs ~ 1 + f(rep, model="iid"),
-      data=Table5.7)
-
-      #Table5.7.red.inla \<less\>- update(Table5.7.inla, . ~ . -trt)
-
-      #anova(Table5.7.inla)
-
-      #summary(aov(Table5.7.inla))
-
-      summary(Table5.7.inla)$hyperpar
-
-      #fixef(Table5.7.lm)
-
-      summary(Table5.7.inla)$fixed
     <|unfolded-prog-io>
       library(INLA)
 
@@ -5909,41 +7661,114 @@
 
       See www.r-inla.org/contact-us for how to get help.
 
+      \<gtr\> packageDescription("INLA")\ 
+
+      Package: INLA
+
+      Type: Package
+
+      Title: Functions which Allow to Perform Full Bayesian Analysis of
+
+      \ \ \ \ \ \ \ Latent Gaussian Models using Integrated Nested Laplace
+
+      \ \ \ \ \ \ \ Approximations
+
+      Author: Havard Rue, Sara Martino, Finn Lindgren, Daniel Simpson,
+
+      \ \ \ \ \ \ \ Andrea Riebler, Elias Teixeira Krainski and Geir-Arne
+
+      \ \ \ \ \ \ \ Fuglstad
+
+      Maintainer: Havard Rue \<less\>hrue@math.ntnu.no\<gtr\>, Finn Lindgren
+
+      \ \ \ \ \ \ \ \<less\>finn.lindgren@gmail.com\<gtr\>, Daniel Simpson
+
+      \ \ \ \ \ \ \ \<less\>dp.simpson@gmail.com\<gtr\>, Andrea Riebler
+
+      \ \ \ \ \ \ \ \<less\>andrea.riebler@math.ntnu.no\<gtr\>, Elias
+      Teixeira Krainski
+
+      \ \ \ \ \ \ \ \<less\>elias.krainski@math.ntnu.no\<gtr\> and Geir-Arne
+      Fuglstad
+
+      \ \ \ \ \ \ \ \<less\>fulgstad@math.ntnu.no\<gtr\>
+
+      Description: This package contains functions which allow to perform
+
+      \ \ \ \ \ \ \ full Bayesian analysis of latent Gaussian models using
+
+      \ \ \ \ \ \ \ Integrated Nested Laplace Approximaxion, and is a
+      front-end
+
+      \ \ \ \ \ \ \ to the inla-program.
+
+      Depends: R (\<gtr\>= 2.10), sp, Matrix, splines
+
+      Suggests: mvtnorm, numDeriv, Rgraphviz, graph, fields, rgl, parallel,
+
+      \ \ \ \ \ \ \ pixmap, splancs, orthopolynom, compiler, devtools, knitr,
+
+      \ \ \ \ \ \ \ markdown, shiny
+
+      VignetteBuilder: knitr
+
+      BuildVignettes: true
+
+      ByteCompile: no
+
+      LazyData: true
+
+      License: GPL (\<gtr\>= 2)
+
+      Version: 0.0-1468872408
+
+      Date: 2016-07-18 (hgid: 895e86f8a94e date: Mon Jul 18 14:43:05 2016
+
+      \ \ \ \ \ \ \ +0100)
+
+      NeedsCompilation: no
+
+      Packaged: 2016-07-18 20:10:44 UTC; hrue
+
+      Built: R 3.3.0; ; 2016-07-18 20:12:43 UTC; unix
+
+      \;
+
+      -- File: /Users/peter/Library/R/3.3/library/INLA/Meta/package.rds\ 
+
       \<gtr\> Table5.7.inla \<less\>- inla(obs ~ trt + f(rep, model="iid"),
       data=Table5.7)
+    </unfolded-prog-io|>
 
-      \<gtr\> Table5.7.red.inla \<less\>- inla(obs ~ 1 + f(rep, model="iid"),
-      data=Table5.7)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(Table5.7.inla)
 
-      \<gtr\> #Table5.7.red.inla \<less\>- update(Table5.7.inla, . ~ . -trt)
+      \;
+    <|unfolded-prog-io>
+      summary(Table5.7.inla)
 
-      \<gtr\> #anova(Table5.7.inla)
+      \;
 
-      \<gtr\> #summary(aov(Table5.7.inla))
+      Call:
 
-      \<gtr\> summary(Table5.7.inla)$hyperpar
+      "inla(formula = obs ~ trt + f(rep, model = \\"iid\\"), data =
+      Table5.7)"
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mean
-      \ \ \ \ \ \ \ \ sd 0.025quant
+      \;
 
-      Precision for the Gaussian observations \ \ \ \ 0.5174 \ \ \ \ 0.1725
-      \ \ \ \ 0.2471
+      Time used:
 
-      Precision for rep \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 18590.8084
-      18358.1127 \ 1264.5512
+      \ Pre-processing \ \ \ Running inla Post-processing
+      \ \ \ \ \ \ \ \ \ \ Total\ 
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.5quant
-      0.975quant \ \ \ \ \ mode
+      \ \ \ \ \ \ \ \ \ 1.1025 \ \ \ \ \ \ \ \ \ 0.2558
+      \ \ \ \ \ \ \ \ \ 0.0682 \ \ \ \ \ \ \ \ \ 1.4266\ 
 
-      Precision for the Gaussian observations \ \ \ \ 0.496 \ \ \ \ 0.9154
-      \ \ \ 0.4549
+      \;
 
-      Precision for rep \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 13184.628
-      66962.3540 3433.0104
-
-      \<gtr\> #fixef(Table5.7.lm)
-
-      \<gtr\> summary(Table5.7.inla)$fixed
+      Fixed effects:
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ mean \ \ \ \ sd 0.025quant 0.5quant
       0.975quant \ \ mode kld
@@ -5954,8 +7779,8 @@
       trt2 \ \ \ \ \ \ \ 0.8665 1.2676 \ \ \ -1.6500 \ \ 0.8669
       \ \ \ \ 3.3762 0.8678 \ \ 0
 
-      trt3 \ \ \ \ \ \ \ 1.2738 1.2676 \ \ \ -1.2427 \ \ 1.2742
-      \ \ \ \ 3.7835 1.2751 \ \ 0
+      trt3 \ \ \ \ \ \ \ 1.2738 1.2676 \ \ \ -1.2428 \ \ 1.2742
+      \ \ \ \ 3.7834 1.2751 \ \ 0
 
       trt4 \ \ \ \ \ \ \ 0.8340 1.2676 \ \ \ -1.6825 \ \ 0.8345
       \ \ \ \ 3.3437 0.8353 \ \ 0
@@ -5965,6 +7790,96 @@
 
       trt6 \ \ \ \ \ \ \ 3.0104 1.2676 \ \ \ \ 0.4937 \ \ 3.0109
       \ \ \ \ 5.5199 3.0118 \ \ 0
+
+      \;
+
+      Random effects:
+
+      Name \ \ \ \ \ Model
+
+      \ rep \ \ IID model\ 
+
+      \;
+
+      Model hyperparameters:
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mean
+      \ \ \ \ \ \ \ sd 0.025quant
+
+      Precision for the Gaussian observations 5.174e-01 1.725e-01
+      \ \ \ \ 0.2471
+
+      Precision for rep \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.859e+04
+      1.836e+04 \ 1264.5512
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.5quant
+      0.975quant \ \ \ \ \ mode
+
+      Precision for the Gaussian observations \ \ \ \ 0.496 \ 9.154e-01
+      \ \ \ 0.4549
+
+      Precision for rep \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 13184.628
+      \ 6.696e+04 3433.0104
+
+      \;
+
+      Expected number of effective parameters(std dev): 5.994(0.0057)
+
+      Number of equivalent replicates : 3.67\ 
+
+      \;
+
+      Marginal log-Likelihood: \ -65.45\ 
+
+      \<gtr\>\ 
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      \;
+
+      Table5.7.red.inla \<less\>- inla(obs ~ 1 + f(rep, model="iid"),
+      data=Table5.7)
+
+      #Table5.7.red.inla \<less\>- update(Table5.7.inla, . ~ . -trt)
+
+      anova(Table5.7.inla)
+
+      summary(aov(Table5.7.inla))
+
+      vcov(Table5.7.inla)
+
+      \;
+    <|unfolded-prog-io>
+      \;
+
+      \<gtr\> Table5.7.red.inla \<less\>- inla(obs ~ 1 + f(rep, model="iid"),
+      data=Table5.7)
+
+      \<gtr\> #Table5.7.red.inla \<less\>- update(Table5.7.inla, . ~ . -trt)
+
+      \<gtr\> anova(Table5.7.inla)
+
+      Error in UseMethod("anova") :\ 
+
+      \ \ no applicable method for 'anova' applied to an object of class
+      "inla"
+
+      \<gtr\> summary(aov(Table5.7.inla))
+
+      Error in terms.default(formula, "Error") :\ 
+
+      \ \ no terms component nor attribute
+
+      \<gtr\> vcov(Table5.7.inla)
+
+      Error in UseMethod("vcov") :\ 
+
+      \ \ no applicable method for 'vcov' applied to an object of class
+      "inla"
+
+      \<gtr\>\ 
     </unfolded-prog-io|>
 
     <\textput>
@@ -6001,7 +7916,13 @@
 
       summary(meta.inla)
 
-      summaryRprof("meta.inla.prof")
+      \;
+
+      meta.inla.summary \<less\>- summaryRprof("meta.inla.prof")
+
+      head(meta.inla.summary[[1]])
+
+      head(meta.inla.summary[[2]])\ 
     <|unfolded-prog-io>
       if(!file.exists("meta.inla.Rda")) {
 
@@ -6022,7 +7943,11 @@
 
       + \ \ save(meta.inla,file="meta.inla.Rda")
 
-      + \ }
+      + } else {
+
+      + \ \ load(file="meta.inla.Rda")
+
+      + }
 
       \<gtr\> summary(meta.inla)
 
@@ -6041,8 +7966,8 @@
       \ Pre-processing \ \ \ Running inla Post-processing
       \ \ \ \ \ \ \ \ \ \ Total\ 
 
-      \ \ \ \ \ \ \ \ \ 4.3638 \ \ \ \ \ \ \ \ \ 5.3720
-      \ \ \ \ \ \ \ \ \ 0.3049 \ \ \ \ \ \ \ \ 10.0407\ 
+      \ \ \ \ \ \ \ \ \ 1.5443 \ \ \ \ \ \ \ \ \ 2.4611
+      \ \ \ \ \ \ \ \ \ 0.1096 \ \ \ \ \ \ \ \ \ 4.1150\ 
 
       \;
 
@@ -6051,100 +7976,100 @@
       \ \ \ \ \ \ \ \ \ \ mean \ \ \ \ sd 0.025quant 0.5quant 0.975quant
       \ \ mode kld
 
-      Entry1 \ 5.7289 0.8322 \ \ \ \ 4.0521 \ \ 5.7369 \ \ \ \ 7.3572 5.7501
+      Entry1 \ 5.7289 0.8321 \ \ \ \ 4.0524 \ \ 5.7369 \ \ \ \ 7.3571 5.7501
       \ \ 0
 
-      Entry2 \ 5.9167 0.8322 \ \ \ \ 4.2399 \ \ 5.9247 \ \ \ \ 7.5450 5.9379
+      Entry2 \ 5.9167 0.8321 \ \ \ \ 4.2401 \ \ 5.9247 \ \ \ \ 7.5449 5.9379
       \ \ 0
 
-      Entry3 \ 6.5786 0.8322 \ \ \ \ 4.9018 \ \ 6.5866 \ \ \ \ 8.2069 6.5998
+      Entry3 \ 6.5786 0.8321 \ \ \ \ 4.9020 \ \ 6.5866 \ \ \ \ 8.2068 6.5998
       \ \ 0
 
-      Entry4 \ 6.3503 0.8322 \ \ \ \ 4.6735 \ \ 6.3583 \ \ \ \ 7.9786 6.3715
+      Entry4 \ 6.3503 0.8321 \ \ \ \ 4.6737 \ \ 6.3583 \ \ \ \ 7.9785 6.3715
       \ \ 0
 
-      Entry5 \ 6.3747 0.8322 \ \ \ \ 4.6980 \ \ 6.3827 \ \ \ \ 8.0030 6.3959
+      Entry5 \ 6.3747 0.8321 \ \ \ \ 4.6982 \ \ 6.3827 \ \ \ \ 8.0029 6.3959
       \ \ 0
 
-      Entry6 \ 6.3450 0.8322 \ \ \ \ 4.6682 \ \ 6.3530 \ \ \ \ 7.9733 6.3662
+      Entry6 \ 6.3450 0.8321 \ \ \ \ 4.6684 \ \ 6.3530 \ \ \ \ 7.9732 6.3662
       \ \ 0
 
-      Entry7 \ 5.6564 0.8322 \ \ \ \ 3.9796 \ \ 5.6644 \ \ \ \ 7.2847 5.6776
+      Entry7 \ 5.6564 0.8321 \ \ \ \ 3.9799 \ \ 5.6644 \ \ \ \ 7.2846 5.6776
       \ \ 0
 
-      Entry8 \ 6.5003 0.8322 \ \ \ \ 4.8235 \ \ 6.5082 \ \ \ \ 8.1286 6.5215
+      Entry8 \ 6.5003 0.8321 \ \ \ \ 4.8237 \ \ 6.5083 \ \ \ \ 8.1285 6.5215
       \ \ 0
 
-      Entry9 \ 5.4897 0.8322 \ \ \ \ 3.8130 \ \ 5.4977 \ \ \ \ 7.1181 5.5110
+      Entry9 \ 5.4898 0.8321 \ \ \ \ 3.8132 \ \ 5.4977 \ \ \ \ 7.1179 5.5110
       \ \ 0
 
-      Entry10 6.2067 0.8322 \ \ \ \ 4.5299 \ \ 6.2146 \ \ \ \ 7.8350 6.2279
+      Entry10 6.2067 0.8321 \ \ \ \ 4.5301 \ \ 6.2147 \ \ \ \ 7.8349 6.2279
       \ \ 0
 
-      Entry11 6.7608 0.8322 \ \ \ \ 5.0840 \ \ 6.7688 \ \ \ \ 8.3891 6.7820
+      Entry11 6.7608 0.8321 \ \ \ \ 5.0843 \ \ 6.7688 \ \ \ \ 8.3890 6.7820
       \ \ 0
 
-      Entry12 5.9031 0.8322 \ \ \ \ 4.2263 \ \ 5.9110 \ \ \ \ 7.5314 5.9243
+      Entry12 5.9031 0.8321 \ \ \ \ 4.2265 \ \ 5.9111 \ \ \ \ 7.5313 5.9243
       \ \ 0
 
-      Entry13 6.0492 0.8322 \ \ \ \ 4.3724 \ \ 6.0572 \ \ \ \ 7.6775 6.0704
+      Entry13 6.0492 0.8321 \ \ \ \ 4.3726 \ \ 6.0572 \ \ \ \ 7.6774 6.0704
       \ \ 0
 
-      Entry14 3.4532 0.8322 \ \ \ \ 1.7764 \ \ 3.4611 \ \ \ \ 5.0815 3.4744
+      Entry14 3.4532 0.8321 \ \ \ \ 1.7766 \ \ 3.4612 \ \ \ \ 5.0814 3.4744
       \ \ 0
 
-      Entry15 5.9208 0.8322 \ \ \ \ 4.2441 \ \ 5.9288 \ \ \ \ 7.5491 5.9421
+      Entry15 5.9209 0.8321 \ \ \ \ 4.2443 \ \ 5.9288 \ \ \ \ 7.5490 5.9421
       \ \ 0
 
-      Entry16 4.8217 0.8322 \ \ \ \ 3.1450 \ \ 4.8297 \ \ \ \ 6.4500 4.8429
+      Entry16 4.8217 0.8321 \ \ \ \ 3.1452 \ \ 4.8297 \ \ \ \ 6.4499 4.8429
       \ \ 0
 
-      Entry17 6.4736 0.8322 \ \ \ \ 4.7968 \ \ 6.4816 \ \ \ \ 8.1019 6.4948
+      Entry17 6.4736 0.8321 \ \ \ \ 4.7971 \ \ 6.4816 \ \ \ \ 8.1018 6.4948
       \ \ 0
 
-      Entry18 6.3808 0.8322 \ \ \ \ 4.7041 \ \ 6.3888 \ \ \ \ 8.0091 6.4020
+      Entry18 6.3808 0.8321 \ \ \ \ 4.7043 \ \ 6.3888 \ \ \ \ 8.0090 6.4020
       \ \ 0
 
-      Entry19 3.1818 0.8322 \ \ \ \ 1.5050 \ \ 3.1898 \ \ \ \ 4.8101 3.2030
+      Entry19 3.1818 0.8321 \ \ \ \ 1.5052 \ \ 3.1898 \ \ \ \ 4.8100 3.2030
       \ \ 0
 
-      Entry20 5.7758 0.8322 \ \ \ \ 4.0991 \ \ 5.7838 \ \ \ \ 7.4042 5.7971
+      Entry20 5.7759 0.8321 \ \ \ \ 4.0993 \ \ 5.7838 \ \ \ \ 7.4040 5.7971
       \ \ 0
 
-      Entry21 4.7420 0.8322 \ \ \ \ 3.0652 \ \ 4.7500 \ \ \ \ 6.3703 4.7632
+      Entry21 4.7420 0.8321 \ \ \ \ 3.0655 \ \ 4.7500 \ \ \ \ 6.3702 4.7632
       \ \ 0
 
-      Entry22 6.4989 0.8322 \ \ \ \ 4.8221 \ \ 6.5069 \ \ \ \ 8.1272 6.5201
+      Entry22 6.4989 0.8321 \ \ \ \ 4.8223 \ \ 6.5069 \ \ \ \ 8.1271 6.5201
       \ \ 0
 
-      Entry23 3.6379 0.8322 \ \ \ \ 1.9611 \ \ 3.6459 \ \ \ \ 5.2662 3.6591
+      Entry23 3.6379 0.8321 \ \ \ \ 1.9613 \ \ 3.6459 \ \ \ \ 5.2661 3.6591
       \ \ 0
 
-      Entry24 5.7603 0.8322 \ \ \ \ 4.0835 \ \ 5.7683 \ \ \ \ 7.3886 5.7815
+      Entry24 5.7603 0.8321 \ \ \ \ 4.0837 \ \ 5.7683 \ \ \ \ 7.3885 5.7815
       \ \ 0
 
-      Entry25 4.7295 0.8322 \ \ \ \ 3.0527 \ \ 4.7375 \ \ \ \ 6.3578 4.7507
+      Entry25 4.7295 0.8321 \ \ \ \ 3.0530 \ \ 4.7375 \ \ \ \ 6.3577 4.7507
       \ \ 0
 
-      Entry26 6.7330 0.8322 \ \ \ \ 5.0563 \ \ 6.7410 \ \ \ \ 8.3613 6.7543
+      Entry26 6.7331 0.8321 \ \ \ \ 5.0565 \ \ 6.7410 \ \ \ \ 8.3612 6.7543
       \ \ 0
 
-      Entry27 6.6211 0.8322 \ \ \ \ 4.9443 \ \ 6.6291 \ \ \ \ 8.2494 6.6423
+      Entry27 6.6211 0.8321 \ \ \ \ 4.9445 \ \ 6.6291 \ \ \ \ 8.2493 6.6423
       \ \ 0
 
-      Entry28 6.2283 0.8322 \ \ \ \ 4.5516 \ \ 6.2363 \ \ \ \ 7.8566 6.2496
+      Entry28 6.2283 0.8321 \ \ \ \ 4.5518 \ \ 6.2363 \ \ \ \ 7.8565 6.2496
       \ \ 0
 
-      Entry29 5.6803 0.8322 \ \ \ \ 4.0035 \ \ 5.6883 \ \ \ \ 7.3086 5.7015
+      Entry29 5.6803 0.8321 \ \ \ \ 4.0037 \ \ 5.6883 \ \ \ \ 7.3085 5.7015
       \ \ 0
 
-      Entry30 5.1823 0.8322 \ \ \ \ 3.5055 \ \ 5.1902 \ \ \ \ 6.8106 5.2035
+      Entry30 5.1823 0.8321 \ \ \ \ 3.5057 \ \ 5.1903 \ \ \ \ 6.8105 5.2035
       \ \ 0
 
-      Entry31 6.0797 0.8322 \ \ \ \ 4.4030 \ \ 6.0877 \ \ \ \ 7.7080 6.1009
+      Entry31 6.0797 0.8321 \ \ \ \ 4.4032 \ \ 6.0877 \ \ \ \ 7.7079 6.1009
       \ \ 0
 
-      Entry32 5.5414 0.8322 \ \ \ \ 3.8647 \ \ 5.5494 \ \ \ \ 7.1697 5.5626
+      Entry32 5.5414 0.8321 \ \ \ \ 3.8649 \ \ 5.5494 \ \ \ \ 7.1696 5.5626
       \ \ 0
 
       \;
@@ -6170,13 +8095,13 @@
       \ \ \ \ 0.6401
 
       Precision for Loca \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.378e-01
-      5.460e-02 \ \ \ \ 0.0569
+      5.450e-02 \ \ \ \ 0.0569
 
-      Precision for Loca:Repe \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.660e+04
-      1.747e+04 \ \ 876.8812
+      Precision for Loca:Repe \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.650e+04
+      1.734e+04 \ \ 864.8682
 
-      Precision for Loca:Entry \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.901e+04
-      1.859e+04 \ 1273.4929
+      Precision for Loca:Entry \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.896e+04
+      1.853e+04 \ 1265.3491
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.5quant
       0.975quant \ \ \ \ \ mode
@@ -6185,496 +8110,125 @@
       \ \ \ 0.6954
 
       Precision for Loca \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.296e-01
-      \ 2.671e-01 \ \ \ 0.1134
+      \ 2.670e-01 \ \ \ 0.1134
 
-      Precision for Loca:Repe \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.126e+04
-      \ 6.298e+04 2216.1623
+      Precision for Loca:Repe \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.120e+04
+      \ 6.265e+04 2179.1404
 
-      Precision for Loca:Entry \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.356e+04
-      \ 6.793e+04 3462.3238
+      Precision for Loca:Entry \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.352e+04
+      \ 6.761e+04 3438.2960
 
       \;
 
-      Expected number of effective parameters(std dev): 43.06(0.1225)
+      Expected number of effective parameters(std dev): 43.06(0.1233)
 
       Number of equivalent replicates : 26.75\ 
 
       \;
 
-      Marginal log-Likelihood: \ -2049.89\ 
+      Marginal log-Likelihood: \ -2049.88\ 
 
-      \<gtr\> summaryRprof("meta.inla.prof")
+      \<gtr\>\ 
 
-      $by.self
+      \<gtr\> meta.inla.summary \<less\>- summaryRprof("meta.inla.prof")
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct
-      total.time total.pct
+      \<gtr\> head(meta.inla.summary[[1]])
 
-      "match" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 6.67
-      \ \ \ \ \ \ 0.16 \ \ \ \ 13.33
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
 
-      "gsub" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 6.67
-      \ \ \ \ \ \ 0.12 \ \ \ \ 10.00
+      "file" \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ 14.29 \ \ \ \ \ \ 0.12
+      \ \ \ \ 28.57
 
-      "structure" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 6.67
-      \ \ \ \ \ \ 0.12 \ \ \ \ 10.00
+      "file.exists" \ \ \ \ \ 0.06 \ \ \ 14.29 \ \ \ \ \ \ 0.06 \ \ \ \ 14.29
 
-      "file.path" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 5.00
-      \ \ \ \ \ \ 0.08 \ \ \ \ \ 6.67
+      "getwd" \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 9.52 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 9.52
 
-      "file.exists" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 5.00
-      \ \ \ \ \ \ 0.06 \ \ \ \ \ 5.00
+      "options" \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 9.52 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 9.52
 
-      "options" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 5.00
-      \ \ \ \ \ \ 0.06 \ \ \ \ \ 5.00
+      "readBin" \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 9.52 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 9.52
 
-      "system" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 5.00
-      \ \ \ \ \ \ 0.06 \ \ \ \ \ 5.00
+      "system" \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 9.52 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 9.52
 
-      "inla" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 3.33
-      \ \ \ \ \ \ 1.20 \ \ \ 100.00
+      \<gtr\> head(meta.inla.summary[[2]])\ 
 
-      "as.vector" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 3.33
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 3.33
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time
+      self.pct
 
-      "pmatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 3.33
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 3.33
+      "inla" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.42 \ \ \ 100.00 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
 
-      "unlink" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 3.33
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 3.33
+      "file" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ \ 28.57
+      \ \ \ \ \ 0.06 \ \ \ 14.29
 
-      "inla.os" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.18 \ \ \ \ 15.00
-
-      "file" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.12 \ \ \ \ 10.00
-
-      "find.package" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.12 \ \ \ \ 10.00
-
-      "cat" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.10 \ \ \ \ \ 8.33
-
-      "getOption" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.10 \ \ \ \ \ 8.33
-
-      "inla.ffield.section" \ \ \ \ \ \ 0.02 \ \ \ \ 1.67 \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 6.67
-
-      "inla.linear.section" \ \ \ \ \ \ 0.02 \ \ \ \ 1.67 \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 6.67
-
-      "paste" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.08 \ \ \ \ \ 6.67
-
-      "parse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.06 \ \ \ \ \ 5.00
-
-      "readRDS" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.06 \ \ \ \ \ 5.00
-
-      "close" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 3.33
-
-      "inla.trim.family" \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33
-
-      "match.call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 3.33
-
-      "writeBin" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 3.33
-
-      "$" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-
-      "close.connection" \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67
-
-      "colnames\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-
-      "data.frame" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-
-      "exists" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-
-      "grep" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-
-      "grepl" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-
-      "inla.function2source" \ \ \ \ \ 0.02 \ \ \ \ 1.67 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67
-
-      "inla.ifelse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-
-      "length" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-
-      "rbind" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-
-      "readLines" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-
-      "sub" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-
-      "sys.parent" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.67
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-
-      \;
-
-      $by.total
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time
-      total.pct self.time self.pct
-
-      "inla" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.20
-      \ \ \ 100.00 \ \ \ \ \ 0.04 \ \ \ \ 3.33
-
-      "inla.getOption" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.38
-      \ \ \ \ 31.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "doTryCatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.28
-      \ \ \ \ 23.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "try" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.28
-      \ \ \ \ 23.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "tryCatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.28
-      \ \ \ \ 23.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "tryCatchList" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.28
-      \ \ \ \ 23.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "tryCatchOne" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.28
-      \ \ \ \ 23.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.collect.results" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.24 \ \ \ \ 20.00
+      "cat" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ \ 28.57
       \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      "eval" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.22
-      \ \ \ \ 18.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
+      "inla.getOption" \ \ \ \ \ \ 0.12 \ \ \ \ 28.57 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
 
-      "inla.call.builtin" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.20
-      \ \ \ \ 16.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
+      "doTryCatch" \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ 23.81 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
 
-      "system.file" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.20
-      \ \ \ \ 16.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.os" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.18
-      \ \ \ \ 15.00 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "match" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16
-      \ \ \ \ 13.33 \ \ \ \ \ 0.08 \ \ \ \ 6.67
-
-      "inla.fmesher.call.builtin" \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ 13.33
+      "eval" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ 23.81
       \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "gsub" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12
-      \ \ \ \ 10.00 \ \ \ \ \ 0.08 \ \ \ \ 6.67
-
-      "structure" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12
-      \ \ \ \ 10.00 \ \ \ \ \ 0.08 \ \ \ \ 6.67
-
-      "file" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12
-      \ \ \ \ 10.00 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "find.package" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12
-      \ \ \ \ 10.00 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "%in%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12
-      \ \ \ \ 10.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".POSIXct" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12
-      \ \ \ \ 10.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "file.info" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12
-      \ \ \ \ 10.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.collect.fixed" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12
-      \ \ \ \ 10.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "cat" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10
-      \ \ \ \ \ 8.33 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "getOption" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10
-      \ \ \ \ \ 8.33 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "INLA::f" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10
-      \ \ \ \ \ 8.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.interpret.formula" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ \ 8.33
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.interpret.vector" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ \ 8.33
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "file.path" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 6.67 \ \ \ \ \ 0.06 \ \ \ \ 5.00
-
-      "inla.ffield.section" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 6.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "inla.linear.section" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 6.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "paste" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 6.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "FUN" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 6.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.model.properties" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ \ 6.67
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 6.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "match.arg" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 6.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "file.exists" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 5.00 \ \ \ \ \ 0.06 \ \ \ \ 5.00
-
-      "options" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 5.00 \ \ \ \ \ 0.06 \ \ \ \ 5.00
-
-      "system" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 5.00 \ \ \ \ \ 0.06 \ \ \ \ 5.00
-
-      "parse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 5.00 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "readRDS" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 5.00 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "inla.models" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 5.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.problem.section" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 5.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.read.binary.file" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 5.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.set.hyper" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 5.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.write.hyper" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 5.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.vector" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.04 \ \ \ \ 3.33
-
-      "pmatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.04 \ \ \ \ 3.33
-
-      "unlink" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.04 \ \ \ \ 3.33
-
-      "close" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "inla.trim.family" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "match.call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "writeBin" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "capture.output" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "evalVis" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.collect.hyperpar" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 3.33
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.collect.random" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.model.properties.generic" \ \ \ \ \ \ 0.04 \ \ \ \ \ 3.33
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.version" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.write.fmesher.file" \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 3.33
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "sessionInfo" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "stopifnot" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "withVisible" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 3.33 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "$" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "close.connection" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "colnames\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "data.frame" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "exists" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "grep" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "grepl" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "inla.function2source" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "inla.ifelse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "length" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "rbind" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "readLines" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "sub" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      "sys.parent" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.02 \ \ \ \ 1.67
-
-      ".deparseOpts" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.data.frame" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.data.frame.matrix" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "cbind" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "chkDots" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "deparse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "ifelse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.collect.logfile" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.collect.misc" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.create.data.file" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.data.section" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.eval" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.family.section" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.is.model" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.read.fmesher.file" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 1.67
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.trim" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.writeLines" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "model.matrix" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "model.matrix.default" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "sapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "seq" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "seq.default" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "srcfilecopy" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "strsplit" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "sys.function" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "tolower" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "unlist" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 1.67 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      \;
-
-      $sample.interval
-
-      [1] 0.02
-
-      \;
-
-      $sampling.time
-
-      [1] 1.2
-
-      \;
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
-      detach("package:INLA")
+      #detach("package:INLA")
     <|unfolded-prog-io>
-      detach("package:INLA")
+      #detach("package:INLA")
     </unfolded-prog-io|>
 
     <\textput>
       <section|brms>
 
-      Note that this needs stan to be installed, apparently not just rstan.
-      May have been a failure in the rstan install, so ran in R
+      The first attempt to install from CRAN missed the boost headers;
+
+      \ Table5.7.brms \<less\>- brm(obs ~ trt + (1 \| rep), data=Table5.7)
+
+      Compiling the C++ model
+
+      Error in rstan::stan_model(stanc_ret = x$model, save_dso = save_dso) :\ 
+
+      \ \ Boost not found; call install.packages('BH')
+
+      \;
+
+      This didn't work, so I reinstalled
 
       <verbatim|install.packages("rstan", dependencies = TRUE)>
 
-      Still not finding headers
+      This works, but get a segment fault while compiling. This doesn't
+      happen on my other laptop.
+
+      \;
+
+      So I cloned the CmdStan respository, and from comman line ran make
+      build. The error was
+
+      \;
+
+      In file included from src/cmdstan/stanc.cpp:1:
+
+      In file included from stan/src/stan/command/stanc_helper.hpp:5:
+
+      In file included from stan/src/stan/lang/compiler.hpp:4:
+
+      stan/src/stan/lang/ast.hpp:4:10: fatal error:\ 
+
+      \ \ \ \ \ \ 'boost/variant/recursive_variant.hpp' file not found
+
+      #include \<less\>boost/variant/recursive_variant.hpp\<gtr\>
+
+      \;
+
+      So I downloaded boost.
     </textput>
 
     <\unfolded-prog-io>
@@ -6682,11 +8236,13 @@
     <|unfolded-prog-io>
       library(brms)
 
+      packageDescription("brms")\ 
+
       #library(rstan)
 
-      Table5.7.brms \<less\>- brm(obs ~ trt + (1 \| rep), data=Table5.7)
+      #Table5.7.brms \<less\>- brm(obs ~ trt + (1 \| rep), data=Table5.7)
 
-      Table5.7.red.brms \ \<less\>- brm(obs ~ 1 + (1 \| rep), data=Table5.7)
+      #Table5.7.red.brms \ \<less\>- brm(obs ~ 1 + (1 \| rep), data=Table5.7)
 
       #Table5.7.red.brms \<less\>- update(Table5.7.brms, . ~ . -trt)
 
@@ -6752,7 +8308,7 @@
 
       \;
 
-      Loading 'brms' package (version 0.10.0). Useful instructions\ 
+      Loading 'brms' package (version 1.1.0). Useful instructions\ 
 
       can be found by typing help('brms'). A more detailed introduction\ 
 
@@ -6788,580 +8344,88 @@
 
       \;
 
+      \<gtr\> packageDescription("brms")\ 
+
+      Package: brms
+
+      Type: Package
+
+      Title: Bayesian Regression Models using Stan
+
+      Version: 1.1.0
+
+      Date: 2016-10-11
+
+      Authors@R: person("Paul-Christian", "Buerkner", email =
+
+      \ \ \ \ \ \ \ "paul.buerkner@gmail.com", role = c("aut", "cre"))
+
+      Depends: R (\<gtr\>= 3.2.0), rstan (\<gtr\>= 2.12.0), ggplot2 (\<gtr\>=
+      2.0.0), methods
+
+      Imports: loo (\<gtr\>= 0.1.6), shinystan (\<gtr\>= 2.2.1), gridExtra
+      (\<gtr\>= 2.0.0),
+
+      \ \ \ \ \ \ \ lme4 (\<gtr\>= 1.1-11), Matrix (\<gtr\>= 1.1.1), mgcv
+      (\<gtr\>= 1.8-13), coda,
+
+      \ \ \ \ \ \ \ abind, statmod, stats, CircStats, graphics, utils,
+      parallel,
+
+      \ \ \ \ \ \ \ grDevices, grid
+
+      Suggests: testthat (\<gtr\>= 0.9.1), arm, mvtnorm, KernSmooth, R.rsp,
+
+      \ \ \ \ \ \ \ knitr, rmarkdown
+
+      Description: Fit Bayesian generalized (non-)linear multilevel models
+
+      \ \ \ \ \ \ \ using Stan for full Bayesian inference.
+
+      LazyData: true
+
+      NeedsCompilation: no
+
+      License: GPL (\<gtr\>= 3)
+
+      URL: https://github.com/paul-buerkner/brms
+
+      BugReports: https://github.com/paul-buerkner/brms/issues
+
+      VignetteBuilder: knitr, R.rsp
+
+      RoxygenNote: 5.0.1
+
+      Packaged: 2016-10-11 20:54:40 UTC; paulb
+
+      Author: Paul-Christian Buerkner [aut, cre]
+
+      Maintainer: Paul-Christian Buerkner
+      \<less\>paul.buerkner@gmail.com\<gtr\>
+
+      Repository: CRAN
+
+      Date/Publication: 2016-10-11 23:53:54
+
+      Built: R 3.3.0; ; 2016-10-14 14:13:10 UTC; unix
+
+      \;
+
+      -- File: /Library/Frameworks/R.framework/Versions/3.3/Resources/library/brms/Meta/package.rds\ 
+
       \<gtr\> #library(rstan)
 
-      \<gtr\> Table5.7.brms \<less\>- brm(obs ~ trt + (1 \| rep),
+      \<gtr\> #Table5.7.brms \<less\>- brm(obs ~ trt + (1 \| rep),
       data=Table5.7)
 
-      Compiling the C++ model
-
-      In file included from file6e9e3158f276.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core.hpp:42:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core/set_zero_all_adjoints.hpp:14:17:
-      warning: unused function 'set_zero_all_adjoints' [-Wunused-function]
-
-      \ \ \ \ static void set_zero_all_adjoints() {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from file6e9e3158f276.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core.hpp:43:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core/set_zero_all_adjoints_nested.hpp:17:17:
-      warning: 'static' function 'set_zero_all_adjoints_nested' declared in
-      header file should be declared 'static inline'
-      [-Wunneeded-internal-declaration]
-
-      \ \ \ \ static void set_zero_all_adjoints_nested() {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from file6e9e3158f276.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:9:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat.hpp:54:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/autocorrelation.hpp:17:14:
-      warning: function 'fft_next_good_size' is not needed and will not be
-      emitted [-Wunneeded-internal-declaration]
-
-      \ \ \ \ \ \ size_t fft_next_good_size(size_t N) {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from file6e9e3158f276.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:9:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat.hpp:235:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/arr.hpp:36:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/arr/functor/integrate_ode_rk45.hpp:13:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/numeric/odeint.hpp:61:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/numeric/odeint/util/multi_array_adaption.hpp:29:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array.hpp:21:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/base.hpp:28:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:42:43:
-      warning: unused typedef 'index_range' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index_range index_range;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:43:37:
-      warning: unused typedef 'index' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index index;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:53:43:
-      warning: unused typedef 'index_range' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index_range index_range;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:54:37:
-      warning: unused typedef 'index' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index index;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      7 warnings generated.
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 1).
-
-      \;
-
-      Chain 1, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 1, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 1, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 1, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 1, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 1, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 1, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 1, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 1, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 1, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 1, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 1, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 0.200114 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.175262 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.375376 seconds (Total)
-
-      \;
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 2).
-
-      \;
-
-      Chain 2, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 2, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 2, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 2, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 2, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 2, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 2, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 2, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 2, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 2, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 2, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 2, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 0.268634 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.201478 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.470112 seconds (Total)
-
-      \;
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 3).
-
-      \;
-
-      Chain 3, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 3, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 3, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 3, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 3, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 3, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 3, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 3, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 3, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 3, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 3, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 3, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 0.217981 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.225544 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.443525 seconds (Total)
-
-      \;
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 4).
-
-      \;
-
-      Chain 4, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 4, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 4, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 4, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 4, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 4, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 4, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 4, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 4, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 4, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 4, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 4, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 0.210362 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.205514 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.415876 seconds (Total)
-
-      \;
-
-      Warning messages:
-
-      1: There were 57 divergent transitions after warmup. Increasing
-      adapt_delta above 0.8 may help. See
-
-      http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup\ 
-
-      2: Examine the pairs() plot to diagnose sampling problems
-
-      \ 
-
-      \<gtr\> Table5.7.red.brms \ \<less\>- brm(obs ~ 1 + (1 \| rep),
+      \<gtr\> #Table5.7.red.brms \ \<less\>- brm(obs ~ 1 + (1 \| rep),
       data=Table5.7)
-
-      Compiling the C++ model
-
-      In file included from file6e9e3fd4c6f7.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core.hpp:42:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core/set_zero_all_adjoints.hpp:14:17:
-      warning: unused function 'set_zero_all_adjoints' [-Wunused-function]
-
-      \ \ \ \ static void set_zero_all_adjoints() {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from file6e9e3fd4c6f7.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core.hpp:43:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core/set_zero_all_adjoints_nested.hpp:17:17:
-      warning: 'static' function 'set_zero_all_adjoints_nested' declared in
-      header file should be declared 'static inline'
-      [-Wunneeded-internal-declaration]
-
-      \ \ \ \ static void set_zero_all_adjoints_nested() {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from file6e9e3fd4c6f7.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:9:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat.hpp:54:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/autocorrelation.hpp:17:14:
-      warning: function 'fft_next_good_size' is not needed and will not be
-      emitted [-Wunneeded-internal-declaration]
-
-      \ \ \ \ \ \ size_t fft_next_good_size(size_t N) {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from file6e9e3fd4c6f7.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:9:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat.hpp:235:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/arr.hpp:36:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/arr/functor/integrate_ode_rk45.hpp:13:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/numeric/odeint.hpp:61:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/numeric/odeint/util/multi_array_adaption.hpp:29:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array.hpp:21:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/base.hpp:28:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:42:43:
-      warning: unused typedef 'index_range' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index_range index_range;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:43:37:
-      warning: unused typedef 'index' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index index;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:53:43:
-      warning: unused typedef 'index_range' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index_range index_range;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:54:37:
-      warning: unused typedef 'index' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index index;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      7 warnings generated.
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 1).
-
-      \;
-
-      Chain 1, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 1, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 1, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 1, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 1, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 1, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 1, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 1, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 1, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 1, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 1, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 1, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 0.120322 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.098496 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.218818 seconds (Total)
-
-      \;
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 2).
-
-      \;
-
-      Chain 2, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 2, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 2, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 2, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 2, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 2, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 2, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 2, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 2, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 2, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 2, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 2, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 0.137877 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.159099 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.296976 seconds (Total)
-
-      \;
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 3).
-
-      \;
-
-      Chain 3, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 3, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 3, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 3, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 3, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 3, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 3, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 3, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 3, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 3, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 3, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 3, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 0.149006 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.099367 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.248373 seconds (Total)
-
-      \;
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 4).
-
-      \;
-
-      Chain 4, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 4, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 4, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 4, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 4, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 4, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 4, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 4, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 4, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 4, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 4, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 4, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 0.160642 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.153708 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.31435 seconds (Total)
-
-      \;
-
-      Warning messages:
-
-      1: There were 110 divergent transitions after warmup. Increasing
-      adapt_delta above 0.8 may help. See
-
-      http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup\ 
-
-      2: Examine the pairs() plot to diagnose sampling problems
-
-      \ 
 
       \<gtr\> #Table5.7.red.brms \<less\>- update(Table5.7.brms, . ~ . -trt)
 
       \<gtr\> summary(Table5.7.brms)$fixed
 
-      \ \ \ \ \ \ \ \ \ \ \ Estimate Est.Error \ \ l-95% CI u-95% CI
-      Eff.Sample \ \ \ \ Rhat
-
-      Intercept 4.0410613 \ 1.239153 \ 1.6441271 6.525051 \ \ 277.2996
-      1.010326
-
-      trt2 \ \ \ \ \ 0.9648931 \ 1.095171 -1.1903071 3.085182 \ 1031.3534
-      1.005629
-
-      trt3 \ \ \ \ \ 1.3525895 \ 1.079151 -0.7698665 3.444096 \ \ 953.2260
-      1.003578
-
-      trt4 \ \ \ \ \ 0.8858901 \ 1.098312 -1.2293207 3.124941 \ 1086.4360
-      1.004536
-
-      trt5 \ \ \ \ \ 1.6176582 \ 1.105784 -0.6111025 3.856469 \ 1043.2621
-      1.002617
-
-      trt6 \ \ \ \ \ 3.0966154 \ 1.089464 \ 0.8881492 5.254320 \ 1049.9506
-      1.002645
+      Error in summary(Table5.7.brms) : object 'Table5.7.brms' not found
 
       \<gtr\>\ 
 
@@ -7371,45 +8435,17 @@
 
       \<gtr\> VarCorr(Table5.7.brms)
 
-      \ Estimate \ \ \ Group \ \ \ \ \ Name Std.Dev \ Cov
-
-      \ \ \ \ \ mean \ \ \ \ \ rep Intercept \ \ \ 1.65 4.26
-
-      \ \ \ \ \ \ \ \ \ \ RESIDUAL \ \ \ \ \ \ obs \ \ \ 1.28 1.71
+      Error in VarCorr(Table5.7.brms) : object 'Table5.7.brms' not found
 
       \<gtr\>\ 
 
       \<gtr\> fixef(Table5.7.brms)
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mean
-
-      Intercept 4.0410613
-
-      trt2 \ \ \ \ \ 0.9648931
-
-      trt3 \ \ \ \ \ 1.3525895
-
-      trt4 \ \ \ \ \ 0.8858901
-
-      trt5 \ \ \ \ \ 1.6176582
-
-      trt6 \ \ \ \ \ 3.0966154
+      Error in fixef(Table5.7.brms) : object 'Table5.7.brms' not found
 
       \<gtr\> ranef(Table5.7.brms)
 
-      $rep
-
-      \ \ \ Intercept
-
-      1 -1.1685205
-
-      2 \ 0.8292117
-
-      3 -0.1104997
-
-      4 \ 0.1128380
-
-      \;
+      Error in ranef(Table5.7.brms) : object 'Table5.7.brms' not found
 
       \<gtr\>\ 
 
@@ -7435,7 +8471,7 @@
 
       \ \ Rprof("meta.brms.prof")
 
-      \ \ meta.brms \<less\>- brm(YLD ~ Entry + (1 \| Loca/Repe) + (1 \|
+      \ \ #meta.brms \<less\>- brm(YLD ~ Entry + (1 \| Loca/Repe) + (1 \|
       Loca:Entry), data=rcbd.dat)
 
       \ \ Rprof(NULL)
@@ -7456,10 +8492,10 @@
 
       + \ \ Rprof("meta.brms.prof")
 
-      + \ \ meta.brms \<less\>- brm(YLD ~ Entry + (1 \| Loca/Repe) + (1 \|
-      Loca:Entry), data=r
+      + \ \ #meta.brms \<less\>- brm(YLD ~ Entry + (1 \| Loca/Repe) + (1 \|
+      Loca:Entry), data=
 
-      \<less\>Entry + (1 \| Loca/Repe) + (1 \| Loca:Entry), data=rcbd.dat)
+      \<less\> Entry + (1 \| Loca/Repe) + (1 \| Loca:Entry), data=rcbd.dat)
 
       + \ \ Rprof(NULL)
 
@@ -7471,1263 +8507,29 @@
 
       + }
 
-      Compiling the C++ model
+      Error in save(meta.brms, file = "meta.brms.Rda") :\ 
 
-      In file included from file6e9e67421f04.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core.hpp:42:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core/set_zero_all_adjoints.hpp:14:17:
-      warning: unused function 'set_zero_all_adjoints' [-Wunused-function]
-
-      \ \ \ \ static void set_zero_all_adjoints() {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from file6e9e67421f04.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core.hpp:43:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core/set_zero_all_adjoints_nested.hpp:17:17:
-      warning: 'static' function 'set_zero_all_adjoints_nested' declared in
-      header file should be declared 'static inline'
-      [-Wunneeded-internal-declaration]
-
-      \ \ \ \ static void set_zero_all_adjoints_nested() {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from file6e9e67421f04.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:9:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat.hpp:54:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/autocorrelation.hpp:17:14:
-      warning: function 'fft_next_good_size' is not needed and will not be
-      emitted [-Wunneeded-internal-declaration]
-
-      \ \ \ \ \ \ size_t fft_next_good_size(size_t N) {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from file6e9e67421f04.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:9:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat.hpp:235:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/arr.hpp:36:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/arr/functor/integrate_ode_rk45.hpp:13:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/numeric/odeint.hpp:61:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/numeric/odeint/util/multi_array_adaption.hpp:29:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array.hpp:21:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/base.hpp:28:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:42:43:
-      warning: unused typedef 'index_range' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index_range index_range;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:43:37:
-      warning: unused typedef 'index' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index index;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:53:43:
-      warning: unused typedef 'index_range' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index_range index_range;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:54:37:
-      warning: unused typedef 'index' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index index;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      7 warnings generated.
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 1).
-
-      \;
-
-      Chain 1, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 1, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 1, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 1, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 1, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 1, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 1, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 1, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 1, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 1, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 1, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 1, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 97.973 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 81.9706 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 179.944 seconds (Total)
-
-      \;
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 2).
-
-      \;
-
-      Chain 2, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 2, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 2, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 2, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 2, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 2, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 2, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 2, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 2, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 2, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 2, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 2, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 107.064 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 92.1242 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 199.188 seconds (Total)
-
-      \;
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 3).
-
-      \;
-
-      Chain 3, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 3, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 3, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 3, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 3, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 3, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 3, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 3, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 3, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 3, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 3, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 3, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 110.895 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 101.68 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 212.575 seconds (Total)
-
-      \;
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 4).
-
-      \;
-
-      Chain 4, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 4, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 4, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 4, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 4, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 4, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 4, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 4, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 4, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 4, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 4, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 4, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 151.763 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 110.803 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 262.566 seconds (Total)
-
-      \;
+      \ \ object 'meta.brms' not found
 
       \<gtr\> summary(meta.brms)
 
-      \ Family: gaussian (identity)\ 
+      Error in summary(meta.brms) : object 'meta.brms' not found
 
-      Formula: YLD ~ Entry + (1 \| Loca/Repe) + (1 \| Loca:Entry)\ 
-
-      \ \ \ Data: rcbd.dat (Number of observations: 1152)\ 
-
-      Samples: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;\ 
-
-      \ \ \ \ \ \ \ \ \ total post-warmup samples = 4000
-
-      \ \ \ WAIC: Not computed
-
-      \ 
-
-      Group-Level Effects:\ 
-
-      ~Loca (Number of levels: 12)\ 
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ Estimate Est.Error l-95% CI u-95% CI
-      Eff.Sample Rhat
-
-      sd(Intercept) \ \ \ \ 3.23 \ \ \ \ \ 0.81 \ \ \ \ 2.08 \ \ \ \ 5.16
-      \ \ \ \ \ \ \ 819 \ \ \ 1
-
-      \;
-
-      ~Loca:Entry (Number of levels: 384)\ 
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ Estimate Est.Error l-95% CI u-95% CI
-      Eff.Sample Rhat
-
-      sd(Intercept) \ \ \ \ 0.66 \ \ \ \ \ 0.05 \ \ \ \ 0.57 \ \ \ \ 0.75
-      \ \ \ \ \ \ 1471 \ \ \ 1
-
-      \;
-
-      ~Loca:Repe (Number of levels: 36)\ 
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ Estimate Est.Error l-95% CI u-95% CI
-      Eff.Sample Rhat
-
-      sd(Intercept) \ \ \ \ \ 0.4 \ \ \ \ \ 0.07 \ \ \ \ 0.28 \ \ \ \ 0.57
-      \ \ \ \ \ \ 1248 \ \ \ 1
-
-      \;
-
-      Population-Level Effects:\ 
-
-      \ \ \ \ \ \ \ \ \ \ Estimate Est.Error l-95% CI u-95% CI Eff.Sample
-      Rhat
-
-      Intercept \ \ \ \ 5.83 \ \ \ \ \ 0.96 \ \ \ \ 3.95 \ \ \ \ 7.81
-      \ \ \ \ \ \ \ 380 1.02
-
-      Entry2 \ \ \ \ \ \ \ 0.20 \ \ \ \ \ 0.37 \ \ \ -0.50 \ \ \ \ 0.95
-      \ \ \ \ \ \ \ 340 1.01
-
-      Entry3 \ \ \ \ \ \ \ 0.86 \ \ \ \ \ 0.36 \ \ \ \ 0.18 \ \ \ \ 1.59
-      \ \ \ \ \ \ \ 327 1.01
-
-      Entry4 \ \ \ \ \ \ \ 0.63 \ \ \ \ \ 0.37 \ \ \ -0.09 \ \ \ \ 1.35
-      \ \ \ \ \ \ \ 342 1.01
-
-      Entry5 \ \ \ \ \ \ \ 0.66 \ \ \ \ \ 0.35 \ \ \ -0.04 \ \ \ \ 1.34
-      \ \ \ \ \ \ \ 364 1.01
-
-      Entry6 \ \ \ \ \ \ \ 0.63 \ \ \ \ \ 0.37 \ \ \ -0.09 \ \ \ \ 1.37
-      \ \ \ \ \ \ \ 323 1.01
-
-      Entry7 \ \ \ \ \ \ -0.05 \ \ \ \ \ 0.37 \ \ \ -0.73 \ \ \ \ 0.67
-      \ \ \ \ \ \ \ 346 1.01
-
-      Entry8 \ \ \ \ \ \ \ 0.78 \ \ \ \ \ 0.37 \ \ \ \ 0.06 \ \ \ \ 1.52
-      \ \ \ \ \ \ \ 350 1.01
-
-      Entry9 \ \ \ \ \ \ -0.22 \ \ \ \ \ 0.37 \ \ \ -0.94 \ \ \ \ 0.50
-      \ \ \ \ \ \ \ 284 1.02
-
-      Entry10 \ \ \ \ \ \ 0.50 \ \ \ \ \ 0.37 \ \ \ -0.22 \ \ \ \ 1.22
-      \ \ \ \ \ \ \ 346 1.01
-
-      Entry11 \ \ \ \ \ \ 1.06 \ \ \ \ \ 0.37 \ \ \ \ 0.35 \ \ \ \ 1.81
-      \ \ \ \ \ \ \ 362 1.01
-
-      Entry12 \ \ \ \ \ \ 0.19 \ \ \ \ \ 0.37 \ \ \ -0.52 \ \ \ \ 0.93
-      \ \ \ \ \ \ \ 328 1.01
-
-      Entry13 \ \ \ \ \ \ 0.33 \ \ \ \ \ 0.36 \ \ \ -0.37 \ \ \ \ 1.06
-      \ \ \ \ \ \ \ 352 1.01
-
-      Entry14 \ \ \ \ \ -2.26 \ \ \ \ \ 0.37 \ \ \ -2.97 \ \ \ -1.51
-      \ \ \ \ \ \ \ 363 1.01
-
-      Entry15 \ \ \ \ \ \ 0.21 \ \ \ \ \ 0.37 \ \ \ -0.49 \ \ \ \ 0.94
-      \ \ \ \ \ \ \ 373 1.01
-
-      Entry16 \ \ \ \ \ -0.90 \ \ \ \ \ 0.37 \ \ \ -1.61 \ \ \ -0.16
-      \ \ \ \ \ \ \ 351 1.01
-
-      Entry17 \ \ \ \ \ \ 0.76 \ \ \ \ \ 0.37 \ \ \ \ 0.04 \ \ \ \ 1.50
-      \ \ \ \ \ \ \ 360 1.01
-
-      Entry18 \ \ \ \ \ \ 0.67 \ \ \ \ \ 0.37 \ \ \ -0.04 \ \ \ \ 1.38
-      \ \ \ \ \ \ \ 362 1.01
-
-      Entry19 \ \ \ \ \ -2.52 \ \ \ \ \ 0.37 \ \ \ -3.22 \ \ \ -1.78
-      \ \ \ \ \ \ \ 339 1.01
-
-      Entry20 \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.37 \ \ \ -0.64 \ \ \ \ 0.80
-      \ \ \ \ \ \ \ 360 1.01
-
-      Entry21 \ \ \ \ \ -0.98 \ \ \ \ \ 0.37 \ \ \ -1.67 \ \ \ -0.24
-      \ \ \ \ \ \ \ 333 1.01
-
-      Entry22 \ \ \ \ \ \ 0.79 \ \ \ \ \ 0.37 \ \ \ \ 0.06 \ \ \ \ 1.52
-      \ \ \ \ \ \ \ 353 1.01
-
-      Entry23 \ \ \ \ \ -2.08 \ \ \ \ \ 0.37 \ \ \ -2.80 \ \ \ -1.36
-      \ \ \ \ \ \ \ 334 1.01
-
-      Entry24 \ \ \ \ \ \ 0.05 \ \ \ \ \ 0.37 \ \ \ -0.64 \ \ \ \ 0.79
-      \ \ \ \ \ \ \ 330 1.01
-
-      Entry25 \ \ \ \ \ -0.98 \ \ \ \ \ 0.37 \ \ \ -1.70 \ \ \ -0.25
-      \ \ \ \ \ \ \ 337 1.01
-
-      Entry26 \ \ \ \ \ \ 1.03 \ \ \ \ \ 0.36 \ \ \ \ 0.34 \ \ \ \ 1.76
-      \ \ \ \ \ \ \ 336 1.01
-
-      Entry27 \ \ \ \ \ \ 0.91 \ \ \ \ \ 0.36 \ \ \ \ 0.22 \ \ \ \ 1.63
-      \ \ \ \ \ \ \ 345 1.01
-
-      Entry28 \ \ \ \ \ \ 0.51 \ \ \ \ \ 0.38 \ \ \ -0.20 \ \ \ \ 1.29
-      \ \ \ \ \ \ \ 325 1.01
-
-      Entry29 \ \ \ \ \ -0.03 \ \ \ \ \ 0.37 \ \ \ -0.76 \ \ \ \ 0.68
-      \ \ \ \ \ \ \ 337 1.01
-
-      Entry30 \ \ \ \ \ -0.54 \ \ \ \ \ 0.37 \ \ \ -1.25 \ \ \ \ 0.20
-      \ \ \ \ \ \ \ 340 1.01
-
-      Entry31 \ \ \ \ \ \ 0.37 \ \ \ \ \ 0.37 \ \ \ -0.36 \ \ \ \ 1.10
-      \ \ \ \ \ \ \ 344 1.01
-
-      Entry32 \ \ \ \ \ -0.17 \ \ \ \ \ 0.37 \ \ \ -0.87 \ \ \ \ 0.59
-      \ \ \ \ \ \ \ 350 1.01
-
-      \;
-
-      Family Specific Parameters:\ 
-
-      \ \ \ \ \ \ Estimate Est.Error l-95% CI u-95% CI Eff.Sample Rhat
-
-      sigma \ \ \ \ 0.97 \ \ \ \ \ 0.03 \ \ \ \ 0.93 \ \ \ \ 1.02
-      \ \ \ \ \ \ 2166 \ \ \ 1
-
-      \;
-
-      Samples were drawn using sampling(NUTS). For each parameter, Eff.Sample\ 
-
-      is a crude measure of effective sample size, and Rhat is the potential\ 
-
-      scale reduction factor on split chains (at convergence, Rhat =
-      1).\<gtr\> summaryRprof("meta.brms.prof")
+      \<gtr\> summaryRprof("meta.brms.prof")
 
       $by.self
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct
-      total.time total.pct
+      [1] self.time \ self.pct \ \ total.time total.pct\ 
 
-      ".External" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 841.58 \ \ \ 99.59
-      \ \ \ \ 841.58 \ \ \ \ 99.59
-
-      "aperm.default" \ \ \ \ \ \ \ \ \ \ \ \ \ 1.10 \ \ \ \ 0.13
-      \ \ \ \ \ \ 1.10 \ \ \ \ \ 0.13
-
-      "saveRDS" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.38 \ \ \ \ 0.04
-      \ \ \ \ \ \ 0.38 \ \ \ \ \ 0.04
-
-      "is.na" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.32 \ \ \ \ 0.04
-      \ \ \ \ \ \ 0.32 \ \ \ \ \ 0.04
-
-      "getClassDef" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.20 \ \ \ \ \ 0.02
-
-      "grepl" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ 0.01
-      \ \ \ \ \ \ 0.12 \ \ \ \ \ 0.01
-
-      "match" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 0.01
-      \ \ \ \ \ \ 0.16 \ \ \ \ \ 0.02
-
-      "is" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.01
-      \ \ \ \ \ \ 0.34 \ \ \ \ \ 0.04
-
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.01
-      \ \ \ \ \ \ 0.28 \ \ \ \ \ 0.03
-
-      "unique.default" \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.01
-      \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.01
-
-      ".local" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.00
-      \ \ \ \ 842.62 \ \ \ \ 99.71
-
-      "$\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ 0.00 \ \ \ \ \ \ 0.16 \ \ \ \ \ 0.02
-
-      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.08 \ \ \ \ \ 0.01
-
-      ".External2" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-
-      "rename_pars" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 1.50 \ \ \ \ \ 0.18
-
-      "initialize" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.58 \ \ \ \ \ 0.07
-
-      "eval" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.56 \ \ \ \ \ 0.07
-
-      "rapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.34 \ \ \ \ \ 0.04
-
-      "check_prior_content" \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00 \ \ \ \ \ \ 0.28
-      \ \ \ \ \ 0.03
-
-      "%in%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.16 \ \ \ \ \ 0.02
-
-      "ifelse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.12 \ \ \ \ \ 0.01
-
-      "nchar" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.12 \ \ \ \ \ 0.01
-
-      "[[.data.frame" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.10 \ \ \ \ \ 0.01
-
-      "$.data.frame" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.08 \ \ \ \ \ 0.01
-
-      "assign" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.08 \ \ \ \ \ 0.01
-
-      "unlist" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.08 \ \ \ \ \ 0.01
-
-      "[" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.01
-
-      "levels" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.01
-
-      "paste" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.01
-
-      "refObjectClass" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.01
-
-      ".deparseOpts" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-
-      ".getClassFromCache" \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00
-
-      "findLocalsList" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-
-      "possibleExtends" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-
-      "scan" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-
-      "stopifnot" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-
-      ".findInheritedMethods" \ \ \ \ \ 0.02 \ \ \ \ 0.00 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00
-
-      ".identC" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "all" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "as" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "c" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "colnames\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "duplicated.default" \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00
-
-      "dyn.load" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "exists" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "get" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "gregexpr" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "gsub" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "is.list" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "make.unique" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "makeCodeWalker" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "match.fun" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "max" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "pmatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "relist" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "slot\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ 0.00 \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "substr" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "sys.call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "system" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "system2" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "tempfile" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "update" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "vapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-
-      "with" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.00
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
+      \<less\>0 rows\<gtr\> (or 0-length row.names)
 
       \;
 
       $by.total
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time
-      total.pct self.time self.pct
+      [1] total.time total.pct \ self.time \ self.pct \ 
 
-      "brm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 845.06
-      \ \ \ 100.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "\<Anonymous\>" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 844.14 \ \ \ \ 99.89
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "do.call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 844.12
-      \ \ \ \ 99.89 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".local" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 842.62
-      \ \ \ \ 99.71 \ \ \ \ \ 0.04 \ \ \ \ 0.00
-
-      "standardGeneric" \ \ \ \ \ \ \ \ \ \ \ \ \ 842.62 \ \ \ \ 99.71
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "doTryCatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 841.70 \ \ \ \ 99.60
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "tryCatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 841.70 \ \ \ \ 99.60
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "tryCatchList" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 841.70 \ \ \ \ 99.60
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "tryCatchOne" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 841.70 \ \ \ \ 99.60
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "try" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 841.64
-      \ \ \ \ 99.60 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".External" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 841.58 \ \ \ \ 99.59
-      \ \ \ 841.58 \ \ \ 99.59
-
-      "sampler$call_sampler" \ \ \ \ \ \ \ \ 841.54 \ \ \ \ 99.58
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "rename_pars" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.50 \ \ \ \ \ 0.18
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "standata" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.44
-      \ \ \ \ \ 0.17 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "standata.brmsfit" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.44 \ \ \ \ \ 0.17
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "data_fixef" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.16
-      \ \ \ \ \ 0.14 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "aperm.default" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.10 \ \ \ \ \ 0.13
-      \ \ \ \ \ 1.10 \ \ \ \ 0.13
-
-      "aperm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.10
-      \ \ \ \ \ 0.13 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "sweep" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.10
-      \ \ \ \ \ 0.13 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "$" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.60
-      \ \ \ \ \ 0.07 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "initialize" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.58
-      \ \ \ \ \ 0.07 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "new" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.58
-      \ \ \ \ \ 0.07 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "eval" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.56
-      \ \ \ \ \ 0.07 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      ".getModulePointer" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.52 \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "Module" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.52
-      \ \ \ \ \ 0.06 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "rstan::stan_model" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.50 \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "validObject" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.42 \ \ \ \ \ 0.05
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "saveRDS" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.38
-      \ \ \ \ \ 0.04 \ \ \ \ \ 0.38 \ \ \ \ 0.04
-
-      "is" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.34
-      \ \ \ \ \ 0.04 \ \ \ \ \ 0.06 \ \ \ \ 0.01
-
-      "rapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.34
-      \ \ \ \ \ 0.04 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "anyStrings" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.34
-      \ \ \ \ \ 0.04 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "validityMethod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.34 \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "is.na" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.32
-      \ \ \ \ \ 0.04 \ \ \ \ \ 0.32 \ \ \ \ 0.04
-
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.28
-      \ \ \ \ \ 0.03 \ \ \ \ \ 0.06 \ \ \ \ 0.01
-
-      "check_prior_content" \ \ \ \ \ \ \ \ \ \ \ 0.28 \ \ \ \ \ 0.03
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "methods::setRefClass" \ \ \ \ \ \ \ \ \ \ 0.26 \ \ \ \ \ 0.03
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "getClassDef" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.20 \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.16 \ \ \ \ 0.02
-
-      "check_prior" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.20 \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "refClassInformation" \ \ \ \ \ \ \ \ \ \ \ 0.18 \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "match" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.08 \ \ \ \ 0.01
-
-      "$\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.04 \ \ \ \ 0.00
-
-      "%in%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "FUN" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "extract_effects" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "insertClassMethods" \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16
-      \ \ \ \ \ 0.02 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "makeClassMethod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "grepl" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.10 \ \ \ \ 0.01
-
-      "ifelse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "nchar" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      ".print_prior" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "envRefSetField" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "get_prior" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "[[.data.frame" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      ".get_Module_Class" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "[[" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.brmsprior" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "cxxfunctionplus" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "gather_ranef" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "make_stancode" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "unname" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.10
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.04 \ \ \ \ 0.00
-
-      "$.data.frame" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "assign" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "unlist" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      ".getGlobalFuns" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "codetools::findGlobals" \ \ \ \ \ \ \ \ 0.08 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "collectUsage" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "unique.default" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.06 \ \ \ \ 0.01
-
-      "[" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "levels" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "paste" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "refObjectClass" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "as.data.frame" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "collectUsageFun" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "cxxfunction" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "deparse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "evalq" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "get_matches" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "rstan::stanc_builder" \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "setClass" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "stanc" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "unique" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.01 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".External2" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.04 \ \ \ \ 0.00
-
-      ".deparseOpts" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      ".getClassFromCache" \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "findLocalsList" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "possibleExtends" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "scan" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "stopifnot" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "[.data.frame" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "amend_terms" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.data.frame.list" \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "colnames" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "data.frame" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "envRefInferField" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "factor" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "findFuncLocals" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "gather_response" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "get_intercepts" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "get_model_matrix" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "installClassMethod" \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "is.data.frame" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "isClassDef" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "make.names" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "methods:::.setDummyField" \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "mode" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "model.matrix.default" \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "prior_frame" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "regmatches" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "rename" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "sapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "setIs" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "stats::model.matrix" \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "ulapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "walkCode" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".findInheritedMethods" \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      ".identC" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "all" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "as" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "c" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "colnames\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "duplicated.default" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "dyn.load" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "exists" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "get" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "gregexpr" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "gsub" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "is.list" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "make.unique" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "makeCodeWalker" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "match.fun" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "max" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "pmatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "relist" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "slot\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "substr" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "sys.call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "system" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "system2" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "tempfile" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "update" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "vapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      "with" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.02 \ \ \ \ 0.00
-
-      ".cacheClass" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".choosePos" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".resolveSuperclasses" \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".walkClassGraph" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ":::" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "Map" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "Reduce" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "all.equal" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "all.equal.default" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "all.vars" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.data.frame.character" \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.data.frame.numeric" \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.matrix" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.matrix.data.frame" \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.vector" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "asMethod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "assignClassDef" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "change_ranef" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "collapse" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "combine_duplicates" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "compileCode" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "completeExtends" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "cpp_refMethods" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "data_preprocess" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "data_ranef" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "duplicated" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "empty_prior_frame" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "eval.parent" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "extract_random" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "findOwnerEnv" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "force" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "formula2string" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "getSlots" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "get_CXX" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "get_makefile_flags" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "is.formula" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "isBaseVar" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "isTRUE" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "isVirtualClass" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "is_equal" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "is_legal_stan_vname" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lc" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "makeExtends" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "makeUsageCollector" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "mapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "match.arg" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "matching_rows" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "order" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "outer" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "parse_data" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "read_dso" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "relist.list" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "rhs" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "rstan_relist" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "sampler$param_fnames_oi" \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "sampler$update_param_oi" \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "setDataPart" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "setdiff" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "simplify2array" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "stan_linear" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "structure" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "substring" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "textConnection" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "w$handler" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
+      \<less\>0 rows\<gtr\> (or 0-length row.names)
 
       \;
 
@@ -8739,19 +8541,19 @@
 
       $sampling.time
 
-      [1] 845.06
+      [1] 0
 
       \;
     </unfolded-prog-io|>
 
-    <\input>
+    <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
-    <|input>
+    <|unfolded-prog-io>
       if(!file.exists("cotes.brms.Rda")) {
 
       \ \ Rprof("cotes.brms.prof")
 
-      \ \ cotes.brms \<less\>- brm(YLD ~ Entry + (1 \| Loca/Repe) + (0 +
+      \ \ #cotes.brms \<less\>- brm(YLD ~ Entry + (1 \| Loca/Repe) + (0 +
       Entry\|Loca), data=rcbd.dat)
 
       \ \ Rprof(NULL)
@@ -8767,7 +8569,64 @@
       summary(cotes.brms)
 
       summaryRprof("cotes.brms.prof")
-    </input>
+    <|unfolded-prog-io>
+      if(!file.exists("cotes.brms.Rda")) {
+
+      + \ \ Rprof("cotes.brms.prof")
+
+      + \ \ #cotes.brms \<less\>- brm(YLD ~ Entry + (1 \| Loca/Repe) + (0 +
+      Entry\|Loca), data
+
+      \<less\>~ Entry + (1 \| Loca/Repe) + (0 + Entry\|Loca), data=rcbd.dat)
+
+      + \ \ Rprof(NULL)
+
+      + \ \ save(cotes.brms,file="cotes.brms.Rda")
+
+      + } else {
+
+      + \ \ load(file="cotes.brms.Rda")
+
+      + }
+
+      Error in save(cotes.brms, file = "cotes.brms.Rda") :\ 
+
+      \ \ object 'cotes.brms' not found
+
+      \<gtr\> summary(cotes.brms)
+
+      Error in summary(cotes.brms) : object 'cotes.brms' not found
+
+      \<gtr\> summaryRprof("cotes.brms.prof")
+
+      $by.self
+
+      [1] self.time \ self.pct \ \ total.time total.pct\ 
+
+      \<less\>0 rows\<gtr\> (or 0-length row.names)
+
+      \;
+
+      $by.total
+
+      [1] total.time total.pct \ self.time \ self.pct \ 
+
+      \<less\>0 rows\<gtr\> (or 0-length row.names)
+
+      \;
+
+      $sample.interval
+
+      [1] 0.02
+
+      \;
+
+      $sampling.time
+
+      [1] 0
+
+      \;
+    </unfolded-prog-io|>
 
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
@@ -8826,455 +8685,6 @@
       \ \ "ranef.lmList4"\ 
 
       [5] "ranef.lme" \ \ \ \ \ "ranef.merMod" \ 
-    </unfolded-prog-io|>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      head(rcbd.dat)
-    <|unfolded-prog-io>
-      head(rcbd.dat)
-
-      \ \ Site Country \ \ \ \ Loca Plot Repe BLK Entry \ YLD AD SD \ PH \ EH
-      rEPH rEPP nP
-
-      1 \ \ \ 3 \ Mexico Cotaxtla \ \ \ 1 \ \ \ 1 \ \ 1 \ \ \ 21 7.00 54 55
-      280 150 0.54 \ 0.9 58
-
-      2 \ \ \ 3 \ Mexico Cotaxtla \ \ \ 2 \ \ \ 1 \ \ 1 \ \ \ 22 8.39 51 52
-      270 140 0.52 \ \ \ 1 58
-
-      3 \ \ \ 3 \ Mexico Cotaxtla \ \ \ 3 \ \ \ 1 \ \ 1 \ \ \ 32 6.85 52 53
-      265 140 0.53 \ 0.9 54
-
-      4 \ \ \ 3 \ Mexico Cotaxtla \ \ \ 4 \ \ \ 1 \ \ 1 \ \ \ 11 8.09 53 54
-      275 140 0.51 \ \ \ 1 53
-
-      5 \ \ \ 3 \ Mexico Cotaxtla \ \ \ 5 \ \ \ 1 \ \ 2 \ \ \ \ 4 6.86 51 52
-      260 125 0.48 \ 0.9 58
-
-      6 \ \ \ 3 \ Mexico Cotaxtla \ \ \ 6 \ \ \ 1 \ \ 2 \ \ \ 29 6.45 51 52
-      275 130 0.47 \ 0.9 57
-
-      \ \ \ \ \ \ \ Block
-
-      1 Cotaxtla:1
-
-      2 Cotaxtla:1
-
-      3 Cotaxtla:1
-
-      4 Cotaxtla:1
-
-      5 Cotaxtla:1
-
-      6 Cotaxtla:1
-    </unfolded-prog-io|>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      \;
-    <|unfolded-prog-io>
-      <script-interrupted>
-    </unfolded-prog-io|>
-
-    <\textput>
-      Another plot to compare functions.\ 
-
-      Note that admb using different headers
-
-      \;
-    </textput>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      library(nlme)
-
-      rcbd.dat$Block \<less\>- rcbd.dat$Loca:rcbd.dat$Repe
-
-      Rprof("META.lme.prof")
-
-      var.lme \<less\>- lme(YLD ~ Entry + Entry:Loca, random = ~ 1 \| Block,
-      data=rcbd.dat)
-
-      Rprof(NULL)
-
-      current.prof \<less\>- summaryRprof("META.lme.prof")
-
-      current.prof
-
-      VarCorr(var.lme)
-
-      detach("package:nlme")
-    <|unfolded-prog-io>
-      library(nlme)
-
-      \;
-
-      Attaching package: 'nlme'
-
-      \;
-
-      The following object is masked from 'package:glmmADMB':
-
-      \;
-
-      \ \ \ \ VarCorr
-
-      \;
-
-      The following object is masked from 'package:lme4':
-
-      \;
-
-      \ \ \ \ lmList
-
-      \;
-
-      \<gtr\> rcbd.dat$Block \<less\>- rcbd.dat$Loca:rcbd.dat$Repe
-
-      \<gtr\> Rprof("META.lme.prof")
-
-      \<gtr\> var.lme \<less\>- lme(YLD ~ Entry + Entry:Loca, random = ~ 1 \|
-      Block, data=rcbd.da
-
-      \<less\>y + Entry:Loca, random = ~ 1 \| Block, data=rcbd.dat)
-
-      \<gtr\> Rprof(NULL)
-
-      \<gtr\> current.prof \<less\>- summaryRprof("META.lme.prof")
-
-      \<gtr\> current.prof
-
-      $by.self
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
-
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 6.66 \ \ \ 85.17 \ \ \ \ \ \ 6.66
-      \ \ \ \ 85.17
-
-      "as.numeric" \ \ \ \ \ \ \ \ 0.64 \ \ \ \ 8.18 \ \ \ \ \ \ 0.64
-      \ \ \ \ \ 8.18
-
-      "double" \ \ \ \ \ \ \ \ \ \ \ \ 0.26 \ \ \ \ 3.32 \ \ \ \ \ \ 0.26
-      \ \ \ \ \ 3.32
-
-      "solve.default" \ \ \ \ \ 0.08 \ \ \ \ 1.02 \ \ \ \ \ \ 0.50
-      \ \ \ \ \ 6.39
-
-      "as.double" \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.77 \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.77
-
-      "crossprod" \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.51 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.51
-
-      "array" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.26 \ \ \ \ \ \ 0.24
-      \ \ \ \ \ 3.07
-
-      ".External2" \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.26 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.26
-
-      "abs" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.26 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.26
-
-      "all" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.26 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 0.26
-
-      \;
-
-      $by.total
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct
-      self.time self.pct
-
-      "lme" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 7.82 \ \ \ 100.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lme.formula" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 7.82 \ \ \ 100.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 6.66 \ \ \ \ 85.17
-      \ \ \ \ \ 6.66 \ \ \ 85.17
-
-      "FUN" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 6.34 \ \ \ \ 81.07
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "Initialize" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.24 \ \ \ \ 67.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "Initialize.lmeStruct" \ \ \ \ \ \ 5.24 \ \ \ \ 67.01 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "Initialize.reStruct" \ \ \ \ \ \ \ 5.24 \ \ \ \ 67.01 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "MEEM" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.24 \ \ \ \ 67.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.24 \ \ \ \ 67.01
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.10 \ \ \ \ 14.07
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "logLik" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.78 \ \ \ \ \ 9.97
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.72 \ \ \ \ \ 9.21
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "logLik.lmeStructInt" \ \ \ \ \ \ \ 0.72 \ \ \ \ \ 9.21 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "nlminb" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.72 \ \ \ \ \ 9.21
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "objective" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.72 \ \ \ \ \ 9.21
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "getFixDF" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.70 \ \ \ \ \ 8.95
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.numeric" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.64 \ \ \ \ \ 8.18
-      \ \ \ \ \ 0.64 \ \ \ \ 8.18
-
-      "solve.default" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.50 \ \ \ \ \ 6.39
-      \ \ \ \ \ 0.08 \ \ \ \ 1.02
-
-      "solve" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.50 \ \ \ \ \ 6.39
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "MEestimate" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.46 \ \ \ \ \ 5.88
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "fdHess" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.42 \ \ \ \ \ 5.37
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lmeApVar" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.42 \ \ \ \ \ 5.37
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "double" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.26 \ \ \ \ \ 3.32
-      \ \ \ \ \ 0.26 \ \ \ \ 3.32
-
-      "array" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.24 \ \ \ \ \ 3.07
-      \ \ \ \ \ 0.02 \ \ \ \ 0.26
-
-      "MEdecomp" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.20 \ \ \ \ \ 2.56
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "t" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 1.02 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "as.double" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.77
-      \ \ \ \ \ 0.06 \ \ \ \ 0.77
-
-      "logLik.reStruct" \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.77
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "recalc" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.77
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "recalc.modelStruct" \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.77 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "recalc.reStruct" \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.77
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "crossprod" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.51
-      \ \ \ \ \ 0.04 \ \ \ \ 0.51
-
-      ".External2" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.02 \ \ \ \ 0.26
-
-      "abs" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.02 \ \ \ \ 0.26
-
-      "all" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.02 \ \ \ \ 0.26
-
-      "model.matrix" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "model.matrix.default" \ \ \ \ \ \ 0.02 \ \ \ \ \ 0.26 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      \;
-
-      $sample.interval
-
-      [1] 0.02
-
-      \;
-
-      $sampling.time
-
-      [1] 7.82
-
-      \;
-
-      \<gtr\> VarCorr(var.lme)
-
-      Block = pdLogChol(1)\ 
-
-      \ \ \ \ \ \ \ \ \ \ \ \ Variance \ StdDev \ \ 
-
-      (Intercept) 0.1416624 0.3763806
-
-      Residual \ \ \ 0.9411682 0.9701382
-
-      \<gtr\> detach("package:nlme")
-    </unfolded-prog-io|>
-
-    <\unfolded-prog-io>
-      <with|color|red|\<gtr\> >
-    <|unfolded-prog-io>
-      library(lme4)
-
-      Rprof("META.lmer.prof")
-
-      var.lmer \<less\>- lmer(YLD ~ Entry + (1 \| Loca/Repe) + (1 \|
-      Loca:Entry), data=rcbd.dat)
-
-      \;
-
-      Rprof(NULL)
-
-      current.prof \<less\>- summaryRprof("META.lmer.prof")
-
-      current.prof
-
-      detach("package:lme4")
-    <|unfolded-prog-io>
-      library(lme4)
-
-      \<gtr\> Rprof("META.lmer.prof")
-
-      \<gtr\> var.lmer \<less\>- lmer(YLD ~ Entry + (1 \| Loca/Repe) + (1 \|
-      Loca:Entry), data=rcb
-
-      \<less\>try + (1 \| Loca/Repe) + (1 \| Loca:Entry), data=rcbd.dat)
-
-      \<gtr\>\ 
-
-      \<gtr\> Rprof(NULL)
-
-      \<gtr\> current.prof \<less\>- summaryRprof("META.lmer.prof")
-
-      \<gtr\> current.prof
-
-      $by.self
-
-      \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
-
-      ".Call" \ \ \ \ \ \ \ \ \ 0.30 \ \ \ 78.95 \ \ \ \ \ \ 0.30
-      \ \ \ \ 78.95
-
-      "FUN" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 5.26 \ \ \ \ \ \ 0.04
-      \ \ \ \ 10.53
-
-      "KhatriRao" \ \ \ \ \ 0.02 \ \ \ \ 5.26 \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-
-      "rbind" \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 5.26 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 5.26
-
-      "structure" \ \ \ \ \ 0.02 \ \ \ \ 5.26 \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-
-      \;
-
-      $by.total
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct
-      self.time self.pct
-
-      "lmer" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.38 \ \ \ 100.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 78.95
-      \ \ \ \ \ 0.30 \ \ \ 78.95
-
-      "\<Anonymous\>" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 78.95
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "do.call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 78.95
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "optimizeLmer" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 78.95
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "optwrap" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 78.95
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "fn" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.28 \ \ \ \ 73.68
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "withCallingHandlers" \ \ \ \ \ \ 0.26 \ \ \ \ 68.42 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "eval" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 15.79
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "lme4::lFormula" \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 15.79
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "FUN" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 10.53
-      \ \ \ \ \ 0.02 \ \ \ \ 5.26
-
-      "lapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 10.53
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "mkReTrms" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 10.53
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "KhatriRao" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-      \ \ \ \ \ 0.02 \ \ \ \ 5.26
-
-      "rbind" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-      \ \ \ \ \ 0.02 \ \ \ \ 5.26
-
-      "structure" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-      \ \ \ \ \ 0.02 \ \ \ \ 5.26
-
-      "ave" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "base::rbind" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "checkScaleX" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "deriv12" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "fun" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "is.data.frame" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "sapply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "var" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ \ 5.26
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      \;
-
-      $sample.interval
-
-      [1] 0.02
-
-      \;
-
-      $sampling.time
-
-      [1] 0.38
-
-      \;
-
-      \<gtr\> detach("package:lme4")
     </unfolded-prog-io|>
 
     <\input>
@@ -9378,55 +8788,61 @@
 <\references>
   <\collection>
     <associate|auto-1|<tuple|1|?>>
-    <associate|auto-10|<tuple|2|?>>
+    <associate|auto-10|<tuple|2.3|?>>
     <associate|auto-11|<tuple|3|?>>
-    <associate|auto-12|<tuple|5|?>>
-    <associate|auto-13|<tuple|6|?>>
-    <associate|auto-14|<tuple|7|?>>
-    <associate|auto-15|<tuple|8|?>>
-    <associate|auto-16|<tuple|9|?>>
-    <associate|auto-17|<tuple|10|?>>
-    <associate|auto-18|<tuple|10.1|?>>
-    <associate|auto-19|<tuple|10.2|?>>
+    <associate|auto-12|<tuple|4|?>>
+    <associate|auto-15|<tuple|4.0.0.3|?>>
+    <associate|auto-16|<tuple|5|?>>
+    <associate|auto-17|<tuple|6|?>>
+    <associate|auto-18|<tuple|7|?>>
+    <associate|auto-19|<tuple|8|?>>
     <associate|auto-2|<tuple|1.1|?>>
-    <associate|auto-20|<tuple|10.3|?>>
-    <associate|auto-21|<tuple|11|?>>
-    <associate|auto-22|<tuple|11.1|?>>
-    <associate|auto-23|<tuple|11.2|?>>
-    <associate|auto-24|<tuple|4|?>>
-    <associate|auto-25|<tuple|12|?>>
-    <associate|auto-26|<tuple|13|?>>
-    <associate|auto-27|<tuple|14|?>>
-    <associate|auto-28|<tuple|15|?>>
-    <associate|auto-29|<tuple|16|?>>
-    <associate|auto-3|<tuple|2|?>>
-    <associate|auto-30|<tuple|17|?>>
-    <associate|auto-31|<tuple|18|?>>
-    <associate|auto-32|<tuple|19|?>>
-    <associate|auto-33|<tuple|20|?>>
-    <associate|auto-34|<tuple|21|?>>
-    <associate|auto-35|<tuple|1|?>>
-    <associate|auto-36|<tuple|2|?>>
-    <associate|auto-37|<tuple|3|?>>
-    <associate|auto-38|<tuple|4|?>>
-    <associate|auto-39|<tuple|5|?>>
-    <associate|auto-4|<tuple|2.1|?>>
-    <associate|auto-5|<tuple|2.2|?>>
-    <associate|auto-6|<tuple|2.3|?>>
-    <associate|auto-7|<tuple|3|?>>
-    <associate|auto-8|<tuple|4|?>>
-    <associate|auto-9|<tuple|1|?>>
-    <associate|footnote-1|<tuple|1|?>>
-    <associate|footnr-1|<tuple|1|?>>
+    <associate|auto-20|<tuple|9|?>>
+    <associate|auto-21|<tuple|9.1|?>>
+    <associate|auto-22|<tuple|9.2|?>>
+    <associate|auto-23|<tuple|9.3|?>>
+    <associate|auto-24|<tuple|10|?>>
+    <associate|auto-25|<tuple|2|?>>
+    <associate|auto-26|<tuple|10.1|?>>
+    <associate|auto-27|<tuple|10.2|?>>
+    <associate|auto-28|<tuple|10.3|?>>
+    <associate|auto-29|<tuple|10.3.0.4|?>>
+    <associate|auto-3|<tuple|1.2|?>>
+    <associate|auto-30|<tuple|11|?>>
+    <associate|auto-31|<tuple|11.1|?>>
+    <associate|auto-32|<tuple|12|?>>
+    <associate|auto-33|<tuple|13|?>>
+    <associate|auto-34|<tuple|14|?>>
+    <associate|auto-35|<tuple|15|?>>
+    <associate|auto-36|<tuple|16|?>>
+    <associate|auto-37|<tuple|17|?>>
+    <associate|auto-38|<tuple|18|?>>
+    <associate|auto-39|<tuple|19|?>>
+    <associate|auto-4|<tuple|1.2.1|?>>
+    <associate|auto-40|<tuple|20|?>>
+    <associate|auto-41|<tuple|3|?>>
+    <associate|auto-42|<tuple|4|?>>
+    <associate|auto-43|<tuple|5|?>>
+    <associate|auto-44|<tuple|6|?>>
+    <associate|auto-45|<tuple|7|?>>
+    <associate|auto-5|<tuple|1.3|?>>
+    <associate|auto-6|<tuple|2|?>>
+    <associate|auto-7|<tuple|1|?>>
+    <associate|auto-8|<tuple|2.1|?>>
+    <associate|auto-9|<tuple|2.2|?>>
   </collection>
 </references>
 
 <\auxiliary>
   <\collection>
     <\associate|table>
-      <tuple|normal||<pageref|auto-35>>
+      <tuple|normal||<pageref|auto-7>>
 
-      <tuple|normal||<pageref|auto-36>>
+      <tuple|normal||<pageref|auto-25>>
+
+      <tuple|normal||<pageref|auto-41>>
+
+      <tuple|normal||<pageref|auto-42>>
 
       <\tuple|normal>
         \;
@@ -9443,7 +8859,7 @@
             </with>
           </surround>
         </with>
-      </tuple|<pageref|auto-37>>
+      </tuple|<pageref|auto-43>>
 
       <\tuple|normal>
         Variance components, Steel and Tori.
@@ -9452,143 +8868,159 @@
         and no difference between ML and REML.
 
         2. admb doesn't report a variance for residual, this is MS from anova
-      </tuple|<pageref|auto-38>>
+      </tuple|<pageref|auto-44>>
 
       <\tuple|normal>
         \;
-      </tuple|<pageref|auto-39>>
+      </tuple|<pageref|auto-45>>
     </associate>
     <\associate|toc>
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|1<space|2spc>Introduction>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-1><vspace|0.5fn>
 
-      <with|par-left|<quote|1tab>|1.1<space|2spc>Workflow
+      <with|par-left|<quote|1tab>|1.1<space|2spc>Theory
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-2>>
 
+      <with|par-left|<quote|1tab>|1.2<space|2spc>Single Trial
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-3>>
+
+      <with|par-left|<quote|2tab>|1.2.1<space|2spc>Combined Trials
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-4>>
+
+      <with|par-left|<quote|1tab>|1.3<space|2spc>Workflow
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-5>>
+
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|2<space|2spc>Data
       Entry> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-3><vspace|0.5fn>
+      <no-break><pageref|auto-6><vspace|0.5fn>
 
-      <with|par-left|<quote|1tab>|2.1<space|2spc>Simple RCB with missing
-      values (Geisbrecht) <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-4>>
+      <with|par-left|<quote|1tab>|2.1<space|2spc>Simulated Data for an RCBD
+      with Two Missing Observations <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-8>>
 
       <with|par-left|<quote|1tab>|2.2<space|2spc>Series of Similar
       Experiments <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-5>>
+      <no-break><pageref|auto-9>>
 
       <with|par-left|<quote|1tab>|2.3<space|2spc>Sample RCBD Data
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-6>>
+      <no-break><pageref|auto-10>>
 
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|3<space|2spc>Model
       Fitting> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-7><vspace|0.5fn>
+      <no-break><pageref|auto-11><vspace|0.5fn>
 
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|4<space|2spc><assign|paragraph-numbered|false><assign|paragraph-prefix|<macro|<compound|the-paragraph>.>><assign|paragraph-nr|1><hidden|<tuple>><assign|subparagraph-nr|0><flag|table
-      of contents|dark green|what><assign|auto-nr|9><write|toc|<with|par-left|<quote|4tab>|Diagnostics
+      of contents|dark green|what><assign|auto-nr|13><write|toc|<with|par-left|<quote|4tab>|Diagnostics
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-9><vspace|0.15fn>>><toc-notify|toc-4|Diagnostics><no-indent><with|font-series|<quote|bold>|math-font-series|<quote|bold>|<vspace*|0.5fn>Diagnostics<space|2spc>>>
+      <no-break><pageref|auto-13><vspace|0.15fn>>><toc-notify|toc-4|Diagnostics><no-indent><with|font-series|<quote|bold>|math-font-series|<quote|bold>|<vspace*|0.5fn>Diagnostics<space|2spc>>>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-9><vspace|0.5fn>
+      <no-break><pageref|auto-13><vspace|0.5fn>
 
       <with|par-left|<quote|4tab>|Diagnostics
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-11><vspace|0.15fn>>
+      <no-break><pageref|auto-15><vspace|0.15fn>>
 
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|5<space|2spc>Model
       Building> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-12><vspace|0.5fn>
+      <no-break><pageref|auto-16><vspace|0.5fn>
 
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|6<space|2spc>Summary
       Statistics> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-13><vspace|0.5fn>
+      <no-break><pageref|auto-17><vspace|0.5fn>
 
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|7<space|2spc>Hypothesis
       Testing> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-14><vspace|0.5fn>
+      <no-break><pageref|auto-18><vspace|0.5fn>
 
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|8<space|2spc>Presentation>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-15><vspace|0.5fn>
+      <no-break><pageref|auto-19><vspace|0.5fn>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|9<space|2spc>Automation>
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|9<space|2spc>Architecture>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-16><vspace|0.5fn>
+      <no-break><pageref|auto-20><vspace|0.5fn>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|10<space|2spc>Architecture>
+      <with|par-left|<quote|1tab>|9.1<space|2spc>Classes
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-17><vspace|0.5fn>
+      <no-break><pageref|auto-21>>
 
-      <with|par-left|<quote|1tab>|10.1<space|2spc>Classes
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-18>>
-
-      <with|par-left|<quote|1tab>|10.2<space|2spc>Generic Functions
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-19>>
-
-      <with|par-left|<quote|1tab>|10.3<space|2spc>Dynamic Dispatch
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-20>>
-
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|11<space|2spc>Advantages
-      of Mixed Model Analysis.> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-21><vspace|0.5fn>
-
-      <with|par-left|<quote|1tab>|11.1<space|2spc>Advantage of linear models
+      <with|par-left|<quote|1tab>|9.2<space|2spc>Generic Functions
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-22>>
 
-      <with|par-left|<quote|1tab>|11.2<space|2spc>Mixed Model Specific
-      Generic Methods <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <with|par-left|<quote|1tab>|9.3<space|2spc>Automation
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-23>>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|10<space|2spc>Advantages
+      of Mixed Model Analysis.> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-24><vspace|0.5fn>
+
+      <with|par-left|<quote|1tab>|10.1<space|2spc>Advantage of linear models
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-26>>
+
+      <with|par-left|<quote|1tab>|10.2<space|2spc>Problems with the linear
+      model <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-27>>
+
+      <with|par-left|<quote|1tab>|10.3<space|2spc>Mixed Model Specific
+      Generic Methods <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-28>>
 
       <with|par-left|<quote|4tab>|Variance Components
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-24><vspace|0.15fn>>
+      <no-break><pageref|auto-29><vspace|0.15fn>>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|12<space|2spc>lme>
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-25><vspace|0.5fn>
-
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|13<space|2spc>lmer>
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-26><vspace|0.5fn>
-
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|14<space|2spc>blmer>
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-27><vspace|0.5fn>
-
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|15<space|2spc>MCMCglmm>
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-28><vspace|0.5fn>
-
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|16<space|2spc>minque>
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-29><vspace|0.5fn>
-
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|17<space|2spc>glmmADMB>
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|11<space|2spc>lme>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-30><vspace|0.5fn>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|18<space|2spc>glmmLasso>
+      <with|par-left|<quote|1tab>|11.1<space|2spc>Example 2
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-31><vspace|0.5fn>
+      <no-break><pageref|auto-31>>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|19<space|2spc>glmmPQL>
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|12<space|2spc>glmmPQL>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-32><vspace|0.5fn>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|20<space|2spc>INLA>
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|13<space|2spc>lmer>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-33><vspace|0.5fn>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|21<space|2spc>brms>
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|14<space|2spc>blmer>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-34><vspace|0.5fn>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|15<space|2spc>glmmADMB>
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-35><vspace|0.5fn>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|16<space|2spc>glmmLasso>
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-36><vspace|0.5fn>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|17<space|2spc>minque>
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-37><vspace|0.5fn>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|18<space|2spc>MCMCglmm>
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-38><vspace|0.5fn>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|19<space|2spc>INLA>
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-39><vspace|0.5fn>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|20<space|2spc>brms>
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-40><vspace|0.5fn>
     </associate>
   </collection>
 </auxiliary>
