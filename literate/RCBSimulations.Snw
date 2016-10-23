@@ -1275,11 +1275,40 @@ tapply(power.singleRCB$PostHocEffectSize,list(power.singleRCB$Step),mean)
 @
 
 
-<<25PowerAnalysisProgress,fig=TRUE,echo=false,width=7,height=4>>=
+<<25PowerAnalysisProgressECDF,fig=TRUE,echo=false,width=7,height=4>>=
 power.singleRCB$Step <- as.factor(power.singleRCB$Step)
-ggplot(power.singleRCB, aes(MeanSigTrtP,color=Step,linetype=Step)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
-                   annotate("text", x = 0.12, y = 22, label = "p=0.05",colour=cbPalette[13])
+ggplot(power.singleRCB, aes(MeanSigTrtP,color=Step,linetype=Step)) + #stat_density(geom="line",position="identity",size=1) +
+ stat_ecdf(size=1) +  scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+                   annotate("text", x = 0.12, y = 0.05, label = "p=0.05",colour=cbPalette[13]) + geom_abline() + xlim(c(0,1)) 
 @
+
+<<>>=
+if(!file.exists("power.singleSpat.Rda")) {
+  simulationsSingleSpat.dat <- simulate.plan(spat.plan,
+                              trimmed.dat,
+                              plot.dim=arm.plot.dim,
+                              buffer.dim=arm.buffer.dim,
+                              sample.vgm=trimmed.vgm)
+  #save(simulationsSingleSpat.dat,file="simulationsSingleSpat.dat.Rda")
+   simulationsSingleSpat.dat$plots$plan = "rcb"
+   simulationsSingleSpat.dat$aov$plan = "rcb"
+   simulationsSingleSpat.dat$plots$Source = simulationsSingleSpat.dat$plots$Model
+   simulationsSingleSpat.dat$aov$Source = simulationsSingleSpat.dat$aov$Model
+   #simulationsSingleRCB.dat <- list(aov=simulationsSingleRCB.dat$aov,plots=simulationsSingleRCB.dat$plots)
+   power.singleSpat <- power.analysis(simulationsSingleSpat.dat,step.size=1/100,save.steps=TRUE)
+    save(power.singleSpat,file="power.singleSpat.Rda") 
+} else {
+   load(file="power.singleSpat.Rda")
+}
+@
+
+<<26PowerAnalysisProgressSpatialECDF,fig=TRUE,echo=false,width=7,height=4>>=
+power.singleSpat$Step <- as.factor(power.singleSpat$Step)
+ggplot(power.singleSpat, aes(MeanSigTrtP,color=Step,linetype=Step)) + #stat_density(geom="line",position="identity",size=1) +
+ stat_ecdf(size=1) +  scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+                   annotate("text", x = 0.12, y = 0.05, label = "p=0.05",colour=cbPalette[13]) + geom_abline() + xlim(c(0,1)) 
+@
+
 
 <<>>=
 if(!file.exists("power.errorsRCB.Rda")) {
@@ -1363,7 +1392,7 @@ tapply(power.measures$PostHocMeasuredPower,list(power.measures$Source,power.meas
 tapply(power.simulationsPooled$SigTrt,list(power.simulationsPooled$Source,power.simulationsPooled$Class),mean)
 @
 
-<<29PooledPowerDistributions,fig=TRUE,echo=false,width=7,height=4>>=
+<<fig=TRUE,echo=false,width=7,height=4>>=
 grid.arrange(arrangeGrob(
 ggplot(power.simulationsPooled, aes(PostHocMeasuredEffect,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=.5)+ facet_wrap(~Source) + scale_colour_manual(values=cbPalette),
 ggplot(power.simulationsPooled, aes(PostHocEffectSize,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=.5)+ facet_wrap(~Source) + scale_colour_manual(values=cbPalette),
@@ -1371,7 +1400,7 @@ ggplot(power.simulationsPooled, aes(MeanSigTrtP,color=Class,linetype=Class)) + s
  ))
 @
 
-<<29PooledPowerDistributionsb,fig=TRUE,echo=false,width=7,height=4>>=
+<<fig=TRUE,echo=false,width=7,height=4>>=
 grid.arrange(arrangeGrob(
 ggplot(power.simulationsPooled, aes(PostHocMeasuredEffect,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=.5)+ facet_wrap(~Source,scales = "free") + scale_colour_manual(values=cbPalette),
 ggplot(power.simulationsPooled, aes(PostHocEffectSize,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=.5)+ facet_wrap(~Source,scales = "free") + scale_colour_manual(values=cbPalette),
@@ -1379,18 +1408,20 @@ ggplot(power.simulationsPooled, aes(MeanSigTrtP,color=Class,linetype=Class)) + s
  ))
 @
 
-<<29PooledEffectDistributions,fig=TRUE,echo=false,width=7,height=4>>=
+<<fig=TRUE,echo=false,width=7,height=4>>=
 ggplot(power.simulationsPooled, aes(PostHocMeasuredEffect,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=.5)+ facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
 @
 
 <<29PooledEffectDistributionsb,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(power.simulationsPooled, aes(PostHocMeasuredEffect,color=Class,linetype=Class)) + stat_density(geom="line",position="identity",size=1)+ facet_wrap(~Source,scales = "free") + scale_colour_manual(values=cbPalette)
+ggplot(subset(power.simulationsPooled,power.simulationsPooled$Source=="Kriged"), aes(PostHocMeasuredEffect,color=Class,linetype=Class)) + 
+  stat_density(geom="line",position="identity",size=1) + #facet_wrap(~Source,scales = "free") + 
+  scale_colour_manual(values=cbPalette)
 @
 <<>>=
 power.simulationsPooled$PlanNum <- as.factor(power.simulationsPooled$PlanNumber)
 @
 
-<<30PooledPowerMeasures,fig=TRUE,echo=false,echo=false,width=7,height=4>>=
+<<fig=TRUE,echo=false,echo=false,width=7,height=4>>=
 grid.arrange(arrangeGrob(
 ggplot(power.simulationsPooled, aes(Class, PostHocMeasuredEffect)) + geom_point(aes(colour = PlanNum),size=1) + scale_colour_manual(values=cbPalette)+  facet_wrap(~Source),
 ggplot(power.simulationsPooled, aes(Class, PostHocEffectSize)) + geom_point(aes(colour = PlanNum),size=1) + scale_colour_manual(values=cbPalette)+  facet_wrap(~Source),
@@ -1398,7 +1429,7 @@ ggplot(power.simulationsPooled, aes(Class, MeanSigTrtP)) + geom_point(aes(colour
 ))
 @
 
-<<30PooledMeasuredEffect,fig=TRUE,echo=false,echo=false,width=7,height=4>>=
+<<fig=TRUE,echo=false,echo=false,width=7,height=4>>=
 ggplot(power.simulationsPooled, aes(Class, PostHocMeasuredEffect)) + geom_point(aes(colour = PlanNum),size=1) + scale_colour_manual(values=cbPalette)+  facet_wrap(~Source)
 @
 
@@ -1451,21 +1482,38 @@ if(!file.exists("simulations100.dat.Rda")) {
 <<>>=
 kriged <- subset(simulations100.dat$aov,simulations100.dat$aov$Source=="Kriged")
 errors <- subset(simulations100.dat$aov,simulations100.dat$aov$Source=="Errors")
+ran1 <- sample(1:1000,1)
 ran10 <- sample(1:1000,10)
+ran50 <- sample(1:1000,50)
+one.rcb <- rbind(kriged[ran1,],errors[ran1,])
 ten.rcb <- rbind(kriged[ran10,],errors[ran10,])
+fifty.rcb <- rbind(kriged[ran50,],errors[ran50,])
 ran100 <- sample(1:1000,100)
+ran500 <- sample(1:1000,500)
 hundred.rcb <- rbind(kriged[ran100,],errors[ran100,])
+fivehun.rcb <- rbind(kriged[ran500,],errors[ran500,])
 thousand.rcb <- simulations100.dat$aov
+one.rcb$NumberOfTrials <- 1
 ten.rcb$NumberOfTrials <- 10
+fifty.rcb$NumberOfTrials <- 50
 hundred.rcb$NumberOfTrials <- 100
+fivehun.rcb$NumberOfTrials <- 500
 thousand.rcb$NumberOfTrials <- 1000
-large.sample.dat <- rbind(ten.rcb,hundred.rcb,thousand.rcb)
+large.sample.dat <- rbind(one.rcb,ten.rcb,
+  #fifty.rcb,
+  hundred.rcb,
+  #fivehun.rcb,
+  thousand.rcb)
 large.sample.dat$NumberOfTrials <- as.factor(large.sample.dat$NumberOfTrials)
 @
 
-<<31ThousandProbDist,fig=TRUE,echo=false,width=7,height=4>>=
+<<31ThousandProbECDF,fig=TRUE,echo=false,width=7,height=4>>=
 #ggplot(simulations100.dat$aov, aes(TrtP,color=Source)) + stat_density(geom="line",position="identity",size=1)  + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
-ggplot(large.sample.dat, aes(TrtP,color=NumberOfTrials)) + stat_density(geom="line",position="identity",size=1)  + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
+ggplot(subset(large.sample.dat,large.sample.dat$Source=="Kriged"), aes(TrtP,color=NumberOfTrials)) + #stat_density(geom="line",position="identity",size=1)  + facet_wrap(~Source) 
+scale_colour_manual(values=cbPalette) +
+stat_ecdf(size=1) +
+geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+                   annotate("text", x = 0.12, y = 0.9, label = "p=0.05",colour=cbPalette[13]) 
 @
 
 <<31ThousandProbCount,fig=TRUE,echo=false,width=7,height=4>>=
