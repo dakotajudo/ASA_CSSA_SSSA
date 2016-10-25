@@ -130,7 +130,6 @@ make.plot.table <- function(model,form=NULL,effect=NULL) {
    if(is.null(form)) {
       form <- formula(paste("cld ~ ",effect))
    }
-
    model.tbl <- lsmeans(model,form)
    mcp.list <- list(effect="Tukey")
    names(mcp.list) <- effect
@@ -141,29 +140,21 @@ make.plot.table <- function(model,form=NULL,effect=NULL) {
                                              covariate_average = TRUE),
                         decreasing=TRUE)$mcletters$Letters
    model.tbl$letters <- letters[model.tbl[,effect]]
-   model.tbl$ErrorType <- "SE"
-   #set standard names for plotting from lsmeans table
-   names(model.tbl) <- c("Treatment","Mean","Error","df","Lower","Upper","Group","Letters","ErrorType")
+   names(model.tbl) <- c("Treatment","Mean","Error","df","Lower","Upper","Group","Letters")
    return(model.tbl)
 }
 plot.lsmeans.tbl <- function(model.tbl,formula=NULL,title="lm") {
-   
    dodge <- position_dodge(width = 0.9)
-   #give oureslves room for letters
-   #upper.se <- max(model.tbl$Error)
-   #upper.lim <- max(model.tbl$Upper) + .5*upper.se
    upper.lim <- max(model.tbl$Upper)
    upper.lim <-  upper.lim + 0.1*upper.lim 
    limits <- aes(ymax = model.tbl$Upper, ymin = model.tbl$Lower)
-   
    return(ggplot(data = model.tbl, aes(x = Treatment, y = Mean, fill = Treatment)) + 
      geom_bar(stat = "identity", position = dodge) +
      coord_cartesian(ylim = c(min(model.tbl$Lower),upper.lim)) +
      geom_errorbar(limits, position = dodge, width = 0.25) +
-     theme(legend.position = "none") + ggtitle(title) + scale_fill_manual(values=cbPalette) +
+     theme(legend.position = "none") + ggtitle(title) + 
+     scale_fill_manual(values=cbPalette) +
      geom_text(aes(x=model.tbl$Treatment,y=upper.lim,label=Letters))
-   #  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(),
-   #        axis.title.x=element_blank())
    )
 }
 plot.lsmeans <- function(model,form=NULL,effect=NULL,title="lm") {
@@ -188,19 +179,8 @@ Ex16.8.1.lm.plot
 @
 
 
-\subsection{Mixed Model Specific Generic Methods}
-\subsubsection{Variance Components}
-
-<<>>=
-#VarCorr(Table5.7.lm)
-#fixef(Table5.7.lm)
-#ranef(Table5.7.lm)
-#intervals(Table5.7.lm)
-@
-
-
 \subsection{lme}
-\subsubsection{Model Fitting}
+
 <<>>=
 library(nlme)
 Table5.7.lme <- lme(obs ~ 0+trt, random = ~ 1 | rep, data=Table5.7)
@@ -210,18 +190,30 @@ Ex16.8.1.lme <- lme(Yield ~ Trial*Variety, random = ~ 1 | Block, data=Ex16.8.1)
 @
 
 \subsubsection{Diagnostics}
-<<Table5_7_Diagnostics_lm,fig=TRUE,echo=false>>=
+<<Table5_7_Diagnostics_lme,fig=TRUE,echo=false>>=
 plot(Table5.7.lme)
 @
 
-<<Table5_7_Diagnostics_normalized_lm,fig=TRUE,echo=false>>=
+<<Table5_7_Diagnostics_normalized_lme,fig=TRUE,echo=false>>=
 plot(Table5.7.lme,idResType = "normalized")
 @
 
-<<Table5_7_Diagnostics_qqnorm_lm,fig=TRUE,echo=false>>=
+<<Table5_7_Diagnostics_qqnorm_lme,fig=TRUE,echo=false>>=
 qqnorm(Table5.7.lme)
 @
 
+<<>>=
+load(file="meta.lme.Rda")
+load(file="cotes.lme.Rda")
+@
+
+<<META_Diagnostics_qqnorm_lme,fig=TRUE,echo=false>>=
+qqnorm(meta.lme)
+@
+
+<<Cotes_Diagnostics_qqnorm_lme,fig=TRUE,echo=false>>=
+qqnorm(cotes.lme)
+@
 
 \subsubsection{Graphing}
 <<Table5_7_lme_plot,fig=TRUE,echo=false,width=7,height=4>>=
@@ -250,7 +242,7 @@ Ex16.8.1.lmer <- lmer(Yield ~ 0 + Variety + (1 | Trial/Rep) + (1 | Trial:Variety
 @
 
 \subsubsection{Diagnostics}
-<<Table5_7_Diagnostics_lm,fig=TRUE,echo=false>>=
+<<Table5_7_Diagnostics_lmer,fig=TRUE,echo=false>>=
 plot(Table5.7.lmer)
 @
 
@@ -269,6 +261,18 @@ Ex16.8.1.lmer.plot <- plot.lsmeans.tbl(Ex16.8.1.lmer.tbl,title="lme",formula=cld
 Ex16.8.1.lmer.plot
 @
 
+<<>>=
+load(file="meta.lmer.Rda")
+load(file="cotes.lmer.Rda")
+@
+
+<<META_Diagnostics_qqnorm_lmer,fig=TRUE,echo=false>>=
+qqnorm(meta.lmer)
+@
+
+<<Cotes_Diagnostics_qqnorm_lmer,fig=TRUE,echo=false>>=
+qqnorm(cotes.lmer)
+@
 
 <<>>=
 #detach("package:lme4")
@@ -286,7 +290,7 @@ Ex16.8.1.blmer <- blmer(Yield ~ Variety + (1 | Trial/Rep) + (1 | Trial:Variety),
 @
 
 \subsubsection{Diagnostics}
-<<Table5_7_Diagnostics_lm,fig=TRUE,echo=false>>=
+<<Table5_7_Diagnostics_blmer,fig=TRUE,echo=false>>=
 plot(Table5.7.blmer)
 @
 
@@ -318,6 +322,20 @@ grid.arrange(arrangeGrob(
 @
 
 <<>>=
+load(file="meta.blmer.Rda")
+load(file="cotes.blmer.Rda")
+@
+
+<<META_Diagnostics_qqnorm_blmer,fig=TRUE,echo=false>>=
+qqnorm(meta.blmer)
+@
+
+<<Cotes_Diagnostics_qqnorm_blmer,fig=TRUE,echo=false>>=
+qqnorm(cotes.blmer)
+@
+
+
+<<>>=
 #detach("package:blme")  
 @
 
@@ -344,7 +362,7 @@ Ex16.8.1.glmmPQL <- glmmPQL(Yield ~ Variety*Trial, random = ~ 1 | Block , family
 
 \subsubsection{Model Fitting}
 \subsubsection{Diagnostics}
-<<Table5_7_Diagnostics_lm,fig=TRUE,echo=false>>=
+<<Table5_7_Diagnostics_glmmPQL,fig=TRUE,echo=false>>=
 plot(Table5.7.glmmPQL)
 @
 
@@ -357,11 +375,20 @@ Table5.7.glmmPQL.plot
 @ 
 
 We can't plot glmmPQL fit
-%<<Ex16_8_1_blmer_normal_plot,fig=TRUE,echo=false,width=7,height=4>>=
-%Ex16.8.1.glmmPQL.tbl <- make.plot.table(Ex16.8.1.glmmPQL,effect="Variety",form=cld ~ Variety)
-%Ex16.8.1.glmmPQL.plot <- plot.lsmeans.tbl(Ex16.8.1.glmmPQL.tbl,title="glmmPQL",formula=cld ~ Variety)
-%Ex16.8.1.glmmPQL.plot
-%@
+<<Ex16_8_1_glmmPQL_plot,fig=TRUE,echo=false,width=7,height=4>>=
+Ex16.8.1.glmmPQL.tbl <- make.plot.table(Ex16.8.1.glmmPQL,effect="Variety",form=cld ~ Variety)
+Ex16.8.1.glmmPQL.plot <- plot.lsmeans.tbl(Ex16.8.1.glmmPQL.tbl,title="glmmPQL",formula=cld ~ Variety)
+Ex16.8.1.glmmPQL.plot
+@
+
+<<>>=
+load(file="meta.glmmPQL.Rda")
+@
+
+<<META_Diagnostics_qqnorm_glmmPQL,fig=TRUE,echo=false>>=
+qqnorm(meta.glmmPQL)
+@
+
 
 \subsection{glmmADMB}
 
@@ -455,24 +482,8 @@ Table5.7.glmmLasso <- glmmLasso(fix = obs ~ trt, rnd = list(rep = ~1), lambda = 
 #plot(Table5.7.glmmLasso)
 #Error in plot.glmmLasso(Table5.7.glmmLasso) : No smooth terms to plot!
 @
-\subsubsection{Model Summary}
-<<>>=
-summary(Table5.7.glmmLasso)
-#anova(Table5.7.glmmLasso)
-@
 
-\subsubsection{Model Comparison}
-<<>>=
-#Table5.7.red.glmmLasso <- glmmLasso(fix = obs ~ 1, rnd = list(rep = ~1), lambda = 200, data = Table5.7)
-#Table5.7.red.glmmLasso <- update(Table5.7.glmmLasso, . ~ . -trt)
-@
 
-\subsubsection{Multiple Comparisons}
-\subsubsection{Variance Components}
-\subsubsection{Graphing}
-
-<<>>=
-@
 
 <<>>=
 #Table5.7.glmmLasso.plot <- plot.lsmeans.tbl(Table5.7.glmmLasso.tbl)
@@ -552,7 +563,7 @@ Table5.7.minque.tbl$Upper = Table5.7.minque.tbl$Mean +  Table5.7.minque.tbl$Erro
 Table5.7.minque.tbl$Group <- 0
 #and since we can't use glht, we have not letters
 Table5.7.minque.tbl$Letters <- ""
-Table5.7.minque.tbl$ErrorType <- "CI"
+#Table5.7.minque.tbl$ErrorType <- "CI"
 Table5.7.minque.tbl$Treatment <- as.factor(Table5.7.minque.tbl$Treatment)
 @
 
@@ -577,7 +588,7 @@ Ex16.8.1.minque.tbl$Lower = Ex16.8.1.minque.tbl$Mean -   Ex16.8.1.minque.tbl$Err
 Ex16.8.1.minque.tbl$Upper = Ex16.8.1.minque.tbl$Mean +  Ex16.8.1.minque.tbl$Error*qt(1-Ex16.8.1.minque$ALPHA/2,Ex16.8.1.minque.tbl$df)
 Ex16.8.1.minque.tbl$Group <- 0
 Ex16.8.1.minque.tbl$Letters <- ""
-Ex16.8.1.minque.tbl$ErrorType <- "CI"
+#Ex16.8.1.minque.tbl$ErrorType <- "CI"
 Ex16.8.1.minque.tbl$Treatment <- levels(Ex16.8.1$Variety)[Ex16.8.1.minque.tbl$Treatment]
 @
 
@@ -645,7 +656,7 @@ Table5.7.MCMCglmm.tbl$Upper = MCMCglmmfixed[,3]
 Table5.7.MCMCglmm.tbl$Group <- 0
 #and since we can't use glht, we have not letters
 Table5.7.MCMCglmm.tbl$Letters <- ""
-Table5.7.MCMCglmm.tbl$ErrorType <- "est"
+#Table5.7.MCMCglmm.tbl$ErrorType <- "est"
 Table5.7.MCMCglmm.tbl$Treatment <- as.factor(Table5.7.MCMCglmm.tbl$Treatment)
 @
 
@@ -666,7 +677,7 @@ Ex16.8.1.MCMCglmm.tbl$Lower = Ex16.8.1.MCMCglmmfixed[,2]
 Ex16.8.1.MCMCglmm.tbl$Upper = Ex16.8.1.MCMCglmmfixed[,3]
 Ex16.8.1.MCMCglmm.tbl$Group <- 0
 Ex16.8.1.MCMCglmm.tbl$Letters <- ""
-Ex16.8.1.MCMCglmm.tbl$ErrorType <- "est"
+#Ex16.8.1.MCMCglmm.tbl$ErrorType <- "est"
 Ex16.8.1.MCMCglmm.tbl$Treatment <- levels(Ex16.8.1$Variety)[Ex16.8.1.MCMCglmm.tbl$Treatment]
 @
 
@@ -811,7 +822,7 @@ Table5.7.inla.tbl$Upper = inla.fixed[,5]
 Table5.7.inla.tbl$Group <- 0
 #and since we can't use glht, we have not letters
 Table5.7.inla.tbl$Letters <- ""
-Table5.7.inla.tbl$ErrorType <- "sd"
+#Table5.7.inla.tbl$ErrorType <- "sd"
 Table5.7.inla.tbl$Treatment <- as.factor(Table5.7.inla.tbl$Treatment)
 @
 
@@ -839,7 +850,7 @@ Ex16.8.1.inla.tbl$Upper = inla.fixed[,5]
 
 Ex16.8.1.inla.tbl$Group <- 0
 Ex16.8.1.inla.tbl$Letters <- ""
-Ex16.8.1.inla.tbl$ErrorType <- "sd"
+#Ex16.8.1.inla.tbl$ErrorType <- "sd"
 Ex16.8.1.inla.tbl$Treatment <- levels(Ex16.8.1$Variety)[Ex16.8.1.inla.tbl$Treatment]
 @
 
@@ -878,25 +889,25 @@ Note that loading brms masked VarCorr
 <<>>=
 library(brms)
 #library(rstan)
-#Table5.7.brms <- brm(obs ~ 0+trt + (1 | rep), data=Table5.7)
+Table5.7.brms <- brm(obs ~ 0+trt + (1 | rep), data=Table5.7)
 #class(Table5.7.brms)
 
-#Ex16.8.1.brms <- brm(Yield ~ 0 + Variety + (1 | Trial/Rep) + (1 | Trial:Variety), data=Ex16.8.1)
+Ex16.8.1.brms <- brm(Yield ~ 0 + Variety + (1 | Trial/Rep) + (1 | Trial:Variety), data=Ex16.8.1)
 @
 
 \subsubsection{Diagnostics}
 brms can't be used with literate programming - hangs on plot
 but can use parameters to make fit one plot
 <<Table5_7_Diagnostics_brms,fig=TRUE,echo=false,width=5,height=6>>=
-#par(mfrow = c(1,2)) 
+par(mfrow = c(1,2)) 
 #plot(Table5.7.brms)
-#plot(Table5.7.brms,pars=c("b_trt1","b_trt2","b_trt3","sd_rep_Intercept","sigma"))
-#par(mfrow = c(1,1))
+plot(Table5.7.brms,pars=c("b_trt1","b_trt2","b_trt3","sd_rep_Intercept","sigma"))
+par(mfrow = c(1,1))
 @
 
 
 \subsubsection{Graphing}
-
+<<>>=
 brms.fixed <- summary(Table5.7.brms)$fixed
 
 Table5.7.brms.tbl <- data.frame(
@@ -918,17 +929,17 @@ Table5.7.brms.tbl$Upper = brms.fixed[,4]
 Table5.7.brms.tbl$Group <- 0
 #and since we can't use glht, we have not letters
 Table5.7.brms.tbl$Letters <- ""
-Table5.7.brms.tbl$ErrorType <- "est"
+#Table5.7.brms.tbl$ErrorType <- "est"
 Table5.7.brms.tbl$Treatment <- as.factor(Table5.7.brms.tbl$Treatment)
+@
 
-
-%<<Table5_7_brms_plot,fig=TRUE,echo=false,width=7,height=4>>=
+<<Table5_7_brms_plot,fig=TRUE,echo=false,width=7,height=4>>=
 Table5.7.brms.plot <- plot.lsmeans.tbl(Table5.7.brms.tbl)
 Table5.7.brms.plot
+@
 
 
-
-%<<>>=
+<<>>=
 brms.fixed <- summary(Ex16.8.1.brms)$fixed
 
 Ex16.8.1.brms.tbl <- data.frame(
@@ -950,14 +961,13 @@ Ex16.8.1.brms.tbl$Upper = brms.fixed[,4]
 Ex16.8.1.brms.tbl$Group <- 0
 #and since we can't use glht, we have not letters
 Ex16.8.1.brms.tbl$Letters <- ""
-Ex16.8.1.brms.tbl$ErrorType <- "est"
 Ex16.8.1.brms.tbl$Treatment <- levels(Ex16.8.1$Variety)[Ex16.8.1.brms.tbl$Treatment]
-%@
+@
 
-%<<Ex16_8_1_brms_plot,fig=TRUE,echo=false,width=7,height=4>>=
+<<Ex16_8_1_brms_plot,fig=TRUE,echo=false,width=7,height=4>>=
 Ex16.8.1.brms.plot <- plot.lsmeans.tbl(Ex16.8.1.brms.tbl,title="MCMCglmm")
 Ex16.8.1.brms.plot
-%@
+@
 
 \section{Function Comparisons}
 
@@ -965,29 +975,30 @@ Another plot to compare functions.
 Note that admb using different headers
 
 <<>>= 
-Table5.7.lm.tbl$Function <- "lm"
+#Table5.7.lm.tbl$Function <- "lm"
 Table5.7.lme.tbl$Function <- "lme"
+Table5.7.lmer.tbl$Function <- "lmer"
 Table5.7.blmer.tbl$Function <- "blmer"
 Table5.7.glmmPQL.tbl$Function <- "glmmPQL"
 Table5.7.admb.tbl$Function <- "admb"
 Table5.7.minque.tbl$Function <- "minque"
 Table5.7.MCMCglmm.tbl$Function <- "MCMCglmm"
 Table5.7.inla.tbl$Function <- "inla"
-#Table5.7.brms.tbl$Function <- "brms" 
+Table5.7.brms.tbl$Function <- "brms" 
 
 #c(4,5,6,3,2,1)
 
 <<>>=
 Table5.7.comb.tbl <- rbind(
-   Table5.7.lm.tbl,
    Table5.7.lme.tbl,
+   Table5.7.lmer.tbl,
    Table5.7.blmer.tbl,
    Table5.7.glmmPQL.tbl,
    Table5.7.admb.tbl,
    Table5.7.minque.tbl[c(6,5,4,1,2,3),],
    Table5.7.MCMCglmm.tbl,
-   Table5.7.inla.tbl#,
-   #Table5.7.brms.tbl
+   Table5.7.inla.tbl,
+   Table5.7.brms.tbl
 )
 Table5.7.means <- tapply(Table5.7$obs,list(Table5.7$trt),mean)
 Table5.7.comb.tbl$Average <-Table5.7.means[Table5.7.comb.tbl$Treatment]
@@ -1000,7 +1011,7 @@ Table5.7.comp.plot+facet_wrap(~Function)
 @
 
 <<Table5_7_comp_linear_plot,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(Table5.7.comb.tbl, aes(Average,Mean)) + geom_point(aes(color=Function)) + geom_smooth(aes(group=Function,color=Function,linetype=Function),weight=10,se = FALSE,method="lm") + scale_colour_manual(values=cbbPalette)
+ggplot(Table5.7.comb.tbl, aes(Average,Mean)) + geom_point(aes(color=Function)) + geom_smooth(aes(group=Function,color=Function,linetype=Function),weight=10,se = FALSE,method="lm") + scale_colour_manual(values=cbPalette)
 @
 
 <<>>= 
@@ -1012,7 +1023,7 @@ Ex16.8.1.admb.tbl$Function <- "admb"
 Ex16.8.1.minque.tbl$Function <- "minque"
 Ex16.8.1.MCMCglmm.tbl$Function <- "MCMCglmm"
 Ex16.8.1.inla.tbl$Function <- "inla"
-#Ex16.8.1.brms.tbl$Function <- "brms" 
+Ex16.8.1.brms.tbl$Function <- "brms" 
 
 #c(12, 1, 3, 4, 5, 10, 2, 7, 8, 9, 6, 11)
 #c(2,7,3, 4,5,11, 8,9,10, 6,12,1)
@@ -1024,9 +1035,9 @@ Ex16.8.1.comb.tbl <- rbind(Ex16.8.1.lm.tbl,
    Ex16.8.1.glmmPQL.tbl,
    Ex16.8.1.admb.tbl,
    Ex16.8.1.minque.tbl[c(2,7,3, 4,5,11, 8,9,10, 6,12,1),],
-   Ex16.8.1.MCMCglmm.tbl#,
+   Ex16.8.1.MCMCglmm.tbl,
    #Ex16.8.1.inla.tbl,
-   #Ex16.8.1.brms.tbl[c(11,4,12,10,1,9,8,2,7,3,6,5),]
+   Ex16.8.1.brms.tbl[c(11,4,12,10,1,9,8,2,7,3,6,5),]
 )
 
 Ex16.8.1.means <- tapply(Ex16.8.1$Yield,list(Ex16.8.1$Variety),mean)
@@ -1035,7 +1046,7 @@ Ex16.8.1.comb.tbl$Treatment <- as.factor(as.character(Ex16.8.1.comb.tbl$Treatmen
 Ex16.8.1.comb.tbl$Function <- as.factor(Ex16.8.1.comb.tbl$Function)
 @
 
-<<Table5_7_comp_linear_plot,fig=TRUE,echo=false,width=7,height=4>>=
+<<Ex16_8_1__comp_linear_plot,fig=TRUE,echo=false,width=7,height=4>>=
 ggplot(Ex16.8.1.comb.tbl, aes(Average,Mean)) + geom_point(aes(color=Function)) + geom_smooth(aes(group=Function,color=Function,linetype=Function),weight=10,se = FALSE,method="lm") + scale_colour_manual(values=cbbPalette)
 @
 
@@ -1079,6 +1090,48 @@ ggplot(data = Ex16.8.1.comb.tbl, aes(x = Treatment, y = Mean, fill = Function)) 
   geom_errorbar(aes(ymax = Upper,
                 ymin = Lower), position = dodge, width = 0.25) + scale_fill_manual(values=cbPalette)
 @
+
+
+\section{META}
+
+<<>>=
+load(file="meta.lme.Rda")
+load(file="cotes.lme.Rda")
+@
+
+<<meta_Diagnostics_lme,fig=TRUE,echo=false>>=
+par(mfrow = c(2, 2))
+plot(meta.lme)
+plot(cotes.lme)
+qqnorm(meta.lme)
+qqnorm(cotes.lme)
+par(mfrow = c(1, 1))
+@
+
+<<cotes_Diagnostics_normalized_lme,fig=TRUE,echo=false>>=
+plot(cotes.lme)
+@
+
+<<meta_Diagnostics_qqnorm_lme,fig=TRUE,echo=false>>=
+qqnorm(meta.lme)
+@
+
+<<meta_Diagnostics_qqnorm_lme,fig=TRUE,echo=false>>=
+qqnorm(cotes.lme)
+@
+
+<<meta_lme_plot,fig=TRUE,echo=false,width=7,height=4>>=
+meta.lme.tbl <- make.plot.table(meta.lme)
+meta.lme.plot <- plot.lsmeans.tbl(meta.lme.tbl,title="lme")
+meta.lme.plot
+@
+
+<<cotes_lme_plot,fig=TRUE,echo=false,width=7,height=4>>=
+cotes.lme.tbl <- make.plot.table(cotes.lme)
+cotes.lme.plot <- plot.lsmeans.tbl(cotes.lme.tbl,title="lme")
+cotes.lme.plot
+@
+
 
 <<>>=
 setwd(initwd)
