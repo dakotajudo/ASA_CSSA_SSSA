@@ -89,12 +89,11 @@
 
       \ \ Rprof("META.lm.prof")
 
-      \ \ rcbd.dat.lm \<less\>- lm(YLD ~ Loca:Repe + Entry*Loca,
-      data=rcbd.dat)
+      \ \ meta.lm \<less\>- lm(YLD ~ Loca:Repe + Entry*Loca, data=rcbd.dat)
 
       \ \ Rprof(NULL)
 
-      \ \ save(meta.glmmPQL, file="meta.lm.Rda")
+      \ \ save(meta.lm, file="meta.lm.Rda")
 
       } else {
 
@@ -108,18 +107,17 @@
 
       \;
 
-      anova(rcbd.dat.lm)
+      anova(meta.lm)
     <|unfolded-prog-io>
       if(!file.exists("meta.lm.Rda")) {
 
       + \ \ Rprof("META.lm.prof")
 
-      + \ \ rcbd.dat.lm \<less\>- lm(YLD ~ Loca:Repe + Entry*Loca,
-      data=rcbd.dat)
+      + \ \ meta.lm \<less\>- lm(YLD ~ Loca:Repe + Entry*Loca, data=rcbd.dat)
 
       + \ \ Rprof(NULL)
 
-      + \ \ save(meta.glmmPQL, file="meta.lm.Rda")
+      + \ \ save(meta.lm, file="meta.lm.Rda")
 
       + } else {
 
@@ -127,44 +125,28 @@
 
       + }
 
-      Error in save(meta.glmmPQL, file = "meta.lm.Rda") :\ 
-
-      \ \ object 'meta.glmmPQL' not found
-
       \<gtr\> current.prof \<less\>- summaryRprof("META.lm.prof")
 
       \<gtr\> current.prof
 
       $by.self
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
+      \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
 
-      "lm.fit" \ \ \ \ \ \ \ \ \ 0.22 \ \ \ 78.57 \ \ \ \ \ \ 0.22
-      \ \ \ \ 78.57
-
-      ".External2" \ \ \ \ \ 0.06 \ \ \ 21.43 \ \ \ \ \ \ 0.06 \ \ \ \ 21.43
+      "lm.fit" \ \ \ \ \ \ 0.2 \ \ \ \ \ 100 \ \ \ \ \ \ \ 0.2
+      \ \ \ \ \ \ 100
 
       \;
 
       $by.total
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct
-      self.time self.pct
+      \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "lm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.28 \ \ \ 100.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
+      "lm.fit" \ \ \ \ \ \ \ 0.2 \ \ \ \ \ \ 100 \ \ \ \ \ \ 0.2
+      \ \ \ \ \ 100
 
-      "lm.fit" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.22 \ \ \ \ 78.57
-      \ \ \ \ \ 0.22 \ \ \ 78.57
-
-      ".External2" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 21.43
-      \ \ \ \ \ 0.06 \ \ \ 21.43
-
-      "model.matrix" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 21.43
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "model.matrix.default" \ \ \ \ \ \ 0.06 \ \ \ \ 21.43 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
+      "lm" \ \ \ \ \ \ \ \ \ \ \ 0.2 \ \ \ \ \ \ 100 \ \ \ \ \ \ 0.0
+      \ \ \ \ \ \ \ 0
 
       \;
 
@@ -176,13 +158,13 @@
 
       $sampling.time
 
-      [1] 0.28
+      [1] 0.2
 
       \;
 
       \<gtr\>\ 
 
-      \<gtr\> anova(rcbd.dat.lm)
+      \<gtr\> anova(meta.lm)
 
       Analysis of Variance Table
 
@@ -260,24 +242,6 @@
       \ \ \ load(file="cotes.lme.Rda")
 
       \ }
-
-      summary(meta.lme)
-
-      meta.lme.summary \<less\>- summaryRprof("meta.lme.prof")
-
-      head(meta.lme.summary[[1]])
-
-      head(meta.lme.summary[[2]])
-
-      summary(cotes.lme)
-
-      cotes.lme.summary \<less\>- summaryRprof("cotes.lme.prof")
-
-      head(cotes.lme.summary[[1]])
-
-      head(cotes.lme.summary[[2]])
-
-      \;
     <|unfolded-prog-io>
       if(!file.exists("meta.lme.Rda")) {
 
@@ -314,8 +278,20 @@
       + \ \ \ load(file="cotes.lme.Rda")
 
       + \ }
+    </unfolded-prog-io|>
 
-      \<gtr\> summary(meta.lme)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(meta.lme)
+
+      meta.lme.summary \<less\>- summaryRprof("meta.lme.prof")
+
+      head(meta.lme.summary[[1]])
+
+      head(meta.lme.summary[[2]])
+    <|unfolded-prog-io>
+      summary(meta.lme)
 
       Linear mixed-effects model fit by REML
 
@@ -1174,6 +1150,8 @@
 
       LocaCotaxtla \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
+      \;
+
       LocaIguala \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ LS:E26 LSA:E26 LSC:E26
@@ -1276,46 +1254,61 @@
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
 
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 6.28 \ \ \ 92.63 \ \ \ \ \ \ 6.28
-      \ \ \ \ 92.63
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.26 \ \ \ 94.60 \ \ \ \ \ \ 5.26
+      \ \ \ \ 94.60
 
-      "match.fun" \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ 2.06 \ \ \ \ \ \ 0.14
-      \ \ \ \ \ 2.06
+      "solve.default" \ \ \ \ \ 0.06 \ \ \ \ 1.08 \ \ \ \ \ \ 0.34
+      \ \ \ \ \ 6.12
 
-      "solve.default" \ \ \ \ \ 0.06 \ \ \ \ 0.88 \ \ \ \ \ \ 0.40
-      \ \ \ \ \ 5.90
+      "aperm.default" \ \ \ \ \ 0.04 \ \ \ \ 0.72 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 0.72
 
-      "as.double" \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.88 \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 0.88
+      "as.double" \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.72 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 0.72
 
-      "crossprod" \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.59 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 0.59
+      "crossprod" \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.72 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 0.72
 
-      "lme.formula" \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.29 \ \ \ \ \ \ 6.78
-      \ \ \ 100.00
+      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.36 \ \ \ \ \ \ 0.36
+      \ \ \ \ \ 6.47
 
       \<gtr\> head(meta.lme.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "lme.formula" \ \ \ \ \ \ 6.78 \ \ \ 100.00 \ \ \ \ \ 0.02 \ \ \ \ 0.29
+      "lme" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.56 \ \ \ 100.00 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
 
-      "lme" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 6.78 \ \ \ 100.00 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
+      "lme.formula" \ \ \ \ \ \ 5.56 \ \ \ 100.00 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
 
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 6.28 \ \ \ \ 92.63 \ \ \ \ \ 6.28
-      \ \ \ 92.63
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.26 \ \ \ \ 94.60 \ \ \ \ \ 5.26
+      \ \ \ \ 94.6
 
-      "FUN" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.64 \ \ \ \ 83.19 \ \ \ \ \ 0.02
-      \ \ \ \ 0.29
+      "FUN" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.50 \ \ \ \ 80.94 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
 
-      "lapply" \ \ \ \ \ \ \ \ \ \ \ 5.26 \ \ \ \ 77.58 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
+      "lapply" \ \ \ \ \ \ \ \ \ \ \ 4.22 \ \ \ \ 75.90 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
 
-      "Initialize" \ \ \ \ \ \ \ 5.10 \ \ \ \ 75.22 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
+      "Initialize" \ \ \ \ \ \ \ 4.20 \ \ \ \ 75.54 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
+    </unfolded-prog-io|>
 
-      \<gtr\> summary(cotes.lme)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(cotes.lme)
+
+      cotes.lme.summary \<less\>- summaryRprof("cotes.lme.prof")
+
+      head(cotes.lme.summary[[1]])
+
+      head(cotes.lme.summary[[2]])
+
+      \;
+    <|unfolded-prog-io>
+      summary(cotes.lme)
 
       Linear mixed-effects model fit by REML
 
@@ -1986,6 +1979,8 @@
 
       LocaIguala \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
+      \;
+
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ LcS:E4 LSA:E4 LSC:E4
       LcTcl:E4 LcTl:E4 LcTc:En4 LcY:E4
 
@@ -2339,46 +2334,63 @@
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
       total.pct
 
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 105.30 \ \ \ 89.68 \ \ \ \ 105.30
-      \ \ \ \ 89.68
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 100.38 \ \ \ 88.77 \ \ \ \ 100.38
+      \ \ \ \ 88.77
 
-      "recalc.varFunc" \ \ \ \ \ \ 5.32 \ \ \ \ 4.53 \ \ \ \ \ \ 5.40
-      \ \ \ \ \ 4.60
+      "recalc.varFunc" \ \ \ \ \ \ 7.54 \ \ \ \ 6.67 \ \ \ \ \ \ 7.54
+      \ \ \ \ \ 6.67
 
-      "as.double" \ \ \ \ \ \ \ \ \ \ \ 3.14 \ \ \ \ 2.67 \ \ \ \ \ \ 3.14
-      \ \ \ \ \ 2.67
+      "is.finite" \ \ \ \ \ \ \ \ \ \ \ 2.32 \ \ \ \ 2.05 \ \ \ \ \ \ 2.32
+      \ \ \ \ \ 2.05
 
-      "is.finite" \ \ \ \ \ \ \ \ \ \ \ 1.18 \ \ \ \ 1.00 \ \ \ \ \ \ 1.18
-      \ \ \ \ \ 1.00
+      "as.double" \ \ \ \ \ \ \ \ \ \ \ 1.52 \ \ \ \ 1.34 \ \ \ \ \ \ 1.52
+      \ \ \ \ \ 1.34
 
-      "logLik.reStruct" \ \ \ \ \ 0.88 \ \ \ \ 0.75 \ \ \ \ \ 89.58
-      \ \ \ \ 76.29
+      "logLik.reStruct" \ \ \ \ \ 0.60 \ \ \ \ 0.53 \ \ \ \ \ 84.82
+      \ \ \ \ 75.01
 
-      "getwd" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.42 \ \ \ \ 0.36
-      \ \ \ \ \ \ 0.42 \ \ \ \ \ 0.36
+      "getwd" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.28 \ \ \ \ 0.25
+      \ \ \ \ \ \ 0.28 \ \ \ \ \ 0.25
 
       \<gtr\> head(cotes.lme.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "lme" \ \ \ \ \ \ \ \ \ \ \ \ 117.42 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "lme" \ \ \ \ \ \ \ \ \ \ \ \ 113.08 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "lme.formula" \ \ \ \ 117.42 \ \ \ 100.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
+      "lme.formula" \ \ \ \ 113.08 \ \ \ 100.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ 105.30 \ \ \ \ 89.68 \ \ \ 105.30
-      \ \ \ 89.68
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ 100.38 \ \ \ \ 88.77 \ \ \ 100.38
+      \ \ \ 88.77
 
-      "recalc" \ \ \ \ \ \ \ \ \ \ 95.02 \ \ \ \ 80.92 \ \ \ \ \ 0.02
-      \ \ \ \ 0.02
-
-      "logLik" \ \ \ \ \ \ \ \ \ \ 94.94 \ \ \ \ 80.86 \ \ \ \ \ 0.02
-      \ \ \ \ 0.02
-
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ 94.78 \ \ \ \ 80.72 \ \ \ \ \ 0.00
+      "recalc" \ \ \ \ \ \ \ \ \ \ 92.38 \ \ \ \ 81.69 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
+
+      "logLik" \ \ \ \ \ \ \ \ \ \ 91.70 \ \ \ \ 81.09 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+
+      "objective" \ \ \ \ \ \ \ 91.56 \ \ \ \ 80.97 \ \ \ \ \ 0.02
+      \ \ \ \ 0.02
 
       \<gtr\>\ 
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      anova(meta.lme,cotes.lme)
+    <|unfolded-prog-io>
+      anova(meta.lme,cotes.lme)
+
+      \ \ \ \ \ \ \ \ \ \ Model \ df \ \ \ \ \ AIC \ \ \ \ BIC \ \ \ logLik
+      \ \ Test L.Ratio p-value
+
+      meta.lme \ \ \ \ \ 1 386 3369.047 5161.55 -1298.524
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      cotes.lme \ \ \ \ 2 397 3108.315 4951.90 -1157.158 1 vs 2 282.732
+      \ \<less\>.0001
     </unfolded-prog-io|>
 
     \;
@@ -2399,8 +2411,6 @@
       library(MASS)
     </unfolded-prog-io|>
 
-    \;
-
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
@@ -2420,16 +2430,6 @@
       \ \ \ load(file="meta.glmmPQL.Rda")
 
       \ }
-
-      summary(meta.glmmPQL)
-
-      meta.glmmPQL.summary \<less\>- summaryRprof("meta.glmmPQL.prof")
-
-      head(meta.glmmPQL.summary[[1]])
-
-      head(meta.glmmPQL.summary[[2]])
-
-      \;
     <|unfolded-prog-io>
       if(!file.exists("meta.glmmPQL.Rda")) {
 
@@ -2450,8 +2450,22 @@
       + \ \ \ load(file="meta.glmmPQL.Rda")
 
       + \ }
+    </unfolded-prog-io|>
 
-      \<gtr\> summary(meta.glmmPQL)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(meta.glmmPQL)
+
+      meta.glmmPQL.summary \<less\>- summaryRprof("meta.glmmPQL.prof")
+
+      head(meta.glmmPQL.summary[[1]])
+
+      head(meta.glmmPQL.summary[[2]])
+
+      \;
+    <|unfolded-prog-io>
+      summary(meta.glmmPQL)
 
       Linear mixed-effects model fit by maximum likelihood
 
@@ -3420,43 +3434,44 @@
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
       total.pct
 
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 12.68 \ \ \ 92.15 \ \ \ \ \ 12.68
-      \ \ \ \ 92.15
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 11.50 \ \ \ 91.27 \ \ \ \ \ 11.50
+      \ \ \ \ 91.27
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.40 \ \ \ \ 2.91 \ \ \ \ \ \ 1.70
-      \ \ \ \ 12.35
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.34 \ \ \ \ 2.70 \ \ \ \ \ \ 1.64
+      \ \ \ \ 13.02
 
-      "recalc.varFunc" \ \ \ \ \ 0.26 \ \ \ \ 1.89 \ \ \ \ \ \ 0.26
-      \ \ \ \ \ 1.89
+      "recalc.varFunc" \ \ \ \ \ 0.24 \ \ \ \ 1.90 \ \ \ \ \ \ 0.24
+      \ \ \ \ \ 1.90
 
-      "solve.default" \ \ \ \ \ \ 0.10 \ \ \ \ 0.73 \ \ \ \ \ \ 2.04
-      \ \ \ \ 14.83
+      "solve.default" \ \ \ \ \ \ 0.12 \ \ \ \ 0.95 \ \ \ \ \ \ 2.00
+      \ \ \ \ 15.87
 
-      "as.double" \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 0.58 \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 0.58
+      "as.double" \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ \ 0.79 \ \ \ \ \ \ 0.10
+      \ \ \ \ \ 0.79
 
-      "crossprod" \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 0.58 \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 0.58
+      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.48 \ \ \ \ \ \ 1.96
+      \ \ \ \ 15.56
 
       \<gtr\> head(meta.glmmPQL.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "eval" \ \ \ \ \ \ \ \ \ \ \ \ 13.76 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "eval" \ \ \ \ \ \ \ \ \ \ \ \ 12.60 \ \ \ 100.00 \ \ \ \ \ \ 0.0
       \ \ \ \ 0.00
 
-      "glmmPQL" \ \ \ \ \ \ \ \ \ 13.76 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "glmmPQL" \ \ \ \ \ \ \ \ \ 12.60 \ \ \ 100.00 \ \ \ \ \ \ 0.0
       \ \ \ \ 0.00
 
-      "lme.formula" \ \ \ \ \ 13.36 \ \ \ \ 97.09 \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "nlme::lme" \ \ \ \ \ \ \ 13.36 \ \ \ \ 97.09 \ \ \ \ \ 0.00
+      "lme.formula" \ \ \ \ \ 12.20 \ \ \ \ 96.83 \ \ \ \ \ \ 0.0
       \ \ \ \ 0.00
 
-      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 12.68 \ \ \ \ 92.15 \ \ \ \ 12.68
-      \ \ \ 92.15
+      "nlme::lme" \ \ \ \ \ \ \ 12.20 \ \ \ \ 96.83 \ \ \ \ \ \ 0.0
+      \ \ \ \ 0.00
 
-      "FUN" \ \ \ \ \ \ \ \ \ \ \ \ \ 11.12 \ \ \ \ 80.81 \ \ \ \ \ 0.00
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 11.50 \ \ \ \ 91.27 \ \ \ \ \ 11.5
+      \ \ \ 91.27
+
+      "FUN" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 9.98 \ \ \ \ 79.21 \ \ \ \ \ \ 0.0
       \ \ \ \ 0.00
 
       \<gtr\>\ 
@@ -3477,19 +3492,11 @@
 
       \ \ \ save(cotes.glmmPQL, file="cotes.glmmPQL.Rda")
 
-      \ } else {
+      } else {
 
       \ \ \ load(file="cotes.glmmPQL.Rda")
 
-      \ }
-
-      summary(cotes.glmmPQL)
-
-      cotes.glmmPQL.summary \<less\>- summaryRprof("cotes.glmmPQL.prof")
-
-      head(cotes.glmmPQL.summary[[1]])
-
-      head(cotes.glmmPQL.summary[[2]])
+      }
     <|unfolded-prog-io>
       if(!file.exists("cotes.glmmPQL.Rda")) {
 
@@ -3511,18 +3518,30 @@
 
       + \ \ \ save(cotes.glmmPQL, file="cotes.glmmPQL.Rda")
 
-      + \ } else {
+      + } else {
 
       + \ \ \ load(file="cotes.glmmPQL.Rda")
 
-      + \ }
+      + }
 
       Error in model.frame.default(data = rcbd.dat, weights = varIdent(form =
       ~Plot \| \ :\ 
 
       \ \ variable lengths differ (found for '(weights)')
+    </unfolded-prog-io|>
 
-      \<gtr\> summary(cotes.glmmPQL)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(cotes.glmmPQL)
+
+      cotes.glmmPQL.summary \<less\>- summaryRprof("cotes.glmmPQL.prof")
+
+      head(cotes.glmmPQL.summary[[1]])
+
+      head(cotes.glmmPQL.summary[[2]])
+    <|unfolded-prog-io>
+      summary(cotes.glmmPQL)
 
       Error in summary(cotes.glmmPQL) : object 'cotes.glmmPQL' not found
 
@@ -3556,22 +3575,6 @@
       library(lme4)
     <|unfolded-prog-io>
       library(lme4)
-
-      Loading required package: Matrix
-
-      \;
-
-      Attaching package: 'lme4'
-
-      \;
-
-      The following object is masked from 'package:nlme':
-
-      \;
-
-      \ \ \ \ lmList
-
-      \;
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -3593,14 +3596,6 @@
       \ \ \ \ load(file="meta.lmer.Rda")
 
       }
-
-      summary(meta.lmer)
-
-      meta.lmer.summary \<less\>- summaryRprof("meta.lmer.prof")
-
-      head(meta.lmer.summary[[1]])
-
-      head(meta.lmer.summary[[2]])
     <|unfolded-prog-io>
       if(!file.exists("meta.lmer.Rda")) {
 
@@ -3620,8 +3615,20 @@
       + \ \ \ \ load(file="meta.lmer.Rda")
 
       + }
+    </unfolded-prog-io|>
 
-      \<gtr\> summary(meta.lmer)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(meta.lmer)
+
+      meta.lmer.summary \<less\>- summaryRprof("meta.lmer.prof")
+
+      head(meta.lmer.summary[[1]])
+
+      head(meta.lmer.summary[[2]])
+    <|unfolded-prog-io>
+      summary(meta.lmer)
 
       Linear mixed model fit by REML ['lmerMod']
 
@@ -3741,39 +3748,47 @@
 
       \<gtr\> head(meta.lmer.summary[[1]])
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
-      total.pct
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.28 \ \ \ 87.50
-      \ \ \ \ \ \ 0.28 \ \ \ \ 87.50
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ 0.32 \ \ \ 72.73 \ \ \ \ \ \ 0.32
+      \ \ \ \ 72.73
 
-      ".findMethodInTable" \ \ \ \ \ 0.02 \ \ \ \ 6.25 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 6.25
+      "as" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 9.09 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 9.09
 
-      "levels" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 6.25
-      \ \ \ \ \ \ 0.02 \ \ \ \ \ 6.25
+      "@\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 4.55
+      \ \ \ \ \ \ 0.02 \ \ \ \ \ 4.55
+
+      "unlist" \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 4.55 \ \ \ \ \ \ 0.02
+      \ \ \ \ \ 4.55
+
+      "validObject" \ \ \ \ \ 0.02 \ \ \ \ 4.55 \ \ \ \ \ \ 0.02
+      \ \ \ \ \ 4.55
+
+      "var" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 4.55 \ \ \ \ \ \ 0.02
+      \ \ \ \ \ 4.55
 
       \<gtr\> head(meta.lmer.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "lmer" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.32 \ \ \ 100.00 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.0
+      "lmer" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.44 \ \ \ 100.00 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.28 \ \ \ \ 87.50 \ \ \ \ \ 0.28
-      \ \ \ \ 87.5
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.32 \ \ \ \ 72.73 \ \ \ \ \ 0.32
+      \ \ \ 72.73
 
-      "optimizeLmer" \ \ \ \ \ \ 0.26 \ \ \ \ 81.25 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.0
+      "\<Anonymous\>" \ \ \ \ \ \ \ 0.30 \ \ \ \ 68.18 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
 
-      "optwrap" \ \ \ \ \ \ \ \ \ \ \ 0.26 \ \ \ \ 81.25 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.0
+      "do.call" \ \ \ \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 68.18 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
 
-      "\<Anonymous\>" \ \ \ \ \ \ \ 0.24 \ \ \ \ 75.00 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.0
+      "optimizeLmer" \ \ \ \ \ \ 0.30 \ \ \ \ 68.18 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
 
-      "do.call" \ \ \ \ \ \ \ \ \ \ \ 0.24 \ \ \ \ 75.00 \ \ \ \ \ 0.00
-      \ \ \ \ \ 0.0
+      "optwrap" \ \ \ \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 68.18 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -3795,14 +3810,6 @@
       \ \ load(file="cotes.lmer.Rda")
 
       }
-
-      summary(cotes.lmer)
-
-      cotes.lmer.summary \<less\>- summaryRprof("cotes.lmer.prof")
-
-      head(cotes.lmer.summary[[1]])
-
-      head(cotes.lmer.summary[[2]])
     <|unfolded-prog-io>
       if(!file.exists("cotes.lmer.Rda")) {
 
@@ -3823,8 +3830,20 @@
       + \ \ load(file="cotes.lmer.Rda")
 
       + }
+    </unfolded-prog-io|>
 
-      \<gtr\> summary(cotes.lmer)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(cotes.lmer)
+
+      cotes.lmer.summary \<less\>- summaryRprof("cotes.lmer.prof")
+
+      head(cotes.lmer.summary[[1]])
+
+      head(cotes.lmer.summary[[2]])
+    <|unfolded-prog-io>
+      summary(cotes.lmer)
 
       Linear mixed model fit by REML ['lmerMod']
 
@@ -4230,44 +4249,44 @@
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
       total.pct
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ 7928.46 \ \ \ 97.20 \ \ \ 7939.60
-      \ \ \ \ 97.34
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ 8734.02 \ \ \ 98.33 \ \ \ 8736.92
+      \ \ \ \ 98.36
 
-      "as.environment" \ \ \ \ 53.42 \ \ \ \ 0.65 \ \ \ \ \ 53.42
-      \ \ \ \ \ 0.65
+      "as.environment" \ \ \ \ 35.18 \ \ \ \ 0.40 \ \ \ \ \ 35.18
+      \ \ \ \ \ 0.40
 
-      "spos" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 38.68 \ \ \ \ 0.47 \ \ \ \ \ 39.88
-      \ \ \ \ \ 0.49
+      "$" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 30.32 \ \ \ \ 0.34
+      \ \ \ \ \ 81.26 \ \ \ \ \ 0.91
 
-      "$" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 28.26 \ \ \ \ 0.35 \ \ \ \ 104.36
-      \ \ \ \ \ 1.28
+      "spos" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 16.36 \ \ \ \ 0.18 \ \ \ \ \ 17.90
+      \ \ \ \ \ 0.20
 
-      "deriv12" \ \ \ \ \ \ \ \ \ \ \ 21.38 \ \ \ \ 0.26 \ \ \ 7709.58
-      \ \ \ \ 94.52
+      "deriv12" \ \ \ \ \ \ \ \ \ \ \ 15.80 \ \ \ \ 0.18 \ \ \ 8345.44
+      \ \ \ \ 93.95
 
-      "\<Anonymous\>" \ \ \ \ \ \ \ 18.34 \ \ \ \ 0.22 \ \ \ \ 462.66
-      \ \ \ \ \ 5.67
+      "fun" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 10.12 \ \ \ \ 0.11 \ \ \ 8309.78
+      \ \ \ \ 93.55
 
       \<gtr\> head(cotes.lmer.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "lmer" \ \ \ \ \ \ \ \ \ \ \ 8156.80 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "lmer" \ \ \ \ \ \ \ \ \ \ \ 8882.78 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "optimizeLmer" \ \ \ 8156.60 \ \ \ 100.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
+      "optimizeLmer" \ \ \ 8882.46 \ \ \ 100.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      "optwrap" \ \ \ \ \ \ \ \ 8156.52 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "optwrap" \ \ \ \ \ \ \ \ 8882.36 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ 7939.60 \ \ \ \ 97.34 \ \ 7928.46
-      \ \ \ 97.20
+      ".Call" \ \ \ \ \ \ \ \ \ \ 8736.92 \ \ \ \ 98.36 \ \ 8734.02
+      \ \ \ 98.33
 
-      "deriv12" \ \ \ \ \ \ \ \ 7709.58 \ \ \ \ 94.52 \ \ \ \ 21.38
-      \ \ \ \ 0.26
+      "deriv12" \ \ \ \ \ \ \ \ 8345.44 \ \ \ \ 93.95 \ \ \ \ 15.80
+      \ \ \ \ 0.18
 
-      "fun" \ \ \ \ \ \ \ \ \ \ \ \ 7646.98 \ \ \ \ 93.75 \ \ \ \ 18.32
-      \ \ \ \ 0.22
+      "fun" \ \ \ \ \ \ \ \ \ \ \ \ 8309.78 \ \ \ \ 93.55 \ \ \ \ 10.12
+      \ \ \ \ 0.11
     </unfolded-prog-io|>
 
     from cotes.lmer
@@ -4327,8 +4346,6 @@
       library(blme)
     </unfolded-prog-io|>
 
-    \;
-
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
@@ -4343,15 +4360,11 @@
 
       \ \ save(meta.blmer,file="meta.blmer.Rda")
 
+      } else {
+
+      \ \ load(file="meta.blmer.Rda")
+
       }
-
-      summary(meta.blmer)
-
-      meta.blmer.summary \<less\>- summaryRprof("meta.blmer.prof")
-
-      head(meta.blmer.summary[[1]])
-
-      head(meta.blmer.summary[[2]])
     <|unfolded-prog-io>
       if(!file.exists("meta.blmer.Rda")) {
 
@@ -4366,11 +4379,152 @@
 
       + \ \ save(meta.blmer,file="meta.blmer.Rda")
 
+      + } else {
+
+      + \ \ load(file="meta.blmer.Rda")
+
       + }
+    </unfolded-prog-io|>
 
-      \<gtr\> summary(meta.blmer)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(meta.blmer)
 
-      Error in summary(meta.blmer) : object 'meta.blmer' not found
+      meta.blmer.summary \<less\>- summaryRprof("meta.blmer.prof")
+
+      head(meta.blmer.summary[[1]])
+
+      head(meta.blmer.summary[[2]])
+    <|unfolded-prog-io>
+      summary(meta.blmer)
+
+      Cov prior \ : Loca:Entry ~ wishart(df = 3.5, scale = Inf,
+      posterior.scale = cov, common.scale = TRUE)
+
+      \ \ \ \ \ \ \ \ \ \ \ : Repe:Loca ~ wishart(df = 3.5, scale = Inf,
+      posterior.scale = cov, common.scale = TRUE)
+
+      \ \ \ \ \ \ \ \ \ \ \ : Loca ~ wishart(df = 3.5, scale = Inf,
+      posterior.scale = cov, common.scale = TRUE)
+
+      Prior dev \ : 0.2905
+
+      \;
+
+      Linear mixed model fit by REML ['blmerMod']
+
+      Formula: YLD ~ Entry + (1 \| Loca/Repe) + (1 \| Loca:Entry)
+
+      \ \ \ Data: rcbd.dat
+
+      \;
+
+      REML criterion at convergence: 3637.4
+
+      \;
+
+      Scaled residuals:\ 
+
+      \ \ \ \ Min \ \ \ \ \ 1Q \ Median \ \ \ \ \ 3Q \ \ \ \ Max\ 
+
+      -3.1638 -0.4848 \ 0.0137 \ 0.5096 \ 3.9747\ 
+
+      \;
+
+      Random effects:
+
+      \ Groups \ \ \ \ Name \ \ \ \ \ \ \ Variance Std.Dev.
+
+      \ Loca:Entry (Intercept) 0.4403 \ \ 0.6635 \ 
+
+      \ Repe:Loca \ (Intercept) 0.1555 \ \ 0.3944 \ 
+
+      \ Loca \ \ \ \ \ \ (Intercept) 9.7993 \ \ 3.1304 \ 
+
+      \ Residual \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.9338 \ \ 0.9664 \ 
+
+      Number of obs: 1152, groups: \ Loca:Entry, 384; Repe:Loca, 36; Loca, 12
+
+      \;
+
+      Fixed effects:
+
+      \ \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error t value
+
+      (Intercept) \ 5.85083 \ \ \ 0.93998 \ \ 6.224
+
+      Entry2 \ \ \ \ \ \ 0.18778 \ \ \ 0.35391 \ \ 0.531
+
+      Entry3 \ \ \ \ \ \ 0.84972 \ \ \ 0.35391 \ \ 2.401
+
+      Entry4 \ \ \ \ \ \ 0.62139 \ \ \ 0.35391 \ \ 1.756
+
+      Entry5 \ \ \ \ \ \ 0.64583 \ \ \ 0.35391 \ \ 1.825
+
+      Entry6 \ \ \ \ \ \ 0.61611 \ \ \ 0.35391 \ \ 1.741
+
+      Entry7 \ \ \ \ \ -0.07250 \ \ \ 0.35391 \ -0.205
+
+      Entry8 \ \ \ \ \ \ 0.77139 \ \ \ 0.35391 \ \ 2.180
+
+      Entry9 \ \ \ \ \ -0.23917 \ \ \ 0.35391 \ -0.676
+
+      Entry10 \ \ \ \ \ 0.47778 \ \ \ 0.35391 \ \ 1.350
+
+      Entry11 \ \ \ \ \ 1.03194 \ \ \ 0.35391 \ \ 2.916
+
+      Entry12 \ \ \ \ \ 0.17417 \ \ \ 0.35391 \ \ 0.492
+
+      Entry13 \ \ \ \ \ 0.32028 \ \ \ 0.35391 \ \ 0.905
+
+      Entry14 \ \ \ \ -2.27583 \ \ \ 0.35391 \ -6.430
+
+      Entry15 \ \ \ \ \ 0.19194 \ \ \ 0.35391 \ \ 0.542
+
+      Entry16 \ \ \ \ -0.90722 \ \ \ 0.35391 \ -2.563
+
+      Entry17 \ \ \ \ \ 0.74472 \ \ \ 0.35391 \ \ 2.104
+
+      Entry18 \ \ \ \ \ 0.65194 \ \ \ 0.35391 \ \ 1.842
+
+      Entry19 \ \ \ \ -2.54722 \ \ \ 0.35391 \ -7.197
+
+      Entry20 \ \ \ \ \ 0.04694 \ \ \ 0.35391 \ \ 0.133
+
+      Entry21 \ \ \ \ -0.98694 \ \ \ 0.35391 \ -2.789
+
+      Entry22 \ \ \ \ \ 0.77000 \ \ \ 0.35391 \ \ 2.176
+
+      Entry23 \ \ \ \ -2.09111 \ \ \ 0.35391 \ -5.909
+
+      Entry24 \ \ \ \ \ 0.03139 \ \ \ 0.35391 \ \ 0.089
+
+      Entry25 \ \ \ \ -0.99944 \ \ \ 0.35391 \ -2.824
+
+      Entry26 \ \ \ \ \ 1.00417 \ \ \ 0.35391 \ \ 2.837
+
+      Entry27 \ \ \ \ \ 0.89222 \ \ \ 0.35391 \ \ 2.521
+
+      Entry28 \ \ \ \ \ 0.49944 \ \ \ 0.35391 \ \ 1.411
+
+      Entry29 \ \ \ \ -0.04861 \ \ \ 0.35391 \ -0.137
+
+      Entry30 \ \ \ \ -0.54667 \ \ \ 0.35391 \ -1.545
+
+      Entry31 \ \ \ \ \ 0.35083 \ \ \ 0.35391 \ \ 0.991
+
+      Entry32 \ \ \ \ -0.18750 \ \ \ 0.35391 \ -0.530
+
+      \;
+
+      Correlation matrix not shown by default, as p = 32 \<gtr\> 12.
+
+      Use print(x, correlation=TRUE) \ or
+
+      \ \ \ \ \ \ \ \ \ vcov(x) \ \ \ \ \ \ \ \ if you need it
+
+      \;
 
       \<gtr\> meta.blmer.summary \<less\>- summaryRprof("meta.blmer.prof")
 
@@ -4379,45 +4533,45 @@
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
       total.pct
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ 17.14 \ \ \ \ \ \ 0.48
-      \ \ \ \ 68.57
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ 21.62 \ \ \ \ \ \ 0.50
+      \ \ \ \ 67.57
 
-      "as.environment" \ \ \ \ \ 0.08 \ \ \ 11.43 \ \ \ \ \ \ 0.08
-      \ \ \ \ 11.43
+      "paste" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ 16.22 \ \ \ \ \ \ 0.12
+      \ \ \ \ 16.22
 
-      "\<Anonymous\>" \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 5.71 \ \ \ \ \ \ 0.54
-      \ \ \ \ 77.14
+      "\<Anonymous\>" \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 5.41 \ \ \ \ \ \ 0.62
+      \ \ \ \ 83.78
 
-      "as.matrix" \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 5.71 \ \ \ \ \ \ 0.22
-      \ \ \ \ 31.43
+      "subCsp_ij" \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 5.41 \ \ \ \ \ \ 0.16
+      \ \ \ \ 21.62
 
-      "is" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 5.71
-      \ \ \ \ \ \ 0.10 \ \ \ \ 14.29
+      "getClassDef" \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 5.41 \ \ \ \ \ \ 0.06
+      \ \ \ \ \ 8.11
 
-      "structure" \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 5.71 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 5.71
+      "as.environment" \ \ \ \ \ 0.04 \ \ \ \ 5.41 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 5.41
 
       \<gtr\> head(meta.blmer.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "blmer" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.70 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "blmer" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.74 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "do.call" \ \ \ \ \ \ \ \ \ \ \ 0.58 \ \ \ \ 82.86 \ \ \ \ \ 0.02
-      \ \ \ \ 2.86
-
-      "\<Anonymous\>" \ \ \ \ \ \ \ 0.54 \ \ \ \ 77.14 \ \ \ \ \ 0.04
-      \ \ \ \ 5.71
-
-      "optimizeLmer" \ \ \ \ \ \ 0.54 \ \ \ \ 77.14 \ \ \ \ \ 0.00
+      "do.call" \ \ \ \ \ \ \ \ \ \ \ 0.64 \ \ \ \ 86.49 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "optwrap" \ \ \ \ \ \ \ \ \ \ \ 0.54 \ \ \ \ 77.14 \ \ \ \ \ 0.00
+      "\<Anonymous\>" \ \ \ \ \ \ \ 0.62 \ \ \ \ 83.78 \ \ \ \ \ 0.04
+      \ \ \ \ 5.41
+
+      "optimizeLmer" \ \ \ \ \ \ 0.56 \ \ \ \ 75.68 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.48 \ \ \ \ 68.57 \ \ \ \ \ 0.12
-      \ \ \ 17.14
+      "optwrap" \ \ \ \ \ \ \ \ \ \ \ 0.56 \ \ \ \ 75.68 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+
+      "fn" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.52 \ \ \ \ 70.27 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -4434,15 +4588,11 @@
 
       \ \ save(cotes.lmer,file="cotes.blmer.Rda")
 
+      } else {
+
+      \ \ load(file="cotes.blmer.Rda")
+
       }
-
-      summary(cotes.blmer)
-
-      cotes.blmer.summary \<less\>- summaryRprof("cotes.blmer.prof")
-
-      head(cotes.blmer.summary[[1]])
-
-      head(cotes.blmer.summary[[2]])
     <|unfolded-prog-io>
       if(!file.exists("cotes.blmer.Rda")) {
 
@@ -4458,9 +4608,25 @@
 
       + \ \ save(cotes.lmer,file="cotes.blmer.Rda")
 
-      + }
+      + } else {
 
-      \<gtr\> summary(cotes.blmer)
+      + \ \ load(file="cotes.blmer.Rda")
+
+      + }
+    </unfolded-prog-io|>
+
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(cotes.blmer)
+
+      cotes.blmer.summary \<less\>- summaryRprof("cotes.blmer.prof")
+
+      head(cotes.blmer.summary[[1]])
+
+      head(cotes.blmer.summary[[2]])
+    <|unfolded-prog-io>
+      summary(cotes.blmer)
 
       Error in summary(cotes.blmer) : object 'cotes.blmer' not found
 
@@ -4471,44 +4637,44 @@
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
       total.pct
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ 4301.48 \ \ \ 96.68 \ \ \ 4304.90
-      \ \ \ \ 96.76
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ 4304.34 \ \ \ 98.31 \ \ \ 4305.70
+      \ \ \ \ 98.34
 
-      "as.environment" \ \ \ \ 35.02 \ \ \ \ 0.79 \ \ \ \ \ 35.02
-      \ \ \ \ \ 0.79
+      "as.environment" \ \ \ \ 19.56 \ \ \ \ 0.45 \ \ \ \ \ 19.56
+      \ \ \ \ \ 0.45
 
-      "spos" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 26.66 \ \ \ \ 0.60 \ \ \ \ \ 27.46
-      \ \ \ \ \ 0.62
+      "$" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 13.80 \ \ \ \ 0.32
+      \ \ \ \ \ 40.18 \ \ \ \ \ 0.92
 
-      "$" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 18.06 \ \ \ \ 0.41
-      \ \ \ \ \ 67.12 \ \ \ \ \ 1.51
+      "spos" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 8.38 \ \ \ \ 0.19 \ \ \ \ \ \ 8.96
+      \ \ \ \ \ 0.20
 
-      "deriv12" \ \ \ \ \ \ \ \ \ \ \ 16.34 \ \ \ \ 0.37 \ \ \ 4212.90
-      \ \ \ \ 94.69
+      "deriv12" \ \ \ \ \ \ \ \ \ \ \ \ 7.68 \ \ \ \ 0.18 \ \ \ 4140.50
+      \ \ \ \ 94.57
 
-      "fun" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 12.00 \ \ \ \ 0.27 \ \ \ 4168.36
-      \ \ \ \ 93.69
+      "fun" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5.30 \ \ \ \ 0.12 \ \ \ 4122.90
+      \ \ \ \ 94.17
 
       \<gtr\> head(cotes.blmer.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "lmer" \ \ \ \ \ \ \ \ \ \ \ 4449.20 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "lmer" \ \ \ \ \ \ \ \ \ \ \ 4378.20 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "optimizeLmer" \ \ \ 4448.98 \ \ \ 100.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
+      "optimizeLmer" \ \ \ 4378.00 \ \ \ 100.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      "optwrap" \ \ \ \ \ \ \ \ 4448.94 \ \ \ \ 99.99 \ \ \ \ \ 0.00
+      "optwrap" \ \ \ \ \ \ \ \ 4377.98 \ \ \ \ 99.99 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ 4304.90 \ \ \ \ 96.76 \ \ 4301.48
-      \ \ \ 96.68
+      ".Call" \ \ \ \ \ \ \ \ \ \ 4305.70 \ \ \ \ 98.34 \ \ 4304.34
+      \ \ \ 98.31
 
-      "deriv12" \ \ \ \ \ \ \ \ 4212.90 \ \ \ \ 94.69 \ \ \ \ 16.34
-      \ \ \ \ 0.37
+      "deriv12" \ \ \ \ \ \ \ \ 4140.50 \ \ \ \ 94.57 \ \ \ \ \ 7.68
+      \ \ \ \ 0.18
 
-      "fun" \ \ \ \ \ \ \ \ \ \ \ \ 4168.36 \ \ \ \ 93.69 \ \ \ \ 12.00
-      \ \ \ \ 0.27
+      "fun" \ \ \ \ \ \ \ \ \ \ \ \ 4122.90 \ \ \ \ 94.17 \ \ \ \ \ 5.30
+      \ \ \ \ 0.12
     </unfolded-prog-io|>
 
     <\textput>
@@ -4533,28 +4699,6 @@
       library(glmmADMB)
     <|unfolded-prog-io>
       library(glmmADMB)
-
-      \;
-
-      Attaching package: 'glmmADMB'
-
-      \;
-
-      The following object is masked from 'package:MASS':
-
-      \;
-
-      \ \ \ \ stepAIC
-
-      \;
-
-      The following object is masked from 'package:stats':
-
-      \;
-
-      \ \ \ \ step
-
-      \;
     </unfolded-prog-io|>
 
     <\textput>
@@ -4582,14 +4726,6 @@
       \ \ load(file="meta.admb.Rda")
 
       }
-
-      summary(meta.admb)
-
-      meta.admb.summary \<less\>- summaryRprof("meta.admb.prof")
-
-      head(meta.admb.summary[[1]])
-
-      head(meta.admb.summary[[2]])
     <|unfolded-prog-io>
       if(!file.exists("meta.admb.Rda")) {
 
@@ -4613,8 +4749,20 @@
       + \ \ load(file="meta.admb.Rda")
 
       + }
+    </unfolded-prog-io|>
 
-      \<gtr\> summary(meta.admb)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(meta.admb)
+
+      meta.admb.summary \<less\>- summaryRprof("meta.admb.prof")
+
+      head(meta.admb.summary[[1]])
+
+      head(meta.admb.summary[[2]])
+    <|unfolded-prog-io>
+      summary(meta.admb)
 
       \;
 
@@ -4749,42 +4897,41 @@
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
 
-      "scan" \ \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ 30.43 \ \ \ \ \ \ 0.14
-      \ \ \ \ 30.43
+      "scan" \ \ \ \ \ \ \ \ \ \ \ 0.18 \ \ \ 34.62 \ \ \ \ \ \ 0.18
+      \ \ \ \ 34.62
 
-      "readLines" \ \ \ \ \ \ 0.12 \ \ \ 26.09 \ \ \ \ \ \ 0.12 \ \ \ \ 26.09
+      "readLines" \ \ \ \ \ \ 0.16 \ \ \ 30.77 \ \ \ \ \ \ 0.16 \ \ \ \ 30.77
 
-      ".External2" \ \ \ \ \ 0.04 \ \ \ \ 8.70 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 8.70
+      ".External2" \ \ \ \ \ 0.08 \ \ \ 15.38 \ \ \ \ \ \ 0.08 \ \ \ \ 15.38
 
-      "pmatch" \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 8.70 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 8.70
+      "cat" \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 3.85 \ \ \ \ \ \ 0.02
+      \ \ \ \ \ 3.85
 
-      "system" \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 8.70 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 8.70
+      "file.copy" \ \ \ \ \ \ 0.02 \ \ \ \ 3.85 \ \ \ \ \ \ 0.02
+      \ \ \ \ \ 3.85
 
-      "Sys.chmod" \ \ \ \ \ \ 0.02 \ \ \ \ 4.35 \ \ \ \ \ \ 0.02
-      \ \ \ \ \ 4.35
+      "getwd" \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 3.85 \ \ \ \ \ \ 0.02
+      \ \ \ \ \ 3.85
 
       \<gtr\> head(meta.admb.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "glmmadmb" \ \ \ \ \ \ \ \ 0.46 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "glmmadmb" \ \ \ \ \ \ \ \ 0.52 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "par_read" \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 65.22 \ \ \ \ \ 0.00
+      "par_read" \ \ \ \ \ \ \ \ 0.40 \ \ \ \ 76.92 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "read.table" \ \ \ \ \ \ 0.18 \ \ \ \ 39.13 \ \ \ \ \ 0.00 \ \ \ \ 0.00
+      "read.table" \ \ \ \ \ \ 0.22 \ \ \ \ 42.31 \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      "rt" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.18 \ \ \ \ 39.13 \ \ \ \ \ 0.00
+      "rt" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.22 \ \ \ \ 42.31 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "scan" \ \ \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ 30.43 \ \ \ \ \ 0.14
-      \ \ \ 30.43
+      "scan" \ \ \ \ \ \ \ \ \ \ \ \ 0.18 \ \ \ \ 34.62 \ \ \ \ \ 0.18
+      \ \ \ 34.62
 
-      "readLines" \ \ \ \ \ \ \ 0.12 \ \ \ \ 26.09 \ \ \ \ \ 0.12 \ \ \ 26.09
+      "readLines" \ \ \ \ \ \ \ 0.16 \ \ \ \ 30.77 \ \ \ \ \ 0.16 \ \ \ 30.77
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -4794,7 +4941,7 @@
 
       \ \ Rprof("cotes.admb.prof")
 
-      \ \ cotes.admb \<less\>- glmmadmb(YLD ~ 0 + Entry,random= ~ (1 \|
+      \ \ #cotes.admb \<less\>- glmmadmb(YLD ~ 0 + Entry,random= ~ (1 \|
       Loca/Repe) + (0 + Entry \| Loca), family = "gaussian",
       data=rcbd.dat,save.dir="~/Work/git/ASA_CSSA_SSSA/working/admb")
 
@@ -4807,32 +4954,24 @@
       \ \ load(file="cotes.admb.Rda")
 
       }
-
-      summary(cotes.admb)
-
-      cotes.admb.summary \<less\>- summaryRprof("cotes.admb.prof")
-
-      head(cotes.admb.summary[[1]])
-
-      head(cotes.admb.summary[[2]])
     <|unfolded-prog-io>
       if(!file.exists("cotes.admb.Rda")) {
 
       + \ \ Rprof("cotes.admb.prof")
 
-      + \ \ cotes.admb \<less\>- glmmadmb(YLD ~ 0 + Entry,random= ~ (1 \|
-      Loca/Repe) + (0 + E
+      + \ \ #cotes.admb \<less\>- glmmadmb(YLD ~ 0 + Entry,random= ~ (1 \|
+      Loca/Repe) + (0 +\ 
 
-      \<less\>YLD ~ 0 + Entry,random= ~ (1 \| Loca/Repe) + (0 + Entry \|
-      Loca), family = "ga
+      \<less\>(YLD ~ 0 + Entry,random= ~ (1 \| Loca/Repe) + (0 + Entry \|
+      Loca), family = "g
 
-      \<less\>(1 \| Loca/Repe) + (0 + Entry \| Loca), family = "gaussian",
-      data=rcbd.dat,sav
+      \<less\> (1 \| Loca/Repe) + (0 + Entry \| Loca), family = "gaussian",
+      data=rcbd.dat,sa
 
-      \<less\>ry \| Loca), family = "gaussian",
-      data=rcbd.dat,save.dir="~/Work/git/ASA_CSSA
+      \<less\>try \| Loca), family = "gaussian",
+      data=rcbd.dat,save.dir="~/Work/git/ASA_CSS
 
-      \<less\>sian", data=rcbd.dat,save.dir="~/Work/git/ASA_CSSA_SSSA/working/admb")
+      \<less\>ssian", data=rcbd.dat,save.dir="~/Work/git/ASA_CSSA_SSSA/working/admb")
 
       + \ \ Rprof(NULL)
 
@@ -4844,35 +4983,39 @@
 
       + }
 
-      Error in glmmadmb(YLD ~ 0 + Entry, random = ~(1 \| Loca/Repe) + (0 +
-      Entry \| \ :\ 
+      Error in save(cotes.admb, file = "cotes.admb.Rda") :\ 
 
-      \ \ The function maximizer failed (couldn't find parameter file)
-      Troubleshooting steps include (1) run with 'save.dir' set and inspect
-      output files; (2) change run parameters: see '?admbControl';(3) re-run
-      with debug=TRUE for more information on failure mode
+      \ \ object 'cotes.admb' not found
+    </unfolded-prog-io|>
 
-      \<gtr\> summary(cotes.admb)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(cotes.admb)
+
+      cotes.admb.summary \<less\>- summaryRprof("cotes.admb.prof")
+
+      head(cotes.admb.summary[[1]])
+
+      head(cotes.admb.summary[[2]])
+    <|unfolded-prog-io>
+      summary(cotes.admb)
 
       Error in summary(cotes.admb) : object 'cotes.admb' not found
 
       \<gtr\> cotes.admb.summary \<less\>- summaryRprof("cotes.admb.prof")
 
-      Error in summaryRprof("cotes.admb.prof") :\ 
-
-      \ \ no lines found in 'cotes.admb.prof'
-
       \<gtr\> head(cotes.admb.summary[[1]])
 
-      Error in head(cotes.admb.summary[[1]]) :\ 
+      [1] self.time \ self.pct \ \ total.time total.pct\ 
 
-      \ \ object 'cotes.admb.summary' not found
+      \<less\>0 rows\<gtr\> (or 0-length row.names)
 
       \<gtr\> head(cotes.admb.summary[[2]])
 
-      Error in head(cotes.admb.summary[[2]]) :\ 
+      [1] total.time total.pct \ self.time \ self.pct \ 
 
-      \ \ object 'cotes.admb.summary' not found
+      \<less\>0 rows\<gtr\> (or 0-length row.names)
     </unfolded-prog-io|>
 
     <\textput>
@@ -4923,22 +5066,6 @@
       \ \ load(file="meta.glmmLasso.Rda")
 
       }
-
-      summary(meta.glmmLasso)
-
-      meta.glmmLasso.summary \<less\>- summaryRprof("meta.glmmLasso.prof")
-
-      head(meta.glmmLasso.summary[[1]])
-
-      head(meta.glmmLasso.summary[[2]])
-
-      meta2.glmmLasso \<less\>- glmmLasso(fix = YLD ~ 0+Entry, rnd =
-      list(Loca = ~1, Block = ~1,Interaction=~1), lambda = 200, data =
-      rcbd.dat)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-
-      summary(meta2.glmmLasso)
     <|unfolded-prog-io>
       rcbd.dat$Interaction \<less\>- rcbd.dat$Loca:rcbd.dat$Entry
 
@@ -4971,8 +5098,20 @@
       + \ \ load(file="meta.glmmLasso.Rda")
 
       + }
+    </unfolded-prog-io|>
 
-      \<gtr\> summary(meta.glmmLasso)
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      summary(meta.glmmLasso)
+
+      meta.glmmLasso.summary \<less\>- summaryRprof("meta.glmmLasso.prof")
+
+      head(meta.glmmLasso.summary[[1]])
+
+      head(meta.glmmLasso.summary[[2]])
+    <|unfolded-prog-io>
+      summary(meta.glmmLasso)
 
       Call:
 
@@ -5097,48 +5236,58 @@
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
       total.pct
 
-      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2.88 \ \ \ 62.07
-      \ \ \ \ \ \ 2.88 \ \ \ \ 62.07
+      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2.82 \ \ \ 61.57
+      \ \ \ \ \ \ 2.82 \ \ \ \ 61.57
 
-      "matrix" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.38 \ \ \ \ 8.19
-      \ \ \ \ \ \ 0.38 \ \ \ \ \ 8.19
+      "*" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.40 \ \ \ \ 8.73
+      \ \ \ \ \ \ 0.40 \ \ \ \ \ 8.73
 
-      "est.glmmLasso.RE" \ \ \ \ \ 0.30 \ \ \ \ 6.47 \ \ \ \ \ \ 4.62
-      \ \ \ \ 99.57
+      "matrix" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.32 \ \ \ \ 6.99
+      \ \ \ \ \ \ 0.32 \ \ \ \ \ 6.99
 
-      "*" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 6.47
-      \ \ \ \ \ \ 0.30 \ \ \ \ \ 6.47
+      "chol2inv" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.22 \ \ \ \ 4.80 \ \ \ \ \ \ 0.38
+      \ \ \ \ \ 8.30
 
-      "chol2inv" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.22 \ \ \ \ 4.74 \ \ \ \ \ \ 0.36
-      \ \ \ \ \ 7.76
+      "est.glmmLasso.RE" \ \ \ \ \ 0.20 \ \ \ \ 4.37 \ \ \ \ \ \ 4.56
+      \ \ \ \ 99.56
 
-      "chol.default" \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ 3.02 \ \ \ \ \ \ 0.14
-      \ \ \ \ \ 3.02
+      "chol.default" \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ 3.49 \ \ \ \ \ \ 0.16
+      \ \ \ \ \ 3.49
 
       \<gtr\> head(meta.glmmLasso.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time
       self.pct
 
-      "est.glmmLasso" \ \ \ \ \ \ \ \ \ 4.64 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "est.glmmLasso" \ \ \ \ \ \ \ \ \ 4.58 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "glmmLasso" \ \ \ \ \ \ \ \ \ \ \ \ \ 4.64 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "glmmLasso" \ \ \ \ \ \ \ \ \ \ \ \ \ 4.58 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "est.glmmLasso.RE" \ \ \ \ \ \ 4.62 \ \ \ \ 99.57 \ \ \ \ \ 0.30
-      \ \ \ \ 6.47
+      "est.glmmLasso.RE" \ \ \ \ \ \ 4.56 \ \ \ \ 99.56 \ \ \ \ \ 0.20
+      \ \ \ \ 4.37
 
-      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2.88 \ \ \ \ 62.07
-      \ \ \ \ \ 2.88 \ \ \ 62.07
+      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2.82 \ \ \ \ 61.57
+      \ \ \ \ \ 2.82 \ \ \ 61.57
 
-      "matrix" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.38 \ \ \ \ \ 8.19
-      \ \ \ \ \ 0.38 \ \ \ \ 8.19
+      "*" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.40 \ \ \ \ \ 8.73
+      \ \ \ \ \ 0.40 \ \ \ \ 8.73
 
-      "chol2inv" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.36 \ \ \ \ \ 7.76
-      \ \ \ \ \ 0.22 \ \ \ \ 4.74
+      "chol2inv" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.38 \ \ \ \ \ 8.30
+      \ \ \ \ \ 0.22 \ \ \ \ 4.80
+    </unfolded-prog-io|>
 
-      \<gtr\> meta2.glmmLasso \<less\>- glmmLasso(fix = YLD ~ 0+Entry, rnd =
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      meta2.glmmLasso \<less\>- glmmLasso(fix = YLD ~ 0+Entry, rnd =
+      list(Loca = ~1, Block = ~1,Interaction=~1), lambda = 200, data =
+      rcbd.dat) \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      summary(meta2.glmmLasso)
+    <|unfolded-prog-io>
+      meta2.glmmLasso \<less\>- glmmLasso(fix = YLD ~ 0+Entry, rnd =
       list(Loca = ~1, Blo
 
       \<less\>sso(fix = YLD ~ 0+Entry, rnd = list(Loca = ~1, Block =
@@ -5148,13 +5297,15 @@
       data = rcbd.d
 
       \<less\> = ~1,Interaction=~1), lambda = 200, data = rcbd.dat)
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      \<less\>bda = 200, data = rcbd.dat)
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
       Error in est.glmmLasso.RE(fix = fix, rnd = rnd, data = data, lambda =
       lambda, \ :\ 
 
       \ \ Need intercept term when using center = TRUE
-
-      \<gtr\> \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
       \<gtr\> summary(meta2.glmmLasso)
 
@@ -5973,48 +6124,47 @@
 
       \<gtr\> head(cotes.glmmLasso.summary[[1]])
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
-      total.pct
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
 
-      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2.82 \ \ \ 71.94
-      \ \ \ \ \ \ 2.82 \ \ \ \ 71.94
+      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2.82 \ \ \ 75.00 \ \ \ \ \ \ 2.82
+      \ \ \ \ 75.00
 
-      "chol.default" \ \ \ \ \ \ \ \ \ 0.28 \ \ \ \ 7.14 \ \ \ \ \ \ 0.28
-      \ \ \ \ \ 7.14
+      "chol2inv" \ \ \ \ \ \ \ \ \ 0.22 \ \ \ \ 5.85 \ \ \ \ \ \ 0.36
+      \ \ \ \ \ 9.57
 
-      "chol2inv" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.22 \ \ \ \ 5.61 \ \ \ \ \ \ 0.50
-      \ \ \ \ 12.76
+      "cbind" \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ 4.26 \ \ \ \ \ \ 0.16
+      \ \ \ \ \ 4.26
 
-      "rownames\<less\>-" \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ 4.08
-      \ \ \ \ \ \ 0.16 \ \ \ \ \ 4.08
+      "chol.default" \ \ \ \ \ 0.14 \ \ \ \ 3.72 \ \ \ \ \ \ 0.14
+      \ \ \ \ \ 3.72
 
-      "est.glmmLasso.RE" \ \ \ \ \ 0.12 \ \ \ \ 3.06 \ \ \ \ \ \ 3.92
-      \ \ \ 100.00
+      "t.default" \ \ \ \ \ \ \ \ 0.12 \ \ \ \ 3.19 \ \ \ \ \ \ 0.12
+      \ \ \ \ \ 3.19
 
-      "*" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 1.53
-      \ \ \ \ \ \ 0.06 \ \ \ \ \ 1.53
+      "*" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 2.13 \ \ \ \ \ \ 0.08
+      \ \ \ \ \ 2.13
 
       \<gtr\> head(cotes.glmmLasso.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time
       self.pct
 
-      "est.glmmLasso.RE" \ \ \ \ \ \ 3.92 \ \ \ 100.00 \ \ \ \ \ 0.12
-      \ \ \ \ 3.06
+      "est.glmmLasso.RE" \ \ \ \ \ \ 3.76 \ \ \ 100.00 \ \ \ \ \ 0.06
+      \ \ \ \ 1.60
 
-      "est.glmmLasso" \ \ \ \ \ \ \ \ \ 3.92 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "est.glmmLasso" \ \ \ \ \ \ \ \ \ 3.76 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "glmmLasso" \ \ \ \ \ \ \ \ \ \ \ \ \ 3.92 \ \ \ 100.00 \ \ \ \ \ 0.00
+      "glmmLasso" \ \ \ \ \ \ \ \ \ \ \ \ \ 3.76 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2.82 \ \ \ \ 71.94
-      \ \ \ \ \ 2.82 \ \ \ 71.94
+      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2.82 \ \ \ \ 75.00
+      \ \ \ \ \ 2.82 \ \ \ 75.00
 
-      "chol2inv" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.50 \ \ \ \ 12.76
-      \ \ \ \ \ 0.22 \ \ \ \ 5.61
+      "chol2inv" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.36 \ \ \ \ \ 9.57
+      \ \ \ \ \ 0.22 \ \ \ \ 5.85
 
-      "doTryCatch" \ \ \ \ \ \ \ \ \ \ \ \ 0.50 \ \ \ \ 12.76 \ \ \ \ \ 0.00
+      "doTryCatch" \ \ \ \ \ \ \ \ \ \ \ \ 0.36 \ \ \ \ \ 9.57 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
     </unfolded-prog-io|>
 
@@ -6030,8 +6180,6 @@
       library(minque)
     <|unfolded-prog-io>
       library(minque)
-
-      Loading required package: klaR
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -6053,12 +6201,6 @@
       \ \ load(file="meta.minque.Rda")
 
       }
-
-      meta.minque.summary \<less\>- summaryRprof("meta.minque.prof")
-
-      head(meta.minque.summary[[1]])
-
-      head(meta.minque.summary[[2]])
     <|unfolded-prog-io>
       if(!file.exists("meta.minque.Rda")) {
 
@@ -6079,52 +6221,63 @@
       + \ \ load(file="meta.minque.Rda")
 
       + }
+    </unfolded-prog-io|>
 
-      \<gtr\> meta.minque.summary \<less\>- summaryRprof("meta.minque.prof")
+    <\unfolded-prog-io>
+      <with|color|red|\<gtr\> >
+    <|unfolded-prog-io>
+      meta.minque.summary \<less\>- summaryRprof("meta.minque.prof")
+
+      head(meta.minque.summary[[1]])
+
+      head(meta.minque.summary[[2]])
+    <|unfolded-prog-io>
+      meta.minque.summary \<less\>- summaryRprof("meta.minque.prof")
 
       \<gtr\> head(meta.minque.summary[[1]])
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
+      total.pct
 
-      "%*%" \ \ \ \ \ \ \ \ \ \ \ 15.70 \ \ \ 95.62 \ \ \ \ \ 15.70
-      \ \ \ \ 95.62
+      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 14.52 \ \ \ 92.60 \ \ \ \ \ 14.52
+      \ \ \ \ 92.60
 
-      "sort.int" \ \ \ \ \ \ \ 0.12 \ \ \ \ 0.73 \ \ \ \ \ \ 0.14
-      \ \ \ \ \ 0.85
+      "t.default" \ \ \ \ \ \ \ \ \ \ \ 0.32 \ \ \ \ 2.04 \ \ \ \ \ \ 0.32
+      \ \ \ \ \ 2.04
 
-      "t.default" \ \ \ \ \ \ 0.12 \ \ \ \ 0.73 \ \ \ \ \ \ 0.12
-      \ \ \ \ \ 0.73
+      "is.na" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.22 \ \ \ \ 1.40
+      \ \ \ \ \ \ 0.22 \ \ \ \ \ 1.40
 
-      "Ops.factor" \ \ \ \ \ 0.10 \ \ \ \ 0.61 \ \ \ \ \ \ 0.40
-      \ \ \ \ \ 2.44
+      "Ops.factor" \ \ \ \ \ \ \ \ \ \ 0.14 \ \ \ \ 0.89 \ \ \ \ \ \ 0.50
+      \ \ \ \ \ 3.19
 
-      "NextMethod" \ \ \ \ \ 0.08 \ \ \ \ 0.49 \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 0.49
+      "NextMethod" \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.38 \ \ \ \ \ \ 0.06
+      \ \ \ \ \ 0.38
 
-      "is.na" \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 0.49 \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 0.49
+      "standardGeneric" \ \ \ \ \ 0.04 \ \ \ \ 0.26 \ \ \ \ \ \ 1.00
+      \ \ \ \ \ 6.38
 
       \<gtr\> head(meta.minque.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "lmm" \ \ \ \ \ \ \ \ \ \ \ \ \ 16.42 \ \ \ 100.00 \ \ \ \ \ \ 0.0
-      \ \ \ \ 0.00
+      "lmm" \ \ \ \ \ \ \ \ \ \ \ \ \ 15.68 \ \ \ 100.00 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
 
-      "lmm1" \ \ \ \ \ \ \ \ \ \ \ \ 16.42 \ \ \ 100.00 \ \ \ \ \ \ 0.0
-      \ \ \ \ 0.00
+      "lmm1" \ \ \ \ \ \ \ \ \ \ \ \ 15.68 \ \ \ 100.00 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
 
-      "genmod.reml" \ \ \ \ \ 15.92 \ \ \ \ 96.95 \ \ \ \ \ \ 0.0
-      \ \ \ \ 0.00
+      "genmod.reml" \ \ \ \ \ 14.98 \ \ \ \ 95.54 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
 
-      "reml0" \ \ \ \ \ \ \ \ \ \ \ 15.92 \ \ \ \ 96.95 \ \ \ \ \ \ 0.0
-      \ \ \ \ 0.00
+      "reml0" \ \ \ \ \ \ \ \ \ \ \ 14.98 \ \ \ \ 95.54 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
 
-      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ 15.70 \ \ \ \ 95.62 \ \ \ \ \ 15.7
-      \ \ \ 95.62
+      "%*%" \ \ \ \ \ \ \ \ \ \ \ \ \ 14.52 \ \ \ \ 92.60 \ \ \ \ 14.52
+      \ \ \ \ 92.6
 
-      "genmod" \ \ \ \ \ \ \ \ \ \ 15.00 \ \ \ \ 91.35 \ \ \ \ \ \ 0.0
-      \ \ \ \ 0.00
+      "genmod" \ \ \ \ \ \ \ \ \ \ 14.26 \ \ \ \ 90.94 \ \ \ \ \ 0.00
+      \ \ \ \ \ 0.0
     </unfolded-prog-io|>
 
     <\textput>
@@ -6134,15 +6287,14 @@
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
+      library(MCMCglmm)
+
       if(!file.exists("meta.mcmc.Rda")) {
 
       \ \ \ Rprof("meta.MCMCglmm.prof")
 
       \ \ \ meta.mcmc \<less\>- MCMCglmm(fixed=YLD ~ 0 + Entry, random = ~
       Loca + Loca:Entry + Loca:Repe, data=rcbd.dat,verbose=FALSE)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ YLD ~ Entry
-      + (1 \| Loca/Repe) + (1 \| Loca:Entry)
 
       \ \ \ Rprof(NULL)
 
@@ -6157,8 +6309,6 @@
 
       \ \ \ save(cotes.mcmc,file="cotes.mcmc.Rda")
 
-      \ \ \ 
-
       } else {
 
       \ \ \ load(file="meta.mcmc.Rda")
@@ -6167,7 +6317,9 @@
 
       }
     <|unfolded-prog-io>
-      if(!file.exists("meta.mcmc.Rda")) {
+      library(MCMCglmm)
+
+      \<gtr\> if(!file.exists("meta.mcmc.Rda")) {
 
       + \ \ \ Rprof("meta.MCMCglmm.prof")
 
@@ -6179,11 +6331,6 @@
 
       \<less\>dom = ~ Loca + Loca:Entry + Loca:Repe,
       data=rcbd.dat,verbose=FALSE)
-
-      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ YLD ~
-      Entry + (1 \| Loca/Repe) + (1 \| Loca:Ent
-
-      \<less\> \ \ \ \ YLD ~ Entry + (1 \| Loca/Repe) + (1 \| Loca:Entry)
 
       + \ \ \ Rprof(NULL)
 
@@ -6206,8 +6353,6 @@
 
       + \ \ \ save(cotes.mcmc,file="cotes.mcmc.Rda")
 
-      + \ \ \ 
-
       + } else {
 
       + \ \ \ load(file="meta.mcmc.Rda")
@@ -6215,8 +6360,6 @@
       + \ \ \ load(file="cotes.mcmc.Rda")
 
       + }
-
-      Error: could not find function "MCMCglmm"
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -6232,26 +6375,213 @@
     <|unfolded-prog-io>
       summary(meta.mcmc)
 
-      Error in summary(meta.mcmc) : object 'meta.mcmc' not found
+      \;
+
+      \ Iterations = 3001:12991
+
+      \ Thinning interval \ = 10
+
+      \ Sample size \ = 1000\ 
+
+      \;
+
+      \ DIC: 3464.25\ 
+
+      \;
+
+      \ G-structure: \ ~Loca
+
+      \;
+
+      \ \ \ \ \ post.mean l-95% CI u-95% CI eff.samp
+
+      Loca \ \ \ \ 10.19 \ \ \ 3.568 \ \ \ 20.93 \ \ \ \ 1000
+
+      \;
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ~Loca:Entry
+
+      \;
+
+      \ \ \ \ \ \ \ \ \ \ \ post.mean l-95% CI u-95% CI eff.samp
+
+      Loca:Entry \ \ \ 0.4318 \ \ 0.3129 \ \ 0.5409 \ \ \ \ 1065
+
+      \;
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ~Loca:Repe
+
+      \;
+
+      \ \ \ \ \ \ \ \ \ \ post.mean l-95% CI u-95% CI eff.samp
+
+      Loca:Repe \ \ \ 0.1569 \ 0.06341 \ \ 0.2759 \ \ \ \ 1000
+
+      \;
+
+      \ R-structure: \ ~units
+
+      \;
+
+      \ \ \ \ \ \ post.mean l-95% CI u-95% CI eff.samp
+
+      units \ \ \ 0.9435 \ \ 0.8458 \ \ \ 1.029 \ \ \ \ 1094
+
+      \;
+
+      \ Location effects: YLD ~ 0 + Entry\ 
+
+      \;
+
+      \ \ \ \ \ \ \ \ post.mean l-95% CI u-95% CI eff.samp \ pMCMC \ \ \ 
+
+      Entry1 \ \ \ \ \ 5.852 \ \ \ 4.059 \ \ \ 7.686 \ \ \ \ 1295
+      \<less\>0.001 ***
+
+      Entry2 \ \ \ \ \ 6.017 \ \ \ 4.198 \ \ \ 7.805 \ \ \ \ 1117
+      \<less\>0.001 ***
+
+      Entry3 \ \ \ \ \ 6.691 \ \ \ 4.852 \ \ \ 8.494 \ \ \ \ 1158
+      \<less\>0.001 ***
+
+      Entry4 \ \ \ \ \ 6.469 \ \ \ 4.733 \ \ \ 8.433 \ \ \ \ 1103
+      \<less\>0.001 ***
+
+      Entry5 \ \ \ \ \ 6.484 \ \ \ 4.789 \ \ \ 8.415 \ \ \ \ 1113
+      \<less\>0.001 ***
+
+      Entry6 \ \ \ \ \ 6.454 \ \ \ 4.727 \ \ \ 8.377 \ \ \ \ 1123
+      \<less\>0.001 ***
+
+      Entry7 \ \ \ \ \ 5.781 \ \ \ 3.811 \ \ \ 7.568 \ \ \ \ 1270
+      \<less\>0.001 ***
+
+      Entry8 \ \ \ \ \ 6.609 \ \ \ 4.692 \ \ \ 8.401 \ \ \ \ 1117
+      \<less\>0.001 ***
+
+      Entry9 \ \ \ \ \ 5.610 \ \ \ 3.897 \ \ \ 7.540 \ \ \ \ 1239
+      \<less\>0.001 ***
+
+      Entry10 \ \ \ \ 6.324 \ \ \ 4.575 \ \ \ 8.265 \ \ \ \ 1118
+      \<less\>0.001 ***
+
+      Entry11 \ \ \ \ 6.889 \ \ \ 5.064 \ \ \ 8.556 \ \ \ \ 1127
+      \<less\>0.001 ***
+
+      Entry12 \ \ \ \ 6.017 \ \ \ 4.138 \ \ \ 7.784 \ \ \ \ 1140
+      \<less\>0.001 ***
+
+      Entry13 \ \ \ \ 6.151 \ \ \ 4.152 \ \ \ 7.885 \ \ \ \ 1261
+      \<less\>0.001 ***
+
+      Entry14 \ \ \ \ 3.579 \ \ \ 1.677 \ \ \ 5.335 \ \ \ \ 1103
+      \<less\>0.001 ***
+
+      Entry15 \ \ \ \ 6.026 \ \ \ 4.230 \ \ \ 7.914 \ \ \ \ 1145
+      \<less\>0.001 ***
+
+      Entry16 \ \ \ \ 4.932 \ \ \ 3.204 \ \ \ 6.827 \ \ \ \ 1140
+      \<less\>0.001 ***
+
+      Entry17 \ \ \ \ 6.600 \ \ \ 4.839 \ \ \ 8.568 \ \ \ \ 1147
+      \<less\>0.001 ***
+
+      Entry18 \ \ \ \ 6.506 \ \ \ 4.755 \ \ \ 8.324 \ \ \ \ 1210
+      \<less\>0.001 ***
+
+      Entry19 \ \ \ \ 3.284 \ \ \ 1.435 \ \ \ 5.135 \ \ \ \ 1147
+      \<less\>0.001 ***
+
+      Entry20 \ \ \ \ 5.897 \ \ \ 4.132 \ \ \ 7.823 \ \ \ \ 1000
+      \<less\>0.001 ***
+
+      Entry21 \ \ \ \ 4.861 \ \ \ 2.934 \ \ \ 6.771 \ \ \ \ 1120
+      \<less\>0.001 ***
+
+      Entry22 \ \ \ \ 6.620 \ \ \ 4.719 \ \ \ 8.497 \ \ \ \ 1294
+      \<less\>0.001 ***
+
+      Entry23 \ \ \ \ 3.759 \ \ \ 1.991 \ \ \ 5.771 \ \ \ \ 1268
+      \<less\>0.001 ***
+
+      Entry24 \ \ \ \ 5.860 \ \ \ 4.035 \ \ \ 7.683 \ \ \ \ 1237
+      \<less\>0.001 ***
+
+      Entry25 \ \ \ \ 4.844 \ \ \ 3.049 \ \ \ 6.709 \ \ \ \ 1156
+      \<less\>0.001 ***
+
+      Entry26 \ \ \ \ 6.846 \ \ \ 5.148 \ \ \ 8.770 \ \ \ \ 1233
+      \<less\>0.001 ***
+
+      Entry27 \ \ \ \ 6.742 \ \ \ 5.015 \ \ \ 8.622 \ \ \ \ 1135
+      \<less\>0.001 ***
+
+      Entry28 \ \ \ \ 6.342 \ \ \ 4.513 \ \ \ 8.123 \ \ \ \ 1138
+      \<less\>0.001 ***
+
+      Entry29 \ \ \ \ 5.802 \ \ \ 4.001 \ \ \ 7.536 \ \ \ \ 1152
+      \<less\>0.001 ***
+
+      Entry30 \ \ \ \ 5.311 \ \ \ 3.464 \ \ \ 7.091 \ \ \ \ 1112
+      \<less\>0.001 ***
+
+      Entry31 \ \ \ \ 6.185 \ \ \ 4.298 \ \ \ 8.053 \ \ \ \ 1144
+      \<less\>0.001 ***
+
+      Entry32 \ \ \ \ 5.657 \ \ \ 3.796 \ \ \ 7.544 \ \ \ \ 1000
+      \<less\>0.001 ***
+
+      ---
+
+      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
       \<gtr\> meta.MCMCglmm.summary \<less\>-
       summaryRprof("meta.MCMCglmm.prof")
 
-      Error in summaryRprof("meta.MCMCglmm.prof") :\ 
-
-      \ \ no lines found in 'meta.MCMCglmm.prof'
-
       \<gtr\> head(meta.MCMCglmm.summary[[1]])
 
-      Error in head(meta.MCMCglmm.summary[[1]]) :\ 
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
 
-      \ \ object 'meta.MCMCglmm.summary' not found
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 9.76 \ \ \ 97.41 \ \ \ \ \ \ 9.76
+      \ \ \ \ 97.41
+
+      "buildZ" \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.60 \ \ \ \ \ \ 0.18
+      \ \ \ \ \ 1.80
+
+      "==" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.60 \ \ \ \ \ \ 0.06
+      \ \ \ \ \ 0.60
+
+      "which" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.20 \ \ \ \ \ \ 0.08
+      \ \ \ \ \ 0.80
+
+      "interaction" \ \ \ \ \ 0.02 \ \ \ \ 0.20 \ \ \ \ \ \ 0.04
+      \ \ \ \ \ 0.40
+
+      "apply" \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 0.20 \ \ \ \ \ \ 0.02
+      \ \ \ \ \ 0.20
 
       \<gtr\> head(meta.MCMCglmm.summary[[2]])
 
-      Error in head(meta.MCMCglmm.summary[[2]]) :\ 
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time
+      self.pct
 
-      \ \ object 'meta.MCMCglmm.summary' not found
+      "MCMCglmm" \ \ \ \ \ \ \ \ \ \ \ \ 10.02 \ \ \ 100.00 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 9.76 \ \ \ \ 97.41
+      \ \ \ \ \ 9.76 \ \ \ 97.41
+
+      "buildZ" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.18 \ \ \ \ \ 1.80
+      \ \ \ \ \ 0.06 \ \ \ \ 0.60
+
+      "which" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ \ 0.80
+      \ \ \ \ \ 0.02 \ \ \ \ 0.20
+
+      "==" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.60
+      \ \ \ \ \ 0.06 \ \ \ \ 0.60
+
+      "standardGeneric" \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.60 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -6268,31 +6598,296 @@
     <|unfolded-prog-io>
       summary(cotes.mcmc)
 
-      Error in summary(cotes.mcmc) : object 'cotes.mcmc' not found
+      \;
+
+      \ Iterations = 3001:12991
+
+      \ Thinning interval \ = 10
+
+      \ Sample size \ = 1000\ 
+
+      \;
+
+      \ DIC: 3111.326\ 
+
+      \;
+
+      \ G-structure: \ ~Loca
+
+      \;
+
+      \ \ \ \ \ post.mean l-95% CI u-95% CI eff.samp
+
+      Loca \ \ \ \ 11.11 \ \ \ 4.205 \ \ \ 21.96 \ \ \ 904.2
+
+      \;
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ~idh(Entry):Loca
+
+      \;
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ post.mean \ l-95% CI \ u-95% CI eff.samp
+
+      Entry1.Loca \ 1.744e-03 7.594e-39 3.033e-04 \ 132.253
+
+      Entry2.Loca \ 2.962e-04 1.841e-67 3.691e-05 \ 203.623
+
+      Entry3.Loca \ 4.793e-03 3.465e-25 1.898e-03 \ \ 57.354
+
+      Entry4.Loca \ 7.502e-03 2.354e-27 3.720e-02 \ \ 72.109
+
+      Entry5.Loca \ 5.481e-02 4.978e-29 2.880e-01 \ \ 44.481
+
+      Entry6.Loca \ 1.957e-13 1.220e-46 1.361e-15 \ \ \ 0.000
+
+      Entry7.Loca \ 1.055e-02 4.596e-24 5.320e-02 \ 186.915
+
+      Entry8.Loca \ 3.819e-01 7.927e-05 1.091e+00 \ 216.238
+
+      Entry9.Loca \ 4.986e-01 1.175e-03 1.172e+00 1000.000
+
+      Entry10.Loca 5.173e-01 5.494e-02 1.231e+00 1000.000
+
+      Entry11.Loca 4.135e-02 2.614e-24 2.738e-01 \ \ 49.219
+
+      Entry12.Loca 1.165e-15 9.566e-39 1.420e-16 \ \ \ 0.000
+
+      Entry13.Loca 3.097e-01 3.064e-09 9.739e-01 \ 783.576
+
+      Entry14.Loca 2.936e+00 9.253e-01 6.458e+00 \ 676.153
+
+      Entry15.Loca 3.269e-03 5.652e-32 5.409e-03 \ 424.095
+
+      Entry16.Loca 5.706e-01 5.649e-02 1.430e+00 1000.000
+
+      Entry17.Loca 2.837e-02 8.545e-28 1.829e-01 \ \ 85.889
+
+      Entry18.Loca 8.137e-03 1.098e-31 9.751e-03 \ 141.760
+
+      Entry19.Loca 4.163e+00 1.133e+00 8.611e+00 \ 883.272
+
+      Entry20.Loca 3.515e-16 7.865e-48 6.809e-18 \ \ \ 0.000
+
+      Entry21.Loca 3.050e-01 7.055e-07 7.162e-01 \ 912.312
+
+      Entry22.Loca 2.332e-01 1.034e-20 7.584e-01 \ \ 28.891
+
+      Entry23.Loca 4.051e+00 8.920e-01 8.363e+00 1000.000
+
+      Entry24.Loca 1.104e-02 8.308e-22 6.830e-02 \ 140.626
+
+      Entry25.Loca 8.226e-01 8.956e-02 1.964e+00 \ 954.573
+
+      Entry26.Loca 2.458e-01 4.236e-25 1.017e+00 \ \ 28.943
+
+      Entry27.Loca 3.121e-03 1.048e-27 1.170e-02 \ 137.838
+
+      Entry28.Loca 1.421e-02 2.664e-20 8.549e-02 \ 119.313
+
+      Entry29.Loca 5.913e-21 1.233e-50 1.960e-26 \ \ \ 0.000
+
+      Entry30.Loca 3.185e-01 2.004e-06 8.440e-01 \ 850.386
+
+      Entry31.Loca 7.060e-02 1.804e-30 4.330e-01 \ \ \ 7.934
+
+      Entry32.Loca 9.568e-01 2.002e-01 2.136e+00 1000.000
+
+      \;
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ~Loca:Repe
+
+      \;
+
+      \ \ \ \ \ \ \ \ \ \ post.mean l-95% CI u-95% CI eff.samp
+
+      Loca:Repe \ \ 0.07367 \ 0.01254 \ \ \ 0.159 \ \ \ 805.6
+
+      \;
+
+      \ R-structure: \ ~idh(Loca):units
+
+      \;
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ post.mean l-95% CI u-95% CI
+      eff.samp
+
+      LocaAgua Fria.units \ \ \ \ \ 0.5753 \ \ 0.3672 \ \ 0.7666 \ \ \ 67.21
+
+      LocaCotaxtla.units \ \ \ \ \ \ 0.3489 \ \ 0.2495 \ \ 0.4678 \ \ 796.43
+
+      LocaIguala.units \ \ \ \ \ \ \ \ 2.4028 \ \ 1.7113 \ \ 3.2268 \ 1000.00
+
+      LocaManagua.units \ \ \ \ \ \ \ 0.4408 \ \ 0.3009 \ \ 0.5961 \ \ 739.63
+
+      LocaPalmira .units \ \ \ \ \ \ 1.5237 \ \ 1.0536 \ \ 2.0215 \ 1000.00
+
+      LocaSabana .units \ \ \ \ \ \ \ 0.2211 \ \ 0.1569 \ \ 0.3004 \ 1000.00
+
+      LocaSan Andres.units \ \ \ \ 0.2342 \ \ 0.1503 \ \ 0.3174 \ \ 844.43
+
+      LocaSanta Cruz.units \ \ \ \ 1.0691 \ \ 0.7632 \ \ 1.4082 \ 1152.36
+
+      LocaTiucal.units \ \ \ \ \ \ \ \ 0.7374 \ \ 0.5311 \ \ 0.9888 \ 1000.00
+
+      LocaTlaltizapan.units \ \ \ 1.6597 \ \ 1.1609 \ \ 2.2100 \ 1000.00
+
+      LocaToco.units \ \ \ \ \ \ \ \ \ \ 2.8897 \ \ 2.0202 \ \ 3.7366
+      \ 1000.00
+
+      LocaYoro.units \ \ \ \ \ \ \ \ \ \ 0.5375 \ \ 0.3836 \ \ 0.7351
+      \ 1000.00
+
+      \;
+
+      \ Location effects: YLD ~ 0 + Entry\ 
+
+      \;
+
+      \ \ \ \ \ \ \ \ post.mean l-95% CI u-95% CI eff.samp \ pMCMC \ \ \ 
+
+      Entry1 \ \ \ \ 5.9796 \ \ 4.0082 \ \ 8.0484 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry2 \ \ \ \ 6.0924 \ \ 4.0440 \ \ 8.0920 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry3 \ \ \ \ 6.5803 \ \ 4.4693 \ \ 8.4904 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry4 \ \ \ \ 6.3523 \ \ 4.3963 \ \ 8.4984 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry5 \ \ \ \ 6.2166 \ \ 4.0714 \ \ 8.1385 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry6 \ \ \ \ 6.3750 \ \ 4.3599 \ \ 8.4291 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry7 \ \ \ \ 5.7759 \ \ 3.7629 \ \ 7.9073 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry8 \ \ \ \ 6.5070 \ \ 4.4686 \ \ 8.6607 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry9 \ \ \ \ 5.5359 \ \ 3.3582 \ \ 7.5408 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry10 \ \ \ 6.2447 \ \ 3.8602 \ \ 8.1732 \ \ \ \ 1107 \<less\>0.001
+      ***
+
+      Entry11 \ \ \ 6.9452 \ \ 4.8057 \ \ 8.8949 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry12 \ \ \ 5.9502 \ \ 3.8990 \ \ 7.8836 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry13 \ \ \ 6.0678 \ \ 4.0440 \ \ 8.2405 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry14 \ \ \ 3.5966 \ \ 1.0483 \ \ 5.6612 \ \ \ \ 1000 \ 0.002 **\ 
+
+      Entry15 \ \ \ 6.1827 \ \ 4.2333 \ \ 8.3643 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry16 \ \ \ 4.9025 \ \ 2.8233 \ \ 6.9619 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry17 \ \ \ 6.6355 \ \ 4.7145 \ \ 8.8068 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry18 \ \ \ 6.5418 \ \ 4.6506 \ \ 8.7848 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry19 \ \ \ 3.3696 \ \ 0.9883 \ \ 5.4751 \ \ \ \ 1000 \ 0.006 **\ 
+
+      Entry20 \ \ \ 6.1878 \ \ 4.1039 \ \ 8.2103 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry21 \ \ \ 4.9060 \ \ 2.8830 \ \ 7.0169 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry22 \ \ \ 6.6476 \ \ 4.6130 \ \ 8.7634 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry23 \ \ \ 3.7199 \ \ 1.3554 \ \ 6.0675 \ \ \ \ 1000 \ 0.002 **\ 
+
+      Entry24 \ \ \ 6.0235 \ \ 4.0323 \ \ 8.0841 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry25 \ \ \ 4.8509 \ \ 2.6452 \ \ 6.8593 \ \ \ \ 1107 \<less\>0.001
+      ***
+
+      Entry26 \ \ \ 6.6343 \ \ 4.4456 \ \ 8.5433 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry27 \ \ \ 6.6827 \ \ 4.5764 \ \ 8.6814 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry28 \ \ \ 6.2303 \ \ 4.3115 \ \ 8.3985 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry29 \ \ \ 5.8162 \ \ 3.6764 \ \ 7.7619 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry30 \ \ \ 5.2162 \ \ 3.2434 \ \ 7.3969 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry31 \ \ \ 5.9300 \ \ 3.9709 \ \ 8.0759 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      Entry32 \ \ \ 5.6173 \ \ 3.5698 \ \ 7.7804 \ \ \ \ 1000 \<less\>0.001
+      ***
+
+      ---
+
+      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
       \<gtr\> meta.cotes.MCMCglmm.summary \<less\>-
       summaryRprof("meta.cotes.MCMCglmm.prof")
 
-      Error in file(filename, "rt") : cannot open the connection
-
-      In addition: Warning message:
-
-      In file(filename, "rt") :
-
-      \ \ cannot open file 'meta.cotes.MCMCglmm.prof': No such file or
-      directory
-
       \<gtr\> head(meta.cotes.MCMCglmm.summary[[1]])
 
-      Error in head(meta.cotes.MCMCglmm.summary[[1]]) :\ 
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
+      total.pct
 
-      \ \ object 'meta.cotes.MCMCglmm.summary' not found
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 17.20 \ \ \ 96.41
+      \ \ \ \ \ 17.20 \ \ \ \ 96.41
+
+      "buildZ" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.34 \ \ \ \ \ \ 0.50
+      \ \ \ \ \ 2.80
+
+      "@\<less\>-" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.34
+      \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.34
+
+      "apply" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.34
+      \ \ \ \ \ \ 0.06 \ \ \ \ \ 0.34
+
+      "standardGeneric" \ \ \ \ \ 0.04 \ \ \ \ 0.22 \ \ \ \ \ \ 0.12
+      \ \ \ \ \ 0.67
+
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.22
+      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.22
 
       \<gtr\> head(meta.cotes.MCMCglmm.summary[[2]])
 
-      Error in head(meta.cotes.MCMCglmm.summary[[2]]) :\ 
+      \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      \ \ object 'meta.cotes.MCMCglmm.summary' not found
+      "MCMCglmm" \ \ \ \ \ \ \ 17.84 \ \ \ 100.00 \ \ \ \ \ 0.00 \ \ \ \ 0.00
+
+      ".C" \ \ \ \ \ \ \ \ \ \ \ \ \ 17.20 \ \ \ \ 96.41 \ \ \ \ 17.20
+      \ \ \ 96.41
+
+      "buildZ" \ \ \ \ \ \ \ \ \ \ 0.50 \ \ \ \ \ 2.80 \ \ \ \ \ 0.06
+      \ \ \ \ 0.34
+
+      "initialize" \ \ \ \ \ \ 0.16 \ \ \ \ \ 0.90 \ \ \ \ \ 0.02
+      \ \ \ \ 0.11
+
+      "Matrix" \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ \ 0.90 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+
+      "new" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ \ 0.90 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -6321,14 +6916,6 @@
       library(INLA)
     <|unfolded-prog-io>
       library(INLA)
-
-      Loading required package: sp
-
-      Loading required package: splines
-
-      This is INLA 0.0-1468872408, dated 2016-07-18 (14:43:05+0100).
-
-      See www.r-inla.org/contact-us for how to get help.
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -6401,8 +6988,8 @@
       \ Pre-processing \ \ \ Running inla Post-processing
       \ \ \ \ \ \ \ \ \ \ Total\ 
 
-      \ \ \ \ \ \ \ \ \ 3.0042 \ \ \ \ \ \ \ \ \ 4.4318
-      \ \ \ \ \ \ \ \ \ 0.1661 \ \ \ \ \ \ \ \ \ 7.6021\ 
+      \ \ \ \ \ \ \ \ \ 4.2433 \ \ \ \ \ \ \ \ \ 7.2360
+      \ \ \ \ \ \ \ \ \ 0.2722 \ \ \ \ \ \ \ \ 11.7515\ 
 
       \;
 
@@ -6567,47 +7154,47 @@
 
       \<gtr\> head(meta.inla.summary[[1]])
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
+      total.pct
 
-      "gsub" \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ 12.82 \ \ \ \ \ \ 0.12
-      \ \ \ \ 15.38
+      "file" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.24 \ \ \ 21.43
+      \ \ \ \ \ \ 0.28 \ \ \ \ 25.00
 
-      "file" \ \ \ \ \ \ \ \ \ \ \ \ 0.10 \ \ \ 12.82 \ \ \ \ \ \ 0.10
-      \ \ \ \ 12.82
+      "inla.models" \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ 10.71 \ \ \ \ \ \ 0.16
+      \ \ \ \ 14.29
 
-      "inla.models" \ \ \ \ \ 0.08 \ \ \ 10.26 \ \ \ \ \ \ 0.14 \ \ \ \ 17.95
+      "system" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.12 \ \ \ 10.71
+      \ \ \ \ \ \ 0.12 \ \ \ \ 10.71
 
-      "file.exists" \ \ \ \ \ 0.06 \ \ \ \ 7.69 \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 7.69
+      "close.connection" \ \ \ \ \ 0.06 \ \ \ \ 5.36 \ \ \ \ \ \ 0.06
+      \ \ \ \ \ 5.36
 
-      "system" \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 7.69 \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 7.69
+      "getwd" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 5.36
+      \ \ \ \ \ \ 0.06 \ \ \ \ \ 5.36
 
-      "getwd" \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 5.13 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 5.13
+      "readBin" \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 5.36
+      \ \ \ \ \ \ 0.06 \ \ \ \ \ 5.36
 
       \<gtr\> head(meta.inla.summary[[2]])\ 
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct
-      self.time self.pct
+      \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time self.pct
 
-      "inla" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.78 \ \ \ 100.00
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "eval" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.20 \ \ \ \ 25.64
-      \ \ \ \ \ 0.02 \ \ \ \ 2.56
-
-      "doTryCatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ 20.51
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
-
-      "inla.model.properties" \ \ \ \ \ \ 0.16 \ \ \ \ 20.51 \ \ \ \ \ 0.00
+      "inla" \ \ \ \ \ \ \ \ \ \ \ \ 1.12 \ \ \ 100.00 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "try" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16
-      \ \ \ \ 20.51 \ \ \ \ \ 0.00 \ \ \ \ 0.00
+      "eval" \ \ \ \ \ \ \ \ \ \ \ \ 0.32 \ \ \ \ 28.57 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
 
-      "tryCatch" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.16 \ \ \ \ 20.51
-      \ \ \ \ \ 0.00 \ \ \ \ 0.00
+      "file" \ \ \ \ \ \ \ \ \ \ \ \ 0.28 \ \ \ \ 25.00 \ \ \ \ \ 0.24
+      \ \ \ 21.43
+
+      "doTryCatch" \ \ \ \ \ \ 0.26 \ \ \ \ 23.21 \ \ \ \ \ 0.00 \ \ \ \ 0.00
+
+      "try" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.26 \ \ \ \ 23.21 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
+
+      "tryCatch" \ \ \ \ \ \ \ \ 0.26 \ \ \ \ 23.21 \ \ \ \ \ 0.00
+      \ \ \ \ 0.00
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -6658,50 +7245,6 @@
     <|unfolded-prog-io>
       library(brms)
 
-      Loading required package: rstan
-
-      Loading required package: ggplot2
-
-      Loading required package: StanHeaders
-
-      rstan (Version 2.12.1, packaged: 2016-09-11 13:07:50 UTC, GitRev:
-      85f7a56811da)
-
-      For execution on a local, multicore CPU with excess RAM we recommend
-      calling
-
-      rstan_options(auto_write = TRUE)
-
-      options(mc.cores = parallel::detectCores())
-
-      Loading 'brms' package (version 0.10.0). Useful instructions\ 
-
-      can be found by typing help('brms'). A more detailed introduction\ 
-
-      to the package is available through vignette('brms').
-
-      \;
-
-      Attaching package: 'brms'
-
-      \;
-
-      The following objects are masked from 'package:glmmLasso':
-
-      \;
-
-      \ \ \ \ acat, cumulative
-
-      \;
-
-      The following object is masked from 'package:glmmADMB':
-
-      \;
-
-      \ \ \ \ VarCorr
-
-      \;
-
       \<gtr\> if(!file.exists("meta.brms.Rda")) {
 
       + \ \ Rprof("meta.brms.prof")
@@ -6721,266 +7264,6 @@
       + \ \ load(file="meta.brms.Rda")
 
       + }
-
-      Compiling the C++ model
-
-      In file included from filed6ae5da45e65.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core.hpp:42:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core/set_zero_all_adjoints.hpp:14:17:
-      warning: unused function 'set_zero_all_adjoints' [-Wunused-function]
-
-      \ \ \ \ static void set_zero_all_adjoints() {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from filed6ae5da45e65.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core.hpp:43:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core/set_zero_all_adjoints_nested.hpp:17:17:
-      warning: 'static' function 'set_zero_all_adjoints_nested' declared in
-      header file should be declared 'static inline'
-      [-Wunneeded-internal-declaration]
-
-      \ \ \ \ static void set_zero_all_adjoints_nested() {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from filed6ae5da45e65.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:9:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat.hpp:54:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/autocorrelation.hpp:17:14:
-      warning: function 'fft_next_good_size' is not needed and will not be
-      emitted [-Wunneeded-internal-declaration]
-
-      \ \ \ \ \ \ size_t fft_next_good_size(size_t N) {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from filed6ae5da45e65.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:9:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat.hpp:235:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/arr.hpp:36:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/arr/functor/integrate_ode_rk45.hpp:13:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/numeric/odeint.hpp:61:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/numeric/odeint/util/multi_array_adaption.hpp:29:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array.hpp:21:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/base.hpp:28:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:42:43:
-      warning: unused typedef 'index_range' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index_range index_range;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:43:37:
-      warning: unused typedef 'index' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index index;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:53:43:
-      warning: unused typedef 'index_range' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index_range index_range;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:54:37:
-      warning: unused typedef 'index' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index index;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      7 warnings generated.
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 1).
-
-      \;
-
-      Chain 1, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 1, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 1, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 1, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 1, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 1, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 1, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 1, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 1, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 1, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 1, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 1, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 47.5195 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 46.5375 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 94.0571 seconds (Total)
-
-      \;
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 2).
-
-      \;
-
-      Chain 2, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 2, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 2, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 2, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 2, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 2, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 2, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 2, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 2, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 2, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 2, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 2, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 53.1433 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 56.7158 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 109.859 seconds (Total)
-
-      \;
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 3).
-
-      \;
-
-      Chain 3, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 3, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 3, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 3, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 3, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 3, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 3, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 3, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 3, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 3, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 3, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 3, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 44.8726 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 47.5954 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 92.468 seconds (Total)
-
-      \;
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 4).
-
-      \;
-
-      Chain 4, Iteration: \ \ \ 1 / 2000 [ \ 0%] \ (Warmup)
-
-      Chain 4, Iteration: \ 200 / 2000 [ 10%] \ (Warmup)
-
-      Chain 4, Iteration: \ 400 / 2000 [ 20%] \ (Warmup)
-
-      Chain 4, Iteration: \ 600 / 2000 [ 30%] \ (Warmup)
-
-      Chain 4, Iteration: \ 800 / 2000 [ 40%] \ (Warmup)
-
-      Chain 4, Iteration: 1000 / 2000 [ 50%] \ (Warmup)
-
-      Chain 4, Iteration: 1001 / 2000 [ 50%] \ (Sampling)
-
-      Chain 4, Iteration: 1200 / 2000 [ 60%] \ (Sampling)
-
-      Chain 4, Iteration: 1400 / 2000 [ 70%] \ (Sampling)
-
-      Chain 4, Iteration: 1600 / 2000 [ 80%] \ (Sampling)
-
-      Chain 4, Iteration: 1800 / 2000 [ 90%] \ (Sampling)
-
-      Chain 4, Iteration: 2000 / 2000 [100%] \ (Sampling)
-
-      \ Elapsed Time: 46.3648 seconds (Warm-up)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 47.4589 seconds (Sampling)
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 93.8237 seconds (Total)
-
-      \;
 
       \<gtr\> summary(meta.brms)
 
@@ -7005,8 +7288,8 @@
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ Estimate Est.Error l-95% CI u-95% CI
       Eff.Sample Rhat
 
-      sd(Intercept) \ \ \ \ \ 3.3 \ \ \ \ \ 0.83 \ \ \ \ 2.13 \ \ \ \ \ 5.3
-      \ \ \ \ \ \ 1031 1.01
+      sd(Intercept) \ \ \ \ 3.29 \ \ \ \ \ 0.84 \ \ \ \ 2.12 \ \ \ \ \ 5.4
+      \ \ \ \ \ \ \ 895 \ \ \ 1
 
       \;
 
@@ -7016,7 +7299,7 @@
       Eff.Sample Rhat
 
       sd(Intercept) \ \ \ \ 0.66 \ \ \ \ \ 0.05 \ \ \ \ 0.57 \ \ \ \ 0.75
-      \ \ \ \ \ \ 1235 \ \ \ 1
+      \ \ \ \ \ \ 1496 \ \ \ 1
 
       \;
 
@@ -7026,7 +7309,7 @@
       Eff.Sample Rhat
 
       sd(Intercept) \ \ \ \ \ 0.4 \ \ \ \ \ 0.07 \ \ \ \ 0.27 \ \ \ \ 0.57
-      \ \ \ \ \ \ 1544 \ \ \ 1
+      \ \ \ \ \ \ 1609 \ \ \ 1
 
       \;
 
@@ -7034,101 +7317,101 @@
 
       \ \ \ \ \ \ \ \ Estimate Est.Error l-95% CI u-95% CI Eff.Sample Rhat
 
-      Entry1 \ \ \ \ \ 5.93 \ \ \ \ \ 1.04 \ \ \ \ 3.92 \ \ \ \ 7.99
-      \ \ \ \ \ \ \ 119 1.02
+      Entry1 \ \ \ \ \ 5.71 \ \ \ \ \ 1.04 \ \ \ \ 3.47 \ \ \ \ 7.68
+      \ \ \ \ \ \ \ 130 1.04
 
-      Entry2 \ \ \ \ \ 6.13 \ \ \ \ \ 1.04 \ \ \ \ 4.13 \ \ \ \ 8.26
-      \ \ \ \ \ \ \ 117 1.02
+      Entry2 \ \ \ \ \ 5.90 \ \ \ \ \ 1.05 \ \ \ \ 3.62 \ \ \ \ 7.94
+      \ \ \ \ \ \ \ 130 1.04
 
-      Entry3 \ \ \ \ \ 6.78 \ \ \ \ \ 1.03 \ \ \ \ 4.81 \ \ \ \ 8.86
-      \ \ \ \ \ \ \ 121 1.02
+      Entry3 \ \ \ \ \ 6.57 \ \ \ \ \ 1.04 \ \ \ \ 4.29 \ \ \ \ 8.59
+      \ \ \ \ \ \ \ 130 1.04
 
-      Entry4 \ \ \ \ \ 6.56 \ \ \ \ \ 1.04 \ \ \ \ 4.56 \ \ \ \ 8.64
-      \ \ \ \ \ \ \ 117 1.02
+      Entry4 \ \ \ \ \ 6.35 \ \ \ \ \ 1.04 \ \ \ \ 4.10 \ \ \ \ 8.35
+      \ \ \ \ \ \ \ 131 1.03
 
-      Entry5 \ \ \ \ \ 6.57 \ \ \ \ \ 1.03 \ \ \ \ 4.59 \ \ \ \ 8.68
-      \ \ \ \ \ \ \ 119 1.02
+      Entry5 \ \ \ \ \ 6.36 \ \ \ \ \ 1.04 \ \ \ \ 4.07 \ \ \ \ 8.35
+      \ \ \ \ \ \ \ 131 1.04
 
-      Entry6 \ \ \ \ \ 6.54 \ \ \ \ \ 1.03 \ \ \ \ 4.51 \ \ \ \ 8.64
-      \ \ \ \ \ \ \ 116 1.02
+      Entry6 \ \ \ \ \ 6.33 \ \ \ \ \ 1.04 \ \ \ \ 4.08 \ \ \ \ 8.32
+      \ \ \ \ \ \ \ 131 1.04
 
-      Entry7 \ \ \ \ \ 5.86 \ \ \ \ \ 1.04 \ \ \ \ 3.89 \ \ \ \ 8.01
-      \ \ \ \ \ \ \ 117 1.02
+      Entry7 \ \ \ \ \ 5.65 \ \ \ \ \ 1.05 \ \ \ \ 3.33 \ \ \ \ 7.66
+      \ \ \ \ \ \ \ 129 1.04
 
-      Entry8 \ \ \ \ \ 6.70 \ \ \ \ \ 1.04 \ \ \ \ 4.71 \ \ \ \ 8.76
-      \ \ \ \ \ \ \ 121 1.02
+      Entry8 \ \ \ \ \ 6.49 \ \ \ \ \ 1.04 \ \ \ \ 4.26 \ \ \ \ 8.48
+      \ \ \ \ \ \ \ 133 1.03
 
-      Entry9 \ \ \ \ \ 5.70 \ \ \ \ \ 1.04 \ \ \ \ 3.68 \ \ \ \ 7.75
-      \ \ \ \ \ \ \ 117 1.02
+      Entry9 \ \ \ \ \ 5.49 \ \ \ \ \ 1.04 \ \ \ \ 3.23 \ \ \ \ 7.46
+      \ \ \ \ \ \ \ 130 1.03
 
-      Entry10 \ \ \ \ 6.41 \ \ \ \ \ 1.04 \ \ \ \ 4.42 \ \ \ \ 8.48
-      \ \ \ \ \ \ \ 119 1.02
+      Entry10 \ \ \ \ 6.20 \ \ \ \ \ 1.04 \ \ \ \ 3.90 \ \ \ \ 8.19
+      \ \ \ \ \ \ \ 131 1.04
 
-      Entry11 \ \ \ \ 6.96 \ \ \ \ \ 1.03 \ \ \ \ 4.96 \ \ \ \ 9.03
-      \ \ \ \ \ \ \ 118 1.02
+      Entry11 \ \ \ \ 6.75 \ \ \ \ \ 1.04 \ \ \ \ 4.50 \ \ \ \ 8.75
+      \ \ \ \ \ \ \ 132 1.04
 
-      Entry12 \ \ \ \ 6.11 \ \ \ \ \ 1.04 \ \ \ \ 4.09 \ \ \ \ 8.19
-      \ \ \ \ \ \ \ 118 1.02
+      Entry12 \ \ \ \ 5.89 \ \ \ \ \ 1.04 \ \ \ \ 3.63 \ \ \ \ 7.87
+      \ \ \ \ \ \ \ 132 1.04
 
-      Entry13 \ \ \ \ 6.26 \ \ \ \ \ 1.04 \ \ \ \ 4.31 \ \ \ \ 8.33
-      \ \ \ \ \ \ \ 117 1.02
+      Entry13 \ \ \ \ 6.04 \ \ \ \ \ 1.04 \ \ \ \ 3.72 \ \ \ \ 8.04
+      \ \ \ \ \ \ \ 129 1.04
 
-      Entry14 \ \ \ \ 3.66 \ \ \ \ \ 1.04 \ \ \ \ 1.67 \ \ \ \ 5.76
-      \ \ \ \ \ \ \ 120 1.02
+      Entry14 \ \ \ \ 3.45 \ \ \ \ \ 1.05 \ \ \ \ 1.19 \ \ \ \ 5.43
+      \ \ \ \ \ \ \ 130 1.04
 
-      Entry15 \ \ \ \ 6.13 \ \ \ \ \ 1.03 \ \ \ \ 4.12 \ \ \ \ 8.20
-      \ \ \ \ \ \ \ 119 1.02
+      Entry15 \ \ \ \ 5.92 \ \ \ \ \ 1.04 \ \ \ \ 3.64 \ \ \ \ 7.91
+      \ \ \ \ \ \ \ 126 1.04
 
-      Entry16 \ \ \ \ 5.03 \ \ \ \ \ 1.04 \ \ \ \ 2.98 \ \ \ \ 7.10
-      \ \ \ \ \ \ \ 118 1.02
+      Entry16 \ \ \ \ 4.81 \ \ \ \ \ 1.04 \ \ \ \ 2.54 \ \ \ \ 6.77
+      \ \ \ \ \ \ \ 130 1.04
 
-      Entry17 \ \ \ \ 6.67 \ \ \ \ \ 1.05 \ \ \ \ 4.66 \ \ \ \ 8.77
-      \ \ \ \ \ \ \ 118 1.02
+      Entry17 \ \ \ \ 6.46 \ \ \ \ \ 1.04 \ \ \ \ 4.16 \ \ \ \ 8.42
+      \ \ \ \ \ \ \ 129 1.04
 
-      Entry18 \ \ \ \ 6.59 \ \ \ \ \ 1.04 \ \ \ \ 4.57 \ \ \ \ 8.67
-      \ \ \ \ \ \ \ 117 1.02
+      Entry18 \ \ \ \ 6.37 \ \ \ \ \ 1.04 \ \ \ \ 4.05 \ \ \ \ 8.35
+      \ \ \ \ \ \ \ 131 1.04
 
-      Entry19 \ \ \ \ 3.39 \ \ \ \ \ 1.05 \ \ \ \ 1.37 \ \ \ \ 5.44
-      \ \ \ \ \ \ \ 115 1.02
+      Entry19 \ \ \ \ 3.17 \ \ \ \ \ 1.04 \ \ \ \ 0.84 \ \ \ \ 5.11
+      \ \ \ \ \ \ \ 132 1.04
 
-      Entry20 \ \ \ \ 5.98 \ \ \ \ \ 1.04 \ \ \ \ 3.99 \ \ \ \ 8.04
-      \ \ \ \ \ \ \ 117 1.02
+      Entry20 \ \ \ \ 5.77 \ \ \ \ \ 1.04 \ \ \ \ 3.50 \ \ \ \ 7.71
+      \ \ \ \ \ \ \ 131 1.04
 
-      Entry21 \ \ \ \ 4.94 \ \ \ \ \ 1.04 \ \ \ \ 2.94 \ \ \ \ 7.03
-      \ \ \ \ \ \ \ 115 1.02
+      Entry21 \ \ \ \ 4.74 \ \ \ \ \ 1.05 \ \ \ \ 2.41 \ \ \ \ 6.73
+      \ \ \ \ \ \ \ 135 1.04
 
-      Entry22 \ \ \ \ 6.70 \ \ \ \ \ 1.04 \ \ \ \ 4.70 \ \ \ \ 8.76
-      \ \ \ \ \ \ \ 120 1.02
+      Entry22 \ \ \ \ 6.49 \ \ \ \ \ 1.04 \ \ \ \ 4.21 \ \ \ \ 8.41
+      \ \ \ \ \ \ \ 133 1.03
 
-      Entry23 \ \ \ \ 3.85 \ \ \ \ \ 1.03 \ \ \ \ 1.87 \ \ \ \ 5.92
-      \ \ \ \ \ \ \ 120 1.02
+      Entry23 \ \ \ \ 3.63 \ \ \ \ \ 1.04 \ \ \ \ 1.33 \ \ \ \ 5.61
+      \ \ \ \ \ \ \ 133 1.04
 
-      Entry24 \ \ \ \ 5.97 \ \ \ \ \ 1.04 \ \ \ \ 3.96 \ \ \ \ 8.01
-      \ \ \ \ \ \ \ 120 1.02
+      Entry24 \ \ \ \ 5.76 \ \ \ \ \ 1.04 \ \ \ \ 3.48 \ \ \ \ 7.75
+      \ \ \ \ \ \ \ 132 1.04
 
-      Entry25 \ \ \ \ 4.94 \ \ \ \ \ 1.04 \ \ \ \ 2.96 \ \ \ \ 7.01
-      \ \ \ \ \ \ \ 117 1.02
+      Entry25 \ \ \ \ 4.72 \ \ \ \ \ 1.04 \ \ \ \ 2.40 \ \ \ \ 6.67
+      \ \ \ \ \ \ \ 132 1.04
 
-      Entry26 \ \ \ \ 6.94 \ \ \ \ \ 1.04 \ \ \ \ 4.94 \ \ \ \ 8.98
-      \ \ \ \ \ \ \ 118 1.02
+      Entry26 \ \ \ \ 6.73 \ \ \ \ \ 1.04 \ \ \ \ 4.45 \ \ \ \ 8.75
+      \ \ \ \ \ \ \ 130 1.04
 
-      Entry27 \ \ \ \ 6.83 \ \ \ \ \ 1.04 \ \ \ \ 4.84 \ \ \ \ 8.93
-      \ \ \ \ \ \ \ 119 1.02
+      Entry27 \ \ \ \ 6.61 \ \ \ \ \ 1.05 \ \ \ \ 4.31 \ \ \ \ 8.62
+      \ \ \ \ \ \ \ 132 1.04
 
-      Entry28 \ \ \ \ 6.44 \ \ \ \ \ 1.04 \ \ \ \ 4.47 \ \ \ \ 8.51
-      \ \ \ \ \ \ \ 116 1.02
+      Entry28 \ \ \ \ 6.22 \ \ \ \ \ 1.04 \ \ \ \ 3.92 \ \ \ \ 8.21
+      \ \ \ \ \ \ \ 131 1.04
 
-      Entry29 \ \ \ \ 5.89 \ \ \ \ \ 1.04 \ \ \ \ 3.92 \ \ \ \ 7.95
-      \ \ \ \ \ \ \ 117 1.02
+      Entry29 \ \ \ \ 5.68 \ \ \ \ \ 1.04 \ \ \ \ 3.41 \ \ \ \ 7.69
+      \ \ \ \ \ \ \ 132 1.03
 
-      Entry30 \ \ \ \ 5.39 \ \ \ \ \ 1.04 \ \ \ \ 3.44 \ \ \ \ 7.52
-      \ \ \ \ \ \ \ 117 1.02
+      Entry30 \ \ \ \ 5.17 \ \ \ \ \ 1.04 \ \ \ \ 2.87 \ \ \ \ 7.17
+      \ \ \ \ \ \ \ 135 1.04
 
-      Entry31 \ \ \ \ 6.29 \ \ \ \ \ 1.04 \ \ \ \ 4.28 \ \ \ \ 8.33
-      \ \ \ \ \ \ \ 115 1.02
+      Entry31 \ \ \ \ 6.07 \ \ \ \ \ 1.04 \ \ \ \ 3.73 \ \ \ \ 8.01
+      \ \ \ \ \ \ \ 132 1.04
 
-      Entry32 \ \ \ \ 5.75 \ \ \ \ \ 1.04 \ \ \ \ 3.74 \ \ \ \ 7.85
-      \ \ \ \ \ \ \ 116 1.02
+      Entry32 \ \ \ \ 5.53 \ \ \ \ \ 1.04 \ \ \ \ 3.24 \ \ \ \ 7.49
+      \ \ \ \ \ \ \ 130 1.04
 
       \;
 
@@ -7152,49 +7435,46 @@
 
       \<gtr\> head(meta.brms.summary[[1]])
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time
-      total.pct
+      \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
 
-      ".External" \ \ \ \ \ \ \ \ \ 385.92 \ \ \ 99.74 \ \ \ \ 385.92
-      \ \ \ \ 99.74
+      ".External" \ \ \ \ 374.38 \ \ \ 99.69 \ \ \ \ 374.38 \ \ \ \ 99.69
 
-      "is.na" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.26 \ \ \ \ 0.07
-      \ \ \ \ \ \ 0.26 \ \ \ \ \ 0.07
-
-      "saveRDS" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.24 \ \ \ \ 0.06 \ \ \ \ \ \ 0.24
+      "saveRDS" \ \ \ \ \ \ \ \ 0.24 \ \ \ \ 0.06 \ \ \ \ \ \ 0.24
       \ \ \ \ \ 0.06
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 0.02
-      \ \ \ \ \ \ 0.12 \ \ \ \ \ 0.03
+      "doTryCatch" \ \ \ \ \ 0.18 \ \ \ \ 0.05 \ \ \ \ 374.64 \ \ \ \ 99.76
 
-      "lazyLoadDBfetch" \ \ \ \ \ 0.06 \ \ \ \ 0.02 \ \ \ \ \ \ 0.06
+      "formals" \ \ \ \ \ \ \ \ 0.06 \ \ \ \ 0.02 \ \ \ \ \ \ 0.06
       \ \ \ \ \ 0.02
 
-      "grepl" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.01
-      \ \ \ \ \ \ 0.04 \ \ \ \ \ 0.01
+      ".Call" \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.01 \ \ \ \ \ \ 0.10
+      \ \ \ \ \ 0.03
+
+      "[[" \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 0.01 \ \ \ \ \ \ 0.10
+      \ \ \ \ \ 0.03
 
       \<gtr\> head(meta.brms.summary[[2]])\ 
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time
       self.pct
 
-      "brm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 386.94 \ \ \ 100.00
+      "brm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 375.56 \ \ \ 100.00
       \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      "\<Anonymous\>" \ \ \ \ \ \ \ \ 386.42 \ \ \ \ 99.87 \ \ \ \ \ 0.02
+      "\<Anonymous\>" \ \ \ \ \ \ \ \ 374.98 \ \ \ \ 99.85 \ \ \ \ \ 0.02
       \ \ \ \ 0.01
 
-      "do.call" \ \ \ \ \ \ \ \ \ \ \ \ 386.42 \ \ \ \ 99.87 \ \ \ \ \ 0.00
+      "do.call" \ \ \ \ \ \ \ \ \ \ \ \ 374.98 \ \ \ \ 99.85 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      ".local" \ \ \ \ \ \ \ \ \ \ \ \ \ 386.32 \ \ \ \ 99.84 \ \ \ \ \ 0.00
+      ".local" \ \ \ \ \ \ \ \ \ \ \ \ \ 374.82 \ \ \ \ 99.80 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "standardGeneric" \ \ \ \ 386.32 \ \ \ \ 99.84 \ \ \ \ \ 0.00
+      "standardGeneric" \ \ \ \ 374.80 \ \ \ \ 99.80 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "doTryCatch" \ \ \ \ \ \ \ \ \ 385.96 \ \ \ \ 99.75 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
+      "tryCatch" \ \ \ \ \ \ \ \ \ \ \ 374.66 \ \ \ \ 99.76 \ \ \ \ \ 0.02
+      \ \ \ \ 0.01
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -7208,7 +7488,7 @@
 
       \<less\>ntry + (1 \| Loca/Repe) + (Entry \| Loca), data=rcbd.dat)
 
-      Error: Duplicated random effects detected for group Loca
+      Error: Duplicated group-level effects are not allowed.
     </unfolded-prog-io|>
 
     <\unfolded-prog-io>
@@ -7224,7 +7504,7 @@
 
       Compiling the C++ model
 
-      In file included from filed6ae4e523402.cpp:8:
+      In file included from filee66b5c460373.cpp:8:
 
       In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
 
@@ -7241,7 +7521,7 @@
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
 
-      In file included from filed6ae4e523402.cpp:8:
+      In file included from filee66b5c460373.cpp:8:
 
       In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
 
@@ -7260,7 +7540,7 @@
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
 
-      In file included from filed6ae4e523402.cpp:8:
+      In file included from filee66b5c460373.cpp:8:
 
       In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
 
@@ -7278,7 +7558,7 @@
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ ^
 
-      In file included from filed6ae4e523402.cpp:8:
+      In file included from filee66b5c460373.cpp:8:
 
       In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
 
@@ -7334,16 +7614,19 @@
 
       SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 1).
 
-      [1] "Rejecting initial value:" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+      [1] "Rejecting initial value:" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
       [2] " \ Log probability evaluates to log(0), i.e. negative infinity."
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
       [3] " \ Stan can't start sampling from this initial value."
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
-      [4] "Error : modeld6ae696c7090_filed6ae77aab950_namespace::write_array:
-      y is not positive definite."
+      [4] "Error in eval(substitute(expr), envir, enclos) : "
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      [5] " \ modele66b437b6d51_filee66b4b7deaa_namespace::write_array: y is
+      not positive definite."
 
       error occurred during calling the sampler; sampling not done
     </unfolded-prog-io|>
@@ -7395,131 +7678,6 @@
 
       + }
 
-      Compiling the C++ model
-
-      In file included from filed6ae2f07ee66.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core.hpp:42:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core/set_zero_all_adjoints.hpp:14:17:
-      warning: unused function 'set_zero_all_adjoints' [-Wunused-function]
-
-      \ \ \ \ static void set_zero_all_adjoints() {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from filed6ae2f07ee66.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core.hpp:43:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/core/set_zero_all_adjoints_nested.hpp:17:17:
-      warning: 'static' function 'set_zero_all_adjoints_nested' declared in
-      header file should be declared 'static inline'
-      [-Wunneeded-internal-declaration]
-
-      \ \ \ \ static void set_zero_all_adjoints_nested() {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from filed6ae2f07ee66.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:9:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat.hpp:54:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat/fun/autocorrelation.hpp:17:14:
-      warning: function 'fft_next_good_size' is not needed and will not be
-      emitted [-Wunneeded-internal-declaration]
-
-      \ \ \ \ \ \ size_t fft_next_good_size(size_t N) {
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      In file included from filed6ae2f07ee66.cpp:8:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/src/stan/model/model_header.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math.hpp:4:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/rev/mat.hpp:9:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/mat.hpp:235:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/arr.hpp:36:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/StanHeaders/include/stan/math/prim/arr/functor/integrate_ode_rk45.hpp:13:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/numeric/odeint.hpp:61:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/numeric/odeint/util/multi_array_adaption.hpp:29:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array.hpp:21:
-
-      In file included from /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/base.hpp:28:
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:42:43:
-      warning: unused typedef 'index_range' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index_range index_range;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:43:37:
-      warning: unused typedef 'index' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index index;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:53:43:
-      warning: unused typedef 'index_range' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index_range index_range;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      /Library/Frameworks/R.framework/Versions/3.3/Resources/library/BH/include/boost/multi_array/concept_checks.hpp:54:37:
-      warning: unused typedef 'index' [-Wunused-local-typedef]
-
-      \ \ \ \ \ \ typedef typename Array::index index;
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ^
-
-      7 warnings generated.
-
-      \;
-
-      SAMPLING FOR MODEL 'gaussian(identity) brms-model' NOW (CHAIN 1).
-
-      [1] "Rejecting initial value:" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-
-      [2] " \ Log probability evaluates to log(0), i.e. negative infinity."
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-
-      [3] " \ Stan can't start sampling from this initial value."
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-
-      [4] "Error : modeld6ae1142a794_filed6ae473b77fd_namespace::write_array:
-      y is not positive definite."
-
-      error occurred during calling the sampler; sampling not done
-
       \<gtr\> summary(cotes.brms)
 
       \ Family: gaussian (identity)\ 
@@ -7535,49 +7693,52 @@
 
       \<gtr\> head(cotes.brms.summary[[1]])
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct total.time total.pct
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.time self.pct
+      total.time total.pct
 
-      "saveRDS" \ \ \ \ \ \ \ \ \ 0.30 \ \ \ 34.88 \ \ \ \ \ \ 0.30
-      \ \ \ \ 34.88
+      "saveRDS" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.34 \ \ \ 32.08
+      \ \ \ \ \ \ 0.34 \ \ \ \ 32.08
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ 0.18 \ \ \ 20.93 \ \ \ \ \ \ 0.22
-      \ \ \ \ 25.58
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.18 \ \ \ 16.98
+      \ \ \ \ \ \ 0.22 \ \ \ \ 20.75
 
-      "grepl" \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 4.65 \ \ \ \ \ \ 0.06
-      \ \ \ \ \ 6.98
+      "grepl" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.08 \ \ \ \ 7.55
+      \ \ \ \ \ \ 0.08 \ \ \ \ \ 7.55
 
-      "$" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 2.33 \ \ \ \ \ \ 0.10
-      \ \ \ \ 11.63
+      "as.matrix.data.frame" \ \ \ \ \ 0.04 \ \ \ \ 3.77 \ \ \ \ \ \ 0.06
+      \ \ \ \ \ 5.66
 
-      "doTryCatch" \ \ \ \ \ \ 0.02 \ \ \ \ 2.33 \ \ \ \ \ \ 0.08
-      \ \ \ \ \ 9.30
+      "c" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.04 \ \ \ \ 3.77
+      \ \ \ \ \ \ 0.04 \ \ \ \ \ 3.77
 
-      "getClassDef" \ \ \ \ \ 0.02 \ \ \ \ 2.33 \ \ \ \ \ \ 0.04
-      \ \ \ \ \ 4.65
+      "is" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.02 \ \ \ \ 1.89
+      \ \ \ \ \ \ 0.08 \ \ \ \ \ 7.55
 
       \<gtr\> head(cotes.brms.summary[[2]])
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total.time total.pct self.time
       self.pct
 
-      "brm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.86 \ \ \ 100.00
+      "brm" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1.06 \ \ \ 100.00
       \ \ \ \ \ 0.00 \ \ \ \ 0.00
 
-      "rstan::stan_model" \ \ \ \ \ \ 0.34 \ \ \ \ 39.53 \ \ \ \ \ 0.00
+      "rstan::stan_model" \ \ \ \ \ \ 0.38 \ \ \ \ 35.85 \ \ \ \ \ 0.00
       \ \ \ \ 0.00
 
-      "saveRDS" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.30 \ \ \ \ 34.88
-      \ \ \ \ \ 0.30 \ \ \ 34.88
+      "saveRDS" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.34 \ \ \ \ 32.08
+      \ \ \ \ \ 0.34 \ \ \ 32.08
 
-      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.22 \ \ \ \ 25.58
-      \ \ \ \ \ 0.18 \ \ \ 20.93
-
-      "make_stancode" \ \ \ \ \ \ \ \ \ \ 0.22 \ \ \ \ 25.58 \ \ \ \ \ 0.00
-      \ \ \ \ 0.00
-
-      "\<Anonymous\>" \ \ \ \ \ \ \ \ \ \ \ \ 0.20 \ \ \ \ 23.26
+      "\<Anonymous\>" \ \ \ \ \ \ \ \ \ \ \ \ 0.26 \ \ \ \ 24.53
       \ \ \ \ \ 0.00 \ \ \ \ 0.00
+
+      "do.call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.26 \ \ \ \ 24.53
+      \ \ \ \ \ 0.00 \ \ \ \ 0.00
+
+      ".Call" \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.22 \ \ \ \ 20.75
+      \ \ \ \ \ 0.18 \ \ \ 16.98
     </unfolded-prog-io|>
+
+    \;
 
     <\input>
       <with|color|red|\<gtr\> >

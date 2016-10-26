@@ -267,11 +267,12 @@ load(file="cotes.lmer.Rda")
 @
 
 <<META_Diagnostics_qqnorm_lmer,fig=TRUE,echo=false>>=
-qqnorm(meta.lmer)
+#qqnorm(meta.lmer)
+qqnorm(resid(meta.lmer))
 @
 
 <<Cotes_Diagnostics_qqnorm_lmer,fig=TRUE,echo=false>>=
-qqnorm(cotes.lmer)
+qqnorm(resid(cotes.lmer))
 @
 
 <<>>=
@@ -327,11 +328,11 @@ load(file="cotes.blmer.Rda")
 @
 
 <<META_Diagnostics_qqnorm_blmer,fig=TRUE,echo=false>>=
-qqnorm(meta.blmer)
+qqnorm(resid(meta.blmer), main="Q-Q plot, Model 2, blmer")
 @
 
 <<Cotes_Diagnostics_qqnorm_blmer,fig=TRUE,echo=false>>=
-qqnorm(cotes.blmer)
+qqnorm(resid(cotes.blmer), main="Q-Q plot for residuals")
 @
 
 
