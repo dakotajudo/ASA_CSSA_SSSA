@@ -4350,11 +4350,44 @@
       \ \ \ \ 0.10
     </unfolded-prog-io|>
 
-    <\input>
+    <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
-    <|input>
-      \;
-    </input>
+    <|unfolded-prog-io>
+      anova(meta.lmer,cotes.lmer)
+    <|unfolded-prog-io>
+      anova(meta.lmer,cotes.lmer)
+
+      refitting model(s) with ML (instead of REML)
+
+      Data: rcbd.dat
+
+      Models:
+
+      meta.lmer: YLD ~ Entry + (1 \| Loca/Repe) + (1 \| Loca:Entry)
+
+      cotes.lmer: YLD ~ Entry + (1 \| Loca/Repe) + (0 + Entry \| Loca)
+
+      \ \ \ \ \ \ \ \ \ \ \ \ Df \ \ \ AIC \ \ \ BIC \ logLik deviance Chisq
+      Chi Df Pr(\<gtr\>Chisq)
+
+      meta.lmer \ \ 36 3683.6 3865.4 -1805.8 \ \ 3611.6
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      cotes.lmer 563 4313.4 7156.1 -1593.7 \ \ 3187.4 424.2 \ \ \ 527
+      \ \ \ \ 0.9996
+
+      Warning messages:
+
+      1: In commonArgs(par, fn, control, environment()) :
+
+      \ \ maxfun \<less\> 10 * length(par)^2 is not recommended.
+
+      2: In optwrap(optimizer, devfun, x@theta, lower = x@lower, calc.derivs
+      = TRUE, \ :
+
+      \ \ convergence code 1 from bobyqa: bobyqa -- maximum number of
+      function evaluations exceeded
+    </unfolded-prog-io|>
 
     from cotes.lmer
 
@@ -4395,11 +4428,13 @@
       \;
     </textput>
 
-    <\input>
+    <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
-    <|input>
+    <|unfolded-prog-io>
       \;
-    </input>
+    <|unfolded-prog-io>
+      \;
+    </unfolded-prog-io|>
 
     <\textput>
       <section|blmer>
@@ -7146,16 +7181,41 @@
     <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
     <|unfolded-prog-io>
-      #detach("package:MCMCglmm")
+      anova(meta.mcmc,cotes.mcmc)
     <|unfolded-prog-io>
-      #detach("package:MCMCglmm")
+      anova(meta.mcmc,cotes.mcmc)
+
+      Error in UseMethod("anova") :\ 
+
+      \ \ no applicable method for 'anova' applied to an object of class
+      "MCMCglmm"
     </unfolded-prog-io|>
 
-    <\input>
+    <\unfolded-prog-io>
       <with|color|red|\<gtr\> >
-    <|input>
-      \;
-    </input>
+    <|unfolded-prog-io>
+      summary(meta.mcmc)$DIC
+
+      summary(cotes.mcmc)$DIC
+
+      summary(meta.mcmc)$DIC - summary(cotes.mcmc)$DIC
+
+      \ \ \ \ \ \ \ \ 
+    <|unfolded-prog-io>
+      summary(meta.mcmc)$DIC
+
+      [1] 3465.136
+
+      \<gtr\> summary(cotes.mcmc)$DIC
+
+      [1] 3151.771
+
+      \<gtr\> summary(meta.mcmc)$DIC - summary(cotes.mcmc)$DIC
+
+      [1] 313.3646
+
+      \<gtr\> \ \ \ \ \ \ \ \ 
+    </unfolded-prog-io|>
 
     \;
 
