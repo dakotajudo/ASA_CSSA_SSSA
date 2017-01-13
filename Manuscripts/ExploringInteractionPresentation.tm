@@ -1,4 +1,4 @@
-<TeXmacs|1.99.4>
+<TeXmacs|1.99.5>
 
 <style|generic>
 
@@ -373,14 +373,6 @@
     <|unfolded-io>
       attach(Multilocation)
 
-      The following objects are masked from Multilocation (pos = 3):
-
-      \;
-
-      \ \ \ \ Adj, Block, Fe, Grp, Location, Trt, obs
-
-      \;
-
       \<gtr\> res3 \<less\>- armst.txt(trial="Location",
 
       + \ \ \ \ \ \ \ \ \ \ treatment="Trt",
@@ -421,9 +413,9 @@
       \;
     </textput>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       \;
 
       \;
@@ -431,156 +423,15 @@
       \;
 
       \;
-    <|folded-io>
-      armst.txt \<less\>- function(data=NULL,\ 
-
-      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ response="response",
-
-      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ treatment="treatment",
-
-      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ trial="trial",
-
-      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ block="block",
-
-      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ model=FALSE) {
-
-      + \ \ global.variables \<less\>- is.null(data)
-
-      + \ \ additive.lm \<less\>- NULL
-
-      + \ \ additive.formula \<less\>- NULL
-
-      + \ \ if(is.character(response)) {
-
-      + \ \ \ \ #TODO: check for response in global or data namespace
-
-      + \ \ \ \ additive.formula \<less\>- paste(response," ~ ",trial," *
-      ",treatment,
-
-      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "
-      + ",trial,":",block)
-
-      + \ \ }
-
-      + \ \ if(global.variables) {
-
-      + \ \ \ \ \ if(is.null(additive.formula)) {
-
-      + \ \ \ \ \ \ \ #if we've gotten this far, the parameter names are
-      mapped to\ 
-
-      + \ \ \ \ \ \ \ #data variables and we can analyze accordingly.
-
-      + \ \ \ \ \ \ \ additive.lm \<less\>- lm(response ~ trial*treatment +
-      trial:block)
-
-      + \ \ \ \ \ } else {
-
-      + \ \ \ \ \ \ \ additive.lm \<less\>- lm(as.formula(additive.formula))
-
-      + \ \ \ \ \ }
-
-      + \ \ } else {
-
-      + \ \ \ \ \ #assume variables name columns in data.
-
-      + \ \ \ \ \ additive.lm \<less\>- lm(as.formula(additive.formula),data=data)
-
-      + \ \ }
-
-      + \ \ ret = list(additive.lm=additive.lm)
-
-      + \ \ class(ret)="armst.txt"
-
-      + \ \ return(ret)
-
-      + }
-
-      \<gtr\>\ 
-
-      \<gtr\> model.matrix(mt, mf, contrasts)
-
-      Error in model.matrix(mt, mf, contrasts) : object 'mt' not found
-
-      \<gtr\> sub.mask \<less\>- get("block",res1$additive.lm$model)==levels(get("block",res1$ad
-
-      \<less\>es1$additive.lm$model)==levels(get("block",res1$additive.lm$model))[1]
-      \ \ \ \ \ 
-
-      \<less\>vels(get("block",res1$additive.lm$model))[1]
-      \ \ \ \ \ \ \ \ \ \ \ 
-
-      \<gtr\> mf \<less\>- res1$additive.lm$model[sub.mask,]
-
-      \<gtr\> mt \<less\>- res1$additive.lm$terms
-
-      \<gtr\> \<gtr\> mf \<less\>- res1$additive.lm$model
-
-      Error: unexpected '\<gtr\>' in "\<gtr\>"
-
-      \<gtr\> tmp.model \<less\>- model.matrix(res1$additive.lm$terms, mf,
-      res1$additive.lm$cont
-
-      \<less\>(res1$additive.lm$terms, mf, res1$additive.lm$contrasts)
-
-      \<gtr\> beta \<less\>- res1$additive.lm$coefficients
-
-      \<gtr\> length(beta)
-
-      [1] 54
-
-      \<gtr\> blockDF \<less\>- dim(tmp.model)[2] - dim(tmp.model)[1]
-
-      \<gtr\> blocks.idx \<less\>- \ (dim(tmp.model)[1]+1):dim(tmp.model)[2]
-
-      \<gtr\>\ 
-
-      \<gtr\> xlevels \<less\>- res1$additive.lm$xlevels \ \ \ \ \ :List of 3
-
-      Error: unexpected symbol in "xlevels \<less\>- res1$additive.lm$xlevels
-      \ \ \ \ \ :List of"
-
-      \<gtr\> \ \ .. ..$ trial \ \ \ : chr [1:9] "A" "B" "C" "\G
-
-      Error: unexpected symbol in " \ .. .."
-
-      \<gtr\> \ \ .. ..$ treatment: chr [1:4] "1" "2" "3" "4"
-
-      Error: unexpected symbol in " \ .. .."
-
-      \<gtr\> \ \ .. ..$ block \ \ \ : chr [1:3] "1" "2" "3"
-
-      Error: unexpected symbol in " \ .. .."
-
-      \<gtr\> trt.cnt \<less\>- length(xlevels["treatment"][[1]])
-
-      Error: object 'xlevels' not found
-
-      \<gtr\> trial.cnt \<less\>- length(xlevels["trial"][[1]])
-
-      Error: object 'xlevels' not found
-
-      \<gtr\> rep.cnt \<less\>- length(xlevels["block"][[1]])
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-
-      Error: object 'xlevels' not found
-
-      \<gtr\> expected.blocks \<less\>- trial.cnt*rep.cnt
-
-      Error: object 'trial.cnt' not found
-
-      \<gtr\> tmp.model[,blocks.idx] \<less\>- 1/expected.blocks
-
-      Error: object 'expected.blocks' not found
+    <|unfolded-io>
+      \;
 
       \<gtr\>\ 
 
       \<gtr\>\ 
 
       \<gtr\>\ 
-
-      \<gtr\>\ 
-    </folded-io>
+    </unfolded-io>
 
     <\unfolded-io>
       <with|color|red|\<gtr\> >
@@ -721,21 +572,21 @@
       </verbatim-code>
     </textput>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       Fval \<less\>- aov.tbl["Trial",3]/aov.tbl["Trial:RepNo",3]
 
       aov.tbl["Trial",4] \<less\>- Fval
 
       aov.tbl["Trial",5] \<less\>- 1 - pf(Fval, TrialDF, BlockDF)
-    <|folded-io>
+    <|unfolded-io>
       Fval \<less\>- aov.tbl["Trial",3]/aov.tbl["Trial:RepNo",3]
 
       \<gtr\> aov.tbl["Trial",4] \<less\>- Fval
 
       \<gtr\> aov.tbl["Trial",5] \<less\>- 1 - pf(Fval, TrialDF, BlockDF)
-    </folded-io>
+    </unfolded-io>
 
     <\unfolded-io>
       <with|color|red|\<gtr\> >
@@ -750,19 +601,16 @@
 
       Response: Plot.Mean
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Df \ Sum Sq Mean Sq F value
-      \ \ \ Pr(\<gtr\>F) \ \ \ 
+      \ \ \ \ \ \ \ \ \ \ \ \ Df \ Sum Sq Mean Sq F value \ \ \ Pr(\<gtr\>F)
+      \ \ \ 
 
-      Trial \ \ \ \ \ \ \ \ \ \ \ 8 11.4635 1.43294 25.1147 3.001e-08 ***
+      Trial \ \ \ \ \ \ \ 8 11.4635 1.43294 \ 25.115 3.001e-08 ***
 
-      Treatment \ \ \ \ \ \ \ 3 \ 1.2217 0.40725 \ 9.8078 0.0002082 ***
+      Treatment \ \ \ 3 \ 1.2217 0.40725 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
-      Trial:Treatment 24 \ 0.9966 0.04152 \ 1.2008 0.2828468 \ \ \ 
+      Trial:RepNo 18 \ 1.0270 0.05706 \ \ 1.554 \ \ 0.09427 . \ 
 
-      Trial:RepNo \ \ \ \ 18 \ 1.0270 0.05706 \ 1.6500 0.0799428 . \ 
-
-      Residuals \ \ \ \ \ \ 54 \ 1.8672 0.03458
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+      Residuals \ \ 78 \ 2.8638 0.03672 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
       ---
 
@@ -773,9 +621,9 @@
       For covenience, we swap some rows.
     </textput>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       tmp \<less\>- aov.tbl["Treatment",]
 
       aov.tbl["Treatment",] \<less\>- aov.tbl["Trial",]
@@ -788,7 +636,7 @@
 
       rownames(aov.tbl) \<less\>- c('Trial','Rep in
       Trial','Treatment','Treatment x Trial','Residuals')
-    <|folded-io>
+    <|unfolded-io>
       tmp \<less\>- aov.tbl["Treatment",]
 
       \<gtr\> aov.tbl["Treatment",] \<less\>- aov.tbl["Trial",]
@@ -804,7 +652,7 @@
 
       \<less\>rial','Rep in Trial','Treatment','Treatment x
       Trial','Residuals')
-    </folded-io>
+    </unfolded-io>
 
     <\unfolded-io>
       <with|color|red|\<gtr\> >
@@ -822,16 +670,17 @@
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Df \ Sum Sq Mean Sq F value
       \ \ \ Pr(\<gtr\>F) \ \ \ 
 
-      Trial \ \ \ \ \ \ \ \ \ \ \ \ 18 \ 1.0270 0.05706 \ 1.6500 0.0799428 .
-      \ 
+      Trial \ \ \ \ \ \ \ \ \ \ \ \ 18 \ 1.0270 0.05706 \ \ 1.554 \ \ 0.09427
+      . \ 
 
-      Rep in Trial \ \ \ \ \ \ 8 11.4635 1.43294 25.1147 3.001e-08 ***
+      Rep in Trial \ \ \ \ \ \ 8 11.4635 1.43294 \ 25.115 3.001e-08 ***
 
-      Treatment \ \ \ \ \ \ \ \ \ 3 \ 1.2217 0.40725 \ 9.8078 0.0002082 ***
+      Treatment \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
-      Treatment x Trial 24 \ 0.9966 0.04152 \ 1.2008 0.2828468 \ \ \ 
+      Treatment x Trial 78 \ 2.8638 0.03672
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
-      Residuals \ \ \ \ \ \ \ \ 54 \ 1.8672 0.03458
+      Residuals \ \ \ \ \ \ \ \ \ 3 \ 1.2217 0.40725
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
       ---
@@ -863,6 +712,23 @@
       \<gtr\> reps \<less\>- length(levels(st.dat$RepNo))
     </unfolded-io>
 
+    <\textput>
+      <section|Least Square Means>
+
+      To compute marginal (least square) means for treatments in trials
+      (given replicate effects), we need first a set of contrast matrices
+      that match linear encodings used to generate <math|\<beta\> >. From
+      this, we can compute treatment and trial means as row and column means.
+
+      \;
+
+      Borrowing from\ 
+
+      \;
+
+      These give us the main effects.
+    </textput>
+
     <\unfolded-io>
       <with|color|red|\<gtr\> >
     <|unfolded-io>
@@ -886,7 +752,7 @@
 
       \<less\>itive.lm$contrasts[['Trial']])(trials,contrasts=FALSE)
 
-      \<gtr\> C.b \<less\>- kronecker(C.r,C.full.e)
+      \<gtr\> #C.b \<less\>- kronecker(C.r,C.full.e)
     </unfolded-io>
 
     <\unfolded-io>
@@ -896,150 +762,12 @@
     <|unfolded-io>
       C.b
 
-      \ \ \ \ \ \ [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11]
-      [,12] [,13]
-
-      \ [1,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [2,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [3,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [4,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [5,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [6,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [7,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [8,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [9,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [10,] \ \ \ 1 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [11,] \ \ \ 0 \ \ \ 1 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [12,] \ \ \ 0 \ \ \ 0 \ \ \ 1 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [13,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 1 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [14,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 1 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [15,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 1 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [16,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 1 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [17,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 1
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [18,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 1 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [19,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 1 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [20,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 1 \ \ \ \ 0 \ \ \ \ 0
-
-      [21,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 1 \ \ \ \ 0
-
-      [22,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 1
-
-      [23,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [24,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [25,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [26,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [27,] \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0 \ \ \ 0
-      \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ \ \ \ \ \ [,14] [,15] [,16] [,17] [,18]
-
-      \ [1,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [2,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [3,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [4,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [5,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [6,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [7,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [8,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      \ [9,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [10,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [11,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [12,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [13,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [14,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [15,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [16,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [17,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [18,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [19,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [20,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [21,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [22,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [23,] \ \ \ \ 1 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [24,] \ \ \ \ 0 \ \ \ \ 1 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0
-
-      [25,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 1 \ \ \ \ 0 \ \ \ \ 0
-
-      [26,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 1 \ \ \ \ 0
-
-      [27,] \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 0 \ \ \ \ 1
+      Error: object 'C.b' not found
     </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       notEstimable \<less\>- FALSE
 
       coeffs \<less\>- st.lm$coefficients
@@ -1051,10 +779,12 @@
       \ \ \ notEstimable \<less\>- TRUE
 
       }
-    <|folded-io>
+    <|unfolded-io>
       notEstimable \<less\>- FALSE
 
       \<gtr\> coeffs \<less\>- st.lm$coefficients
+
+      Error: object 'st.lm' not found
 
       \<gtr\> if(any(is.na(coeffs))) {
 
@@ -1063,7 +793,9 @@
       + \ \ \ notEstimable \<less\>- TRUE
 
       + }
-    </folded-io>
+
+      Error: object 'coeffs' not found
+    </unfolded-io>
 
     <\unfolded-io>
       <with|color|red|\<gtr\> >
@@ -1832,21 +1564,29 @@
       L.r)
     </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       txt.lsmeans.tbl \<less\>- t(matrix(L.txt %*% coeffs,nrow=treatments))
 
       trt.means \<less\>- colMeans(txt.lsmeans.tbl)
 
       trial.means \<less\>- rowMeans(txt.lsmeans.tbl)
-    <|folded-io>
+    <|unfolded-io>
       txt.lsmeans.tbl \<less\>- t(matrix(L.txt %*% coeffs,nrow=treatments))
+
+      Error in matrix(L.txt %*% coeffs, nrow = treatments) :\ 
+
+      \ \ object 'coeffs' not found
 
       \<gtr\> trt.means \<less\>- colMeans(txt.lsmeans.tbl)
 
+      Error in is.data.frame(x) : object 'txt.lsmeans.tbl' not found
+
       \<gtr\> trial.means \<less\>- rowMeans(txt.lsmeans.tbl)
-    </folded-io>
+
+      Error in is.data.frame(x) : object 'txt.lsmeans.tbl' not found
+    </unfolded-io>
 
     <\unfolded-io>
       <with|color|red|\<gtr\> >
@@ -1855,30 +1595,12 @@
     <|unfolded-io>
       txt.lsmeans.tbl
 
-      \ \ \ \ \ \ \ \ \ \ [,1] \ \ \ \ [,2] \ \ \ \ [,3] \ \ \ \ [,4]
-
-      \ [1,] 3.047200 2.913667 3.029300 3.008533
-
-      \ [2,] 2.377633 2.101533 2.283400 2.425667
-
-      \ [3,] 3.091767 2.992767 3.205333 2.904567
-
-      \ [4,] 2.425433 2.435033 2.608200 2.733367
-
-      \ [5,] 2.873467 2.600900 3.003833 2.909233
-
-      \ [6,] 3.313000 3.046000 3.318000 3.357333
-
-      \ [7,] 3.150233 2.609800 2.890067 2.719800
-
-      \ [8,] 3.450933 3.041267 3.424467 3.373267
-
-      \ [9,] 2.586433 2.357833 2.782467 2.359233
+      Error: object 'txt.lsmeans.tbl' not found
     </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       means.tbl \<less\>- data.frame(trt=as.integer(levels(st.dat$Treatment)),
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ arith=tapply(st.dat$Plot.Mean,\ 
@@ -1886,7 +1608,7 @@
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ list(st.dat$Treatment),mean),
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lsmean=trt.means)
-    <|folded-io>
+    <|unfolded-io>
       means.tbl \<less\>- data.frame(trt=as.integer(levels(st.dat$Treatment)),
 
       + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ arith=tapply(st.dat$Plot.Mean,\ 
@@ -1894,23 +1616,30 @@
       + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ list(st.dat$Treatment),mean),
 
       + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lsmean=trt.means)
-    </folded-io>
 
-    <\folded-io>
+      Error in data.frame(trt = as.integer(levels(st.dat$Treatment)), arith =
+      tapply(st.dat$Plot.Mean, \ :\ 
+
+      \ \ object 'trt.means' not found
+    </unfolded-io>
+
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       columnIndexes \<less\>- attr(st.lm$x,'assign')
-    <|folded-io>
+    <|unfolded-io>
       columnIndexes \<less\>- attr(st.lm$x,'assign')
-    </folded-io>
+
+      Error: object 'st.lm' not found
+    </unfolded-io>
 
     <\textput>
       And a utility for design matrix
     </textput>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       incidence.matrix \<less\>- function(data, effect) {
 
       \ \ \ cLevels \<less\>- levels(get(effect,data))
@@ -1922,7 +1651,7 @@
       \ \ \ return(as.matrix(t(contr[,idx])))
 
       }
-    <|folded-io>
+    <|unfolded-io>
       incidence.matrix \<less\>- function(data, effect) {
 
       + \ \ \ cLevels \<less\>- levels(get(effect,data))
@@ -1934,11 +1663,11 @@
       + \ \ \ return(as.matrix(t(contr[,idx])))
 
       + }
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       coincidence.matrix \<less\>- function(data=NULL, a.name,b.name) {
 
       \ \ \ a \<less\>- incidence.matrix(data,effect=a.name)
@@ -1948,7 +1677,7 @@
       \ \ \ return(t(a) %*% b)
 
       }
-    <|folded-io>
+    <|unfolded-io>
       coincidence.matrix \<less\>- function(data=NULL, a.name,b.name) {
 
       + \ \ \ a \<less\>- incidence.matrix(data,effect=a.name)
@@ -1958,11 +1687,11 @@
       + \ \ \ return(t(a) %*% b)
 
       + }
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       invert.diagonal \<less\>- function(a) {
 
       \ \ tol \<less\>- 1/ (.Machine$integer.max)
@@ -1986,7 +1715,7 @@
       \ \ return (a)
 
       }
-    <|folded-io>
+    <|unfolded-io>
       invert.diagonal \<less\>- function(a) {
 
       + \ \ tol \<less\>- 1/ (.Machine$integer.max)
@@ -2010,11 +1739,11 @@
       + \ \ return (a)
 
       + }
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       interaction.matrix \<less\>- function(d=NULL,
       effect1="Treatment",effect2="Trial",useMatrix=FALSE) {
 
@@ -2085,7 +1814,7 @@
       \ \ \ return(X)
 
       }
-    <|folded-io>
+    <|unfolded-io>
       interaction.matrix \<less\>- function(d=NULL,
       effect1="Treatment",effect2="Trial",
 
@@ -2159,27 +1888,27 @@
       + \ \ \ return(X)
 
       + }
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       TreatmentX \<less\>- incidence.matrix(st.dat,effect='Treatment')
 
       TrialZ \<less\>- incidence.matrix(st.dat,effect='Trial')
 
       RepInTrialZ \<less\>- interaction.matrix(st.dat,'Trial','RepNo')
-    <|folded-io>
+    <|unfolded-io>
       TreatmentX \<less\>- incidence.matrix(st.dat,effect='Treatment')
 
       \<gtr\> TrialZ \<less\>- incidence.matrix(st.dat,effect='Trial')
 
       \<gtr\> RepInTrialZ \<less\>- interaction.matrix(st.dat,'Trial','RepNo')
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       N \<less\>- t(TreatmentX) %*% RepInTrialZ
 
       t_delta \<less\>- t(TreatmentX) %*% TreatmentX
@@ -2189,7 +1918,7 @@
       v_delta_inv \<less\>- invert.diagonal(v_delta)
 
       A \<less\>- t_delta + N %*% v_delta_inv %*% t(N)
-    <|folded-io>
+    <|unfolded-io>
       N \<less\>- t(TreatmentX) %*% RepInTrialZ
 
       \<gtr\> t_delta \<less\>- t(TreatmentX) %*% TreatmentX
@@ -2199,7 +1928,7 @@
       \<gtr\> v_delta_inv \<less\>- invert.diagonal(v_delta)
 
       \<gtr\> A \<less\>- t_delta + N %*% v_delta_inv %*% t(N)
-    </folded-io>
+    </unfolded-io>
 
     <\unfolded-io>
       <with|color|red|\<gtr\> >
@@ -2219,9 +1948,9 @@
       4 \ 6.75 \ 6.75 \ 6.75 33.75
     </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       #mixed effects model
 
       ems \<less\>- aov.tbl[4,3]
@@ -2229,7 +1958,7 @@
       #fixed effects model
 
       #ems \<less\>- aov.tbl[5,3]
-    <|folded-io>
+    <|unfolded-io>
       #mixed effects model
 
       \<gtr\> ems \<less\>- aov.tbl[4,3]
@@ -2237,7 +1966,7 @@
       \<gtr\> #fixed effects model
 
       \<gtr\> #ems \<less\>- aov.tbl[5,3]
-    </folded-io>
+    </unfolded-io>
 
     <\unfolded-io>
       <with|color|red|\<gtr\> >
@@ -2246,12 +1975,12 @@
     <|unfolded-io>
       ems
 
-      [1] 0.04152298
+      [1] 0.0367154
     </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       pseudoinverse \<less\>- function(A) {
 
       \ \ \ #decompose to U D V' (svd)
@@ -2311,7 +2040,7 @@
       \ \ \ return(V%*%Dinv%*%t(U))
 
       }
-    <|folded-io>
+    <|unfolded-io>
       pseudoinverse \<less\>- function(A) {
 
       + \ \ \ #decompose to U D V' (svd)
@@ -2371,15 +2100,15 @@
       + \ \ \ return(V%*%Dinv%*%t(U))
 
       + }
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       covA \<less\>- pseudoinverse (A) * ems
-    <|folded-io>
+    <|unfolded-io>
       covA \<less\>- pseudoinverse (A) * ems
-    </folded-io>
+    </unfolded-io>
 
     <\unfolded-io>
       <with|color|red|\<gtr\> >
@@ -2388,16 +2117,16 @@
     <|unfolded-io>
       covA
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ [,1] \ \ \ \ \ \ \ \ [,2]
-      \ \ \ \ \ \ \ \ [,3] \ \ \ \ \ \ \ \ [,4]
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ [,1] \ \ \ \ \ \ \ \ \ [,2]
+      \ \ \ \ \ \ \ \ \ [,3] \ \ \ \ \ \ \ \ \ [,4]
 
-      [1,] \ 0.001345652 -0.000192236 -0.000192236 -0.000192236
+      [1,] \ 0.0011898509 -0.0001699787 -0.0001699787 -0.0001699787
 
-      [2,] -0.000192236 \ 0.001345652 -0.000192236 -0.000192236
+      [2,] -0.0001699787 \ 0.0011898509 -0.0001699787 -0.0001699787
 
-      [3,] -0.000192236 -0.000192236 \ 0.001345652 -0.000192236
+      [3,] -0.0001699787 -0.0001699787 \ 0.0011898509 -0.0001699787
 
-      [4,] -0.000192236 -0.000192236 -0.000192236 \ 0.001345652
+      [4,] -0.0001699787 -0.0001699787 -0.0001699787 \ 0.0011898509
     </unfolded-io>
 
     <\unfolded-io>
@@ -2418,9 +2147,9 @@
       4 \ 0 \ 0 \ 0 27
     </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       #if MeanEffects
 
       grandmean \<less\>- mean(unlist(txt.lsmeans.tbl))
@@ -2428,19 +2157,25 @@
       trial.effects \<less\>- trial.means-grandmean
 
       trt.effects \<less\>- trt.means-grandmean
-    <|folded-io>
+    <|unfolded-io>
       #if MeanEffects
 
       \<gtr\> grandmean \<less\>- mean(unlist(txt.lsmeans.tbl))
 
+      Error in unlist(txt.lsmeans.tbl) : object 'txt.lsmeans.tbl' not found
+
       \<gtr\> trial.effects \<less\>- trial.means-grandmean
 
-      \<gtr\> trt.effects \<less\>- trt.means-grandmean
-    </folded-io>
+      Error: object 'trial.means' not found
 
-    <\folded-io>
+      \<gtr\> trt.effects \<less\>- trt.means-grandmean
+
+      Error: object 'trt.means' not found
+    </unfolded-io>
+
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       # if TrialByTreatment
 
       additive.lm \<less\>- lm(Plot.Mean ~ Trial+Treatment + Trial:RepNo,
@@ -2450,7 +2185,7 @@
       Trial:RepNo, data=st.dat, model=FALSE)
 
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-    <|folded-io>
+    <|unfolded-io>
       # if TrialByTreatment
 
       \<gtr\> additive.lm \<less\>- lm(Plot.Mean ~ Trial+Treatment +
@@ -2465,33 +2200,33 @@
       model=FALSE)
 
       \<gtr\> \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       additive.labels \<less\>- attr(additive.lm$terms, 'term.labels')
 
       additive.assign = additive.lm$assign
 
       additive.coef \<less\>- additive.lm$coefficients
-    <|folded-io>
+    <|unfolded-io>
       additive.labels \<less\>- attr(additive.lm$terms, 'term.labels')
 
       \<gtr\> additive.assign = additive.lm$assign
 
       \<gtr\> additive.coef \<less\>- additive.lm$coefficients
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       e.beta \<less\>- additive.coef[additive.assign ==
       which(additive.labels=='Trial')]
 
       t.beta \<less\>- additive.coef[additive.assign ==
       which(additive.labels=='Treatment')]
-    <|folded-io>
+    <|unfolded-io>
       e.beta \<less\>- additive.coef[additive.assign ==
       which(additive.labels=='Trial')]
 
@@ -2499,35 +2234,35 @@
       which(additive.labels=='Treatmen
 
       \<less\>dditive.assign == which(additive.labels=='Treatment')]
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       e.mat \<less\>- match.fun(additive.lm$contrasts[['Trial']])(length(e.beta)+1)
 
       t.mat \<less\>- match.fun(additive.lm$contrasts[['Treatment']])(length(t.beta)+1)
-    <|folded-io>
+    <|unfolded-io>
       e.mat \<less\>- match.fun(additive.lm$contrasts[['Trial']])(length(e.beta)+1)
 
       \<gtr\> t.mat \<less\>- match.fun(additive.lm$contrasts[['Treatment']])(length(t.beta)+1)
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       trial.effects \<less\>- e.mat %*% e.beta
 
       trt.effects \<less\>- t.mat %*% t.beta
-    <|folded-io>
+    <|unfolded-io>
       trial.effects \<less\>- e.mat %*% e.beta
 
       \<gtr\> trt.effects \<less\>- t.mat %*% t.beta
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       trial.effects \<less\>- trial.effects - mean(trial.effects)
 
       trt.effects \<less\>- trt.effects - mean(trt.effects)
@@ -2539,7 +2274,7 @@
       names(trial.effects) \<less\>- additive.lm$xlevels[['Trial']]
 
       names(trt.effects) \<less\>- additive.lm$xlevels[['Treatment']]
-    <|folded-io>
+    <|unfolded-io>
       trial.effects \<less\>- trial.effects - mean(trial.effects)
 
       \<gtr\> trt.effects \<less\>- trt.effects - mean(trt.effects)
@@ -2551,11 +2286,11 @@
       \<gtr\> names(trial.effects) \<less\>- additive.lm$xlevels[['Trial']]
 
       \<gtr\> names(trt.effects) \<less\>- additive.lm$xlevels[['Treatment']]
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       st.dat$TreatmentIdx \<less\>- as.numeric(st.dat$Treatment)
 
       st.dat$TrialIdx \<less\>- as.numeric(st.dat$Trial)
@@ -2563,7 +2298,7 @@
       st.dat$a \<less\>- trt.effects[st.dat$TreatmentIdx]
 
       st.dat$b \<less\>- trial.effects[st.dat$TrialIdx]
-    <|folded-io>
+    <|unfolded-io>
       st.dat$TreatmentIdx \<less\>- as.numeric(st.dat$Treatment)
 
       \<gtr\> st.dat$TrialIdx \<less\>- as.numeric(st.dat$Trial)
@@ -2571,11 +2306,11 @@
       \<gtr\> st.dat$a \<less\>- trt.effects[st.dat$TreatmentIdx]
 
       \<gtr\> st.dat$b \<less\>- trial.effects[st.dat$TrialIdx]
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       gei.table.to.frame \<less\>- function(table,response =
       "Plot.Mean",TreatmentName="Treatment",TrialName="Trial",GinRows=TRUE) {
 
@@ -2656,8 +2391,8 @@
       \ \ return(means.frame)
 
       }
-    <|folded-io>
-      .table.to.frame \<less\>- function(table,response =
+    <|unfolded-io>
+      gei.table.to.frame \<less\>- function(table,response =
       "Plot.Mean",TreatmentName="
 
       \<less\>ction(table,response = "Plot.Mean",TreatmentName="Treatment",TrialName="Tria
@@ -2748,14 +2483,14 @@
       + \ \ return(means.frame)
 
       + }
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       table.dat \<less\>- gei.table.to.frame(t(txt.lsmeans.tbl), response =
       'Plot.Mean', TreatmentName='Treatment', TrialName='Trial')
-    <|folded-io>
+    <|unfolded-io>
       table.dat \<less\>- gei.table.to.frame(t(txt.lsmeans.tbl), response =
       'Plot.Mean',
 
@@ -2764,23 +2499,29 @@
 
       \<less\> response = 'Plot.Mean', TreatmentName='Treatment',
       TrialName='Trial')
-    </folded-io>
 
-    <\folded-io>
+      Error in t(txt.lsmeans.tbl) : object 'txt.lsmeans.tbl' not found
+    </unfolded-io>
+
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       table.dat$a \<less\>- trt.effects[table.dat$Treatment]
 
       table.dat$b \<less\>- trial.effects[table.dat$Trial]
-    <|folded-io>
+    <|unfolded-io>
       table.dat$a \<less\>- trt.effects[table.dat$Treatment]
 
-      \<gtr\> table.dat$b \<less\>- trial.effects[table.dat$Trial]
-    </folded-io>
+      Error: object 'table.dat' not found
 
-    <\folded-io>
+      \<gtr\> table.dat$b \<less\>- trial.effects[table.dat$Trial]
+
+      Error: object 'table.dat' not found
+    </unfolded-io>
+
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       tdf.st.lm \<less\>- lm(Plot.Mean ~ Trial + Treatment + Trial:RepNo +
       a:b,data=st.dat)
 
@@ -2789,7 +2530,7 @@
       tdf.st.tbl \<less\>- anova(tdf.st.lm)
 
       tdf.st.tbl
-    <|folded-io>
+    <|unfolded-io>
       tdf.st.lm \<less\>- lm(Plot.Mean ~ Trial + Treatment + Trial:RepNo +
       a:b,data=st.d
 
@@ -2923,11 +2664,11 @@
       ---
 
       Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       tdf.tbl.lm \<less\>- lm(Plot.Mean ~ Trial + Treatment +
       a:b,data=table.dat)
 
@@ -2936,97 +2677,24 @@
       tdf.tbl \<less\>-anova(tdf.tbl.lm)
 
       tdf.tbl
-    <|folded-io>
+    <|unfolded-io>
       tdf.tbl.lm \<less\>- lm(Plot.Mean ~ Trial + Treatment +
       a:b,data=table.dat)
 
+      Error in is.data.frame(data) : object 'table.dat' not found
+
       \<gtr\> summary(tdf.tbl.lm)
 
-      \;
-
-      Call:
-
-      lm(formula = Plot.Mean ~ Trial + Treatment + a:b, data = table.dat)
-
-      \;
-
-      Residuals:
-
-      \ \ \ \ \ Min \ \ \ \ \ \ 1Q \ \ Median \ \ \ \ \ \ 3Q \ \ \ \ \ Max\ 
-
-      -0.18707 -0.05049 -0.01240 \ 0.05239 \ 0.23614\ 
-
-      \;
-
-      Coefficients:
-
-      \ \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error t value Pr(\<gtr\>\|t\|)
-      \ \ \ 
-
-      (Intercept) \ 3.06949 \ \ \ 0.06905 \ 44.450 \ \<less\> 2e-16 ***
-
-      Trial2 \ \ \ \ \ -0.70262 \ \ \ 0.08457 \ -8.308 2.23e-08 ***
-
-      Trial3 \ \ \ \ \ \ 0.04893 \ \ \ 0.08457 \ \ 0.579 0.568492 \ \ \ 
-
-      Trial4 \ \ \ \ \ -0.44917 \ \ \ 0.08457 \ -5.311 2.16e-05 ***
-
-      Trial5 \ \ \ \ \ -0.15282 \ \ \ 0.08457 \ -1.807 0.083880 . \ 
-
-      Trial6 \ \ \ \ \ \ 0.25891 \ \ \ 0.08457 \ \ 3.061 0.005531 **\ 
-
-      Trial7 \ \ \ \ \ -0.15720 \ \ \ 0.08457 \ -1.859 0.075910 . \ 
-
-      Trial8 \ \ \ \ \ \ 0.32281 \ \ \ 0.08457 \ \ 3.817 0.000886 ***
-
-      Trial9 \ \ \ \ \ -0.47818 \ \ \ 0.08457 \ -5.654 9.35e-06 ***
-
-      Treatment2 \ -0.24637 \ \ \ 0.05638 \ -4.370 0.000224 ***
-
-      Treatment3 \ \ 0.02544 \ \ \ 0.05638 \ \ 0.451 0.656060 \ \ \ 
-
-      Treatment4 \ -0.05834 \ \ \ 0.05638 \ -1.035 0.311524 \ \ \ 
-
-      a:b \ \ \ \ \ \ \ \ \ 0.24734 \ \ \ 0.52661 \ \ 0.470 0.643008 \ \ \ 
-
-      ---
-
-      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-      \;
-
-      Residual standard error: 0.1196 on 23 degrees of freedom
-
-      Multiple R-squared: \ 0.9279, \ \ \ Adjusted R-squared: \ 0.8902\ 
-
-      F-statistic: 24.65 on 12 and 23 DF, \ p-value: 2.739e-10
-
-      \;
+      Error in summary(tdf.tbl.lm) : object 'tdf.tbl.lm' not found
 
       \<gtr\> tdf.tbl \<less\>-anova(tdf.tbl.lm)
 
+      Error in anova(tdf.tbl.lm) : object 'tdf.tbl.lm' not found
+
       \<gtr\> tdf.tbl
 
-      Analysis of Variance Table
-
-      \;
-
-      Response: Plot.Mean
-
-      \ \ \ \ \ \ \ \ \ \ Df Sum Sq Mean Sq F value \ \ \ Pr(\<gtr\>F) \ \ \ 
-
-      Trial \ \ \ \ \ 8 3.8212 0.47765 33.3889 7.116e-11 ***
-
-      Treatment \ 3 0.4072 0.13575 \ 9.4893 0.0002875 ***
-
-      a:b \ \ \ \ \ \ \ 1 0.0032 0.00316 \ 0.2206 0.6430077 \ \ \ 
-
-      Residuals 23 0.3290 0.01431 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-
-      ---
-
-      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    </folded-io>
+      Error: object 'tdf.tbl' not found
+    </unfolded-io>
 
     <\textput>
       \ output must match
@@ -3047,9 +2715,9 @@
       \ \ \ NA \ \ \ \ \ \ \ \ NA>
     </textput>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       tmp \<less\>- tdf.st.tbl[2,]
 
       tdf.st.tbl[2,] \<less\>- tdf.st.tbl[1,]
@@ -3057,7 +2725,7 @@
       tdf.st.tbl[1,] \<less\>- tmp
 
       tdf.st.tbl[3,] \<less\>- tdf.st.tbl[4,]
-    <|folded-io>
+    <|unfolded-io>
       tmp \<less\>- tdf.st.tbl[2,]
 
       \<gtr\> tdf.st.tbl[2,] \<less\>- tdf.st.tbl[1,]
@@ -3065,11 +2733,11 @@
       \<gtr\> tdf.st.tbl[1,] \<less\>- tmp
 
       \<gtr\> tdf.st.tbl[3,] \<less\>- tdf.st.tbl[4,]
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       tdf.st.tbl[5,] \<less\>- aov.tbl[5,]
 
       tdf.st.tbl[4,] \<less\>- aov.tbl[4,] - tdf.st.tbl[3,]
@@ -3091,7 +2759,7 @@
       tdf.st.tbl[5,1])
 
       rownames(tdf.st.tbl) \<less\>- c('Treatment','Trial','eTreatment:eTrial','Residuals','Error')
-    <|folded-io>
+    <|unfolded-io>
       tdf.st.tbl[5,] \<less\>- aov.tbl[5,]
 
       \<gtr\> tdf.st.tbl[4,] \<less\>- aov.tbl[4,] - tdf.st.tbl[3,]
@@ -3116,13 +2784,13 @@
       c('Treatment','Trial','eTreatment:eTrial','Residual
 
       \<less\>('Treatment','Trial','eTreatment:eTrial','Residuals','Error')
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       tdf.st.tbl
-    <|folded-io>
+    <|unfolded-io>
       tdf.st.tbl
 
       Analysis of Variance Table
@@ -3139,29 +2807,29 @@
       Trial \ \ \ \ \ \ \ \ \ \ \ \ \ 8 11.4635 1.43294 38.6558 \<less\>
       2.2e-16 ***
 
-      eTreatment:eTrial \ 1 \ 0.0095 0.00947 \ 0.2206 \ \ \ \ 0.643 \ \ \ 
+      eTreatment:eTrial \ 1 \ 0.0095 0.00947 \ 0.2554 \ \ \ 0.6147 \ \ \ 
 
-      Residuals \ \ \ \ \ \ \ \ 23 \ 0.9871 0.04292 \ 1.2411 \ \ \ \ 0.253
+      Residuals \ \ \ \ \ \ \ \ 77 \ 2.8543 0.03707 \ 0.0910 \ \ \ 1.0000
       \ \ \ 
 
-      Error \ \ \ \ \ \ \ \ \ \ \ \ 54 \ 1.8672 0.03458
+      Error \ \ \ \ \ \ \ \ \ \ \ \ \ 3 \ 1.2217 0.40725
       \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
 
       ---
 
       Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       het.st.lm \<less\>- lm(Plot.Mean ~ Trial + Treatment + Trial:RepNo +
       Treatment:b,data=st.dat)
 
       summary(het.st.lm)
 
       anova(het.st.lm)
-    <|folded-io>
+    <|unfolded-io>
       het.st.lm \<less\>- lm(Plot.Mean ~ Trial + Treatment + Trial:RepNo +
       Treatment:b,d
 
@@ -3299,18 +2967,18 @@
       ---
 
       Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       het.tbl.lm \<less\>- lm(Plot.Mean ~ Trial + Treatment +
       Treatment:b,data=st.dat)
 
       summary(het.tbl.lm)
 
       anova(het.tbl.lm)
-    <|folded-io>
+    <|unfolded-io>
       het.tbl.lm \<less\>- lm(Plot.Mean ~ Trial + Treatment +
       Treatment:b,data=st.dat)
 
@@ -3407,96 +3075,31 @@
       ---
 
       Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       het0.tbl.lm \<less\>- lm(Plot.Mean ~ 0+Treatment +
       Treatment:b,data=table.dat)
 
       summary(het0.tbl.lm)
 
       anova(het0.tbl.lm)
-    <|folded-io>
+    <|unfolded-io>
       het0.tbl.lm \<less\>- lm(Plot.Mean ~ 0+Treatment +
       Treatment:b,data=table.dat)
 
+      Error in is.data.frame(data) : object 'table.dat' not found
+
       \<gtr\> summary(het0.tbl.lm)
 
-      \;
-
-      Call:
-
-      lm(formula = Plot.Mean ~ 0 + Treatment + Treatment:b, data = table.dat)
-
-      \;
-
-      Residuals:
-
-      \ \ \ \ \ Min \ \ \ \ \ \ 1Q \ \ Median \ \ \ \ \ \ 3Q \ \ \ \ \ Max\ 
-
-      -0.37709 -0.11228 \ 0.03063 \ 0.12063 \ 0.28716\ 
-
-      \;
-
-      Coefficients:
-
-      \ \ \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error t value Pr(\<gtr\>\|t\|)
-      \ \ \ 
-
-      Treatment1 \ \ \ 2.92401 \ \ \ 0.05436 \ 53.788 \ \<less\> 2e-16 ***
-
-      Treatment2 \ \ \ 2.67764 \ \ \ 0.05436 \ 49.256 \ \<less\> 2e-16 ***
-
-      Treatment3 \ \ \ 2.94945 \ \ \ 0.05436 \ 54.256 \ \<less\> 2e-16 ***
-
-      Treatment4 \ \ \ 2.86567 \ \ \ 0.05436 \ 52.715 \ \<less\> 2e-16 ***
-
-      Treatment1:b \ 0.96942 \ \ \ 0.15274 \ \ 6.347 7.24e-07 ***
-
-      Treatment2:b \ 0.84714 \ \ \ 0.15274 \ \ 5.546 6.25e-06 ***
-
-      Treatment3:b \ 0.88822 \ \ \ 0.15274 \ \ 5.815 3.01e-06 ***
-
-      Treatment4:b \ 0.73736 \ \ \ 0.15274 \ \ 4.827 4.45e-05 ***
-
-      ---
-
-      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-      \;
-
-      Residual standard error: 0.1631 on 28 degrees of freedom
-
-      Multiple R-squared: \ 0.9975, \ \ \ Adjusted R-squared: \ 0.9968\ 
-
-      F-statistic: \ 1396 on 8 and 28 DF, \ p-value: \<less\> 2.2e-16
-
-      \;
+      Error in summary(het0.tbl.lm) : object 'het0.tbl.lm' not found
 
       \<gtr\> anova(het0.tbl.lm)
 
-      Analysis of Variance Table
-
-      \;
-
-      Response: Plot.Mean
-
-      \ \ \ \ \ \ \ \ \ \ \ \ Df \ Sum Sq Mean Sq \ F value
-      \ \ \ Pr(\<gtr\>F) \ \ \ 
-
-      Treatment \ \ \ 4 293.678 \ 73.420 2760.510 \<less\> 2.2e-16 ***
-
-      Treatment:b \ 4 \ \ 3.409 \ \ 0.852 \ \ 32.041 4.433e-10 ***
-
-      Residuals \ \ 28 \ \ 0.745 \ \ 0.027
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
-
-      ---
-
-      Signif. codes: \ 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    </folded-io>
+      Error in anova(het0.tbl.lm) : object 'het0.tbl.lm' not found
+    </unfolded-io>
 
     <\unfolded-io>
       <with|color|red|\<gtr\> >
@@ -3506,9 +3109,9 @@
       het.st.tbl \<less\>- anova(het.st.lm)
     </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       tmp \<less\>- het.st.tbl[2,]
 
       het.st.tbl[2,] \<less\>- het.st.tbl[1,]
@@ -3542,7 +3145,7 @@
       \;
 
       rownames(het.st.tbl) \<less\>- c('Treatment','Trial','Treatment:eTrial','Residuals','Error')
-    <|folded-io>
+    <|unfolded-io>
       tmp \<less\>- het.st.tbl[2,]
 
       \<gtr\> het.st.tbl[2,] \<less\>- het.st.tbl[1,]
@@ -3579,13 +3182,13 @@
       c('Treatment','Trial','Treatment:eTrial','Residuals
 
       \<less\>('Treatment','Trial','Treatment:eTrial','Residuals','Error')
-    </folded-io>
+    </unfolded-io>
 
     \;
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       extract.slopes \<less\>- function(het0.tbl,df) {
 
       \ \ rows \<less\>- dim(het0.tbl)[1]
@@ -3601,7 +3204,7 @@
       \ \ return (ret.tbl)
 
       }
-    <|folded-io>
+    <|unfolded-io>
       extract.slopes \<less\>- function(het0.tbl,df) {
 
       + \ \ rows \<less\>- dim(het0.tbl)[1]
@@ -3617,53 +3220,32 @@
       + \ \ return (ret.tbl)
 
       + }
-    </folded-io>
+    </unfolded-io>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       het0.tbl \<less\>- summary(het0.tbl.lm)$coefficients
 
       het0.tbl
 
       extract.slopes(het0.tbl,het.st.tbl[(dim(het.st.tbl)[1]-1),1])
-    <|folded-io>
+    <|unfolded-io>
       het0.tbl \<less\>- summary(het0.tbl.lm)$coefficients
+
+      Error in summary(het0.tbl.lm) : object 'het0.tbl.lm' not found
 
       \<gtr\> het0.tbl
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error \ \ t value
-      \ \ \ \ Pr(\<gtr\>\|t\|)
-
-      Treatment1 \ \ 2.9240111 0.05436133 53.788443 8.294631e-30
-
-      Treatment2 \ \ 2.6776444 0.05436133 49.256422 9.512490e-29
-
-      Treatment3 \ \ 2.9494519 0.05436133 54.256436 6.522599e-30
-
-      Treatment4 \ \ 2.8656667 0.05436133 52.715172 1.450687e-29
-
-      Treatment1:b 0.9694249 0.15274245 \ 6.346794 7.235272e-07
-
-      Treatment2:b 0.8471384 0.15274245 \ 5.546188 6.247725e-06
-
-      Treatment3:b 0.8882250 0.15274245 \ 5.815181 3.012592e-06
-
-      Treatment4:b 0.7373571 0.15274245 \ 4.827453 4.445223e-05
+      Error: object 'het0.tbl' not found
 
       \<gtr\> extract.slopes(het0.tbl,het.st.tbl[(dim(het.st.tbl)[1]-1),1])
 
-      \ \ \ \ \ \ \ \ \ \ \ \ \ \ Estimate Std. Error \ \ \ t value
-      \ \ Pr(\<gtr\>\|t\|)
+      Error in extract.slopes(het0.tbl, het.st.tbl[(dim(het.st.tbl)[1] - 1),
+      \ :\ 
 
-      Treatment1:b 0.9694249 \ 0.1527425 -0.2001742 0.42163509
-
-      Treatment2:b 0.8471384 \ 0.1527425 -1.0007799 0.16416310
-
-      Treatment3:b 0.8882250 \ 0.1527425 -0.7317874 0.23619326
-
-      Treatment4:b 0.7373571 \ 0.1527425 -1.7195149 0.05011357
-    </folded-io>
+      \ \ object 'het0.tbl' not found
+    </unfolded-io>
 
     <\textput>
       <section|Plotting Results>
@@ -3679,25 +3261,7 @@
     <|unfolded-io>
       txt.lsmeans.tbl
 
-      \ \ \ \ \ \ \ \ \ \ [,1] \ \ \ \ [,2] \ \ \ \ [,3] \ \ \ \ [,4]
-
-      \ [1,] 3.047200 2.913667 3.029300 3.008533
-
-      \ [2,] 2.377633 2.101533 2.283400 2.425667
-
-      \ [3,] 3.091767 2.992767 3.205333 2.904567
-
-      \ [4,] 2.425433 2.435033 2.608200 2.733367
-
-      \ [5,] 2.873467 2.600900 3.003833 2.909233
-
-      \ [6,] 3.313000 3.046000 3.318000 3.357333
-
-      \ [7,] 3.150233 2.609800 2.890067 2.719800
-
-      \ [8,] 3.450933 3.041267 3.424467 3.373267
-
-      \ [9,] 2.586433 2.357833 2.782467 2.359233
+      Error: object 'txt.lsmeans.tbl' not found
     </unfolded-io>
 
     \;
@@ -3715,10 +3279,7 @@
     <|unfolded-io>
       trial.means
 
-      [1] 2.999675 2.297058 3.048608 2.550508 2.846858 3.258583 2.842475
-      3.322483
-
-      [9] 2.521492
+      Error: object 'trial.means' not found
     </unfolded-io>
 
     <\unfolded-io>
@@ -3727,6 +3288,8 @@
       treaments \<less\>- dim(txt.lsmeans.tbl)[2]
     <|unfolded-io>
       treaments \<less\>- dim(txt.lsmeans.tbl)[2]
+
+      Error: object 'txt.lsmeans.tbl' not found
     </unfolded-io>
 
     <\textput>
@@ -3734,9 +3297,9 @@
       then points to add additional columns.
     </textput>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       plot(trial.means,txt.lsmeans.tbl[,1])
 
       for(i in 2:treatments) {
@@ -3746,8 +3309,12 @@
       }
 
       v()
-    <|folded-io>
+    <|unfolded-io>
       plot(trial.means,txt.lsmeans.tbl[,1])
+
+      Error in plot(trial.means, txt.lsmeans.tbl[, 1]) :\ 
+
+      \ \ object 'trial.means' not found
 
       \<gtr\> for(i in 2:treatments) {
 
@@ -3755,18 +3322,25 @@
 
       + }
 
+      Error in points(trial.means, txt.lsmeans.tbl[, i]) :\ 
+
+      \ \ object 'trial.means' not found
+
       \<gtr\> v()
 
-      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A34392E32302036312E3230203236322E3830203233382E383020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A3139322E3633203137302E333620322E323520632070310A35372E31312036372E373820322E323520632070310A3230322E3037203137372E313920322E323520632070310A3130362E30302037352E313020322E323520632070310A3136332E3135203134332E373520322E323520632070310A3234322E3536203231312E303920322E323520632070310A3136322E3331203138362E313520322E323520632070310A3235342E3839203233322E323220322E323520632070310A3130302E34302039392E373720322E323520632070310A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37362E39372036312E3230206D0A3135342E33302030206C0A6F0A6E700A37362E39372036312E3230206D0A30202D362E3030206C0A6F0A6E700A3131352E35342036312E3230206D0A30202D362E3030206C0A6F0A6E700A3135342E31322036312E3230206D0A30202D362E3030206C0A6F0A6E700A3139322E36392036312E3230206D0A30202D362E3030206C0A6F0A6E700A3233312E32372036312E3230206D0A30202D362E3030206C0A6F0A2F466F6E74312066696E64666F6E7420313220730A37362E39372033392E36302028322E3429202E35203020740A3131352E35342033392E36302028322E3629202E35203020740A3135342E31322033392E36302028322E3829202E35203020740A3139322E36392033392E36302028332E3029202E35203020740A3233312E32372033392E36302028332E3229202E35203020740A6E700A34392E32302037312E3230206D0A30203135332E3232206C0A6F0A6E700A34392E32302037312E3230206D0A2D362E30302030206C0A6F0A6E700A34392E3230203130312E3835206D0A2D362E30302030206C0A6F0A6E700A34392E3230203133322E3439206D0A2D362E30302030206C0A6F0A6E700A34392E3230203136332E3133206D0A2D362E30302030206C0A6F0A6E700A34392E3230203139332E3738206D0A2D362E30302030206C0A6F0A6E700A34392E3230203232342E3432206D0A2D362E30302030206C0A6F0A33342E38302037312E32302028322E3429202E3520393020740A33342E3830203130312E38352028322E3629202E3520393020740A33342E3830203133322E34392028322E3829202E3520393020740A33342E3830203136332E31332028332E3029202E3520393020740A33342E3830203139332E37382028332E3229202E3520393020740A33342E3830203232342E34322028332E3429202E3520393020740A6E700A34392E32302036312E3230206D0A3231332E36302030206C0A30203137372E3630206C0A2D3231332E36302030206C0A30202D3137372E3630206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A3132362E36362031352E3630202874722920302074610A302E313830202869616C2E6D65616E73292074622067720A31302E3830203130312E363520287478742E6C736D65616E73292039302074610A2D302E31383020282E7462292074620A2D302E32343020286C5B2C20315D292074622067720A34392E32302036312E3230203236322E3830203233382E383020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A3139322E3633203134392E393120322E323520632070310A35372E31312032352E343820322E323520632070310A3230322E3037203136322E303220322E323520632070310A3130362E30302037362E353720322E323520632070310A3136332E3135203130312E393920322E323520632070310A3234322E3536203137302E313820322E323520632070310A3136322E3331203130332E333520322E323520632070310A3235342E3839203136392E343620322E323520632070310A3130302E34302036342E373420322E323520632070310A3139322E3633203136372E363220322E323520632070310A35372E31312035332E333420322E323520632070310A3230322E3037203139342E353920322E323520632070310A3130362E3030203130332E313020322E323520632070310A3136332E3135203136332E373220322E323520632070310A3234322E3536203231312E383520322E323520632070310A3136322E3331203134362E323920322E323520632070310A3235342E3839203232382E313720322E323520632070310A3130302E3430203132392E383020322E323520632070310A3139322E3633203136342E343420322E323520632070310A35372E31312037352E313420322E323520632070310A3230322E3037203134382E353120322E323520632070310A3130362E3030203132322E323820322E323520632070310A3136332E3135203134392E323320322E323520632070310A3234322E3536203231372E383820322E323520632070310A3136322E3331203132302E323020322E323520632070310A3235342E3839203232302E333220322E323520632070310A3130302E34302036342E393620322E323520632070310A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
-    </folded-io>
+      Error in dev.copy2eps(file = op$file, print.it = F, width = width,
+      height = height, \ :\ 
+
+      \ \ no device to print from
+    </unfolded-io>
 
     <\textput>
       Clearly, we can't distinguish treatments, so we use points
     </textput>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       trt.pch = 1:treatments
 
       #pch 26:31 are unused, so add six if larger
@@ -3786,7 +3360,7 @@
       }
 
       v()
-    <|folded-io>
+    <|unfolded-io>
       trt.pch = 1:treatments
 
       \<gtr\> #pch 26:31 are unused, so add six if larger
@@ -3799,16 +3373,27 @@
 
       \<gtr\> plot(trial.means,txt.lsmeans.tbl[,1],pch=trt.pch[1])
 
+      Error in plot(trial.means, txt.lsmeans.tbl[, 1], pch = trt.pch[1]) :\ 
+
+      \ \ object 'trial.means' not found
+
       \<gtr\> for(i in 2:treatments) {
 
       + \ \ points(trial.means,txt.lsmeans.tbl[,i],pch=trt.pch[i])
 
       + }
 
+      Error in points(trial.means, txt.lsmeans.tbl[, i], pch = trt.pch[i]) :\ 
+
+      \ \ object 'trial.means' not found
+
       \<gtr\> v()
 
-      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A34392E32302036312E3230203236322E3830203233382E383020636C0A34392E32302036312E3230203236322E3830203233382E383020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A3139322E3633203137302E333620322E323520632070310A35372E31312036372E373820322E323520632070310A3230322E3037203137372E313920322E323520632070310A3130362E30302037352E313020322E323520632070310A3136332E3135203134332E373520322E323520632070310A3234322E3536203231312E303920322E323520632070310A3136322E3331203138362E313520322E323520632070310A3235342E3839203233322E323220322E323520632070310A3130302E34302039392E373720322E323520632070310A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37362E39372036312E3230206D0A3135342E33302030206C0A6F0A6E700A37362E39372036312E3230206D0A30202D362E3030206C0A6F0A6E700A3131352E35342036312E3230206D0A30202D362E3030206C0A6F0A6E700A3135342E31322036312E3230206D0A30202D362E3030206C0A6F0A6E700A3139322E36392036312E3230206D0A30202D362E3030206C0A6F0A6E700A3233312E32372036312E3230206D0A30202D362E3030206C0A6F0A2F466F6E74312066696E64666F6E7420313220730A37362E39372033392E36302028322E3429202E35203020740A3131352E35342033392E36302028322E3629202E35203020740A3135342E31322033392E36302028322E3829202E35203020740A3139322E36392033392E36302028332E3029202E35203020740A3233312E32372033392E36302028332E3229202E35203020740A6E700A34392E32302037312E3230206D0A30203135332E3232206C0A6F0A6E700A34392E32302037312E3230206D0A2D362E30302030206C0A6F0A6E700A34392E3230203130312E3835206D0A2D362E30302030206C0A6F0A6E700A34392E3230203133322E3439206D0A2D362E30302030206C0A6F0A6E700A34392E3230203136332E3133206D0A2D362E30302030206C0A6F0A6E700A34392E3230203139332E3738206D0A2D362E30302030206C0A6F0A6E700A34392E3230203232342E3432206D0A2D362E30302030206C0A6F0A33342E38302037312E32302028322E3429202E3520393020740A33342E3830203130312E38352028322E3629202E3520393020740A33342E3830203133322E34392028322E3829202E3520393020740A33342E3830203136332E31332028332E3029202E3520393020740A33342E3830203139332E37382028332E3229202E3520393020740A33342E3830203232342E34322028332E3429202E3520393020740A6E700A34392E32302036312E3230206D0A3231332E36302030206C0A30203137372E3630206C0A2D3231332E36302030206C0A30202D3137372E3630206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A3132362E36362031352E3630202874722920302074610A302E313830202869616C2E6D65616E73292074622067720A31302E3830203130312E363520287478742E6C736D65616E73292039302074610A2D302E31383020282E7462292074620A2D302E32343020286C5B2C20315D292074622067720A34392E32302036312E3230203236322E3830203233382E383020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A3139322E3633203135332E3430206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A35372E31312032382E3937206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3230322E3037203136352E3532206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3130362E30302038302E3037206D0A332E3033202D352E3235206C0A2D362E30372030206C0A332E303420352E3235206C0A6F0A6E700A3136332E3135203130352E3438206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3234322E3536203137332E3638206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3136322E3331203130362E3835206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3235342E3839203137322E3935206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3130302E34302036382E3234206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3138392E3435203136372E3632206D0A362E33362030206C0A6F0A6E700A3139322E3633203136342E3434206D0A3020362E3336206C0A6F0A6E700A35332E39332035332E3334206D0A362E33362030206C0A6F0A6E700A35372E31312035302E3136206D0A3020362E3336206C0A6F0A6E700A3139382E3838203139342E3539206D0A362E33372030206C0A6F0A6E700A3230322E3037203139312E3431206D0A3020362E3336206C0A6F0A6E700A3130322E3831203130332E3130206D0A362E33372030206C0A6F0A6E700A3130362E30302039392E3932206D0A3020362E3337206C0A6F0A6E700A3135392E3937203136332E3732206D0A362E33372030206C0A6F0A6E700A3136332E3135203136302E3534206D0A3020362E3336206C0A6F0A6E700A3233392E3338203231312E3835206D0A362E33372030206C0A6F0A6E700A3234322E3536203230382E3637206D0A3020362E3337206C0A6F0A6E700A3135392E3133203134362E3239206D0A362E33362030206C0A6F0A6E700A3136322E3331203134332E3131206D0A3020362E3336206C0A6F0A6E700A3235312E3731203232382E3137206D0A362E33362030206C0A6F0A6E700A3235342E3839203232342E3939206D0A3020362E3336206C0A6F0A6E700A39372E3232203132392E3830206D0A362E33362030206C0A6F0A6E700A3130302E3430203132362E3632206D0A3020362E3337206C0A6F0A6E700A3139302E3338203136322E3139206D0A342E353020342E3530206C0A6F0A6E700A3139302E3338203136362E3639206D0A342E3530202D342E3530206C0A6F0A6E700A35342E38362037322E3839206D0A342E353020342E3530206C0A6F0A6E700A35342E38362037372E3339206D0A342E3530202D342E3530206C0A6F0A6E700A3139392E3832203134362E3236206D0A342E353020342E3530206C0A6F0A6E700A3139392E3832203135302E3736206D0A342E3530202D342E3530206C0A6F0A6E700A3130332E3735203132302E3033206D0A342E353020342E3530206C0A6F0A6E700A3130332E3735203132342E3533206D0A342E3530202D342E3530206C0A6F0A6E700A3136302E3930203134362E3938206D0A342E353020342E3530206C0A6F0A6E700A3136302E3930203135312E3438206D0A342E3530202D342E3530206C0A6F0A6E700A3234302E3331203231352E3633206D0A342E353020342E3530206C0A6F0A6E700A3234302E3331203232302E3133206D0A342E3530202D342E3530206C0A6F0A6E700A3136302E3036203131372E3935206D0A342E353020342E3530206C0A6F0A6E700A3136302E3036203132322E3435206D0A342E3530202D342E3530206C0A6F0A6E700A3235322E3634203231382E3037206D0A342E353020342E3530206C0A6F0A6E700A3235322E3634203232322E3537206D0A342E3530202D342E3530206C0A6F0A6E700A39382E31352036322E3731206D0A342E353020342E3530206C0A6F0A6E700A39382E31352036372E3231206D0A342E3530202D342E3530206C0A6F0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
-    </folded-io>
+      Error in dev.copy2eps(file = op$file, print.it = F, width = width,
+      height = height, \ :\ 
+
+      \ \ no device to print from
+    </unfolded-io>
 
     <\textput>
       Add a regression line. This is a fit only the current treatment and
@@ -3817,9 +3402,9 @@
       treatment.
     </textput>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       for(i in 1:treatments) {
 
       \ \ if(i==1) {
@@ -3843,7 +3428,7 @@
       }
 
       v()
-    <|folded-io>
+    <|unfolded-io>
       for(i in 1:treatments) {
 
       + \ \ if(i==1) {
@@ -3866,10 +3451,17 @@
 
       + }
 
+      Error in plot(trial.means, txt.lsmeans.tbl[, i], pch = trt.pch[i]) :\ 
+
+      \ \ object 'trial.means' not found
+
       \<gtr\> v()
 
-      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A34392E32302036312E3230203236322E3830203233382E383020636C0A34392E32302036312E3230203236322E3830203233382E383020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A3139322E3633203137302E333620322E323520632070310A35372E31312036372E373820322E323520632070310A3230322E3037203137372E313920322E323520632070310A3130362E30302037352E313020322E323520632070310A3136332E3135203134332E373520322E323520632070310A3234322E3536203231312E303920322E323520632070310A3136322E3331203138362E313520322E323520632070310A3235342E3839203233322E323220322E323520632070310A3130302E34302039392E373720322E323520632070310A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37362E39372036312E3230206D0A3135342E33302030206C0A6F0A6E700A37362E39372036312E3230206D0A30202D362E3030206C0A6F0A6E700A3131352E35342036312E3230206D0A30202D362E3030206C0A6F0A6E700A3135342E31322036312E3230206D0A30202D362E3030206C0A6F0A6E700A3139322E36392036312E3230206D0A30202D362E3030206C0A6F0A6E700A3233312E32372036312E3230206D0A30202D362E3030206C0A6F0A2F466F6E74312066696E64666F6E7420313220730A37362E39372033392E36302028322E3429202E35203020740A3131352E35342033392E36302028322E3629202E35203020740A3135342E31322033392E36302028322E3829202E35203020740A3139322E36392033392E36302028332E3029202E35203020740A3233312E32372033392E36302028332E3229202E35203020740A6E700A34392E32302037312E3230206D0A30203135332E3232206C0A6F0A6E700A34392E32302037312E3230206D0A2D362E30302030206C0A6F0A6E700A34392E3230203130312E3835206D0A2D362E30302030206C0A6F0A6E700A34392E3230203133322E3439206D0A2D362E30302030206C0A6F0A6E700A34392E3230203136332E3133206D0A2D362E30302030206C0A6F0A6E700A34392E3230203139332E3738206D0A2D362E30302030206C0A6F0A6E700A34392E3230203232342E3432206D0A2D362E30302030206C0A6F0A33342E38302037312E32302028322E3429202E3520393020740A33342E3830203130312E38352028322E3629202E3520393020740A33342E3830203133322E34392028322E3829202E3520393020740A33342E3830203136332E31332028332E3029202E3520393020740A33342E3830203139332E37382028332E3229202E3520393020740A33342E3830203232342E34322028332E3429202E3520393020740A6E700A34392E32302036312E3230206D0A3231332E36302030206C0A30203137372E3630206C0A2D3231332E36302030206C0A30202D3137372E3630206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A3132362E36362031352E3630202874722920302074610A302E313830202869616C2E6D65616E73292074622067720A31302E3830203130332E363520287478742E6C736D65616E73292039302074610A2D302E31383020282E7462292074620A2D302E32343020286C5B2C20695D292074622067720A34392E32302036312E3230203236322E3830203233382E383020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A34392E32302035332E3630206D0A3231332E3630203138312E3234206C0A6F0A6E700A3139322E3633203135332E3430206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A35372E31312032382E3937206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3230322E3037203136352E3532206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3130362E30302038302E3037206D0A332E3033202D352E3235206C0A2D362E30372030206C0A332E303420352E3235206C0A6F0A6E700A3136332E3135203130352E3438206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3234322E3536203137332E3638206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3136322E3331203130362E3835206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3235342E3839203137322E3935206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3130302E34302036382E3234206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A34392E32302032352E3735206D0A3231332E3630203136322E3932206C0A6F0A6E700A3138392E3435203136372E3632206D0A362E33362030206C0A6F0A6E700A3139322E3633203136342E3434206D0A3020362E3336206C0A6F0A6E700A35332E39332035332E3334206D0A362E33362030206C0A6F0A6E700A35372E31312035302E3136206D0A3020362E3336206C0A6F0A6E700A3139382E3838203139342E3539206D0A362E33372030206C0A6F0A6E700A3230322E3037203139312E3431206D0A3020362E3336206C0A6F0A6E700A3130322E3831203130332E3130206D0A362E33372030206C0A6F0A6E700A3130362E30302039392E3932206D0A3020362E3337206C0A6F0A6E700A3135392E3937203136332E3732206D0A362E33372030206C0A6F0A6E700A3136332E3135203136302E3534206D0A3020362E3336206C0A6F0A6E700A3233392E3338203231312E3835206D0A362E33372030206C0A6F0A6E700A3234322E3536203230382E3637206D0A3020362E3337206C0A6F0A6E700A3135392E3133203134362E3239206D0A362E33362030206C0A6F0A6E700A3136322E3331203134332E3131206D0A3020362E3336206C0A6F0A6E700A3235312E3731203232382E3137206D0A362E33362030206C0A6F0A6E700A3235342E3839203232342E3939206D0A3020362E3336206C0A6F0A6E700A39372E3232203132392E3830206D0A362E33362030206C0A6F0A6E700A3130302E3430203132362E3632206D0A3020362E3337206C0A6F0A6E700A34392E32302036322E3936206D0A3231332E3630203137312E3132206C0A6F0A6E700A3139302E3338203136322E3139206D0A342E353020342E3530206C0A6F0A6E700A3139302E3338203136362E3639206D0A342E3530202D342E3530206C0A6F0A6E700A35342E38362037322E3839206D0A342E353020342E3530206C0A6F0A6E700A35342E38362037372E3339206D0A342E3530202D342E3530206C0A6F0A6E700A3139392E3832203134362E3236206D0A342E353020342E3530206C0A6F0A6E700A3139392E3832203135302E3736206D0A342E3530202D342E3530206C0A6F0A6E700A3130332E3735203132302E3033206D0A342E353020342E3530206C0A6F0A6E700A3130332E3735203132342E3533206D0A342E3530202D342E3530206C0A6F0A6E700A3136302E3930203134362E3938206D0A342E353020342E3530206C0A6F0A6E700A3136302E3930203135312E3438206D0A342E3530202D342E3530206C0A6F0A6E700A3234302E3331203231352E3633206D0A342E353020342E3530206C0A6F0A6E700A3234302E3331203232302E3133206D0A342E3530202D342E3530206C0A6F0A6E700A3136302E3036203131372E3935206D0A342E353020342E3530206C0A6F0A6E700A3136302E3036203132322E3435206D0A342E3530202D342E3530206C0A6F0A6E700A3235322E3634203231382E3037206D0A342E353020342E3530206C0A6F0A6E700A3235322E3634203232322E3537206D0A342E3530202D342E3530206C0A6F0A6E700A39382E31352036322E3731206D0A342E353020342E3530206C0A6F0A6E700A39382E31352036372E3231206D0A342E3530202D342E3530206C0A6F0A6E700A34392E32302035342E3238206D0A3231332E3630203136332E3433206C0A6F0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
-    </folded-io>
+      Error in dev.copy2eps(file = op$file, print.it = F, width = width,
+      height = height, \ :\ 
+
+      \ \ no device to print from
+    </unfolded-io>
 
     <\textput>
       We can't distinquish lines, and it might be good to add color. For
@@ -3877,9 +3469,9 @@
       colors, then add from a standard set if there are more colors needed.
     </textput>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       trt.colors \<less\>- c("#999999", "#E69F00", "#56B4E9", "#009E73",
       "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
@@ -3914,7 +3506,7 @@
       }
 
       v()
-    <|folded-io>
+    <|unfolded-io>
       trt.colors \<less\>- c("#999999", "#E69F00", "#56B4E9", "#009E73",
       "#F0E442", "#00
 
@@ -3955,10 +3547,18 @@
 
       + }
 
+      Error in plot.fn(trial.means, txt.lsmeans.tbl[, i], pch = trt.pch[i],
+      \ :\ 
+
+      \ \ object 'trial.means' not found
+
       \<gtr\> v()
 
-      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A34392E32302036312E3230203236322E3830203233382E383020636C0A34392E32302036312E3230203236322E3830203233382E383020636C0A302E3630303020302E3630303020302E3630303020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A3139322E3633203137302E333620322E323520632070310A35372E31312036372E373820322E323520632070310A3230322E3037203137372E313920322E323520632070310A3130362E30302037352E313020322E323520632070310A3136332E3135203134332E373520322E323520632070310A3234322E3536203231312E303920322E323520632070310A3136322E3331203138362E313520322E323520632070310A3235342E3839203233322E323220322E323520632070310A3130302E34302039392E373720322E323520632070310A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37362E39372036312E3230206D0A3135342E33302030206C0A6F0A6E700A37362E39372036312E3230206D0A30202D362E3030206C0A6F0A6E700A3131352E35342036312E3230206D0A30202D362E3030206C0A6F0A6E700A3135342E31322036312E3230206D0A30202D362E3030206C0A6F0A6E700A3139322E36392036312E3230206D0A30202D362E3030206C0A6F0A6E700A3233312E32372036312E3230206D0A30202D362E3030206C0A6F0A2F466F6E74312066696E64666F6E7420313220730A37362E39372033392E36302028322E3429202E35203020740A3131352E35342033392E36302028322E3629202E35203020740A3135342E31322033392E36302028322E3829202E35203020740A3139322E36392033392E36302028332E3029202E35203020740A3233312E32372033392E36302028332E3229202E35203020740A6E700A34392E32302037312E3230206D0A30203135332E3232206C0A6F0A6E700A34392E32302037312E3230206D0A2D362E30302030206C0A6F0A6E700A34392E3230203130312E3835206D0A2D362E30302030206C0A6F0A6E700A34392E3230203133322E3439206D0A2D362E30302030206C0A6F0A6E700A34392E3230203136332E3133206D0A2D362E30302030206C0A6F0A6E700A34392E3230203139332E3738206D0A2D362E30302030206C0A6F0A6E700A34392E3230203232342E3432206D0A2D362E30302030206C0A6F0A33342E38302037312E32302028322E3429202E3520393020740A33342E3830203130312E38352028322E3629202E3520393020740A33342E3830203133322E34392028322E3829202E3520393020740A33342E3830203136332E31332028332E3029202E3520393020740A33342E3830203139332E37382028332E3229202E3520393020740A33342E3830203232342E34322028332E3429202E3520393020740A6E700A34392E32302036312E3230206D0A3231332E36302030206C0A30203137372E3630206C0A2D3231332E36302030206C0A30202D3137372E3630206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A3132362E36362031352E3630202874722920302074610A302E313830202869616C2E6D65616E73292074622067720A31302E3830203130332E363520287478742E6C736D65616E73292039302074610A2D302E31383020282E7462292074620A2D302E32343020286C5B2C20695D292074622067720A34392E32302036312E3230203236322E3830203233382E383020636C0A302E3630303020302E3630303020302E3630303020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A34392E32302035332E3630206D0A3231332E3630203138312E3234206C0A6F0A302E3930323020302E36323335203020737267620A6E700A3139322E3633203135332E3430206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A35372E31312032382E3937206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3230322E3037203136352E3532206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3130362E30302038302E3037206D0A332E3033202D352E3235206C0A2D362E30372030206C0A332E303420352E3235206C0A6F0A6E700A3136332E3135203130352E3438206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3234322E3536203137332E3638206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3136322E3331203130362E3835206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3235342E3839203137322E3935206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3130302E34302036382E3234206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A302E3735207365746C696E6577696474680A5B20322E323520332E37355D203020736574646173680A6E700A34392E32302032352E3735206D0A3231332E3630203136322E3932206C0A6F0A302E3333373320302E3730353920302E3931333720737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A6E700A3138392E3435203136372E3632206D0A362E33362030206C0A6F0A6E700A3139322E3633203136342E3434206D0A3020362E3336206C0A6F0A6E700A35332E39332035332E3334206D0A362E33362030206C0A6F0A6E700A35372E31312035302E3136206D0A3020362E3336206C0A6F0A6E700A3139382E3838203139342E3539206D0A362E33372030206C0A6F0A6E700A3230322E3037203139312E3431206D0A3020362E3336206C0A6F0A6E700A3130322E3831203130332E3130206D0A362E33372030206C0A6F0A6E700A3130362E30302039392E3932206D0A3020362E3337206C0A6F0A6E700A3135392E3937203136332E3732206D0A362E33372030206C0A6F0A6E700A3136332E3135203136302E3534206D0A3020362E3336206C0A6F0A6E700A3233392E3338203231312E3835206D0A362E33372030206C0A6F0A6E700A3234322E3536203230382E3637206D0A3020362E3337206C0A6F0A6E700A3135392E3133203134362E3239206D0A362E33362030206C0A6F0A6E700A3136322E3331203134332E3131206D0A3020362E3336206C0A6F0A6E700A3235312E3731203232382E3137206D0A362E33362030206C0A6F0A6E700A3235342E3839203232342E3939206D0A3020362E3336206C0A6F0A6E700A39372E3232203132392E3830206D0A362E33362030206C0A6F0A6E700A3130302E3430203132362E3632206D0A3020362E3337206C0A6F0A302E3735207365746C696E6577696474680A5B20302E303020332E30305D203020736574646173680A6E700A34392E32302036322E3936206D0A3231332E3630203137312E3132206C0A6F0A3020302E3631393620302E3435313020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A6E700A3139302E3338203136322E3139206D0A342E353020342E3530206C0A6F0A6E700A3139302E3338203136362E3639206D0A342E3530202D342E3530206C0A6F0A6E700A35342E38362037322E3839206D0A342E353020342E3530206C0A6F0A6E700A35342E38362037372E3339206D0A342E3530202D342E3530206C0A6F0A6E700A3139392E3832203134362E3236206D0A342E353020342E3530206C0A6F0A6E700A3139392E3832203135302E3736206D0A342E3530202D342E3530206C0A6F0A6E700A3130332E3735203132302E3033206D0A342E353020342E3530206C0A6F0A6E700A3130332E3735203132342E3533206D0A342E3530202D342E3530206C0A6F0A6E700A3136302E3930203134362E3938206D0A342E353020342E3530206C0A6F0A6E700A3136302E3930203135312E3438206D0A342E3530202D342E3530206C0A6F0A6E700A3234302E3331203231352E3633206D0A342E353020342E3530206C0A6F0A6E700A3234302E3331203232302E3133206D0A342E3530202D342E3530206C0A6F0A6E700A3136302E3036203131372E3935206D0A342E353020342E3530206C0A6F0A6E700A3136302E3036203132322E3435206D0A342E3530202D342E3530206C0A6F0A6E700A3235322E3634203231382E3037206D0A342E353020342E3530206C0A6F0A6E700A3235322E3634203232322E3537206D0A342E3530202D342E3530206C0A6F0A6E700A39382E31352036322E3731206D0A342E353020342E3530206C0A6F0A6E700A39382E31352036372E3231206D0A342E3530202D342E3530206C0A6F0A302E3735207365746C696E6577696474680A5B20302E303020332E303020322E323520332E30305D203020736574646173680A6E700A34392E32302035342E3238206D0A3231332E3630203136332E3433206C0A6F0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
-    </folded-io>
+      Error in dev.copy2eps(file = op$file, print.it = F, width = width,
+      height = height, \ :\ 
+
+      \ \ no device to print from
+    </unfolded-io>
 
     <\textput>
       We've lost some points on the lower portion of the plot. We'll
@@ -3966,9 +3566,9 @@
       We'll also compute <math|x> extrema for later use.
     </textput>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       min.y \<less\>- min(txt.lsmeans.tbl,na.rm=TRUE)
 
       max.y \<less\>- max(txt.lsmeans.tbl,na.rm=TRUE)
@@ -4006,14 +3606,22 @@
       }
 
       v()
-    <|folded-io>
+    <|unfolded-io>
       min.y \<less\>- min(txt.lsmeans.tbl,na.rm=TRUE)
+
+      Error: object 'txt.lsmeans.tbl' not found
 
       \<gtr\> max.y \<less\>- max(txt.lsmeans.tbl,na.rm=TRUE)
 
+      Error: object 'txt.lsmeans.tbl' not found
+
       \<gtr\> min.x \<less\>- min(trial.means,na.rm=TRUE)
 
+      Error: object 'trial.means' not found
+
       \<gtr\> max.x \<less\>- max(trial.means,na.rm=TRUE)
+
+      Error: object 'trial.means' not found
 
       \<gtr\> for(i in 1:treatments) {
 
@@ -4043,10 +3651,18 @@
 
       + }
 
+      Error in plot.fn(x = trial.means, y = txt.lsmeans.tbl[, i], pch =
+      trt.pch[i], \ :\ 
+
+      \ \ object 'trial.means' not found
+
       \<gtr\> v()
 
-      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A34392E32302036312E3230203236322E3830203233382E383020636C0A34392E32302036312E3230203236322E3830203233382E383020636C0A302E3630303020302E3630303020302E3630303020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A3139322E3633203138332E303220322E323520632070310A35372E3131203130312E343220322E323520632070310A3230322E3037203138382E343520322E323520632070310A3130362E3030203130372E323520322E323520632070310A3136332E3135203136312E383520322E323520632070310A3234322E3536203231352E343120322E323520632070310A3136322E3331203139352E353820322E323520632070310A3235342E3839203233322E323220322E323520632070310A3130302E3430203132362E383720322E323520632070310A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37362E39372036312E3230206D0A3135342E33302030206C0A6F0A6E700A37362E39372036312E3230206D0A30202D362E3030206C0A6F0A6E700A3131352E35342036312E3230206D0A30202D362E3030206C0A6F0A6E700A3135342E31322036312E3230206D0A30202D362E3030206C0A6F0A6E700A3139322E36392036312E3230206D0A30202D362E3030206C0A6F0A6E700A3233312E32372036312E3230206D0A30202D362E3030206C0A6F0A2F466F6E74312066696E64666F6E7420313220730A37362E39372033392E36302028322E3429202E35203020740A3131352E35342033392E36302028322E3629202E35203020740A3135342E31322033392E36302028322E3829202E35203020740A3139322E36392033392E36302028332E3029202E35203020740A3233312E32372033392E36302028332E3229202E35203020740A6E700A34392E32302037392E3738206D0A30203134362E3234206C0A6F0A6E700A34392E32302037392E3738206D0A2D362E30302030206C0A6F0A6E700A34392E3230203130342E3135206D0A2D362E30302030206C0A6F0A6E700A34392E3230203132382E3532206D0A2D362E30302030206C0A6F0A6E700A34392E3230203135322E3930206D0A2D362E30302030206C0A6F0A6E700A34392E3230203137372E3237206D0A2D362E30302030206C0A6F0A6E700A34392E3230203230312E3634206D0A2D362E30302030206C0A6F0A6E700A34392E3230203232362E3032206D0A2D362E30302030206C0A6F0A33342E38302037392E37382028322E3229202E3520393020740A33342E3830203132382E35322028322E3629202E3520393020740A33342E3830203137372E32372028332E3029202E3520393020740A33342E3830203232362E30322028332E3429202E3520393020740A6E700A34392E32302036312E3230206D0A3231332E36302030206C0A30203137372E3630206C0A2D3231332E36302030206C0A30202D3137372E3630206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A3132362E36362031352E3630202874722920302074610A302E313830202869616C2E6D65616E73292074622067720A31302E3830203130332E363520287478742E6C736D65616E73292039302074610A2D302E31383020282E7462292074620A2D302E32343020286C5B2C20695D292074622067720A34392E32302036312E3230203236322E3830203233382E383020636C0A302E3630303020302E3630303020302E3630303020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A34392E32302039302E3134206D0A3231332E3630203134342E3137206C0A6F0A302E3930323020302E36323335203020737267620A6E700A3139322E3633203137302E3235206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A35372E31312037312E3238206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3230322E3037203137392E3839206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3130362E3030203131312E3932206D0A332E3033202D352E3235206C0A2D362E30372030206C0A332E303420352E3235206C0A6F0A6E700A3136332E3135203133322E3133206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3234322E3536203138362E3337206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3136322E3331203133332E3232206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3235342E3839203138352E3830206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3130302E3430203130322E3531206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A302E3735207365746C696E6577696474680A5B20322E323520332E37355D203020736574646173680A6E700A34392E32302036372E3939206D0A3231332E3630203132392E3539206C0A6F0A302E3333373320302E3730353920302E3931333720737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A6E700A3138392E3435203138302E3834206D0A362E33362030206C0A6F0A6E700A3139322E3633203137372E3636206D0A3020362E3336206C0A6F0A6E700A35332E39332038392E3934206D0A362E33362030206C0A6F0A6E700A35372E31312038362E3736206D0A3020362E3336206C0A6F0A6E700A3139382E3838203230322E3239206D0A362E33372030206C0A6F0A6E700A3230322E3037203139392E3131206D0A3020362E3336206C0A6F0A6E700A3130322E3831203132392E3532206D0A362E33372030206C0A6F0A6E700A3130362E3030203132362E3334206D0A3020362E3336206C0A6F0A6E700A3135392E3937203137372E3734206D0A362E33372030206C0A6F0A6E700A3136332E3135203137342E3535206D0A3020362E3337206C0A6F0A6E700A3233392E3338203231362E3032206D0A362E33372030206C0A6F0A6E700A3234322E3536203231322E3834206D0A3020362E3336206C0A6F0A6E700A3135392E3133203136332E3837206D0A362E33362030206C0A6F0A6E700A3136322E3331203136302E3639206D0A3020362E3336206C0A6F0A6E700A3235312E3731203232392E3030206D0A362E33362030206C0A6F0A6E700A3235342E3839203232352E3831206D0A3020362E3337206C0A6F0A6E700A39372E3232203135302E3736206D0A362E33362030206C0A6F0A6E700A3130302E3430203134372E3538206D0A3020362E3336206C0A6F0A302E3735207365746C696E6577696474680A5B20302E303020332E30305D203020736574646173680A6E700A34392E32302039372E3630206D0A3231332E3630203133362E3130206C0A6F0A3020302E3631393620302E3435313020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A6E700A3139302E3338203137362E3036206D0A342E353020342E3530206C0A6F0A6E700A3139302E3338203138302E3536206D0A342E3530202D342E3530206C0A6F0A6E700A35342E3836203130352E3033206D0A342E353020342E3530206C0A6F0A6E700A35342E3836203130392E3533206D0A342E3530202D342E3530206C0A6F0A6E700A3139392E3832203136332E3339206D0A342E353020342E3530206C0A6F0A6E700A3139392E3832203136372E3839206D0A342E3530202D342E3530206C0A6F0A6E700A3130332E3735203134322E3533206D0A342E353020342E3530206C0A6F0A6E700A3130332E3735203134372E3033206D0A342E3530202D342E3530206C0A6F0A6E700A3136302E3930203136332E3936206D0A342E353020342E3530206C0A6F0A6E700A3136302E3930203136382E3436206D0A342E3530202D342E3530206C0A6F0A6E700A3234302E3331203231382E3537206D0A342E353020342E3530206C0A6F0A6E700A3234302E3331203232332E3037206D0A342E3530202D342E3530206C0A6F0A6E700A3136302E3036203134302E3837206D0A342E353020342E3530206C0A6F0A6E700A3136302E3036203134352E3337206D0A342E3530202D342E3530206C0A6F0A6E700A3235322E3634203232302E3531206D0A342E353020342E3530206C0A6F0A6E700A3235322E3634203232352E3031206D0A342E3530202D342E3530206C0A6F0A6E700A39382E31352039362E3933206D0A342E353020342E3530206C0A6F0A6E700A39382E3135203130312E3433206D0A342E3530202D342E3530206C0A6F0A302E3735207365746C696E6577696474680A5B20302E303020332E303020322E323520332E30305D203020736574646173680A6E700A34392E32302039302E3639206D0A3231332E3630203132392E3939206C0A6F0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
-    </folded-io>
+      Error in dev.copy2eps(file = op$file, print.it = F, width = width,
+      height = height, \ :\ 
+
+      \ \ no device to print from
+    </unfolded-io>
 
     <\textput>
       We'll want a legend. I prefer to have it in the frame with the lines;
@@ -4067,9 +3683,9 @@
       \;
     </textput>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       legend.pos \<less\>- c(.01,.99)
 
       legend.labels \<less\>- paste(as.character(1:treatments)," ")
@@ -4129,7 +3745,7 @@
       }
 
       v()
-    <|folded-io>
+    <|unfolded-io>
       legend.pos \<less\>- c(.01,.99)
 
       \<gtr\> legend.labels \<less\>- paste(as.character(1:treatments)," ")
@@ -4188,10 +3804,18 @@
 
       + }
 
+      Error in plot.fn(x = trial.means, y = txt.lsmeans.tbl[, i], pch =
+      trt.pch[i], \ :\ 
+
+      \ \ object 'trial.means' not found
+
       \<gtr\> v()
 
-      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A34392E3230203132382E3430203237342E3830203237342E383020636C0A34392E3230203132382E3430203237342E3830203237342E383020636C0A302E3630303020302E3630303020302E3630303020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A3230302E3639203232382E383220322E323520632070310A35372E3536203136312E353620322E323520632070310A3231302E3635203233332E333020322E323520632070310A3130392E3139203136362E333620322E323520632070310A3136392E3536203231312E333720322E323520632070310A3235332E3433203235352E353220322E323520632070310A3136382E3636203233392E313720322E323520632070310A3236362E3434203236392E333820322E323520632070310A3130332E3237203138322E353320322E323520632070310A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37382E3533203132382E3430206D0A3136322E39362030206C0A6F0A6E700A37382E3533203132382E3430206D0A30202D362E3030206C0A6F0A6E700A3131392E3237203132382E3430206D0A30202D362E3030206C0A6F0A6E700A3136302E3031203132382E3430206D0A30202D362E3030206C0A6F0A6E700A3230302E3735203132382E3430206D0A30202D362E3030206C0A6F0A6E700A3234312E3439203132382E3430206D0A30202D362E3030206C0A6F0A2F466F6E74312066696E64666F6E74203820730A37382E3533203130362E38302028322E3429202E35203020740A3131392E3237203130362E38302028322E3629202E35203020740A3136302E3031203130362E38302028322E3829202E35203020740A3230302E3735203130362E38302028332E3029202E35203020740A3234312E3439203130362E38302028332E3229202E35203020740A6E700A34392E3230203134332E3731206D0A30203132302E3535206C0A6F0A6E700A34392E3230203134332E3731206D0A2D362E30302030206C0A6F0A6E700A34392E3230203136332E3831206D0A2D362E30302030206C0A0A6F0A6E700A34392E3230203138332E3930206D0A2D362E30302030206C0A6F0A6E700A34392E3230203230332E3939206D0A2D362E30302030206C0A6F0A6E700A34392E3230203232342E3038206D0A2D362E30302030206C0A6F0A6E700A34392E3230203234342E3137206D0A2D362E30302030206C0A6F0A6E700A34392E3230203236342E3236206D0A2D362E30302030206C0A6F0A33342E3830203134332E37312028322E3229202E3520393020740A33342E3830203136332E38312028322E3429202E3520393020740A33342E3830203138332E39302028322E3629202E3520393020740A33342E3830203230332E39392028322E3829202E3520393020740A33342E3830203232342E30382028332E3029202E3520393020740A33342E3830203234342E31372028332E3229202E3520393020740A33342E3830203236342E32362028332E3429202E3520393020740A6E700A34392E3230203132382E3430206D0A3232352E36302030206C0A30203134362E3430206C0A2D3232352E36302030206C0A30202D3134362E3430206C0A6F0A302E3030203131352E3230203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313120730A302030203020737267620A3133352E31312038322E3830202874722920302074610A302E313635202869616C2E6D65616E73292074622067720A31302E3830203135392E313120287478742E6C736D65616E73292039302074610A2D302E31363520282E7462292074620A2D302E32323020286C5B2C20695D292074622067720A34392E3230203132382E3430203237342E3830203237342E383020636C0A302E3630303020302E3630303020302E3630303020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A36352E3332203235322E343520322E323520632070310A302E3930323020302E36323335203020737267620A6E700A38342E3836203235352E3935206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A302E3333373320302E3730353920302E3931333720737267620A6E700A3130312E3232203235322E3435206D0A362E33362030206C0A6F0A6E700A3130342E3430203234392E3237206D0A3020362E3336206C0A6F0A3020302E3631393620302E3435313020737267620A6E700A3132312E3639203235302E3230206D0A342E353020342E3530206C0A6F0A6E700A3132312E3639203235342E3730206D0A342E3530202D342E3530206C0A6F0A2F466F6E74312066696E64666F6E7420313420730A302030203020737267620A37362E3830203236302E32332028542920302074610A2D312E363830202872292074620A302E3536302028742E204E6F292074620A2D302E35363020282E292074622067720A37312E3030203234372E34322028312020292030203020740A39302E3534203234372E34322028322020292030203020740A3131302E3038203234372E34322028332020292030203020740A3132392E3632203234372E34322028342020292030203020740A302E3630303020302E3630303020302E3630303020737267620A6E700A34392E3230203135322E3236206D0A3232352E3630203131382E3834206C0A6F0A302E3930323020302E36323335203020737267620A6E700A3230302E3639203231382E3931206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A35372E3536203133372E3332206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3231302E3635203232362E3835206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3130392E3139203137302E3832206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3136392E3536203138372E3439206D0A332E3033202D352E3235206C0A2D362E30372030206C0A332E303420352E3235206C0A6F0A6E700A3235332E3433203233322E3230206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3136382E3636203138382E3338206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3236362E3434203233312E3732206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3130332E3237203136332E3037206D0A332E3034202D352E3235206C0A2D362E30372030206C0A332E303320352E3235206C0A6F0A302E3735207365746C696E6577696474680A5B20322E323520332E37355D203020736574646173680A6E700A34392E3230203133342E3030206D0A3232352E3630203130362E3832206C0A6F0A302E3333373320302E3730353920302E3931333720737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A6E700A3139372E3530203232372E3032206D0A362E33372030206C0A6F0A6E700A3230302E3639203232332E3834206D0A3020362E3336206C0A6F0A6E700A35342E3337203135322E3039206D0A362E33372030206C0A6F0A6E700A35372E3536203134382E3931206D0A3020362E3336206C0A6F0A6E700A3230372E3437203234342E3731206D0A362E33372030206C0A6F0A6E700A3231302E3635203234312E3532206D0A3020362E3337206C0A6F0A6E700A3130362E3030203138342E3732206D0A362E33372030206C0A6F0A6E700A3130392E3139203138312E3534206D0A3020362E3336206C0A6F0A6E700A3136362E3337203232342E3436206D0A362E33372030206C0A6F0A6E700A3136392E3536203232312E3238206D0A3020362E3337206C0A6F0A6E700A3235302E3235203235362E3032206D0A362E33362030206C0A6F0A6E700A3235332E3433203235322E3834206D0A3020362E3337206C0A6F0A6E700A3136352E3438203231332E3034206D0A362E33362030206C0A6F0A6E700A3136382E3636203230392E3835206D0A3020362E3337206C0A6F0A6E700A3236332E3236203236362E3732206D0A362E33372030206C0A6F0A6E700A3236362E3434203236332E3534206D0A3020362E3336206C0A6F0A6E700A3130302E3039203230322E3233206D0A362E33372030206C0A6F0A6E700A3130332E3237203139392E3034206D0A3020362E3337206C0A6F0A302E3735207365746C696E6577696474680A5B20302E303020332E30305D203020736574646173680A6E700A34392E3230203135382E3430206D0A3232352E3630203131322E3230206C0A6F0A3020302E3631393620302E3435313020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A6E700A3139382E3434203232322E3639206D0A342E353020342E3530206C0A6F0A6E700A3139382E3434203232372E3139206D0A342E3530202D342E3530206C0A6F0A6E700A35352E3331203136342E3133206D0A342E353020342E3530206C0A6F0A6E700A35352E3331203136382E3633206D0A342E3530202D342E3530206C0A6F0A6E700A3230382E3430203231322E3234206D0A342E353020342E3530206C0A6F0A6E700A3230382E3430203231362E3734206D0A342E3530202D342E3530206C0A6F0A6E700A3130362E3934203139352E3034206D0A342E353020342E3530206C0A6F0A6E700A3130362E3934203139392E3534206D0A342E3530202D342E3530206C0A6F0A6E700A3136372E3331203231322E3731206D0A342E353020342E3530206C0A6F0A6E700A3136372E3331203231372E3231206D0A342E3530202D342E3530206C0A6F0A6E700A3235312E3138203235372E3733206D0A342E353020342E3530206C0A6F0A6E700A3235312E3138203236322E3233206D0A342E3530202D342E3530206C0A6F0A6E700A3136362E3431203139332E3638206D0A342E353020342E3530206C0A6F0A6E700A3136362E3431203139382E3138206D0A342E3530202D342E3530206C0A6F0A6E700A3236342E3139203235392E3333206D0A342E353020342E3530206C0A6F0A6E700A3236342E3139203236332E3833206D0A342E3530202D342E3530206C0A6F0A6E700A3130312E3032203135372E3436206D0A342E353020342E3530206C0A6F0A6E700A3130312E3032203136312E3936206D0A342E3530202D342E3530206C0A6F0A302E3735207365746C696E6577696474680A5B20302E303020332E303020322E323520332E30305D203020736574646173680A6E700A34392E3230203135322E3731206D0A3232352E3630203130372E3135206C0A6F0A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
-    </folded-io>
+      Error in dev.copy2eps(file = op$file, print.it = F, width = width,
+      height = height, \ :\ 
+
+      \ \ no device to print from
+    </unfolded-io>
 
     <\textput>
       Asthetics. We can control relative font sizes most easily by setting
@@ -4204,9 +3828,9 @@
       \;
     </textput>
 
-    <\folded-io>
+    <\unfolded-io>
       <with|color|red|\<gtr\> >
-    <|folded-io>
+    <|unfolded-io>
       cex.lab = 0.8\ 
 
       cex.main = 0.9
@@ -4277,7 +3901,7 @@
       }
 
       title(main=main,xlab=xlab,ylab=ylab);v()
-    <|folded-io>
+    <|unfolded-io>
       cex.lab = 0.8\ 
 
       \<gtr\> cex.main = 0.9
@@ -4292,65 +3916,7 @@
       \<gtr\> xlab="Trial Mean"
 
       \<gtr\> ylab="Treatment in Trial Mean"
-
-      \<gtr\> \ \ \ \ for(i in 1:treatments) {
-
-      + \ \ if(i==1) {
-
-      + \ \ \ plot.fn \<less\>- plot
-
-      + \ \ \ #plot legend
-
-      + \ \ } else {
-
-      + \ \ \ \ plot.fn \<less\>- points
-
-      + \ \ }
-
-      + \ \ plot.fn(x=trial.means,y=txt.lsmeans.tbl[,i],
-
-      + \ \ \ \ \ \ \ \ \ \ pch=trt.pch[i],lty=i,col=trt.colors[i],ylim=c(min.y,max.y),
-
-      + \ \ \ \ \ \ \ \ \ \ xlab="",ylab="")
-
-      + \ \ if(i==1) {
-
-      + \ \ \ \ #plot legend
-
-      + \ \ \ \ legend((min.x+(legend.pos[1]*(max.x-min.x))),\ 
-
-      + \ \ \ \ \ \ \ \ \ \ \ (min.y+(legend.pos[2]*(max.y-min.y))),\ 
-
-      + \ \ \ \ \ \ \ \ \ \ \ pch=trt.pch,\ 
-
-      + \ \ \ \ \ \ \ \ \ \ \ legend=legend.labels,
-
-      + \ \ \ \ \ \ \ \ \ \ \ title=legend.title,
-
-      + \ \ \ \ \ \ \ \ \ \ \ col=trt.colors,
-
-      + \ \ \ \ \ \ \ \ \ \ \ bty="n",
-
-      + \ \ \ \ \ \ \ \ \ \ \ ncol=legend.columns,
-
-      + \ \ \ \ \ \ \ \ \ \ \ cex=cex.axis)
-
-      + \ \ }
-
-      + \ \ trt.lm \<less\>- lm(txt.lsmeans.tbl[,i] ~ trial.means)
-
-      + \ \ sum.lm \<less\>- summary(trt.lm)
-
-      + \ \ trt.coef \<less\>- sum.lm$coefficients
-
-      + \ \ abline(trt.coef[1],trt.coef[2],lty=i,col=trt.colors[i])
-
-      + }
-
-      \<gtr\> title(main=main,xlab=xlab,ylab=ylab);v()
-
-      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A34392E3230203132382E3430203237342E3830203237342E383020636C0A34392E3230203132382E3430203237342E3830203237342E383020636C0A302E3630303020302E3630303020302E3630303020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A3230302E3639203232382E383220322E323520632070310A35372E3536203136312E353620322E323520632070310A3231302E3635203233332E333020322E323520632070310A3130392E3139203136362E333620322E323520632070310A3136392E3536203231312E333720322E323520632070310A3235332E3433203235352E353220322E323520632070310A3136382E3636203233392E313720322E323520632070310A3236362E3434203236392E333820322E323520632070310A3130332E3237203138322E353320322E323520632070310A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37382E3533203132382E3430206D0A3136322E39362030206C0A6F0A6E700A37382E3533203132382E3430206D0A30202D362E3030206C0A6F0A6E700A3131392E3237203132382E3430206D0A30202D362E3030206C0A6F0A6E700A3136302E3031203132382E3430206D0A30202D362E3030206C0A6F0A6E700A3230302E3735203132382E3430206D0A30202D362E3030206C0A6F0A6E700A3234312E3439203132382E3430206D0A30202D362E3030206C0A6F0A2F466F6E74312066696E64666F6E74203820730A37382E3533203130362E38302028322E3429202E35203020740A3131392E3237203130362E38302028322E3629202E35203020740A3136302E3031203130362E38302028322E3829202E35203020740A3230302E3735203130362E38302028332E3029202E35203020740A3234312E3439203130362E38302028332E3229202E35203020740A6E700A34392E3230203134332E3731206D0A30203132302E3535206C0A6F0A6E700A34392E3230203134332E3731206D0A2D362E30302030206C0A6F0A6E700A34392E3230203136332E3831206D0A2D362E30302030206C0A0A6F0A6E700A34392E3230203138332E3930206D0A2D362E30302030206C0A6F0A6E700A34392E3230203230332E3939206D0A2D362E30302030206C0A6F0A6E700A34392E3230203232342E3038206D0A2D362E30302030206C0A6F0A6E700A34392E3230203234342E3137206D0A2D362E30302030206C0A6F0A6E700A34392E3230203236342E3236206D0A2D362E30302030206C0A6F0A33342E3830203134332E37312028322E3229202E3520393020740A33342E3830203136332E38312028322E3429202E3520393020740A33342E3830203138332E39302028322E3629202E3520393020740A33342E3830203230332E39392028322E3829202E3520393020740A33342E3830203232342E30382028332E3029202E3520393020740A33342E3830203234342E31372028332E3229202E3520393020740A33342E3830203236342E32362028332E3429202E3520393020740A6E700A34392E3230203132382E3430206D0A3232352E36302030206C0A30203134362E3430206C0A2D3232352E36302030206C0A30202D3134362E3430206C0A6F0A302E3030203131352E3230203238382E3030203238382E303020636C0A34392E3230203132382E3430203237342E3830203237342E383020636C0A302E3630303020302E3630303020302E3630303020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A36332E3035203235382E363820312E333520632070310A302E3930323020302E36323335203020737267620A6E700A37342E3737203236302E3738206D0A312E3832202D332E3135206C0A2D332E36332030206C0A312E383120332E3135206C0A6F0A302E3333373320302E3730353920302E3931333720737267620A6E700A38342E3539203235382E3638206D0A332E38322030206C0A6F0A6E700A38362E3530203235362E3737206D0A3020332E3832206C0A6F0A3020302E3631393620302E3435313020737267620A6E700A39362E3837203235372E3333206D0A322E373020322E3730206C0A6F0A6E700A39362E3837203236302E3033206D0A322E3730202D322E3730206C0A6F0A2F466F6E74312066696E64666F6E74203820730A302030203020737267620A37302E3631203236332E33352028542920302074610A2D302E393630202872292074620A302E3332302028742E204E6F292074620A2D302E33323020282E292074622067720A36362E3436203235352E38312028312020292030203020740A37382E3138203235352E38312028322020292030203020740A38392E3930203235352E38312028332020292030203020740A3130312E3633203235352E38312028342020292030203020740A302E3630303020302E3630303020302E3630303020737267620A6E700A34392E3230203135322E3236206D0A3232352E3630203131382E3834206C0A6F0A302E3930323020302E36323335203020737267620A6E700A3230302E3639203231382E3931206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A35372E3536203133372E3332206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3231302E3635203232362E3835206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3130392E3139203137302E3832206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3136392E3536203138372E3439206D0A332E3033202D352E3235206C0A2D362E30372030206C0A332E303420352E3235206C0A6F0A6E700A3235332E3433203233322E3230206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3136382E3636203138382E3338206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3236362E3434203233312E3732206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3130332E3237203136332E3037206D0A332E3034202D352E3235206C0A2D362E30372030206C0A332E303320352E3235206C0A6F0A302E3735207365746C696E6577696474680A5B20322E323520332E37355D203020736574646173680A6E700A34392E3230203133342E3030206D0A3232352E3630203130362E3832206C0A6F0A302E3333373320302E3730353920302E3931333720737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A6E700A3139372E3530203232372E3032206D0A362E33372030206C0A6F0A6E700A3230302E3639203232332E3834206D0A3020362E3336206C0A6F0A6E700A35342E3337203135322E3039206D0A362E33372030206C0A6F0A6E700A35372E3536203134382E3931206D0A3020362E3336206C0A6F0A6E700A0A3230372E3437203234342E3731206D0A362E33372030206C0A6F0A6E700A3231302E3635203234312E3532206D0A3020362E3337206C0A6F0A6E700A3130362E3030203138342E3732206D0A362E33372030206C0A6F0A6E700A3130392E3139203138312E3534206D0A3020362E3336206C0A6F0A6E700A3136362E3337203232342E3436206D0A362E33372030206C0A6F0A6E700A3136392E3536203232312E3238206D0A3020362E3337206C0A6F0A6E700A3235302E3235203235362E3032206D0A362E33362030206C0A6F0A6E700A3235332E3433203235322E3834206D0A3020362E3337206C0A6F0A6E700A3136352E3438203231332E3034206D0A362E33362030206C0A6F0A6E700A3136382E3636203230392E3835206D0A3020362E3337206C0A6F0A6E700A3236332E3236203236362E3732206D0A362E33372030206C0A6F0A6E700A3236362E3434203236332E3534206D0A3020362E3336206C0A6F0A6E700A3130302E3039203230322E3233206D0A362E33372030206C0A6F0A6E700A3130332E3237203139392E3034206D0A3020362E3337206C0A6F0A302E3735207365746C696E6577696474680A5B20302E303020332E30305D203020736574646173680A6E700A34392E3230203135382E3430206D0A3232352E3630203131322E3230206C0A6F0A3020302E3631393620302E3435313020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A6E700A3139382E3434203232322E3639206D0A342E353020342E3530206C0A6F0A6E700A3139382E3434203232372E3139206D0A342E3530202D342E3530206C0A6F0A6E700A35352E3331203136342E3133206D0A342E353020342E3530206C0A6F0A6E700A35352E3331203136382E3633206D0A342E3530202D342E3530206C0A6F0A6E700A3230382E3430203231322E3234206D0A342E353020342E3530206C0A6F0A6E700A3230382E3430203231362E3734206D0A342E3530202D342E3530206C0A6F0A6E700A3130362E3934203139352E3034206D0A342E353020342E3530206C0A6F0A6E700A3130362E3934203139392E3534206D0A342E3530202D342E3530206C0A6F0A6E700A3136372E3331203231322E3731206D0A342E353020342E3530206C0A6F0A6E700A3136372E3331203231372E3231206D0A342E3530202D342E3530206C0A6F0A6E700A3235312E3138203235372E3733206D0A342E353020342E3530206C0A6F0A6E700A3235312E3138203236322E3233206D0A342E3530202D342E3530206C0A6F0A6E700A3136362E3431203139332E3638206D0A342E353020342E3530206C0A6F0A6E700A3136362E3431203139382E3138206D0A342E3530202D342E3530206C0A6F0A6E700A3236342E3139203235392E3333206D0A342E353020342E3530206C0A6F0A6E700A3236342E3139203236332E3833206D0A342E3530202D342E3530206C0A6F0A6E700A3130312E3032203135372E3436206D0A342E353020342E3530206C0A6F0A6E700A3130312E3032203136312E3936206D0A342E3530202D342E3530206C0A6F0A302E3735207365746C696E6577696474680A5B20302E303020332E303020322E323520332E30305D203020736574646173680A6E700A34392E3230203135322E3731206D0A3232352E3630203130372E3135206C0A6F0A302E3030203131352E3230203238382E3030203238382E303020636C0A2F466F6E74322066696E64666F6E7420313320730A302030203020737267620A37302E3632203237362E37332028542920302074610A2D312E3034302028726561746D656E742062292074620A2D302E3236302028792054292074620A2D312E30343020287269616C20496E746572616374696F6E292074622067720A2F466F6E74312066696E64666F6E7420313120730A3133362E30322038322E38302028542920302074610A2D312E333230202872292074620A302E313635202869616C204D65616E292074622067720A31302E3830203134332E3232202854292039302074610A2D312E3332302028726561746D656E7420696E2054292074620A2D312E333230202872292074620A302E313635202869616C204D65616E292074622067720A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
-    </folded-io>
+    </unfolded-io>
 
     <\unfolded-io>
       <with|color|red|\<gtr\> >
@@ -5089,13 +4655,7 @@
 
       }
     <|unfolded-io>
-      \ main="Treatment by Trial Interaction"
-
-      \<gtr\> \ xlab="Trial Mean"
-
-      \<gtr\> \ ylab="Treatment in Trial Mean"
-
-      \<gtr\> \ for(i in 1:treatments) {
+      \ \ \ \ for(i in 1:treatments) {
 
       + \ \ if(i==1) {
 
@@ -5127,7 +4687,15 @@
 
       + \ \ \ \ \ \ \ \ \ \ \ legend=legend.labels,
 
-      + \ \ \ \ \ \ \ \ \ \ \ col = trt.colors)
+      + \ \ \ \ \ \ \ \ \ \ \ title=legend.title,
+
+      + \ \ \ \ \ \ \ \ \ \ \ col=trt.colors,
+
+      + \ \ \ \ \ \ \ \ \ \ \ bty="n",
+
+      + \ \ \ \ \ \ \ \ \ \ \ ncol=legend.columns,
+
+      + \ \ \ \ \ \ \ \ \ \ \ cex=cex.axis)
 
       + \ \ }
 
@@ -5141,9 +4709,101 @@
 
       + }
 
-      \<gtr\> title(main=main,xlab=xlab,ylab=xlab);v()
+      Error in plot.fn(x = trial.means, y = txt.lsmeans.tbl[, i], pch =
+      trt.pch[i], \ :\ 
 
-      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A34392E32302036312E3230203236322E3830203233382E383020636C0A34392E32302036312E3230203236322E3830203233382E383020636C0A302E3630303020302E3630303020302E3630303020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A3139322E3633203138332E303220322E323520632070310A35372E3131203130312E343220322E323520632070310A3230322E3037203138382E343520322E323520632070310A3130362E3030203130372E323520322E323520632070310A3136332E3135203136312E383520322E323520632070310A3234322E3536203231352E343120322E323520632070310A3136322E3331203139352E353820322E323520632070310A3235342E3839203233322E323220322E323520632070310A3130302E3430203132362E383720322E323520632070310A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37362E39372036312E3230206D0A3135342E33302030206C0A6F0A6E700A37362E39372036312E3230206D0A30202D362E3030206C0A6F0A6E700A3131352E35342036312E3230206D0A30202D362E3030206C0A6F0A6E700A3135342E31322036312E3230206D0A30202D362E3030206C0A6F0A6E700A3139322E36392036312E3230206D0A30202D362E3030206C0A6F0A6E700A3233312E32372036312E3230206D0A30202D362E3030206C0A6F0A2F466F6E74312066696E64666F6E7420313220730A37362E39372033392E36302028322E3429202E35203020740A3131352E35342033392E36302028322E3629202E35203020740A3135342E31322033392E36302028322E3829202E35203020740A3139322E36392033392E36302028332E3029202E35203020740A3233312E32372033392E36302028332E3229202E35203020740A6E700A34392E32302037392E3738206D0A30203134362E3234206C0A6F0A6E700A34392E32302037392E3738206D0A2D362E30302030206C0A6F0A6E700A34392E3230203130342E3135206D0A2D362E30302030206C0A6F0A6E700A34392E3230203132382E3532206D0A2D362E30302030206C0A6F0A6E700A34392E3230203135322E3930206D0A2D362E30302030206C0A6F0A6E700A34392E3230203137372E3237206D0A2D362E30302030206C0A6F0A6E700A34392E3230203230312E3634206D0A2D362E30302030206C0A6F0A6E700A34392E3230203232362E3032206D0A2D362E30302030206C0A6F0A33342E38302037392E37382028322E3229202E3520393020740A33342E3830203132382E35322028322E3629202E3520393020740A33342E3830203137372E32372028332E3029202E3520393020740A33342E3830203232362E30322028332E3429202E3520393020740A6E700A34392E32302036312E3230206D0A3231332E36302030206C0A30203137372E3630206C0A2D3231332E36302030206C0A30202D3137372E3630206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A34392E32302036312E3230203236322E3830203233382E383020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A36372E3030203232342E30302031372E3334202D33342E343220722070310A302E3630303020302E3630303020302E3630303020737267620A37322E3536203231372E313220322E323520632070310A302E3930323020302E36323335203020737267620A6E700A37322E3536203231332E3733206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A302E3333373320302E3730353920302E3931333720737267620A6E700A36392E3338203230332E3335206D0A362E33362030206C0A6F0A6E700A37322E3536203230302E3137206D0A3020362E3336206C0A6F0A3020302E3631393620302E3435313020737267620A6E700A37302E3331203139342E3232206D0A342E353020342E3530206C0A6F0A6E700A37302E3331203139382E3732206D0A342E3530202D342E3530206C0A6F0A2F466F6E74312066696E64666F6E7420313220730A302030203020737267620A37382E3132203231322E3831202831292030203020740A37382E3132203230352E3932202832292030203020740A37382E3132203139392E3034202833292030203020740A37382E3132203139322E3136202834292030203020740A302E3630303020302E3630303020302E3630303020737267620A6E700A34392E32302039302E3134206D0A3231332E3630203134342E3137206C0A6F0A302E3930323020302E36323335203020737267620A6E700A3139322E3633203137302E3235206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A35372E31312037312E3238206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3230322E3037203137392E3839206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3130362E3030203131312E3932206D0A332E3033202D352E3235206C0A2D362E30372030206C0A332E303420352E3235206C0A6F0A6E700A3136332E3135203133322E3133206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3234322E3536203138362E3337206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A6E700A3136322E3331203133332E3232206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3235342E3839203138352E3830206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3130302E3430203130322E3531206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A302E3735207365746C696E6577696474680A5B20322E323520332E37355D203020736574646173680A6E700A34392E32302036372E3939206D0A3231332E3630203132392E3539206C0A6F0A302E3333373320302E3730353920302E3931333720737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A6E700A3138392E3435203138302E3834206D0A362E33362030206C0A6F0A6E700A3139322E3633203137372E3636206D0A3020362E3336206C0A6F0A6E700A35332E39332038392E3934206D0A362E33362030206C0A6F0A6E700A35372E31312038362E3736206D0A3020362E3336206C0A6F0A6E700A3139382E3838203230322E3239206D0A362E33372030206C0A6F0A6E700A3230322E3037203139392E3131206D0A3020362E3336206C0A6F0A6E700A3130322E3831203132392E3532206D0A362E33372030206C0A6F0A6E700A3130362E3030203132362E3334206D0A3020362E3336206C0A6F0A6E700A3135392E3937203137372E3734206D0A362E33372030206C0A6F0A6E700A3136332E3135203137342E3535206D0A3020362E3337206C0A6F0A6E700A3233392E3338203231362E3032206D0A362E33372030206C0A6F0A6E700A3234322E3536203231322E3834206D0A3020362E3336206C0A6F0A6E700A3135392E3133203136332E3837206D0A362E33362030206C0A6F0A6E700A3136322E3331203136302E3639206D0A3020362E3336206C0A6F0A6E700A3235312E3731203232392E3030206D0A362E33362030206C0A6F0A6E700A3235342E3839203232352E3831206D0A3020362E3337206C0A6F0A6E700A39372E3232203135302E3736206D0A362E33362030206C0A6F0A6E700A3130302E3430203134372E3538206D0A3020362E3336206C0A6F0A302E3735207365746C696E6577696474680A5B20302E303020332E30305D203020736574646173680A6E700A34392E32302039372E3630206D0A3231332E3630203133362E3130206C0A6F0A3020302E3631393620302E3435313020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A6E700A3139302E3338203137362E3036206D0A342E353020342E3530206C0A6F0A6E700A3139302E3338203138302E3536206D0A342E3530202D342E3530206C0A6F0A6E700A35342E3836203130352E3033206D0A342E353020342E3530206C0A6F0A6E700A35342E3836203130392E3533206D0A342E3530202D342E3530206C0A6F0A6E700A3139392E3832203136332E3339206D0A342E353020342E3530206C0A6F0A6E700A3139392E3832203136372E3839206D0A342E3530202D342E3530206C0A6F0A6E700A3130332E3735203134322E3533206D0A342E353020342E3530206C0A6F0A6E700A3130332E3735203134372E3033206D0A342E3530202D342E3530206C0A6F0A6E700A3136302E3930203136332E3936206D0A342E353020342E3530206C0A6F0A6E700A3136302E3930203136382E3436206D0A342E3530202D342E3530206C0A6F0A6E700A3234302E3331203231382E3537206D0A342E353020342E3530206C0A6F0A6E700A3234302E3331203232332E3037206D0A342E3530202D342E3530206C0A6F0A6E700A3136302E3036203134302E3837206D0A342E353020342E3530206C0A6F0A6E700A3136302E3036203134352E3337206D0A342E3530202D342E3530206C0A6F0A6E700A3235322E3634203232302E3531206D0A342E353020342E3530206C0A6F0A6E700A3235322E3634203232352E3031206D0A342E3530202D342E3530206C0A6F0A6E700A39382E31352039362E3933206D0A342E353020342E3530206C0A6F0A6E700A39382E3135203130312E3433206D0A342E3530202D342E3530206C0A6F0A302E3735207365746C696E6577696474680A5B20302E303020332E303020322E323520332E30305D203020736574646173680A6E700A34392E32302039302E3639206D0A3231332E3630203132392E3939206C0A6F0A302E303020302E3030203238382E3030203238382E303020636C0A2F466F6E74322066696E64666F6E7420313420730A302030203020737267620A35372E3539203235382E33372028542920302074610A2D312E3132302028726561746D656E742062292074620A2D302E3238302028792054292074620A2D312E31323020287269616C20496E746572616374696F6E292074622067720A2F466F6E74312066696E64666F6E7420313220730A3132372E36362031352E36302028542920302074610A2D312E343430202872292074620A302E313830202869616C204D65616E292074622067720A31302E3830203132312E3636202854292039302074610A2D312E343430202872292074620A302E313830202869616C204D65616E292074622067720A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
+      \ \ object 'trial.means' not found
+
+      \<gtr\> title(main=main,xlab=xlab,ylab=ylab);v()
+
+      Error in title(main = main, xlab = xlab, ylab = ylab) :\ 
+
+      \ \ plot.new has not been called yet
+
+      \ plot.interaction.ARMST \<less\>- function(means.matrix,\ 
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ means.vector,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ylab="",
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ xlab="",
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ main="",
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ regression=TRUE,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ show.legend=FALSE,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ trt.colors=c(),
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ trt.labels=NA,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ legend.labels=c(),
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ legend.columns=1,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ style.legend=1,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ family.main="",
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ family.axis="",
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ family.legend="",
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ col.axis="black",
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ col.lab="black",
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ col.main="black",
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ col.sub="black",
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fg="black",
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bg="white",
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ left.las=0,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min.y=NA,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max.y=NA,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ylog=FALSE,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ xlog=FALSE,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ legend.pos=c(.90,.55),
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lwd
+      = 3,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cex=1.0,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ highlight=c(),
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hcex=1.5,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fixed.prop=FALSE,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ poly=1,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mark.int
+      = c(),
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ plot.unity=FALSE,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ highlight.point=TRUE,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tukey.coeffs=c(),
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ inverse.regression=FALSE,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pc.regression=FALSE,
+
+      + \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ segments=FALSE)
+      {
+
+      + \ \ legend.x = legend.pos[1]
     </unfolded-io>
 
     <\textput>
@@ -5205,8 +4865,791 @@
 
       title(main=main,xlab=xlab,ylab=xlab);v()
     <|unfolded-io>
-      par(fig = c(0, 1, 0.4, 1), mar = (c(1, 4, 1, 1) + 0.1), ps = 14,
-      cex.lab =\ 
+      + \ \ legend.y = legend.pos[2]
+
+      + \ \ 
+
+      + \ \ # use this to force means table to use numeric names. This
+      assumes
+
+      + \ \ # means are in correct numeric order (Jun 9 15, PMC)
+
+      + \ \ colnames(means.matrix) \<less\>-
+      as.character(1:dim(means.matrix)[2])
+
+      + \ \ rownames(means.matrix) \<less\>-
+      as.character(1:dim(means.matrix)[1])
+
+      + \ \ names(means.vector) \<less\>-
+      as.character(1:dim(means.matrix)[1])
+
+      + \ \ 
+
+      + \ \ means.table \<less\>- data.frame(stack(means.matrix))
+
+      + \ 
+
+      + \ \ means.table$TrtNo \<less\>- as.numeric(as.character(means.table$ind))
+
+      + \ \ 
+
+      + \ \ trts \<less\>- dim(means.matrix)[2]
+
+      + \ \ trials \<less\>- dim(means.matrix)[1]
+
+      + \ \ trt.levels \<less\>- levels(means.table$ind)
+
+      + \ \ 
+
+      + \ \ #we'll return a data table with one row for each treatment.
+
+      + \ \ #this table will include the slope, intercept and other stats to
+      be added
+
+      + \ \ ret.fit \<less\>- data.frame(
+
+      + \ \ \ \ Treatment = 1:trts,
+
+      + \ \ \ \ Slope = rep(NA,trts),
+
+      + \ \ \ \ Intercept = rep(NA,trts),
+
+      + \ \ \ \ R2 = rep(NA,trts),
+
+      + \ \ \ \ AdjR2 = rep(NA,trts),
+
+      + \ \ \ \ Mean = rep(NA,trts),
+
+      + \ \ \ \ SD = rep(NA,trts),
+
+      + \ \ \ \ PSlope = rep(NA,trts),
+
+      + \ \ \ \ b = rep(NA,trts),
+
+      + \ \ \ \ Pb = rep(NA,trts),
+
+      + \ \ \ \ bR2 = rep(NA,trts)
+
+      + \ \ \ \ )
+
+      + \ \ 
+
+      + \ \ means.table$Trial.ID \<less\>- rep(rownames(means.matrix),trts)
+
+      + \ \ means.table$Trial.idx \<less\>- rep(1:trials,trts)
+
+      + \ \ means.table$trial.mean \<less\>-
+      means.vector[means.table$Trial.idx]
+
+      + \ \ 
+
+      + \ \ #center on trial mean
+
+      + \ \ means.table$centered \<less\>- means.table$values -
+      means.vector[means.table$Tri
+
+      \<less\> means.table$values - means.vector[means.table$Trial.idx]
+
+      + \ \ 
+
+      + \ \ if(is.na(min.y)){
+
+      + \ \ \ \ min.y \<less\>- min(means.table$values,na.rm=TRUE)
+
+      + \ \ }
+
+      + \ \ if(is.na(max.y)){
+
+      + \ \ \ \ max.y \<less\>- max(means.table$values,na.rm=TRUE)
+
+      + \ \ }
+
+      + \ \ min.x \<less\>- min(means.table$trial.mean,na.rm=TRUE)
+
+      + \ \ max.x \<less\>- max(means.table$trial.mean,na.rm=TRUE)
+
+      + \ \ if(fixed.prop) {
+
+      + \ \ \ \ min.x \<less\>- min(c(min.x,min.y))
+
+      + \ \ \ \ max.x \<less\>- max(c(max.x,max.y))
+
+      + \ \ \ \ min.y \<less\>- min.x
+
+      + \ \ \ \ max.y \<less\>- max.x
+
+      + \ \ }
+
+      + \ \ trt.data \<less\>- subset(means.table,means.table$TrtNo==1)
+
+      + \ \ if(length(trt.colors)\<less\>trts) {
+
+      + \ \ \ \ trt.colors \<less\>- c(trt.colors,rainbow(trts-length(trt.colors)))
+
+      + \ \ }
+
+      + \ \ 
+
+      + \ \ trt.pch = 1:trts
+
+      + \ \ 
+
+      + \ \ #pch 26:31 are unused, so add six if larger
+
+      + \ \ if(trts\<gtr\>25) {
+
+      + \ \ \ \ trt.pch[trt.pch\<gtr\>25] \<less\>- trt.pch[trt.pch\<gtr\>25]
+      + 7
+
+      + \ \ }
+
+      + \ \ 
+
+      + \ \ plot.lwd = lwd
+
+      + \ \ plot.cex = cex
+
+      + \ \ if(1 %in% highlight) {
+
+      + \ \ \ \ plot.lwd = 1.5*lwd*hcex
+
+      + \ \ \ \ if(highlight.point) {
+
+      + \ \ \ \ \ \ plot.cex = plot.cex*hcex*0.8
+
+      + \ \ \ \ }
+
+      + \ \ }
+
+      + \ \ 
+
+      + \ \ ret.fit$Mean[1] = mean(trt.data$values,na.rm=TRUE)
+
+      + \ \ ret.fit$SD[1] = sd(trt.data$values,na.rm=TRUE)
+
+      + \ \ 
+
+      + \ \ if(segments) {
+
+      + \ \ \ \ plot(values ~ trial.mean,trt.data,
+
+      + \ \ \ \ \ \ \ \ \ xlim=c(min.x,max.x),\ 
+
+      + \ \ \ \ \ \ \ \ \ ylim=c(min.y,max.y),
+
+      + \ \ \ \ \ \ \ \ \ xlog=xlog,
+
+      + \ \ \ \ \ \ \ \ \ ylog=ylog,
+
+      + \ \ \ \ \ \ \ \ \ bg=bg,
+
+      + \ \ \ \ \ \ \ \ \ #main=main,
+
+      + \ \ \ \ \ \ \ \ \ #sub=subtitle,
+
+      + \ \ \ \ \ \ \ \ \ col=trt.colors[1],
+
+      + \ \ \ \ \ \ \ \ \ pch=trt.pch[1],
+
+      + \ \ \ \ \ \ \ \ \ axes=FALSE,
+
+      + \ \ \ \ \ \ \ \ \ #las=1,
+
+      + \ \ \ \ \ \ \ \ \ #font.main=style.main,
+
+      + \ \ \ \ \ \ \ \ \ #font.lab=style.axis,
+
+      + \ \ \ \ \ \ \ \ \ col.axis=col.axis,
+
+      + \ \ \ \ \ \ \ \ \ col.lab=col.lab,
+
+      + \ \ \ \ \ \ \ \ \ xlab=xlab,
+
+      + \ \ \ \ \ \ \ \ \ ylab=ylab,
+
+      + \ \ \ \ \ \ \ \ \ lwd=plot.lwd,
+
+      + \ \ \ \ \ \ \ \ \ cex=plot.cex,
+
+      + \ \ \ \ \ \ \ \ \ asp=1
+
+      + \ \ \ \ )
+
+      + \ \ } else {
+
+      + \ \ \ \ plot(values ~ trial.mean,trt.data,;;
+      \ \ \ \ \ \ \ \ xlim=c(min.x,max.x),\ 
+
+      Error: unexpected ';' in:
+
+      " \ } else {
+
+      \ \ \ \ plot(values ~ trial.mean,trt.data,;"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ ylim=c(min.y,max.y),
+
+      Error: unexpected ',' in " \ \ \ \ \ \ \ \ ylim=c(min.y,max.y),"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ xlog=xlog,
+
+      Error: unexpected ',' in " \ \ \ \ \ \ \ \ xlog=xlog,"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ ylog=ylog,
+
+      Error: unexpected ',' in " \ \ \ \ \ \ \ \ ylog=ylog,"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ bg=bg,
+
+      Error: unexpected ',' in " \ \ \ \ \ \ \ \ bg=bg,"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ #main=main,
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ #sub=subtitle,
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ col=trt.colors[1],
+
+      Error: unexpected ',' in " \ \ \ \ \ \ \ \ col=trt.colors[1],"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ pch=trt.pch[1],
+
+      Error: unexpected ',' in " \ \ \ \ \ \ \ \ pch=trt.pch[1],"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ axes=FALSE,
+
+      Error: unexpected ',' in " \ \ \ \ \ \ \ \ axes=FALSE,"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ #las=1,
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ #font.main=style.main,
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ #font.lab=style.axis,
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ col.axis=col.axis,
+
+      Error: unexpected ',' in " \ \ \ \ \ \ \ \ col.axis=col.axis,"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ col.lab=col.lab,
+
+      Error: unexpected ',' in " \ \ \ \ \ \ \ \ col.lab=col.lab,"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ xlab=xlab,
+
+      Error: unexpected ',' in " \ \ \ \ \ \ \ \ xlab=xlab,"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ ylab=ylab,
+
+      Error: unexpected ',' in " \ \ \ \ \ \ \ \ ylab=ylab,"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ lwd=plot.lwd,
+
+      Error: unexpected ',' in " \ \ \ \ \ \ \ \ lwd=plot.lwd,"
+
+      \<gtr\> \ \ \ \ \ \ \ \ \ cex=plot.cex
+
+      Error: object 'plot.cex' not found
+
+      \<gtr\> \ \ \ \ )
+
+      Error: unexpected ')' in " \ \ \ )"
+
+      \<gtr\> \ \ }
+
+      Error: unexpected '}' in " \ }"
+
+      \<gtr\>\ 
+
+      \<gtr\> \ \ title(main,
+
+      + \ \ \ \ \ \ \ \ family=family.main,
+
+      + \ \ \ \ \ \ \ \ col.main=col.main)
+
+      Error in title(main, family = family.main, col.main = col.main) :\ 
+
+      \ \ object 'family.main' not found
+
+      \<gtr\> \ \ box(bg=bg,fg=fg)
+
+      Error in box(bg = bg, fg = fg) : object 'bg' not found
+
+      \<gtr\> \ \ axis(1,tcl=0.02,mgp = c(0, .5, 0),las=1,
+
+      + \ \ \ \ \ \ \ las=left.las,
+
+      + \ \ \ \ \ \ \ col.axis=col.axis,
+
+      + \ \ \ \ \ \ \ xlog=xlog,
+
+      + \ \ \ \ \ \ \ ylog=ylog,
+
+      + \ \ \ \ \ \ \ family=family.axis,
+
+      + \ \ \ \ \ \ \ )
+
+      Error in axis(1, tcl = 0.02, mgp = c(0, 0.5, 0), las = 1, las =
+      left.las, \ :\ 
+
+      \ \ object 'left.las' not found
+
+      \<gtr\> \ \ axis(2,tcl=0.02,mgp = c(0, .5, 0),las=1,
+
+      + \ \ \ \ \ \ \ las=left.las,
+
+      + \ \ \ \ \ \ \ col.axis=col.axis,
+
+      + \ \ \ \ \ \ \ xlog=xlog,
+
+      + \ \ \ \ \ \ \ ylog=ylog,
+
+      + \ \ \ \ \ \ \ family=family.axis,
+
+      + \ \ \ \ \ \ \ )
+
+      Error in axis(2, tcl = 0.02, mgp = c(0, 0.5, 0), las = 1, las =
+      left.las, \ :\ 
+
+      \ \ object 'left.las' not found
+
+      \<gtr\>\ 
+
+      \<gtr\> \ \ #draw legend first so it is in the background
+
+      \<gtr\> \ \ if(length(legend.labels)\<less\>trts) {
+
+      + \ \ \ \ legend.labels \<less\>- c(legend.labels,
+      as.character((length(legend.labels)+1
+
+      \<less\>gend.labels, as.character((length(legend.labels)+1):trts))
+
+      + \ \ \ \ #legend.labels \<less\>- c(legend.labels, trt.levels)
+
+      + \ \ }
+
+      Error: object 'trts' not found
+
+      \<gtr\> \ \ if(show.legend) {
+
+      + \ \ \ \ current.family = par("family")
+
+      + \ \ \ \ par(family=family.legend)
+
+      + \ \ \ \ legend((min.x+(legend.x*(max.x-min.x))),\ 
+
+      + \ \ \ \ \ \ \ \ \ \ \ (min.y+(legend.y*(max.y-min.y))),\ 
+
+      + \ \ \ \ \ \ \ \ \ \ \ pch=trt.pch,\ 
+
+      + \ \ \ \ \ \ \ \ \ \ \ legend=legend.labels,
+
+      + \ \ \ \ \ \ \ \ \ \ \ #family=family.legend,
+
+      + \ \ \ \ \ \ \ \ \ \ \ text.font=style.legend,
+
+      + \ \ \ \ \ \ \ \ \ \ \ ncol = legend.columns,
+
+      + \ \ \ \ \ \ \ \ \ \ \ col = trt.colors)
+
+      + \ \ \ \ par(family=current.family)
+
+      + \ \ }
+
+      Error: object 'show.legend' not found
+
+      \<gtr\> \ \ 
+
+      \<gtr\> \ \ #text(means.vector[1],min.y+(max.y-min.y)/6,names(means.vector[1]),srt=90
+
+      \<less\>in.y+(max.y-min.y)/6,names(means.vector[1]),srt=90)
+
+      \<gtr\> \ \ 
+
+      \<gtr\> \ \ if(regression) {
+
+      + \ \ \ \ if(poly==1) {
+
+      + \ \ \ \ \ \ trt.lm \<less\>- lm(values ~ trial.mean,trt.data)
+
+      + \ \ \ \ \ \ sum.lm \<less\>- summary(trt.lm)
+
+      + \ \ \ \ \ \ trt.coef \<less\>- sum.lm$coefficients
+
+      + \ \ \ \ \ \ abline(trt.coef[1],trt.coef[2],lty=1,lwd=plot.lwd,col=trt.colors[1])
+
+      + \ \ \ \ \ \ ret.fit$Slope[1] = trt.coef[2]
+
+      + \ \ \ \ \ \ ret.fit$Intercept[1] = trt.coef[1,1]
+
+      + \ \ \ \ \ \ ret.fit$R2[1] = sum.lm$r.squared
+
+      + \ \ \ \ \ \ ret.fit$AdjR2[1] = sum.lm$adj.r.squared
+
+      + \ \ \ \ \ \ ret.fit$PSlope[1] = sum.lm$coefficients[2,4]
+
+      + \ \ \ \ \ \ 
+
+      + \ \ \ \ \ \ #fit trial adjusted means
+
+      + \ \ \ \ \ \ fw.lm \<less\>- lm(centered ~ trial.mean, trt.data)
+
+      + \ \ \ \ \ \ sum.fw \<less\>- summary(fw.lm)
+
+      + \ \ \ \ \ \ fw.coef \<less\>- sum.fw$coefficients
+
+      + \ \ \ \ \ \ ret.fit$b[1] = fw.coef[2,1]
+
+      + \ \ \ \ \ \ ret.fit$Pb[1] = fw.coef[2,4]
+
+      + \ \ \ \ \ \ ret.fit$bR2[1] = sum.fw$r.squared
+
+      + \ \ \ \ } else {
+
+      + \ \ \ \ \ \ trt.lm \<less\>- lm(values ~ trial.mean +
+      I(trial.mean^2),trt.data)
+
+      + \ \ \ \ \ \ sum.lm \<less\>- summary(trt.lm)
+
+      + \ \ \ \ \ \ trt.coef \<less\>- sum.lm$coefficients
+
+      + \ \ \ \ \ \ lines(sort(trt.data$trial.mean),
+      fitted(trt.lm)[order(trt.data$trial.
+
+      \<less\>$trial.mean), fitted(trt.lm)[order(trt.data$trial.mean)],
+      lty=1,lwd=plot.lwd
+
+      \<less\>m)[order(trt.data$trial.mean)],
+      lty=1,lwd=plot.lwd,col=trt.colors[1])\ 
+
+      + \ \ \ \ \ \ #abline(trt.coef[1],trt.coef[2],lty=1,lwd=plot.lwd,col=trt.colors[1])
+
+      + \ \ \ \ \ \ ret.fit$Slope[1] = trt.coef[2]
+
+      + \ \ \ \ \ \ ret.fit$Intercept[1] = trt.coef[1]
+
+      + \ \ \ \ \ \ ret.fit$R2[1] = sum.lm$r.squared
+
+      + \ \ \ \ \ \ ret.fit$AdjR2[1] = sum.lm$adj.r.squared\ 
+
+      + \ \ \ \ }
+
+      + \ \ \ \ 
+
+      + \ \ \ \ if(inverse.regression) {
+
+      + \ \ \ \ \ \ xy.lm \<less\>- lm(trial.mean ~ values,trt.data)
+
+      + \ \ \ \ \ \ lines(predict(xy.lm), trt.data$values,lty=1,lwd=plot.lwd,
+      col=trt.col
+
+      \<less\>), trt.data$values,lty=1,lwd=plot.lwd, col=trt.colors[1])
+
+      + \ \ \ \ }
+
+      + \ \ \ \ if(pc.regression) {
+
+      + \ \ \ \ \ \ xy.pc \<less\>- prcomp(trt.data[,c(6,1)])
+
+      + \ \ \ \ \ \ transformed \<less\>- xy.pc$x[,1] %*%
+      t(xy.pc$rotation[,1])
+
+      + \ \ \ \ \ \ transformed \<less\>- scale (transformed, center =
+      -xy.pc$center, scale = FA
+
+      \<less\>e (transformed, center = -xy.pc$center, scale = FALSE)
+
+      + \ \ \ \ \ \ #abline(trt.coef[1],trt.coef[2],lty=1,lwd=plot.lwd,col=trt.colors[1])
+
+      + \ \ \ \ \ \ lines(transformed, col = "gray", cex = 0.5)
+
+      + \ \ \ \ \ \ points(transformed, pch=trt.pch[1],col=trt.colors[1], cex
+      = 0.5)
+
+      + \ \ \ \ }
+
+      + \ \ \ \ if(segments) {
+
+      + \ \ \ \ \ \ segments (trt.data[,6],trt.data[,1], transformed[,1],
+      transformed[,2]
+
+      \<less\>,6],trt.data[,1], transformed[,1], transformed[,2])
+
+      + \ \ \ \ }
+
+      + \ \ }
+
+      Error: object 'regression' not found
+
+      \<gtr\> \ \ 
+
+      \<gtr\> \ \ for(trt in 2:trts) {
+
+      + \ \ \ \ plot.lwd = lwd
+
+      + \ \ \ \ plot.cex = cex
+
+      + \ \ \ \ if(trt %in% highlight) {
+
+      + \ \ \ \ \ \ plot.lwd = 1.5*lwd*hcex
+
+      + \ \ \ \ \ \ if(highlight.point) {
+
+      + \ \ \ \ \ \ \ \ plot.cex = plot.cex*hcex*0.8
+
+      + \ \ \ \ \ \ }
+
+      + \ \ \ \ }
+
+      + \ \ \ \ trt.data \<less\>- subset(means.table,means.table$TrtNo==trt)
+
+      + \ \ \ \ trt.data \<less\>- subset(trt.data,!is.na(trt.data$values))
+
+      + \ \ \ \ 
+
+      + \ \ \ \ ret.fit$Mean[trt] = mean(trt.data$values,na.rm=TRUE)
+
+      + \ \ \ \ ret.fit$SD[trt] = sd(trt.data$values,na.rm=TRUE)
+
+      + \ \ \ \ 
+
+      + \ \ \ \ trt.idx = as.numeric(trt)
+
+      + \ \ \ \ current.pch \<less\>- trt.pch[trt.idx]
+
+      + \ \ \ \ points(values ~ trial.mean,trt.data,pch=current.pch,col=trt.colors[trt]
+
+      \<less\>.mean,trt.data,pch=current.pch,col=trt.colors[trt],lwd=plot.lwd,cex=plot.cex
+
+      \<less\>.pch,col=trt.colors[trt],lwd=plot.lwd,cex=plot.cex)
+
+      + \ \ \ \ if(regression) {
+
+      + \ \ \ \ \ \ if(poly==1) {
+
+      + \ \ \ \ \ \ \ \ trt.lm \<less\>- lm(values ~ trial.mean,trt.data)
+
+      + \ \ \ \ \ \ \ \ #trt.coef \<less\>- coef(trt.lm)
+
+      + \ \ \ \ \ \ \ \ sum.lm \<less\>- summary(trt.lm)
+
+      + \ \ \ \ \ \ \ \ trt.coef \<less\>- sum.lm$coefficients
+
+      + \ \ \ \ \ \ \ \ abline(trt.coef[1],trt.coef[2],lty=as.numeric(trt),col=trt.colors[t
+
+      \<less\>],trt.coef[2],lty=as.numeric(trt),col=trt.colors[trt],lwd=plot.lwd)
+
+      + \ \ \ \ \ \ \ \ ret.fit$Slope[trt] = trt.coef[2,1]
+
+      + \ \ \ \ \ \ \ \ ret.fit$Intercept[trt] = trt.coef[1,1]
+
+      + \ \ \ \ \ \ \ \ ret.fit$R2[trt] = sum.lm$r.squared
+
+      + \ \ \ \ \ \ \ \ ret.fit$AdjR2[trt] = sum.lm$adj.r.squared
+
+      + \ \ \ \ \ \ \ \ ret.fit$PSlope[trt] = sum.lm$coefficients[2,4]
+
+      + \ \ \ \ \ \ \ \ 
+
+      + \ \ \ \ \ \ \ \ #fit trial adjusted means
+
+      + \ \ \ \ \ \ \ \ fw.lm \<less\>- lm(centered ~ trial.mean, trt.data)
+
+      + \ \ \ \ \ \ \ \ sum.fw \<less\>- summary(fw.lm)
+
+      + \ \ \ \ \ \ \ \ fw.coef \<less\>- sum.fw$coefficients
+
+      + \ \ \ \ \ \ \ \ ret.fit$b[trt] = fw.coef[2,1]
+
+      + \ \ \ \ \ \ \ \ ret.fit$Pb[trt] = fw.coef[2,4]
+
+      + \ \ \ \ \ \ \ \ ret.fit$bR2[trt] = sum.fw$r.squared
+
+      + \ \ \ \ \ \ \ \ 
+
+      + \ \ \ \ \ \ } else {
+
+      + \ \ \ \ \ \ \ \ trt.lm \<less\>- lm(values ~ trial.mean +
+      I(trial.mean^2),trt.data)
+
+      + \ \ \ \ \ \ \ \ sum.lm \<less\>- summary(trt.lm)
+
+      + \ \ \ \ \ \ \ \ trt.coef \<less\>- sum.lm$coefficients
+
+      + \ \ \ \ \ \ \ \ lines(sort(trt.data$trial.mean),
+      fitted(trt.lm)[order(trt.data$tria
+
+      \<less\>ta$trial.mean), fitted(trt.lm)[order(trt.data$trial.mean)],
+      lty=as.numeric(t
+
+      \<less\>.lm)[order(trt.data$trial.mean)],
+      lty=as.numeric(trt),lwd=plot.lwd,col=trt.c
+
+      \<less\>mean)], lty=as.numeric(trt),lwd=plot.lwd,col=trt.colors[trt])\ 
+
+      + \ \ \ \ \ \ \ \ #abline(trt.coef[1],trt.coef[2],lty=1,lwd=plot.lwd,col=trt.colors[1
+
+      \<less\>1],trt.coef[2],lty=1,lwd=plot.lwd,col=trt.colors[1])
+
+      + \ \ \ \ \ \ \ \ ret.fit$Slope[trt] = trt.coef[2,1]
+
+      + \ \ \ \ \ \ \ \ ret.fit$Intercept[trt] = trt.coef[1,1]
+
+      + \ \ \ \ \ \ \ \ ret.fit$R2[trt] = sum.lm$r.squared
+
+      + \ \ \ \ \ \ \ \ ret.fit$AdjR2[trt] = sum.lm$adj.r.squared\ 
+
+      + \ \ \ \ \ \ \ \ ret.fit$PSlope[trt] = sum.lm$coefficients[2,4]
+
+      + \ \ \ \ \ \ }
+
+      + \ \ \ \ }
+
+      + \ \ \ \ if(inverse.regression) {
+
+      + \ \ \ \ \ \ xy.lm \<less\>- lm(trial.mean ~ values,trt.data)
+
+      + \ \ \ \ \ \ inv.coef \<less\>- xy.lm$coefficients
+
+      + \ \ \ \ \ \ abline(-(inv.coef[1]/inv.coef[2]),(1/inv.coef[2]),lty=as.numeric(trt)
+
+      \<less\>]/inv.coef[2]),(1/inv.coef[2]),lty=as.numeric(trt),lwd=plot.lwd,col=trt.colo
+
+      \<less\>[2]),lty=as.numeric(trt),lwd=plot.lwd,col=trt.colors[trt])
+
+      + \ \ \ \ \ \ #lines(predict(xy.lm), trt.data$values,
+      lty=as.numeric(trt), lwd=plot
+
+      \<less\>m), trt.data$values, lty=as.numeric(trt), lwd=plot.lwd,
+      col=trt.colors[trt])
+
+      + \ \ \ \ }
+
+      + \ \ \ \ if(pc.regression) {
+
+      + \ \ \ \ \ \ xy.pc \<less\>- prcomp(trt.data[,c(6,1)])
+
+      + \ \ \ \ \ \ transformed \<less\>- xy.pc$x[,1] %*%
+      t(xy.pc$rotation[,1])
+
+      + \ \ \ \ \ \ transformed \<less\>- scale (transformed, center =
+      -xy.pc$center, scale = FA
+
+      \<less\>e (transformed, center = -xy.pc$center, scale = FALSE)
+
+      + \ \ \ \ \ \ #abline(trt.coef[1],trt.coef[2],lty=1,lwd=plot.lwd,col=trt.colors[1])
+
+      + \ \ \ \ \ \ lines(transformed, col = "gray", cex = 0.5)
+
+      + \ \ \ \ \ \ points(transformed, pch=trt.pch[trt],col=trt.colors[trt],
+      cex = 0.5)
+
+      + \ \ \ \ }
+
+      + \ \ \ \ if(segments) {
+
+      + \ \ \ \ \ \ segments (trt.data[,6],trt.data[,1], transformed[,1],
+      transformed[,2]
+
+      \<less\>,6],trt.data[,1], transformed[,1], transformed[,2])
+
+      + \ \ \ \ }
+
+      + \ \ }
+
+      Error: object 'trts' not found
+
+      \<gtr\> \ \ 
+
+      \<gtr\> \ \ if(length(mark.int)\<gtr\>0) {
+
+      + \ \ \ \ for(idx in 1:length(mark.int)) {
+
+      + \ \ \ \ \ \ pair \<less\>- mark.int[[idx]]
+
+      + \ \ \ \ \ \ trt \<less\>- pair[1]
+
+      + \ \ \ \ \ \ trial \<less\>- pair[2]
+
+      + \ \ \ \ \ \ y \<less\>- means.matrix[trial,trt]
+
+      + \ \ \ \ \ \ x \<less\>- means.vector[trial]
+
+      + \ \ \ \ \ \ current.pch \<less\>- trt.pch[trt]
+
+      + \ \ \ \ \ \ #points(x,y,trt.data,pch=current.pch,col=trt.colors[trt],lwd=plot.lwd
+
+      \<less\>a,pch=current.pch,col=trt.colors[trt],lwd=plot.lwd,)
+
+      + \ \ \ \ \ \ points(x,y,cex=plot.cex*2)
+
+      + \ \ \ \ }
+
+      + \ \ }
+
+      Error: object 'mark.int' not found
+
+      \<gtr\> \ \ 
+
+      \<gtr\> \ \ if(plot.unity) {
+
+      + \ \ \ \ abline(0,1,col="gray",lwd=2)
+
+      + \ \ \ \ if(length(tukey.coeffs)\<gtr\>0) {
+
+      + \ \ \ \ \ \ max.a \<less\>- max(ret.fit$Mean)-mean(ret.fit$Mean)
+
+      + \ \ \ \ \ \ min.a \<less\>- min(ret.fit$Mean)-mean(ret.fit$Mean)
+
+      + \ \ \ \ \ \ abline(tukey.coeffs[1], (1 +
+      tukey.coeffs[2]*max.a),col="gray",lwd=2,
+
+      \<less\>[1], (1 + tukey.coeffs[2]*max.a),col="gray",lwd=2,lty="dashed")
+
+      + \ \ \ \ \ \ abline(tukey.coeffs[1], (1 +
+      tukey.coeffs[2]*min.a),col="gray",lwd=2,
+
+      \<less\>[1], (1 + tukey.coeffs[2]*min.a),col="gray",lwd=2,lty="dashed")
+
+      + \ \ \ \ \ \ #abline(tukey.coeffs[2]*max.a, (1 +
+      tukey.coeffs[2]*max.a),col="gray"
+
+      \<less\>s[2]*max.a, (1 + tukey.coeffs[2]*max.a),col="gray",lwd=2,lty="dotted")
+
+      + \ \ \ \ \ \ #abline(tukey.coeffs[2]*min.a, (1 +
+      tukey.coeffs[2]*min.a),col="gray"
+
+      \<less\>s[2]*min.a, (1 + tukey.coeffs[2]*min.a),col="gray",lwd=2,lty="dotted")
+
+      + \ \ \ \ \ \ abline(tukey.coeffs[2]*mean(ret.fit$Mean), (1 +
+      tukey.coeffs[2]*max.a
+
+      \<less\>[2]*mean(ret.fit$Mean), (1 +
+      tukey.coeffs[2]*max.a),col="gray",lwd=2,lty="do
+
+      \<less\> + tukey.coeffs[2]*max.a),col="gray",lwd=2,lty="dotted")
+
+      + \ \ \ \ \ \ abline(tukey.coeffs[2]*mean(ret.fit$Mean), (1 +
+      tukey.coeffs[2]*min.a
+
+      \<less\>[2]*mean(ret.fit$Mean), (1 +
+      tukey.coeffs[2]*min.a),col="gray",lwd=2,lty="do
+
+      \<less\> + tukey.coeffs[2]*min.a),col="gray",lwd=2,lty="dotted")
+
+      + \ \ \ \ }
+
+      + \ \ }
+
+      Error: object 'plot.unity' not found
+
+      \<gtr\> \ \ return(list(data=means.table,fit=ret.fit))
+
+      Error: object 'means.table' not found
+
+      \<gtr\> }
+
+      Error: unexpected '}' in "}"
+
+      \<gtr\> par(fig = c(0, 1, 0.4, 1), mar = (c(1, 4, 1, 1) + 0.1), ps =
+      14, cex.lab =\ 
 
       \<less\>, mar = (c(1, 4, 1, 1) + 0.1), ps = 14, cex.lab = 0.7142857,
       cex.main = 0.85
@@ -5258,9 +5701,16 @@
 
       + }
 
+      Error in plot.fn(x = trial.means, y = txt.lsmeans.tbl[, i], pch =
+      trt.pch[i], \ :\ 
+
+      \ \ object 'trial.means' not found
+
       \<gtr\> title(main=main,xlab=xlab,ylab=xlab);v()
 
-      <image|<tuple|<#252150532D41646F62652D332E3020455053462D332E300A2525446F63756D656E744E65656465645265736F75726365733A20666F6E742048656C7665746963610A25252B20666F6E742048656C7665746963612D426F6C640A25252B20666F6E742048656C7665746963612D4F626C697175650A25252B20666F6E742048656C7665746963612D426F6C644F626C697175650A25252B20666F6E742053796D626F6C0A25255469746C653A2052204772617068696373204F75747075740A252543726561746F723A205220536F6674776172650A252550616765733A20286174656E64290A2525426F756E64696E67426F783A2030203020323838203238380A2525456E64436F6D6D656E74730A2525426567696E50726F6C6F670A2F627020207B2067732073524742206773207D206465660A2520626567696E202E70732E70726F6C6F670A2F677320207B206773617665207D2062696E64206465660A2F677220207B2067726573746F7265207D2062696E64206465660A2F657020207B2073686F7770616765206772206772207D2062696E64206465660A2F6D2020207B206D6F7665746F207D2062696E64206465660A2F6C20207B20726C696E65746F207D2062696E64206465660A2F6E7020207B206E657770617468207D2062696E64206465660A2F637020207B20636C6F736570617468207D2062696E64206465660A2F662020207B2066696C6C207D2062696E64206465660A2F6F2020207B207374726F6B65207D2062696E64206465660A2F632020207B206E65777061746820302033363020617263207D2062696E64206465660A2F722020207B2034203220726F6C6C206D6F7665746F203120636F70792033202D3120726F6C6C20657863682030206578636820726C696E65746F203020726C696E65746F202D31206D756C2030206578636820726C696E65746F20636C6F736570617468207D2062696E64206465660A2F703120207B207374726F6B65207D2062696E64206465660A2F703220207B2067736176652062672066696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703320207B2067736176652062672066696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F703620207B20677361766520626720656F66696C6C2067726573746F7265206E657770617468207D2062696E64206465660A2F703720207B20677361766520626720656F66696C6C2067726573746F7265207374726F6B65207D2062696E64206465660A2F742020207B2035202D3220726F6C6C206D6F7665746F20677361766520726F746174650A202020202020203120696E64657820737472696E67776964746820706F700A202020202020206D756C206E6567203020726D6F7665746F2073686F772067726573746F7265207D2062696E64206465660A2F746120207B2034202D3220726F6C6C206D6F7665746F20677361766520726F746174652073686F77207D2062696E64206465660A2F746220207B2032202D3120726F6C6C203020726D6F7665746F2073686F77207D2062696E64206465660A2F636C20207B2067726573746F7265206773617665206E657770617468203320696E646578203320696E646578206D6F7665746F203120696E6465780A2020202020202034202D3120726F6C6C206C696E65746F202065786368203120696E646578206C696E65746F206C696E65746F0A20202020202020636C6F73657061746820636C6970206E657770617468207D2062696E64206465660A2F726762207B20736574726762636F6C6F72207D2062696E64206465660A2F732020207B207363616C65666F6E7420736574666F6E74207D2062696E64206465660A2520656E642020202E70732E70726F6C6F670A2F73524742207B205B202F43494542617365644142430A202020202020202020203C3C202F4465636F64654C4D4E0A2020202020202020202020202020205B207B2064757020302E3033393238206C650A2020202020202020202020202020202020202020202020207B31322E3932333231206469767D0A2020202020202020202020202020202020202020202020207B302E3035352061646420312E3035352064697620322E3420657870207D0A2020202020202020202020202020202020202020206966656C73650A20202020202020202020202020202020207D2062696E6420647570206475700A2020202020202020202020202020205D0A202020202020202020202020202F4D61747269784C4D4E205B302E34313234353720302E32313236373320302E3031393333340A20202020202020202020202020202020202020202020202020302E33353735373620302E37313531353220302E3131393139320A20202020202020202020202020202020202020202020202020302E31383034333720302E30373231373520302E3935303330315D0A202020202020202020202020202F5768697465506F696E74205B302E3935303520312E3020312E303839305D0A20202020202020202020203E3E0A2020202020202020205D20736574636F6C6F727370616365207D2062696E64206465660A2F73726762207B20736574636F6C6F72207D2062696E64206465660A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963610A2F48656C7665746963612066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7431206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C640A2F48656C7665746963612D426F6C642066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7432206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D4F626C697175650A2F48656C7665746963612D4F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7433206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742048656C7665746963612D426F6C644F626C697175650A2F48656C7665746963612D426F6C644F626C697175652066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A20202F456E636F64696E672049534F4C6174696E31456E636F64696E67206465660A202063757272656E74646963740A2020656E640A2F466F6E7434206578636820646566696E65666F6E7420706F700A2525496E636C7564655265736F757263653A20666F6E742053796D626F6C0A2F53796D626F6C2066696E64666F6E740A647570206C656E677468206469637420626567696E0A20207B3120696E646578202F464944206E65207B6465667D207B706F7020706F707D206966656C73657D20666F72616C6C0A202063757272656E74646963740A2020656E640A2F466F6E7435206578636820646566696E65666F6E7420706F700A2525456E6450726F6C6F670A2525506167653A203120310A62700A34392E3230203132382E3430203237342E3830203237342E383020636C0A34392E3230203132382E3430203237342E3830203237342E383020636C0A302E3630303020302E3630303020302E3630303020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A3230302E3639203232382E383220322E323520632070310A35372E3536203136312E353620322E323520632070310A3231302E3635203233332E333020322E323520632070310A3130392E3139203136362E333620322E323520632070310A3136392E3536203231312E333720322E323520632070310A3235332E3433203235352E353220322E323520632070310A3136382E3636203233392E313720322E323520632070310A3236362E3434203236392E333820322E323520632070310A3130332E3237203138322E353320322E323520632070310A302E303020302E3030203238382E3030203238382E303020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A6E700A37382E3533203132382E3430206D0A3136322E39362030206C0A6F0A6E700A37382E3533203132382E3430206D0A30202D362E3030206C0A6F0A6E700A3131392E3237203132382E3430206D0A30202D362E3030206C0A6F0A6E700A3136302E3031203132382E3430206D0A30202D362E3030206C0A6F0A6E700A3230302E3735203132382E3430206D0A30202D362E3030206C0A6F0A6E700A3234312E3439203132382E3430206D0A30202D362E3030206C0A6F0A2F466F6E74312066696E64666F6E7420313420730A37382E3533203130362E38302028322E3429202E35203020740A3131392E3237203130362E38302028322E3629202E35203020740A3136302E3031203130362E38302028322E3829202E35203020740A3230302E3735203130362E38302028332E3029202E35203020740A3234312E3439203130362E38302028332E3229202E35203020740A6E700A34392E3230203134332E3731206D0A30203132302E3535206C0A6F0A6E700A34392E3230203134332E3731206D0A2D362E30302030206C0A6F0A6E700A34392E3230203136332E3831206D0A2D362E30302030206C0A6F0A6E700A34392E3230203138332E3930206D0A2D362E30302030206C0A6F0A6E700A34392E3230203230332E3939206D0A2D362E30302030206C0A6F0A6E700A34392E3230203232342E3038206D0A2D362E30302030206C0A6F0A6E700A34392E3230203234342E3137206D0A2D362E30302030206C0A6F0A6E700A34392E3230203236342E3236206D0A2D362E30302030206C0A6F0A33342E3830203134332E37312028322E3229202E3520393020740A33342E3830203138332E39302028322E3629202E3520393020740A33342E3830203232342E30382028332E3029202E3520393020740A33342E3830203236342E32362028332E3429202E3520393020740A6E700A34392E3230203132382E3430206D0A3232352E36302030206C0A30203134362E3430206C0A2D3232352E36302030206C0A30202D3134362E3430206C0A6F0A302E3030203131352E3230203238382E3030203238382E303020636C0A2F466F6E74312066696E64666F6E7420313020730A302030203020737267620A3133372E35352038322E3830202874722920302074610A302E313530202869616C2E6D65616E73292074622067720A31302E3830203136322E393820287478742E6C736D65616E73292039302074610A2D302E31353020282E7462292074620A2D302E32303020286C5B2C20695D292074622067720A34392E3230203132382E3430203237342E3830203237342E383020636C0A302030203020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A31207365746C696E656361700A31207365746C696E656A6F696E0A31302E3030207365746D697465726C696D69740A36382E3030203236322E36302031382E3239202D33382E393420722070310A302E3630303020302E3630303020302E3630303020737267620A37332E3638203235342E383120322E323520632070310A302E3930323020302E36323335203020737267620A6E700A37332E3638203235302E3532206D0A332E3033202D352E3234206C0A2D362E30362030206C0A332E303320352E3234206C0A6F0A302E3333373320302E3730353920302E3931333720737267620A6E700A37302E3530203233392E3234206D0A362E33362030206C0A6F0A6E700A37332E3638203233362E3036206D0A3020362E3336206C0A6F0A3020302E3631393620302E3435313020737267620A6E700A37312E3433203232392E3230206D0A342E353020342E3530206C0A6F0A6E700A37312E3433203233332E3730206D0A342E3530202D342E3530206C0A6F0A2F466F6E74312066696E64666F6E7420313420730A302030203020737267620A37392E3336203234392E3739202831292030203020740A37392E3336203234322E3030202832292030203020740A37392E3336203233342E3231202833292030203020740A37392E3336203232362E3433202834292030203020740A302E3630303020302E3630303020302E3630303020737267620A6E700A34392E3230203135322E3236206D0A3232352E3630203131382E3834206C0A6F0A302E3930323020302E36323335203020737267620A6E700A3230302E3639203231382E3931206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A35372E3536203133372E3332206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3231302E3635203232362E3835206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3130392E3139203137302E3832206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3136392E3536203138372E3439206D0A332E3033202D352E3235206C0A2D362E30372030206C0A332E303420352E3235206C0A6F0A6E700A3235332E3433203233322E3230206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3136382E3636203138382E3338206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3236362E3434203233312E3732206D0A332E3033202D352E3235206C0A2D362E30362030206C0A332E303320352E3235206C0A6F0A6E700A3130332E3237203136332E3037206D0A332E3034202D352E3235206C0A2D362E30372030206C0A332E303320352E3235206C0A6F0A302E3735207365746C696E6577696474680A5B20322E323520332E37355D203020736574646173680A6E700A34392E3230203133342E3030206D0A3232352E3630203130362E3832206C0A6F0A302E3333373320302E3730353920302E3931333720737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A6E700A3139372E3530203232372E3032206D0A362E33372030206C0A6F0A6E700A3230302E3639203232332E3834206D0A3020362E3336206C0A6F0A6E700A35342E3337203135322E3039206D0A362E33372030206C0A6F0A6E700A35372E3536203134382E3931206D0A3020362E3336206C0A6F0A6E700A3230372E3437203234342E3731206D0A362E33372030206C0A6F0A6E700A3231302E3635203234312E3532206D0A3020362E3337206C0A6F0A6E700A3130362E3030203138342E3732206D0A362E33372030206C0A6F0A6E700A3130392E3139203138312E3534206D0A3020362E3336206C0A6F0A6E700A3136362E3337203232342E3436206D0A362E33372030206C0A6F0A6E700A3136392E3536203232312E3238206D0A3020362E3337206C0A6F0A6E700A3235302E3235203235362E3032206D0A362E33362030206C0A6F0A6E700A3235332E3433203235322E3834206D0A3020362E3337206C0A6F0A6E700A3136352E3438203231332E3034206D0A362E33362030206C0A6F0A6E700A3136382E3636203230392E3835206D0A3020362E3337206C0A6F0A6E700A3236332E3236203236362E3732206D0A362E33372030206C0A6F0A6E700A3236362E3434203236332E3534206D0A3020362E3336206C0A6F0A6E700A3130302E3039203230322E3233206D0A362E33372030206C0A6F0A6E700A3130332E3237203139392E3034206D0A3020362E3337206C0A6F0A302E3735207365746C696E6577696474680A5B20302E303020332E30305D203020736574646173680A6E700A34392E3230203135382E3430206D0A3232352E3630203131322E3230206C0A6F0A3020302E3631393620302E3435313020737267620A302E3735207365746C696E6577696474680A5B5D203020736574646173680A6E700A3139382E3434203232322E3639206D0A342E353020342E3530206C0A6F0A6E700A3139382E3434203232372E3139206D0A342E3530202D342E3530206C0A6F0A6E700A35352E3331203136342E3133206D0A342E353020342E3530206C0A6F0A6E700A35352E3331203136382E3633206D0A342E3530202D342E3530206C0A6F0A6E700A3230382E3430203231322E3234206D0A342E353020342E3530206C0A6F0A6E700A3230382E3430203231362E3734206D0A342E3530202D342E3530206C0A6F0A6E700A3130362E3934203139352E3034206D0A342E353020342E3530206C0A6F0A6E700A3130362E3934203139392E3534206D0A342E3530202D342E3530206C0A6F0A6E700A3136372E3331203231322E3731206D0A342E353020342E3530206C0A6F0A6E700A3136372E3331203231372E3231206D0A342E3530202D342E3530206C0A6F0A6E700A3235312E3138203235372E3733206D0A342E353020342E3530206C0A6F0A6E700A3235312E3138203236322E3233206D0A342E3530202D342E3530206C0A6F0A6E700A3136362E3431203139332E3638206D0A342E353020342E3530206C0A6F0A6E700A3136362E3431203139382E3138206D0A342E3530202D342E3530206C0A6F0A6E700A3236342E3139203235392E3333206D0A342E353020342E3530206C0A6F0A6E700A3236342E3139203236332E3833206D0A342E3530202D342E3530206C0A6F0A6E700A3130312E3032203135372E3436206D0A342E353020342E3530206C0A6F0A6E700A3130312E3032203136312E3936206D0A342E3530202D342E3530206C0A6F0A302E3735207365746C696E6577696474680A5B20302E303020332E303020322E323520332E30305D203020736574646173680A6E700A34392E3230203135322E3731206D0A3232352E3630203130372E3135206C0A6F0A302E3030203131352E3230203238382E3030203238382E303020636C0A2F466F6E74322066696E64666F6E7420313220730A302030203020737267620A37372E3635203237372E30392028542920302074610A2D302E3936302028726561746D656E742062292074620A2D302E3234302028792054292074620A2D302E39363020287269616C20496E746572616374696F6E292074622067720A2F466F6E74312066696E64666F6E7420313020730A3133382E33392038322E38302028542920302074610A2D312E323030202872292074620A302E313530202869616C204D65616E292074622067720A31302E3830203137372E3939202854292039302074610A2D312E323030202872292074620A302E313530202869616C204D65616E292074622067720A65700A2525547261696C65720A252550616765733A20310A2525454F460A0A0A20>|ps>|0.8par|||>
+      Error in title(main = main, xlab = xlab, ylab = xlab) :\ 
+
+      \ \ plot.new has not been called yet
     </unfolded-io>
 
     <\unfolded-io>
@@ -5270,77 +5720,12 @@
     <|unfolded-io>
       warnings()
 
-      Warning messages:
+      Warning message:
 
-      1: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
+      In anova.lmlist(object, ...) :
 
-      \ \ font family 'Times New Roman' not found in PostScript font database
-
-      2: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ font family 'Times New Roman' not found in PostScript font database
-
-      3: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ font family 'Times New Roman' not found in PostScript font database
-
-      4: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ family 'Times New Roman' not included in postscript() device
-
-      5: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ font family 'Times New Roman' not found in PostScript font database
-
-      6: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ font family 'Times New Roman' not found in PostScript font database
-
-      7: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ font family 'Times New Roman' not found in PostScript font database
-
-      8: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ font family 'Times New Roman' not found in PostScript font database
-
-      9: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ family 'Times New Roman' not included in postscript() device
-
-      10: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ font family 'Times New Roman' not found in PostScript font database
-
-      11: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ font family 'Times New Roman' not found in PostScript font database
-
-      12: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ font family 'Times New Roman' not found in PostScript font database
-
-      13: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ family 'Times New Roman' not included in postscript() device
-
-      14: In grDevices::dev.copy(file = op$file, print.it = F, width = width,
-      \ ... :
-
-      \ \ font family 'Times New Roman' not found in PostScript font database
+      \ \ models with response '"response"' removed because response differs
+      from model 1
     </unfolded-io>
 
     <\unfolded-io>
@@ -8731,30 +9116,31 @@
 <\references>
   <\collection>
     <associate|auto-1|<tuple|1|?>>
-    <associate|auto-10|<tuple|5.2|?>>
-    <associate|auto-11|<tuple|1|?>>
-    <associate|auto-12|<tuple|2|?>>
-    <associate|auto-13|<tuple|6|?>>
+    <associate|auto-10|<tuple|6.1|?>>
+    <associate|auto-11|<tuple|6.2|?>>
+    <associate|auto-12|<tuple|1|?>>
+    <associate|auto-13|<tuple|2|?>>
     <associate|auto-14|<tuple|7|?>>
-    <associate|auto-15|<tuple|7.1|?>>
-    <associate|auto-16|<tuple|3|?>>
-    <associate|auto-17|<tuple|7.2|?>>
-    <associate|auto-18|<tuple|7.3|?>>
-    <associate|auto-19|<tuple|7.4|?>>
+    <associate|auto-15|<tuple|8|?>>
+    <associate|auto-16|<tuple|8.1|?>>
+    <associate|auto-17|<tuple|3|?>>
+    <associate|auto-18|<tuple|8.2|?>>
+    <associate|auto-19|<tuple|8.3|?>>
     <associate|auto-2|<tuple|2|?>>
-    <associate|auto-20|<tuple|7.5|?>>
-    <associate|auto-21|<tuple|7.6|?>>
-    <associate|auto-22|<tuple|7.7|?>>
-    <associate|auto-23|<tuple|7.7.1|?>>
-    <associate|auto-24|<tuple|8|?>>
-    <associate|auto-25|<tuple|2|?>>
+    <associate|auto-20|<tuple|8.4|?>>
+    <associate|auto-21|<tuple|8.5|?>>
+    <associate|auto-22|<tuple|8.6|?>>
+    <associate|auto-23|<tuple|8.7|?>>
+    <associate|auto-24|<tuple|8.7.1|?>>
+    <associate|auto-25|<tuple|9|?>>
+    <associate|auto-26|<tuple|2|?>>
     <associate|auto-3|<tuple|3|?>>
     <associate|auto-4|<tuple|3.1|?>>
     <associate|auto-5|<tuple|1|?>>
     <associate|auto-6|<tuple|3.2|?>>
     <associate|auto-7|<tuple|4|?>>
     <associate|auto-8|<tuple|5|?>>
-    <associate|auto-9|<tuple|5.1|?>>
+    <associate|auto-9|<tuple|6|?>>
   </collection>
 </references>
 

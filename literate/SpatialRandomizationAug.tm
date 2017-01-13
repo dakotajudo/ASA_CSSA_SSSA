@@ -1,29 +1,14 @@
-<TeXmacs|1.99.4>
+<TeXmacs|1.99.5>
 
 <style|generic>
 
 <\body>
-  <doc-data|<doc-title|Optimal Treatment Dispersions in Rectangular
-  Areas>|<doc-author|<\author-data|<author-name|Peter Claussen>>
+  <doc-data|<doc-title|Computing dispersion for augmented
+  designs.>|<doc-author|<\author-data|<author-name|Peter Claussen>>
     \;
   </author-data>>>
 
-  <abstract-data|<abstract|The classic method for managing spatial
-  heterogeniety in agricultural field trials is the randomized complete block
-  design. When treatments are properly assigned to blocks, the effects of
-  spatial heterogeneity can be estimated using standard analysis of variance.
-  Typically, treatments are randomly dispersed within blocks, but this may
-  result in a systematic bias in error if treatments are not uniformly
-  dispersed. We discuss different methods of restricted randomizations that
-  provide optimal treatment dispersions and compare methods of recovering
-  spatial information. The choice of methods used for spatial analysis may
-  dictate the requirements for optimal dispersion.>>
-
   \;
-
-  \;
-
-  <subsection*|Computing dispersion for augmented designs.>
 
   van Es, et al, <inactive|<cite|es.h-03-1993>>
 
@@ -88,20 +73,20 @@
 
 <\references>
   <\collection>
-    <associate|auto-1|<tuple|?|?>>
-    <associate|auto-10|<tuple|3|?>>
-    <associate|auto-11|<tuple|7|?>>
-    <associate|auto-12|<tuple|8|?>>
+    <associate|auto-1|<tuple|1|?>>
+    <associate|auto-10|<tuple|7|?>>
+    <associate|auto-11|<tuple|8|?>>
+    <associate|auto-12|<tuple|9|?>>
     <associate|auto-13|<tuple|9|?>>
     <associate|auto-14|<tuple|9|?>>
     <associate|auto-2|<tuple|1|?>>
-    <associate|auto-3|<tuple|1|?>>
-    <associate|auto-4|<tuple|2|?>>
-    <associate|auto-5|<tuple|3|?>>
-    <associate|auto-6|<tuple|2|?>>
-    <associate|auto-7|<tuple|4|?>>
-    <associate|auto-8|<tuple|5|?>>
-    <associate|auto-9|<tuple|6|?>>
+    <associate|auto-3|<tuple|2|?>>
+    <associate|auto-4|<tuple|3|?>>
+    <associate|auto-5|<tuple|2|?>>
+    <associate|auto-6|<tuple|4|?>>
+    <associate|auto-7|<tuple|5|?>>
+    <associate|auto-8|<tuple|6|?>>
+    <associate|auto-9|<tuple|3|?>>
   </collection>
 </references>
 
@@ -119,6 +104,12 @@
       <tuple|normal|Contrast-wise distances|<pageref|auto-8>>
 
       <tuple|normal|Treatment distances|<pageref|auto-9>>
+
+      <tuple|normal|Plot-wise distances|<pageref|auto-11>>
+
+      <tuple|normal|Contrast-wise distances|<pageref|auto-12>>
+
+      <tuple|normal|Treatment distances|<pageref|auto-13>>
     </associate>
     <\associate|toc>
       <with|par-left|<quote|1tab>|Computing dispersion for augmented designs.
@@ -133,9 +124,13 @@
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-6>>
 
+      <with|par-left|<quote|1tab>|3<space|2spc>Within Replicate, Mixed
+      Contrast Only <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-10>>
+
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|Bibliography>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-10><vspace|0.5fn>
+      <no-break><pageref|auto-14><vspace|0.5fn>
     </associate>
   </collection>
 </auxiliary>

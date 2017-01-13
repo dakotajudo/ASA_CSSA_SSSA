@@ -32,15 +32,17 @@ simulate.plan <- function(plan,
       plots[plots$number==number,] <- currentPlots
     }
     current.res <- analysis.fn(currentPlots)
-    current.res$Number <- number
-    current.res$Row <- currentPlots$Row[1]
-    current.res$Col <- currentPlots$Col[1]
-    current.res$Model <- model
+    if(!is.null(current.res)) {
+      current.res$Number <- number
+      current.res$Row <- currentPlots$Row[1]
+      current.res$Col <- currentPlots$Col[1]
+      current.res$Model <- model
     
-    if(is.null(res.dat)) {
-      res.dat <- current.res
-    } else {
-      res.dat <- rbind(res.dat,current.res)
+      if(is.null(res.dat)) {
+        res.dat <- current.res
+      } else {
+        res.dat <- rbind(res.dat,current.res)
+      }
     }
   }
   
@@ -52,6 +54,12 @@ simulate.plan <- function(plan,
 }
 
 rcb.analysis <- function(current.dat,REML=TRUE) {
+  
+  #is there valid data?
+  current.dat <- subset(current.dat,!is.na(current.dat$YldVolDry))
+  if(dim(current.dat)[1]<10) {
+    return(NULL)
+  }
   aov.tbl <- summary(aov(YldVolDry ~ as.factor(trt)+as.factor(rep),data=current.dat))
   RepVar <- NA
   ResVar <- NA
