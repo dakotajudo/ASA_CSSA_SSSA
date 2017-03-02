@@ -20,7 +20,7 @@ generate.rcb.plans <- function(reps,treatments,count) {
   hashes <- c()
   
   while (cnt <= count) {
-    current.plan <- rcb.plan
+    current.plan <- base.plan
     trt <- c()
     for (i in 1:reps) {
       trt <- c(trt,sample(1:treatments))

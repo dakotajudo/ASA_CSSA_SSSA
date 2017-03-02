@@ -54,7 +54,7 @@ simulate.plan <- function(plan,
 }
 
 rcb.analysis <- function(current.dat,REML=TRUE) {
-  
+  require(nlme)
   #is there valid data?
   current.dat <- subset(current.dat,!is.na(current.dat$YldVolDry))
   if(dim(current.dat)[1]<10) {
