@@ -1,0 +1,214 @@
+asin(.99)
+acos(0)
+acos(-1)
+acos(0)
+cos(2*pi)
+sin(0.3)
+cos(0.3)
+asin(1-0.2955202*0.2955202)
+asin(1-0.0.9553365*0.9553365)
+asin(1-0.9553365*0.9553365)
+acos(1-0.2955202*0.2955202)
+acos(sqrt(1-0.2955202*0.2955202))
+asin(sqrt(1-0.9553365*0.9553365))
+asin(sqrt(1))
+asin(0)
+sin(2*pi-0.00001)
+cos(2*pi-0.00001)
+sin(pi-0.00001)
+sin(2*pi-0.1)
+sin(pi-0.1)
+cos(2*pi-0.1)
+cos(pi-0.1)
+sin(0.1)
+cos(0.1)
+exp(0)
+exp(-.1)
+exp(.001)
+exp(-40)
+exp(0.1)
+exp(0.01)
+exp(10)
+exp(0.01)-exp(0.02)
+abs(exp(0.01)-exp(0.02))
+abs(exp(0.02)-exp(0.01))
+sin(0)
+cos(0)
+data.frame(#
+	gfrs=c(2,4,3,6,5,8,2,1,4,9,7,8,3,3,4,7,7,9),#
+	Sample=as.factor(c("pre1","pre2","pre3","pos1","pos2","pos3",#
+	         "pre1","pre2","pre3","pos1","pos2","pos3",#
+	         "pre1","pre2","pre3","pos1","pos2","pos3")),#
+	Patient=as.factor(c(1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3))#
+	SampleNo=(-3,-2,-1,1,2,3,-3,-2,-1,1,2,3,-3,-2,-1,1,2,3)#
+	)
+data.frame(#
+	gfrs=c(2,4,3,6,5,8,2,1,4,9,7,8,3,3,4,7,7,9),#
+	Sample=as.factor(c("pre1","pre2","pre3","pos1","pos2","pos3",#
+	         "pre1","pre2","pre3","pos1","pos2","pos3",#
+	         "pre1","pre2","pre3","pos1","pos2","pos3")),#
+	Patient=as.factor(c(1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3)),#
+	SampleNo=(-3,-2,-1,1,2,3,-3,-2,-1,1,2,3,-3,-2,-1,1,2,3)#
+	)
+data.frame(#
+	gfrs=c(2,4,3,6,5,8,2,1,4,9,7,8,3,3,4,7,7,9),#
+	Sample=as.factor(c("pre1","pre2","pre3","pos1","pos2","pos3",#
+	         "pre1","pre2","pre3","pos1","pos2","pos3",#
+	         "pre1","pre2","pre3","pos1","pos2","pos3")),#
+	Patient=as.factor(c(1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3)),#
+	SampleNo=c(-3,-2,-1,1,2,3,-3,-2,-1,1,2,3,-3,-2,-1,1,2,3)#
+	)
+gfrs.dat = data.frame(#
+	gfrs=c(2,4,3,6,5,8,2,1,4,9,7,8,3,3,4,7,7,9),#
+	Sample=as.factor(c("pre1","pre2","pre3","pos1","pos2","pos3",#
+	         "pre1","pre2","pre3","pos1","pos2","pos3",#
+	         "pre1","pre2","pre3","pos1","pos2","pos3")),#
+	Patient=as.factor(c(1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3)),#
+	SampleNo=c(-3,-2,-1,1,2,3,-3,-2,-1,1,2,3,-3,-2,-1,1,2,3)#
+	)#
+libary(lme4)#
+lmer(gfrs~ (Sample|Patient),data=gfrs.dat)
+library(lme4)#
+lmer(gfrs~ (Sample|Patient),data=gfrs.dat)
+gfrs.dat = data.frame(#
+	gfrs=c(2,4,3,6,5,8,2,1,4,9,7,8,3,3,4,7,7,9),#
+	Sample=as.factor(c("pre","pre","pre","pos","pos","pos",#
+	         "pre","pre","pre","pos","pos","pos",#
+	         "pre","pre","pre","pos","pos","pos",)),#
+	Patient=as.factor(c(1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3)),#
+	SampleNo=c(-3,-2,-1,1,2,3,-3,-2,-1,1,2,3,-3,-2,-1,1,2,3)#
+	)#
+library(lme4)#
+lmer(gfrs~ (Sample|Patient),data=gfrs.dat)
+gfrs.dat = data.frame(#
+	gfrs=c(2,4,3,6,5,8,2,1,4,9,7,8,3,3,4,7,7,9),#
+	Sample=as.factor(c("pre","pre","pre","pos","pos","pos",#
+	         "pre","pre","pre","pos","pos","pos",#
+	         "pre","pre","pre","pos","pos","pos")),#
+	Patient=as.factor(c(1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3)),#
+	SampleNo=c(-3,-2,-1,1,2,3,-3,-2,-1,1,2,3,-3,-2,-1,1,2,3)#
+	)#
+library(lme4)#
+lmer(gfrs~ (Sample|Patient),data=gfrs.dat)
+gfrs.dat = data.frame(#
+	gfrs=c(2,4,3,6,5,8,2,1,4,9,7,8,3,3,4,7,7,9),#
+	Sample=as.factor(c("pre","pre","pre","pos","pos","pos",#
+	         "pre","pre","pre","pos","pos","pos",#
+	         "pre","pre","pre","pos","pos","pos")),#
+	Patient=as.factor(c(1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3)),#
+	SampleNo=c(-3,-2,-1,1,2,3,-3,-2,-1,1,2,3,-3,-2,-1,1,2,3)#
+	)#
+library(lme4)#
+lmer(gfrs~ 0+(Sample|Patient),data=gfrs.dat)
+ranef(lmer(gfrs~ 0+(Sample|Patient),data=gfrs.dat))
+lmer(gfrs ~ Sample + (1|Patient),data=gfrs.dat)
+gfrs.dat = data.frame(#
+	gfrs=c(2,3.2,3.9,6,5,8,2,1,4,9,7,8,2.7,3,4.3,7,7,9),#
+	Sample=as.factor(c("pre","pre","pre","pos","pos","pos",#
+	         "pre","pre","pre","pos","pos","pos",#
+	         "pre","pre","pre","pos","pos","pos")),#
+	Patient=as.factor(c(1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,3,3)),#
+	SampleNo=c(-3,-2,-1,1,2,3,-3,-2,-1,1,2,3,-3,-2,-1,1,2,3)#
+	)#
+library(lme4)#
+lmer(gfrs~ (Sample|Patient),data=gfrs.dat)
+ranef(lmer(gfrs~ (Sample|Patient),data=gfrs.dat))
+8*60+32
+(8*60+32)/(3200/3000)
+(8*60+32)*(3200/3000)
+546.1333/60
+(8*60+32)*(3218/3000)
+(10*60+11)*(3000/3218)
+(9*60+40)*(3000/3218)
+xs <- 1:100
+plot(xs,sin(xs*pi/4))
+xs <- (-1000):1000
+plot(xs,sin(xs*pi/4))
+sin((1:4)*pi/4)
+sin(pi/4)
+(sin(pi/4)*2)^2
+plot(xs,sin(xs)/xs))
+plot(xs,sin(xs)/xs)
+xs <- xs/1000
+plot(xs,sin(xs)/xs)
+xs <- (-1000):1000
+xs <- xs/500
+plot(xs,sin(xs)/xs)
+xs <- (-1000):1000
+xs <- xs/100
+plot(xs,sin(xs)/xs)
+plot(xs,abs(sin(xs)/xs))
+f <- function(n,x) { return(cos(n*x)/(1+(n*x*x)))}
+f(xs,1)
+plot(xs,f(1,xs))
+plot(xs,f(2,xs))
+plot(xs,f(3,xs))
+plot(xs,f(5,xs))
+plot(xs,f(5,xs).type="l")
+plot(xs,f(5,xs),type="l")
+plot(xs,f(50,xs),type="l")
+plot(xs,f(80,xs),type="l")
+plot(xs,f(800,xs),type="l")
+plot(xs,cos(3*xs),type="l")
+lines(xs,cos(5*xs),type="l")
+lines(xs,cos(9*xs),type="l")
+lines(xs,cos(9*xs),type="l",col="blue")
+plot(xs,cos(3*xs),type="l")
+plot(xs,cos(xs),type="l")
+lines(xs,cos(4*xs),type="l",col="blue")
+lines(xs,cos(2*xs),type="l",col="red")
+lines(xs,cos(8*xs),type="l",col="green")
+plot(xs,f(1,xs),type="l")
+plot(xs,f(10,xs),type="l",col="blue")
+plot(xs,f(1,xs),type="l")
+lines(xs,f(10,xs),type="l",col="blue")
+plot(xs,f(1,xs),type="l",ylim=c(-1,1))
+plot(xs,f(1,xs),type="l",ylim=c(-1,0.5))
+plot(xs,f(1,xs),type="l",ylim=c(-0.5,1))
+lines(xs,f(10,xs),type="l",col="blue")
+lines(xs,f(100,xs),type="l",col="red")
+plot(xs,f(1,xs),type="l",ylim=c(-1,1))
+lines(xs,f(100,xs),type="l",col="red")
+lines(xs,f(10,xs),type="l",col="blue")
+lines(xs,f(1000,xs),type="l",col="green")
+plot(xs,f(1,xs),type="l",ylim=c(-1,1))
+lines(xs,f(10,xs),type="l",col="blue")
+lines(xs,f(100,xs),type="l",col="red")
+lines(xs,f(1000,xs),type="l",col="green")
+lines(xs,f(10000,xs),type="l",col="yellow")
+1118/4
+850/4
+1118/3
+850/3
+xs <- xs/10
+plot(xs,f(1,xs),type="l",ylim=c(-1,1))
+lines(xs,f(10,xs),type="l",col="blue")
+lines(xs,f(100,xs),type="l",col="red")
+lines(xs,f(1000,xs),type="l",col="green")
+lines(xs,f(10000,xs),type="l",col="yellow")
+xs <- xs/10
+plot(xs,f(1,xs),type="l",ylim=c(-1,1))
+lines(xs,f(10,xs),type="l",col="blue")
+lines(xs,f(100,xs),type="l",col="red")
+lines(xs,f(1000,xs),type="l",col="green")
+lines(xs,f(10000,xs),type="l",col="yellow")
+xs <- xs/10
+plot(xs,f(1,xs),type="l",ylim=c(-1,1))
+lines(xs,f(10,xs),type="l",col="blue")
+lines(xs,f(100,xs),type="l",col="red")
+lines(xs,f(1000,xs),type="l",col="green")
+lines(xs,f(10000,xs),type="l",col="yellow")
+lines(xs,f(10000,xs),type="l",col="purple")
+lines(xs,f(10000,xs),type="l",col="yellow")
+lines(xs,f(100000,xs),type="l",col="purple")
+plot(xs,f(1,xs),type="l",ylim=c(-1,1))
+lines(xs,f(10,xs),type="l",col="blue")
+lines(xs,f(100,xs),type="l",col="red")
+lines(xs,f(1000,xs),type="l",col="green")
+lines(xs,f(10000,xs),type="l",col="yellow")
+lines(xs,f(100000,xs),type="l",col="purple")
+11.5/14
+setwd('/Users/dakotajudo/Work/git/ASA_CSSA_SSSA/literate/data/usda')#
+Sweave('/Users/dakotajudo/Work/git/ASA_CSSA_SSSA/literate/data/usda/fitLinearModels.Snw')#
+date()
+getwd()

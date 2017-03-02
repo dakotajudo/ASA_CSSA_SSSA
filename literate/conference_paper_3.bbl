@@ -1,0 +1,41 @@
+\begin{thebibliography}{1}
+
+\bibitem{hww-rpn}
+{Hard Winter Wheat Regional Nurseries} {\tt
+  www.ars.usda.gov/main/docs.htm?docid=11932}.
+
+\bibitem{nuGIS}
+{IPNI. 2012. A Nutrient Use Information System (NuGIS) for the U.S. Norcross,
+  GA. {\tt www.ipni.net/nugis}}.
+
+\bibitem{modis}
+{Moderate Resolution Imaging Spectroradiometer (MODIS) Daily Land Surface
+  Temperature (LST), years 2003-2008 on CDC WONDER Online Database, released
+  2012.} {\tt wonder.cdc.gov/nasa-lst.html}.
+
+\bibitem{nldas}
+{North America Land Data Assimilation System (NLDAS) Daily Air Temperatures and
+  Heat Index, years 1979-2011 on CDC WONDER Online Database, released 2013.
+  {\tt wonder.cdc.gov/NASA-NLDAS.html}}.
+
+\bibitem{usda-nass}
+{United States Department of Agriculture, National Agricultural Statistics
+  Service} {\tt quickstats.nass.usda.gov}.
+
+\bibitem{graybosch.r-2014}
+R~Graybosch, HE~Bockelman, KA~Garland-Campbell, DF~Garvin, and T~Regassa.
+\newblock {\em {Yield Gains in Major U.S. Field Crops}}, chapter Wheat.
+\newblock ASA, CSSA and SSSA, 5585 Guilford Rd. Madison, WI 53711-5801, USA,
+  September 2014.
+
+\bibitem{lin.m-07-2012}
+M~Lin and P~Huybers.
+\newblock {Reckoning wheat yield trends}.
+\newblock {\em Environ Res Lett}, 7, July 2012.
+
+\bibitem{ray.d-12-2012}
+DK~Ray, N~Ramankutty, ND~Mueller, PC~West, and JA~Foley.
+\newblock {Recent patterns of crop yield growth and stagnation}.
+\newblock {\em Nature communications}, 3:1293, December 2012.
+
+\end{thebibliography}

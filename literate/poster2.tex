@@ -1,0 +1,313 @@
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% baposter Portrait Poster
+% LaTeX Template
+% Version 1.0 (15/5/13)
+%
+% Created by:
+% Brian Amberg (baposter@brian-amberg.de)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+%\documentclass[a0paper,portrait]{baposter}
+
+\documentclass[paperwidth=42in,paperheight=44in]{baposter}
+\usepackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
+\usepackage{booktabs} % Horizontal rules in tables
+\usepackage{relsize} % Used for making text smaller in some places
+
+\graphicspath{{figures/}} % Directory in which figures are stored
+
+\definecolor{bordercol}{RGB}{40,40,40} % Border color of content boxes
+\definecolor{headercol1}{RGB}{186,215,230} % Background color for the header in the content boxes (left side)
+\definecolor{headercol2}{RGB}{80,80,80} % Background color for the header in the content boxes (right side)
+\definecolor{headerfontcol}{RGB}{0,0,0} % Text color for the header text in the content boxes
+\definecolor{boxcolor}{RGB}{186,215,230} % Background color for the content in the content boxes
+
+\usepackage{Sweave}
+\begin{document}
+
+\begin{poster}{
+grid=false,
+borderColor=bordercol, % Border color of content boxes
+headerColorOne=headercol1, % Background color for the header in the content boxes (left side)
+headerColorTwo=headercol2, % Background color for the header in the content boxes (right side)
+headerFontColor=headerfontcol, % Text color for the header text in the content boxes
+boxColorOne=boxcolor, % Background color for the content in the content boxes
+headershape=roundedright, % Specify the rounded corner in the content box headers
+headerfont=\Large\sf\bf, % Font modifiers for the text in the content box headers
+textborder=rectangle,
+%background=user,
+headerborder=open, % Change to closed for a line under the content box headers
+boxshade=plain
+}
+{}
+%
+%----------------------------------------------------------------------------------------
+%	TITLE AND AUTHOR NAME
+%----------------------------------------------------------------------------------------
+%
+
+%\institute{Gylling Data Management} % Institution(s)
+{\sf\bf Temporal and Spatial Trends in Winter Wheat Yields Monitored Via Multiple Online Data Sources} % Poster title
+%{\vspace{1em} Peter Claussen} % Author names
+%{\smaller Pete@gdmdata.com} % Author email addresses
+%{\includegraphics[scale=0.15]{logo}} % University/lab logo
+
+%----------------------------------------------------------------------------------------
+%	INTRODUCTION
+%----------------------------------------------------------------------------------------
+
+\headerbox{Introduction}{name=introduction,column=0,row=0}{
+
+Recent studies have suggested that crop yields gains have slowed or stagnated in many regions globally. However, a simple analysis of winter wheat yield in the central United States shows that while yield gains have slowed for some (southern) regions, relative to mid-century gains, yield improvement have accelerated in other (northern) regions. This implies a shift in winter wheat productions zones, perhaps related to climate change. Determining the real effect of climate change requires correlating yield changes with many other spatially based covariates. These include variables relating to fertility, innovation and policy, and economics in addition to climate data. These factors should be analyzed at the most detailed geographical scale possible.
+
+Yield data at the county level is available from the USDA NASS (National Agricultural Statistics Service) via a web based SQL query. Integration of yield data with other available data, taken at the county level, is more difficult. Environmental data are available from the CDC (Centers for Disease Control and Prevention) using a web browser interface. Similar climate data can be obtained using FTP from the NOAA (National Oceanic and Atmospheric Administration). The IPNI (International Plant Nutrition Institute) provides soil fertility data in in single large Microsoft Excel file format, while yearly summary data for wheat variety testing in the Hard Winter Wheat Performance Nursery program are available in single Excel or PDF files, one per year.
+
+The availability of large, county level data sets provides opportunities for study of factors influencing agronomic performance of a wide range of crops, but lack of common data structure hinders repeated analysis of such data. A geospatial analysis of winter wheat yield trends and associated covariates is presented to illustrate the benefits and challenges of an integrated analysis of multiple data sets.
+
+While overall wheat producers have seen continued increases in productivity, several recents studies have noted a stagnation in yield gain in some regions. While 
+
+graybosch-2014
+"Wheat production in these states is mostly concentrated in arid
+regions where plant-available water is limiting. Wheat yields in the Great Plains
+states also are limited by disease outbreaks and late winter freezes, both of which
+can cancel or obscure any recent gains from breeding efforts."
+
+"Sociological practices, environmental or economic considerations limiting nitrogen
+use, or biological constraints on current levels of wheat production in specific zones
+contribute to the observed lack of progress in on-farm productivity."
+
+}
+
+%----------------------------------------------------------------------------------------
+%	MATERIALS AND METHODS
+%----------------------------------------------------------------------------------------
+
+\headerbox{Materials and Methods}{name=methods,column=0,below=introduction}{
+All analysis presented here were performed using the R statistical package.
+
+
+A primary key is needed to ensure that data across multiple sources is correctly linked. Since these data are from several independent sources, a primary key was generated for this analysis. Since only data recorded at a county level is used in this analysis, a primary key was generated by concatenating state and county codes. The R \verb|map| library was used as the primary source for geographical coordinates. In this data base, counties in the United States are indexed by state name and county name, in lower case and separated by a comma. 
+
+Yield data were downloaded from the USDA NASS database. The web server allows queries to be saved as CSV; these files were read directly into R.
+We start our analysis centered on the USDA NAS data set at \verb|http://quickstats.nass.usda.gov|
+
+Program : SURVEY
+Sector : CROPS
+Group : FIELD CROPS
+Commodity : WHEAT
+Category : YIELD
+Data Item : WHEAT, WINTER - YIELD, MEASURED in BU / ACRE
+Domain : TOTAL
+Location : COUNTY
+State : KANSAS, NEBRASKA, NORTH DAKOTA, OKLAHOMA, SOUTH DAKOTA, TEXAS
+Period Type: ANNUAL
+Period: YEAR
+ 
+Data from Wonder were downloaded with County embedded in the county descriptor. This required some manual editing to make this descriptor suitable for indexing for this analysis. The data were also downloaded as tab-delimited tables with endnotes; this required further editing.
+
+The IPNI database was downloaded as a single Excel spreadsheet. The spreadsheet was exported to CSV and read into R. 
+
+Summary files for the Hard Winter Wheat Regional Performance Nursery were downloaded from \verb|http://www.ars.usda.gov/Main/docs.htm?docid=11932|
+Data prior to 2002 were downloaded as PDF and tables were copied to a text editor for formatting prior to final editing in a spreadsheet. Data from 2002 forward are available as Excel files. Summary statistics for each nursery, year and research station were reformatted into a single summary table that could be read into R. Only data from SRPN and NRPN nurseries were used. Research stations were entered into another table and GPS coordinates were found for each named station using Wikipedia, and stations were assigned to counties based on Wikipedia entries.
+
+Data were downloaded from publicly available sources. Sources were selected to have county-level observations of variables that might correlate with wheat yield. 
+Data sources and brief descriptions are
+\begin{itemize}
+   \item{USDA NASS} \cite{usda-nass}
+   
+   \item{IPNI}
+      County-level estimates of nutrient application and removal, for five-year intervals from 1987 - 2007.
+   \item{CDC WONDER}
+      Several weather-related databases
+      (NLDAS) Daily Air Temperatures and Heat Index (1979-2011) 
+      (MODIS) Land Surface Temperature (LST) (2003-2008)
+      Fine Particulate Matter (PM2.5) ($\mu g / m^3$) (2003-2011) Request
+   \item{HWW RPN}
+\end{itemize}
+NASS and CDC WONDER index counties using FIPS, while IPNI and HWW RPN 
+
+For all data, linear regression coefficients on year $x_i$ and county $n$ were computed in R using the model
+$y_{n i} = a_{n} + b_{n} x_i + e_{n i}$. Where sufficient records were available data were regressed on the years 1984-2014; otherwise data were regressed on all available years. Weighted means for each county were computed by standardizing regression to 1999, i.e. $\bar{y}_{n} = \hat{a}_{n} + \hat{b}_{n} \times 1999$. Rate of change were normalized to a relative rate by $100 \hat{b}_{n} / \bar{y}_{n}$. 
+
+Figure ref shows the geographical distribution of weighted average county yield ($Y_a$) and relative rate of change in county yield ($Y_b$).
+Two linear models were fit to determine significant covariates. $Y_a$ was regressed against weighted covariate means ($\hat{a}_{n}$), while $Y_b$ was regressed against other rate of change in covariates ($\hat{b}_{n}$). Additionally, distance to the nearest HWW regional performance nursery was computed for each county. This was computed from the geographical coordinates obtained for the center of each county.
+
+The R \verb|step| was used to determine the optimal covariate model for both models, then a principal component analysis was obtained using \verb|princomp|. Table ref summarized the coefficients and significance of the best linear models, and Figure ref presents a biplot of the principle components.
+
+
+\begin{itemize}
+\item USDA NASS (National Agricultural Statistics Service)
+   %\begin{itemize}
+   %   \item \texttt{WHEAT, WINTER - YIELD, MEASURED IN BU / ACRE}
+   %\end{itemize}
+\item IPNI International Plant Nutrition Institute \cite{nuGIS}
+   %\begin{itemize}
+   %   \item Farm 
+   %      TonsN TonsP TonsK
+   %   \item Tons Exc
+   %      N Exc P2O5 Exc K2O 
+   %   \item Tons Recovered
+   %      N P2O5 K2O
+   %   \item Tons N Fixed Legumes
+   %   \item Tons Rem
+   %         N P2O5 K2O
+   %   \item Balance
+   %         N P2O5 K2O
+   %   \item Ratio
+   %         N P2O5 K2O
+   %   \item PPCA
+   %         N P2O5 K2O
+   %   \item Farm PPCA
+   %         N P2O5 K2O
+   %   \item TotalPlantedAc
+   %   \item TotalHarvestAc
+   %   \item Total Harvested Cropland Acres
+   %   \item Cropland
+   %\end{itemize}
+\item CDC Centers for Disease Control and Prevention \cite{nldas}
+   %\texttt{http://wonder.cdc.gov/EnvironmentalData.html}
+   "Suggested Citation: North America Land Data Assimilation System (NLDAS) Daily Precipitation for years 1979-2011 on CDC WONDER"
+   "Online Database, released 2013. Accessed at http://wonder.cdc.gov/NASA-Precipitation.html on Nov 8, 2015 2:07:19 PM"
+   %\begin{itemize}
+   %   \item Daily Air Temperatures and Heat Index (1979-2011) 
+   %      from North America Land Data Assimilation System (NLDAS) 
+   %   \item Fine Particulate Matter (PM2.5) ($\mu g/m^3$) (2003-2011) 
+   %   \item Land Surface Temperature (LST) (2003-2008) 
+   %      from Moderate Resolution Imaging Spectroradiometer (MODIS) 
+   %   \item Daily Sunlight ($KJ/m^2$) (1979-2011) 
+   %      from North America Land Data Assimilation System (NLDAS) 
+   %   \item Daily Precipitation (mm) (1979-2011) 
+   %      from North America Land Data Assimilation System (NLDAS) 
+   %   \item Number of Heat Wave Days in May-September (1981-2010)
+   %\end{itemize}
+\item HWW RPN Hard Winter Wheat Performance Nursery 
+\end{itemize}
+}
+
+%----------------------------------------------------------------------------------------
+%	CONCLUSION
+%----------------------------------------------------------------------------------------
+
+\headerbox{Conclusion}{name=conclusion,column=0,below=methods}{
+There is a great wealth of publicly available data
+The biggest challenge in this analysis is the inherent difficulty in merging several large, heterogenous data sources. Data may not be sampled over the same intervals in all data sets, requiring a weighted or least squares analysis to normalize observations to an appropriate standard time point. Further difficulties arise when attempting to merge the output from linear models so that county level observations are not mismatched. 
+
+This may be done by hand, reading and copying each estimated parameter, but this is time consuming and largely a one-time operation. Automation would be preferred, since this allows analysis to be repeated, to show current trends, whenever a database is updated. However, unless some effort is made among the different data aggregators, some human intervention will be required. 
+
+The USDA NASS web sites offer point-and-click interface for constructing queries, but limitations on the number of records allowed per query (50,000 for USDA NASS and for CDC WONDER ) presented a challenge in duplicating queries for multiple measures. Analysis was repeated in several instances because some measures where missed for a portion, typically, when a single state was not selected in the original query. The USDA NASS provides a programming interface (Quick Stats API) that can simplify automated duplication of queries, but such an interface is not available for all data sets.
+}
+
+%----------------------------------------------------------------------------------------
+%	REFERENCES
+%----------------------------------------------------------------------------------------
+
+\headerbox{References}{name=references,column=0,below=conclusion}{
+
+\smaller % Reduce the font size in this block
+\renewcommand{\section}[2]{\vskip 0.05em} % Get rid of the default "References" section title
+\nocite{*} % Insert publications even if they are not cited in the poster
+
+\bibliographystyle{unsrt}
+\bibliography{sample} % Use sample.bib as the bibliography file
+}
+
+%----------------------------------------------------------------------------------------
+%	ACKNOWLEDGEMENTS
+%----------------------------------------------------------------------------------------
+
+\headerbox{Acknowledgements}{name=acknowledgements,column=0,below=references, above=bottom}{
+
+\smaller % Reduce the font size in this block
+Fusce mattis tellus ac odio imperdiet lobortis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Phasellus commodo blandit euismod. Ut porttitor cursus magna. Mauris adipiscing pellentesque ipsum nec facilisis. Cras ornare bibendum bibendum. Ut a elit purus, vel adipiscing.
+} 
+
+%----------------------------------------------------------------------------------------
+%	RESULTS 1
+%----------------------------------------------------------------------------------------
+
+%\headerbox{Results Heading}{name=results1,span=2,column=1,row=0}{ % To reduce this block to 1 column width, remove 'span=2'
+\headerbox{Results Heading}{name=results1,column=1,row=0}{ % To reduce this block to 1 column width, remove 'span=2'
+%------------------------------------------------
+
+\includegraphics{poster2-003}
+}
+
+\headerbox{Results Heading}{name=results3,column=2,row=0}{ % To reduce this block to 1 column width, remove 'span=2'
+%------------------------------------------------
+\includegraphics{poster2-004}
+
+\begin{center}
+\begin{tabular}{l l l}
+\toprule
+\textbf{Covariate} & \textbf{Response 1} & \textbf{Response 2}\\
+\midrule
+(Intercept)          & 67.4445069  & < 2e-16 *** \\
+max.a                 &  -0.3760550  &  0.000860 *** \\
+sun.a                 &  -0.0024894  &  9.71e-07 *** \\
+day.a                &    0.5058657  &  1.49e-07 *** \\
+Farm TonsK.a          &  -0.0006035  &  0.032522 * \\
+Tons P2O5 Exc.a     &   0.0011845  &  0.000118 *** \\
+Tons K2O Exc.a        &  -0.0008145 &  0.005341 ** \\ 
+Tons N Fixed Legumes.a & -0.0003769 &  0.104493    \\
+Tons K2O Rem.a       &    0.0007905  &  1.42e-05 ***\\
+P2O5 PPCA.a           &  -0.0023263  &  0.004439 ** \\
+K2O PPCA.a            &  -0.0022599  &  0.022173 *  \\
+FarmNPPCA.a          &    0.0033189  &  0.000237 ***\\
+wheat frac.a            & 0.0749893  &  0.000319 ***\\
+\bottomrule
+\end{tabular}
+\captionof{table}{Table caption}
+\end{center}
+}
+
+%----------------------------------------------------------------------------------------
+%	RESULTS 2
+%----------------------------------------------------------------------------------------
+
+\headerbox{Results Heading 2}{name=results2,span=2,column=1,below=results1,above=bottom}{ % To reduce this block to 1 column width, remove 'span=2'
+
+Nunc sit amet sem ut nulla tincidunt mattis vel nec mauris. Vestibulum odio tellus, lobortis. Vel adipiscing, Aliquam dictum, ligula egestas commodo posuere, lectus lectus congue ligula, sed posuere urna lectus at nisi. Aenean commodo risus ut dolor (viverra scelerisque). Nullam varius, lacus et interdum hendrerit, odio orci ultrices mauris, id interdum eros mauris at urna. Fusce in nisi eros, sit amet volutpat turpis, \textbf{porttior magna} (commodo blandit euismod) \textbf{facilisis ornate magnis} (dis magnis). 
+
+%------------------------------------------------
+
+\begin{center}
+
+\includegraphics{poster2-005}
+\captionof{figure}{Figure caption 1 (left); Figure County-level yields (bu/acre) by year (right)}
+\end{center}
+
+%------------------------------------------------
+
+%------------------------------------------------
+
+
+%------------------------------------------------
+
+}
+
+%----------------------------------------------------------------------------------------
+
+\end{poster}
+
+\end{document}
+
+
+

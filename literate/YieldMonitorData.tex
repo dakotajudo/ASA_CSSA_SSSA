@@ -1,0 +1,40 @@
+\documentclass{report}
+\usepackage{amsmath}
+
+\usepackage{Sweave}
+\begin{document}
+	
+\begin{Schunk}
+\begin{Sinput}
+> initwd <- getwd() 
+> path = "~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R"
+> for (nm in list.files(path)) {
++    source(file.path(path, nm))
++ }
+> setwd("~/Work/git/ASA_CSSA_SSSA/working")
+> bestseed <- 1500
+> set.seed(bestseed)
+> library(ggplot2)
+> cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+> cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+\end{Sinput}
+\end{Schunk}
+
+\begin{Schunk}
+\begin{Sinput}
+> sample.vgm <- NULL
+> swap.treatments <- function(source, destination) {
++   destination$trt <- source$trt
++   return(destination)
++ }
+\end{Sinput}
+\end{Schunk}
+
+
+Assume we have yield (or other agronomic assessment) data in spatial format, such as yield monitor data.
+For example, this data from the SDSU research statio near Beresford. This file has been edited from the original format and is comma-seperated.
+
+
+\begin{Schunk}
+\begin{Sinput}
+> raw.dat <- read.csv("./data/sdsu/Swest_Corn2013-Clean.csv", header = TRUE)
