@@ -1,3 +1,12 @@
 *.Rda
 *.pdf
+*.history
+*.html
+*.log
+*.md
+*.toc
+*.rtf
+*.bmp
 
+
+*.tex
