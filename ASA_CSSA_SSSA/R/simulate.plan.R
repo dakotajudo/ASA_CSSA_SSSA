@@ -11,7 +11,8 @@ simulate.plan <- function(plan,
                           buffer.dim=c(0,0),
                           sample.vgm=NULL,
                           spacing=3,
-                          model="rcb") {
+                          model="rcb",
+                          verbose=FALSE) {
   
   res.dat = NULL
   
@@ -27,7 +28,7 @@ simulate.plan <- function(plan,
     currentPlots <- plots[plots$number==number,]
     if(!original.plan) {
       #map function copies treatment list to current data
-      print("mapping plots")
+      if(verbose) {print("mapping plots")}
       currentPlots <- map.function(plan,currentPlots)
       plots[plots$number==number,] <- currentPlots
     }
