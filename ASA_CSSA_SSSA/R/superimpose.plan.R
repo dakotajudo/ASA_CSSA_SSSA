@@ -22,6 +22,12 @@ superimpose.plan <- function(plan,map.data,start.point,plot.dim=c(1,1),buffer.di
     plan$LonM[idx] <- start.point[1] + half.width + (col-1)*plot.dim[1] + (col-1)*buffer.dim[1]
     plan$LatM[idx] <- start.point[2] + half.heigth + (row-1)*plot.dim[2] + (row-1)*buffer.dim[2]
   }
+  
+  plan$n <- plan$LatM+half.heigth
+  plan$s <- plan$LatM-half.heigth
+  plan$e <- plan$LonM-half.width
+  plan$w <- plan$LonM+half.width
+  
   if(is.null(sample.vgm)) {
     sample.var <- variogram(YldVolDry~1, 
                             locations=~LonM+LatM, 
@@ -38,11 +44,22 @@ superimpose.plan <- function(plan,map.data,start.point,plot.dim=c(1,1),buffer.di
   
   plan$YldVolDry <- sample.krig$YldVolDry.pred
   
+  
+  mean <- plan
+  for(idx in 1:dim(mean)[1]) {
+    points.dat <- subset(trial.dat, trial.dat$LatM <= plan$n[idx])
+    points.dat <- subset(points.dat, points.dat$LatM >= plan$s[idx])
+    points.dat <- subset(points.dat, points.dat$LonM >= plan$e[idx])
+    points.dat <- subset(points.dat, points.dat$LonM <= plan$w[idx])
+    mean$YldVolDry[1] <- mean(points.dat$YldVolDry)
+  }
+  
   return(list(
     trial.dim=trial.dim,
     plan=plan,
     trial=trial.dat,
     krig=sample.krig,
+    mean=mean,
     pooled = data.frame(
       LonM = c(trial.dat$LonM,plan$LonM),
       LatM = c(trial.dat$LatM,plan$LatM),
