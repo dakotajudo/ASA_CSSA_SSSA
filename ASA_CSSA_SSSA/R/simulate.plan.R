@@ -114,7 +114,7 @@ overlay.field <- function(plan, field,
                           plot.dim=c(1,1),
                           buffer.dim=c(0,0),
                           sample.vgm=NULL,
-                          spacing=3,model="rcb") {
+                          spacing=3,model="rcb",mean=TRUE) {
   require(gstat)
   
   trial.dim <- trial.dimensions(plan=plan, plot.dim=plot.dim,buffer.dim=buffer.dim)
@@ -155,13 +155,19 @@ overlay.field <- function(plan, field,
           )
           
           #save points
-          currentPlan$plan$number <- planNo
-          currentPlan$plan$Row <- currentRow
-          currentPlan$plan$Col <- currentCol
-          currentPlan$plan$Model <- model
-          
+          current.plots <- NA
+          if(mean) {
+            current.plots <- currentPlan$mean
+          } else {
+            current.plots <- currentPlan$plan
+          }
+          current.plots$number <- planNo
+          current.plots$Row <- currentRow
+          current.plots$Col <- currentCol
+          current.plots$Model <- model
+        
           planNo <- planNo+1
-          plots <- rbind(plots,currentPlan$plan)
+          plots <- rbind(plots,current.plots)
           
           col=col+1  
         } else {

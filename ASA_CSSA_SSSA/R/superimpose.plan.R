@@ -51,7 +51,7 @@ superimpose.plan <- function(plan,map.data,start.point,plot.dim=c(1,1),buffer.di
     points.dat <- subset(points.dat, points.dat$LatM >= plan$s[idx])
     points.dat <- subset(points.dat, points.dat$LonM >= plan$e[idx])
     points.dat <- subset(points.dat, points.dat$LonM <= plan$w[idx])
-    mean$YldVolDry[1] <- mean(points.dat$YldVolDry)
+    mean$YldVolDry[1] <- mean(points.dat$YldVolDry,na.rm=TRUE)
   }
   
   return(list(
