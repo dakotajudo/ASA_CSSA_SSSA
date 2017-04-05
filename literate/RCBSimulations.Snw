@@ -93,11 +93,22 @@ ggplot(rcb.sw$trial, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size 
 
 The yield estimated by kriging at the center points for each plot 
 
-<<fig=TRUE,echo=false>>=
+<<krig_points,fig=TRUE,echo=false>>=
 ggplot(rcb.sw$plan, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 4)
 @
 
-    
+Average of points within plots
+<<mean_points,fig=TRUE,echo=false>>=
+ggplot(rcb.sw$mean, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 4)
+@
+
+<<comp_points,fig=TRUE,echo=false>>=
+comp.dat <- data.frame(
+  YldVolDry = c(rcb.sw$plan$YldVolDry,rcb.sw$mean$YldVolDry),
+  Method=c(rep("Krige",length(rcb.sw$plan$YldVolDry)),rep("Mean",length(rcb.sw$plan$YldVolDry)))
+)
+ggplot(comp.dat, aes(YldVolDry,color=Method,linetype=Method)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)
+@
 
 And, for convenience, a set of pooled points, so that we can compare kriged plot means with raw points. 
 
@@ -132,8 +143,42 @@ if(!file.exists("plots4x6.dat.Rda")) {
 } else {
   load(file="plots4x6.dat.Rda")
 }
+if(!file.exists("means4x6.dat.Rda")) {
+  means4x6.dat <- overlay.field(rcb.plan,
+                                trimmed.dat,
+                                plot.dim=arm.plot.dim,
+                                buffer.dim=arm.buffer.dim,
+                                sample.vgm=trimmed.vgm,
+                                mean=TRUE)
+  save(means4x6.dat,file="means4x6.dat.Rda")
+} else {
+  load(file="means4x6.dat.Rda")
+}
 @
 
+<<comp_full_points,fig=TRUE,echo=false>>=
+comp.full.dat <- data.frame(
+  YldVolDry = c(means4x6.dat$YldVolDry,plots4x6.dat$YldVolDry),
+  Method=c(rep("Mean",length(means4x6.dat$YldVolDry)),rep("Kriged",length(plots4x6.dat$YldVolDry)))
+)
+ggplot(comp.full.dat, aes(YldVolDry,color=Method,linetype=Method)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)
+@
+
+<<comp_full_points,fig=TRUE,echo=false>>=
+pair.full.dat <- data.frame(
+  Mean = means4x6.dat$YldVolDry,
+  Kriged=plots4x6.dat$YldVolDry,
+  LatM=plots4x6.dat$LatM,
+  LonM=plots4x6.dat$LonM)
+ggplot(pair.full.dat, aes(Mean,Kriged)) + geom_point(aes(colour = LatM),size = 2) + scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) 
+@
+
+<<comp_full_points,fig=TRUE,echo=false>>=
+pair.full.dat$Diff <- pair.full.dat$Mean - pair.full.dat$Kriged
+ggplot(pair.full.dat, aes(Diff)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+@
+
+ggplot(comp.full.dat, aes(YldVolDry,color=Method,linetype=Method)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
 
 <<02OverlayedTrialsPoints,fig=TRUE,echo=false,width=4,height=4.5>>=
 ggplot(plots4x6.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1) + scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +

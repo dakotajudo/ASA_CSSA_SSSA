@@ -97,11 +97,10 @@ neighbor.matrix <- function(dat,plot.dim = c(1,1), plot.buffer=c(0,0),rowOnly=FA
 
 in.range <- function(x,a,b) {
   if(a>b) {
-     tmp <- a
-     a <- b
-     b <- tmp
+    return((x>=b) & (x<=a))
+  } else {
+    return((x>=a) & (x<=b))
   }
-  return((x>=a) & (x<=b))
 }
 
 neighbor.effects <- function(dat,plot.dim = c(1,1), plot.buffer=c(0,0),rowOnly=FALSE,split=FALSE) {
