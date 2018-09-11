@@ -1,0 +1,175 @@
+\documentclass{report}
+\usepackage{amsmath}
+
+\begin{document}
+
+<<>>=
+initwd <- getwd() 
+setwd(paste(initwd,"/working",sep=""))
+@
+
+<<>>=
+tbl12.3 <- data.frame(
+  rep=c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+       2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+       3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3),
+  trt=as.factor(c(18,24,12,6,5,9,15,3,22,16,11,17,10,4,23,2,
+       8,21,20,14,25,1,19,13,7,20,15,25,5,10,17,12,22,2,7,19,
+       14,24,4,9,16,11,21,1,6,18,13,23,3,8,19,11,22,5,8,15,7,
+       18,21,4,23,20,1,9,12,6,3,14,17,25,2,24,10,13,16)),
+  blk=c(1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,
+        1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,
+        1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5),
+  col=c(1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,5,5,5,5,5,
+        1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,5,5,5,5,5,
+        1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,5,5,5,5,5),
+  yield=c(33.3,24.6,28.5,26.7,40.1,30.7,30.8,24.0,27.2,35.7,35.4,
+          28.8,28.4,25.6,30.1,30.1,34.8,25.0,25.0,30.3,29.6,32.5,
+          35.1,29.4,33.5,30.9,37.2,32.7,32.0,39.8,33.3,31.2,43.0,
+          32.8,37.3,38.8,27.9,28.5,31.8,31.9,27.7,27.3,24.7,28.7,
+          34.0,34.4,21.6,22.7,32.3,34.3,28.7,19.4,18.3,30.2,34.4,
+          26.3,17.3,22.1,27.5,32.8,21.7,16.9,17.5,30.7,31.9,21.9,
+          22.6,25.0,28.1,28.8,26.0,24.2,26.9,27.6,30.6)
+)
+
+tbl12.3$rep.org <- tbl12.3$rep
+tbl12.3$rep <- 4-tbl12.3$rep.org
+
+tbl12.3$row <- tbl12.3$blk
+tbl12.3$x <- tbl12.3$col
+rows <- max(tbl12.3$row)
+tbl12.3$y <- (tbl12.3$rep-1)*rows + tbl12.3$row
+tbl12.3$y.org <- (tbl12.3$rep.org-1)*rows + tbl12.3$row
+tbl12.3$rep <- as.factor(tbl12.3$rep)
+tbl12.3$row <- as.factor(tbl12.3$row)
+tbl12.3$col <- as.factor(tbl12.3$col)
+
+ls11.lm <- lm(yield ~ rep + row:rep + col:rep + trt, data=tbl12.3)
+anova(ls11.lm)
+
+library(lsmeans)
+linear.tbl <- summary(lsmeans(ls11.lm, ~ trt))
+
+
+
+pred.dat <- data.frame(rep=tbl12.3$rep,row=tbl12.3$row,col=tbl12.3$col)
+check.trt <- tbl12.3$trt[6]
+pred.dat$trt <- check.trt 
+tbl12.3$intra <- predict(ls11.lm,pred.dat)
+
+
+
+library(lme4)
+ls11.lmer <- lmer(yield ~ trt + (1|rep) + (1|row:rep) + (1|col:rep), data=tbl12.3)
+VarCorr(ls11.lmer)
+ls11.red.lmer <- lmer(yield ~ trt + (1|row:rep) + (1|col:rep), data=tbl12.3)
+VarCorr(ls11.red.lmer)
+
+
+means.tbl <- summary(lsmeans(ls11.lmer, ~ trt))
+
+tbl12.3$inter <- predict(ls11.lmer,pred.dat)
+
+
+
+library(ggplot2)
+trt.lm <- lm(yield~trt,data=tbl12.3)
+crd.tbl <-summary(lsmeans(trt.lm,~ trt))
+print(crd.aov.tbl <- anova(trt.lm))
+
+tbl12.3$resid <- trt.lm$resid
+@
+
+<<poly_y,fig=TRUE,echo=false,width=7,height=5>>=
+ggplot(tbl12.3, aes(y, resid)) + geom_point(aes(colour = col),size = 1) + stat_smooth(aes(group=col,colour=col),method = "lm", formula = y ~ poly(x, 3), se=FALSE, size = 1)
+@
+
+<<poly_y_resid,fig=TRUE,echo=false,width=5,height=7>>=
+ggplot(tbl12.3, aes(y, resid)) + geom_point(aes(colour = col),size = 1) + facet_wrap(~col, nrow = 5)
+@
+
+<<poly_y_stack,fig=TRUE,echo=false,width=5,height=7>>=
+ggplot(tbl12.3, aes(y, resid)) + geom_point(aes(colour = col),size = 1) + stat_smooth(aes(group=col,colour=col),method = "lm", formula = y ~ poly(x, 3), se=FALSE, size = 1) + facet_wrap(~col, nrow = 5)
+@
+
+
+<<>>=
+trend.0.lm <- lm(yield ~ col:polym(y, degree=3, raw=TRUE),data=tbl12.3)
+tbl12.3$trend.resid <- trend.0.lm$resid
+@
+
+<<poly_y_trend_resid,fig=TRUE,echo=false,width=5,height=7>>=
+ggplot(tbl12.3, aes(y, trend.resid)) + geom_point(aes(colour = col),size = 1) + facet_wrap(~col, nrow = 5)
+@
+
+<<>>=
+library(gridExtra)
+tbl12.3$incblk <- tbl12.3$rep:tbl12.3$row
+tbl12.3.row1 <- subset(tbl12.3,tbl12.3$row==1)
+tbl12.3.row1 <- subset(tbl12.3.row1,tbl12.3.row1$rep==1)
+midpoints <- data.frame(
+  x = tbl12.3.row1$x[2:4],
+  y=c((tbl12.3.row1$resid[1]+tbl12.3.row1$resid[3])/2,
+      (tbl12.3.row1$resid[2]+tbl12.3.row1$resid[4])/2,
+      (tbl12.3.row1$resid[3]+tbl12.3.row1$resid[5])/2),
+  lbl = c("covariate 2","covariate 3","covariate 4")
+      )
+@
+<<row_poly,fig=TRUE,echo=false,width=6,height=7>>=
+grid.arrange(
+  arrangeGrob(
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ 1, se=FALSE, size = 1) ,
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ x, se=FALSE, size = 1) ,
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2), se=FALSE, size = 1) ,
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2)+I(x^3), se=FALSE, size = 1),
+nrow=4))
+@
+
+<<row_overfit,fig=TRUE,echo=false,width=6,height=7>>=
+grid.arrange(
+  arrangeGrob(
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2), se=FALSE, size = 1) ,
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2)+I(x^3), se=FALSE, size = 1) ,
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2)+I(x^3)+I(x^4), se=FALSE, size = 1),
+nrow=3))
+@
+
+<<neighbors,fig=TRUE,echo=false,width=6,height=7>>=
+grid.arrange(
+  arrangeGrob(
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3),
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + 
+  geom_segment(x =tbl12.3.row1$x[1], y = tbl12.3.row1$resid[1], xend = tbl12.3.row1$x[3], yend = tbl12.3.row1$resid[3],linetype="dashed") +
+  geom_segment(x =tbl12.3.row1$x[2], y = tbl12.3.row1$resid[2], xend = tbl12.3.row1$x[4], yend = tbl12.3.row1$resid[4],linetype="dashed") +
+  geom_segment(x =tbl12.3.row1$x[3], y = tbl12.3.row1$resid[3], xend = tbl12.3.row1$x[5], yend = tbl12.3.row1$resid[5],linetype="dotted"),
+  ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + 
+    geom_segment(x =tbl12.3.row1$x[1], y = tbl12.3.row1$resid[1], xend = tbl12.3.row1$x[3], yend = tbl12.3.row1$resid[3],linetype="dashed") +
+    geom_segment(x =tbl12.3.row1$x[2], y = tbl12.3.row1$resid[2], xend = tbl12.3.row1$x[4], yend = tbl12.3.row1$resid[4],linetype="dashed") +
+    geom_segment(x =tbl12.3.row1$x[3], y = tbl12.3.row1$resid[3], xend = tbl12.3.row1$x[5], yend = tbl12.3.row1$resid[5],linetype="dotted") + geom_text(data = midpoints, aes(x =x ,y = y, label = lbl))
+      ))
+@
+
+<<>>=
+library(nlme)
+yield.gls <- gls(yield ~ trt,data=tbl12.3)
+
+yield.lin.gls <- update(yield.gls, corr = corLin(form = ~ x + y))
+yield.rat.gls <- update(yield.gls, corr = corRatio(form = ~ x + y,nugget=TRUE))
+yield.sph.gls <- update(yield.gls, corr = corSpher(form = ~ x + y,nugget=TRUE))
+yield.exp.gls <- update(yield.gls, corr = corExp(form = ~ x + y,nugget=TRUE))
+yield.gaus.gls <- update(yield.gls, corr = corGaus(form = ~ x + y,nugget=TRUE))
+
+comp.tbl <- anova(yield.lin.gls, yield.rat.gls, yield.sph.gls, yield.exp.gls, yield.gaus.gls)
+corr.list <- list(yield.lin.gls, yield.rat.gls, yield.sph.gls, yield.exp.gls, yield.gaus.gls)
+best.corr  <- corr.list[[which(comp.tbl$AIC==min(comp.tbl$AIC))]]
+@
+
+<<best_corr_variogram,fig=TRUE,echo=false,width=6,height=7>>=
+plot(Variogram(best.corr, form = ~ x + y), main = "Variogram of Residuals")
+@
+
+<<>>=
+setwd(initwd)
+@
+
+\end{document}

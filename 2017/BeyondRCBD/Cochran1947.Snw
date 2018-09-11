@@ -1,0 +1,1082 @@
+
+\documentclass{report}
+\usepackage{amsmath}
+
+\begin{document}
+
+\title{Cochran 1947 Simulations}
+
+\section{Introduction}
+
+<<>>=
+library(ggplot2)
+cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442", "#CC79A7","#999999")
+@
+
+<<>>=
+initwd <- getwd() 
+#path = "~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R"
+#for (nm in list.files(path)) {
+#   source(file.path(path, nm))
+#}
+#setwd(initwd)
+setwd("./working")
+@
+
+Spatial analysis of Cochran, 1947, in ARM table format:
+
+<<>>=
+arm.dat <- data.frame(
+plot=c(101, 804, 103, 503, 303, 801, 302, 803, 202, 701, 403, 504, 404, 802, 102, 602, 104, 501, 304, 604, 401, 703, 204, 702, 301, 601, 402, 603, 203, 704, 201, 502), 
+treatment=as.factor(c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16)), 
+replicate=as.factor(c(1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2)), 
+block=as.factor(c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)), 
+column=as.factor(c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)), 
+y=c(1, 4, 1, 1, 3, 4, 3, 4, 2, 3, 4, 1, 4, 4, 1, 2, 1, 1, 3, 2, 4, 3, 2, 3, 3, 2, 4, 2, 2, 3, 2, 1), 
+x=c(1, 8, 3, 7, 3, 5, 2, 7, 2, 5, 3, 8, 4, 6, 2, 6, 4, 5, 4, 8, 1, 7, 4, 6, 1, 5, 2, 7, 3, 8, 1, 6), 
+lat=c(3, 24, 3, 3, 17, 24, 17, 24, 10, 17, 24, 3, 24, 24, 3, 10, 3, 3, 17, 10, 24, 17, 10, 17, 17, 10, 24, 10, 10, 17, 10, 3), 
+lon=c(2, 33.5, 11, 29, 11, 20, 6.5, 29, 6.5, 20, 11, 33.5, 15.5, 24.5, 6.5, 24.5, 15.5, 20, 15.5, 33.5, 2, 29, 15.5, 24.5, 2, 20, 6.5, 29, 11, 33.5, 2, 24.5), 
+assessment1=c(1240, 640, 1770, 1410, 1460, 630, 1370, 560, 2180, 1680, 700, 1300, 810, 970, 1660, 1950, 1530, 1330, 1710, 1790, 840, 1890, 2280, 1580, 1480, 1910, 660, 1890, 2470, 1520, 1790, 1450)
+)
+arm.dat$block <- as.factor(arm.dat$y)
+arm.dat$column<- as.factor(arm.dat$x)
+@
+
+Assume standard data columns
+<<>>=
+select.spatial.model <- function(arm.dat) {
+  #Calculate base (treatment only) model
+  crd.lm <- lm(assessment1 ~ treatment, data=arm.dat,x=TRUE)
+  #Calculate neighbor residuals
+  plots <- dim(arm.dat)[1]
+  cols <- max(arm.dat$x)
+rows <- max(arm.dat$y)
+mat.dim <- rows*cols
+W.row <- matrix(rep(0, mat.dim*mat.dim),nrow = mat.dim)
+W.col <- matrix(rep(0, mat.dim*mat.dim),nrow = mat.dim)
+arm.dat$plot <- 1:plots
+trial.map <- matrix(rep(0,mat.dim),nrow=rows)
+for(p in 1:plots) {
+  trial.map[arm.dat$y[p],arm.dat$x[p]] <- arm.dat$plot[p]
+}
+arm.dat$x.m <- arm.dat$x-1
+arm.dat$x.p <- arm.dat$x+1
+arm.dat$y.m <- arm.dat$y-1
+arm.dat$y.p <- arm.dat$y+1
+arm.dat$x.m[arm.dat$x.m<min(arm.dat$x)] <- NA
+arm.dat$x.p[arm.dat$x.p>cols] <- NA
+arm.dat$y.m[arm.dat$y.m<min(arm.dat$y)] <- NA
+arm.dat$y.p[arm.dat$y.p>rows] <- NA
+plot.width <- 4
+plot.height <- 6
+plot.buffer <- 0.5
+row.buffer <- 1
+col.space <- plot.width+plot.buffer
+row.space <- plot.height+row.buffer
+row.neighbors <- NA
+for(p in 1:plots) {
+  col.neighbors <- trial.map[c(arm.dat$y.m[p], arm.dat$y.p[p]), arm.dat$x[p]]
+  row.neighbors <- trial.map[arm.dat$y[p], c(arm.dat$x.m[p],arm.dat$x.p[p])]
+  W.row[p,row.neighbors] <- 1/col.space
+  W.col[p,col.neighbors] <- 1/row.space
+}
+W <- W.col + W.row
+W <- W[1:plots,1:plots]
+row.sums <- rowSums(W)
+row.sums[row.sums==0] <- 1
+W <- W/row.sums
+W.row <- W.row[1:plots,1:plots]
+row.sums <- rowSums(W.row)
+row.sums[row.sums==0] <- 1
+W.row <- W.row/row.sums
+W.col <- W.col[1:plots,1:plots]
+row.sums <- rowSums(W.col)
+row.sums[row.sums==0] <- 1
+W.col <- W.col/row.sums
+arm.dat$res <- NA
+crd.res <- residuals(crd.lm)
+arm.dat$res[as.numeric(names(crd.res))] <- crd.res
+arm.dat$res[is.na(arm.dat$res)] <- 0
+arm.dat$X.row = W.row %*% arm.dat$res
+arm.dat$X.col = W.col %*% arm.dat$res
+arm.dat$X = W %*% arm.dat$res
+
+#Compute design model
+arm.lm <- update(crd.lm, . ~ . + replicate )
+#Calculate and compare trend and neighbor models
+
+trend1.lm <- update(crd.lm, . ~ lat + lon + . )
+trend2.lm <- update(crd.lm, . ~ lat + lon + I(lat^2) + I(lon^2) + I(lat*lon) + . )
+trend3.lm <- update(crd.lm, . ~ lat + lon + I(lat^2) + I(lon^2) + I(lat*lon) + I(lat^3) + I(lon^3) + I(lat*lon^2) + I(lat^2*lon) + . )
+nnx.lm <- update(crd.lm, . ~ X.col + . , data=arm.dat)
+nny.lm <- update(crd.lm, . ~ X.row + . , data=arm.dat)
+nnxy.lm <- update(crd.lm, . ~ X + . , data=arm.dat)
+nns.lm <- update(crd.lm, . ~ X.row + X.col + . , data=arm.dat)
+model.list <- list(crd.lm, arm.lm, nnx.lm, nny.lm, nnxy.lm, nns.lm, trend1.lm, trend2.lm, trend3.lm)
+model.names <- c("CRD","Design","NNCol","NNRow","NNPap","NNRowCol","Trend1","Trend2","Trend3")
+anova.tbl <- do.call(anova, model.list)
+anova.tbl$RMS <- anova.tbl$RSS/anova.tbl$Res.Df
+anova.tbl$AIC <- unlist(lapply(model.list, AIC))
+anova.tbl$BIC <- unlist(lapply(model.list, BIC))
+anova.tbl$logLik <- unlist(lapply(model.list, logLik))
+best.tbl <- anova.tbl[, c('Res.Df','RMS', 'AIC', 'BIC', 'logLik')]
+best.aic <- which.min(anova.tbl$AIC)
+best.bic <- which.min(anova.tbl$BIC)
+best.rms <- which.min(anova.tbl$RMS)
+best.tbl <- rbind(c(0,best.rms,best.aic,best.bic,0),best.tbl)
+row.names(best.tbl) <- c("Best Index",model.names)
+best.idx <- best.aic
+names(model.list) <- model.names
+
+arm.lm <- model.list[[best.idx]]
+aov.tbl<-anova(arm.lm)
+res.row <- dim(aov.tbl)[1]
+
+coeffs.fix <- arm.lm$coefficients
+na.coeffs.fix <- is.na(coeffs.fix)
+if(any(na.coeffs.fix)) {
+  coeffs.fix[na.coeffs.fix] <- 0 
+}
+if(any(na.coeffs.fix)) {
+  idx<-which(na.coeffs.fix)
+  for(i in idx) {
+    aov.tbl <- rbind(aov.tbl[1:(i-2),],rep(0,dim(aov.tbl)[2]),aov.tbl[-(1:(i-2)),])
+  }
+}
+crd.tbl<-anova(crd.lm)
+return(list(arm.dat=arm.dat,
+  model.list=model.list,
+  aov.tbl=aov.tbl,
+  best.tbl=best.tbl
+  ))
+}
+@
+
+\section{Explanation of analysis}
+
+We start with the designed analysis of variance. This will be the second entry in `model.list`, the first is the treatment only (CRD) model.
+
+<<>>=
+res <- select.spatial.model(arm.dat)
+res$aov.tbl
+arm.dat <- res$arm.dat
+rcb.lm <- res$model.list[[2]]
+@
+
+We will be creating an imaginary uniformity trial by calculating spatial effects and estimate plot yield as if only a single treatment where planted in each plot. We'll use the treatment with an arithmetic mean closest to the median of all treatments as our check for an imaginary uniformity trial.
+
+<<>>=
+print(treatment.means <- tapply(arm.dat$assessment1,list(arm.dat$treatment),mean))
+print(treatment.median <- median(treatment.means))
+print(check.trt <-which.min(abs(treatment.means-treatment.median)))
+check.trt = 1
+@
+
+This suggests why there's a need for spatial analysis - the median is an untreated treatment.
+
+Now create a data frame for prediction
+<<>>=
+pred.dat <- arm.dat[,c("plot","replicate", "y", "x", "lat", "lon","X.col","X.row","X")]
+pred.dat$treatment <- levels(arm.dat$treatment)[which(levels(arm.dat$treatment)==check.trt)]
+pred.dat$rcb <- predict(rcb.lm,pred.dat)
+
+pred.dat$block <- as.factor(pred.dat$y)
+pred.dat$column<- as.factor(pred.dat$x)
+@
+
+<<Yield,fig=TRUE,echo=false,width=4,height=4.4>>=
+library(agridat)
+desplot(assessment1 ~ x+y, arm.dat, out1=replicate, out2=plot)
+@
+
+<<Predicted,fig=TRUE,echo=false,width=4,height=4.4>>=
+desplot(rcb ~ x+y, pred.dat, out1=replicate, out2=plot)
+@
+
+<<>>=
+pred.dat$CRD <- predict(res$model.list$CRD,newdata=pred.dat)
+pred.dat$RCB <- predict(res$model.list$Design,newdata=pred.dat)
+pred.dat$Col <- predict(res$model.list$NNCol,newdata=pred.dat)
+pred.dat$Row <- predict(res$model.list$NNRow,newdata=pred.dat)
+pred.dat$RowCol <- predict(res$model.list$NNRowCol,newdata=pred.dat)
+pred.dat$Pap <- predict(res$model.list$NNPap,newdata=pred.dat)
+pred.dat$Trend1 <- predict(res$model.list$Trend1,newdata=pred.dat)
+pred.dat$Trend2 <- predict(res$model.list$Trend2,newdata=pred.dat)
+pred.dat$Trend3 <- predict(res$model.list$Trend3,newdata=pred.dat)
+pred.dat[,c("RCB","Col","Row","RowCol","Pap","Trend1","Trend2","Trend3")]
+
+@
+
+Add residuals to the table.
+<<>>=
+pred.dat$CRDresid <- resid(res$model.list$CRD)
+pred.dat$RCBresid <- resid(res$model.list$Design)
+pred.dat$Colresid <- resid(res$model.list$NNCol)
+pred.dat$Rowresid <- resid(res$model.list$NNRow)
+pred.dat$RowColresid <- resid(res$model.list$NNRowCol)
+pred.dat$Papresid <- resid(res$model.list$NNPap)
+pred.dat$Trend1resid <- resid(res$model.list$Trend1)
+pred.dat$Trend2resid <- resid(res$model.list$Trend2)
+pred.dat$Trend3resid <- resid(res$model.list$Trend3)
+@
+
+And a data frame for plotting residuals
+<<>>=
+residuals.dat <- data.frame(
+  Residual = c(#pred.dat$CRDresid,
+               pred.dat$RCBresid,
+               #pred.dat$Trend1resid,
+               #pred.dat$Trend2resid,
+               pred.dat$Trend3resid,
+               #pred.dat$Colresid,
+               #pred.dat$Rowresid,
+               pred.dat$RowColresid #,
+               #pred.dat$Papresid
+               ),
+  Model = c(
+            #rep("CRD",length(pred.dat$CRDresid)),
+            rep("RCB",length(pred.dat$RCBresid)),
+            #rep("Trend1",length(pred.dat$Trend1resid)),
+            #rep("Trend2",length(pred.dat$Trend2resid)),
+            rep("Trend3",length(pred.dat$Trend3resid)),
+            #rep("Col",length(pred.dat$Colresid)),
+            #rep("Row",length(pred.dat$Rowresid)),
+            rep("RowCol",length(pred.dat$RowColresid))#,
+            #rep("Pap",length(pred.dat$Papresid))
+            )
+)
+@
+
+<<QQResiduals,fig=TRUE,echo=false,width=6,height=4>>=
+ggplot(residuals.dat, aes(sample=Residual,color=Model,linetype=Model)) + 
+  stat_qq(aes(color=Model),size = 2) +
+ #stat_density(geom="line",position="identity",size=1)
+ # stat_ecdf(size=1)  +  #facet_wrap(~Source,scales = "free") + 
+  scale_colour_manual(values=cbPalette,labels = c("RCB", "NN Block/Column","Trend (Poly 3)")) +
+  labs(colour = "Model", x="Quantiles",y="Model Residuals")
+@
+
+<<CRDResiduals,fig=TRUE,echo=false,width=6,height=6>>=
+ggplot(pred.dat, aes(x, CRDresid)) + geom_point(aes(colour = block),size = 2) + scale_colour_manual(values=cbPalette) +
+ stat_smooth(aes(group=block,colour=block),method = "lm", formula = y ~ poly(x, 3), se=FALSE, size = 1) + 
+ facet_wrap(~block, nrow = 4) + 
+ labs(colour = "Block", x="Column", y="Treatment Residuals")
+@
+
+<<CRDResidualsbyBlock,fig=TRUE,echo=false,width=6,height=6>>=
+ggplot(pred.dat, aes(x, CRDresid)) + geom_point(aes(colour = block),size = 3) + # geom_line(aes(colour = block),size = 2) + 
+  scale_colour_manual(values=cbPalette) + 
+  facet_wrap(~block, nrow = 4) + 
+ labs(colour = "Block", x="Column", y="Treatment Residuals")
+@
+
+<<CRDResidualsByRow,fig=TRUE,echo=false,width=6,height=6>>=
+ggplot(pred.dat, aes(y, CRDresid)) + geom_point(aes(colour = block), size = 2) + stat_smooth(aes(group=block,colour=block),method = "lm", formula = x ~ poly(y, 3), se=FALSE, size = 1) + facet_wrap(~x, nrow = 4)
+@
+
+
+<<Contour,fig=TRUE,echo=false,width=6,height=4>>=
+library(rsm)
+contour(res$model.list$Trend3, lat ~ lon, image = FALSE,xlabs=c("Block","Column"))
+@
+
+<<Perspective,fig=TRUE,echo=false,width=4,height=6>>=
+persp(res$model.list$Trend3, lat ~ lon, xlabs=c("Block","Column"), zlab = "Yield")
+@
+
+Compare residuals.
+
+<<TrendQQNorm,fig=TRUE,echo=false,width=5,height=5>>=
+par(mfrow=c(2,2))
+qqnorm(resid(res$model.list$Design),main="Design")
+qqnorm(resid(res$model.list$Trend1),main="Trend 1")
+qqnorm(resid(res$model.list$Trend2),main="Trend 2")
+qqnorm(resid(res$model.list$Trend3),main="Trend 3")
+par(mfrow=c(1,1))
+@
+
+<<NNQQNorm,fig=TRUE,echo=false,width=5,height=5>>=
+par(mfrow=c(2,2))
+qqnorm(resid(res$model.list$NNCol))
+qqnorm(resid(res$model.list$NNRow))
+qqnorm(resid(res$model.list$NNRowCol))
+qqnorm(resid(res$model.list$NNPap))
+par(mfrow=c(1,1))
+@
+
+<<TrendResiduals,fig=TRUE,echo=false,width=6,height=6>>=
+ggplot(pred.dat, aes(x, Trend3resid)) + geom_point(aes(colour = block),size = 3) + geom_line(aes(colour = block),size = 2) + scale_colour_manual(values=cbPalette) + facet_wrap(~block, nrow = 4)
+@
+
+<<TrendResidualsByRow,fig=TRUE,echo=false,width=6,height=6>>=
+ggplot(pred.dat, aes(x, RowColresid)) + geom_point(aes(colour = block),size = 3) + geom_line(aes(colour = block),size = 2) + scale_colour_manual(values=cbPalette) + facet_wrap(~block, nrow = 4)
+@
+
+<<>>=
+library(gridExtra)
+
+row.dat <- subset(pred.dat,pred.dat$block==3)
+#row.dat <- subset(row.dat,row.dat$x<6)
+#tbl12.3.row1 <- subset(tbl12.3.row1,tbl12.3.row1$rep==1)
+row.dat <- row.dat[order(row.dat$x),]
+midpoints <- data.frame(
+  x = row.dat$x[2:7],
+  y=c((row.dat$CRDresid[1]+row.dat$CRDresid[3])/2,
+      (row.dat$CRDresid[2]+row.dat$CRDresid[4])/2,
+      (row.dat$CRDresid[3]+row.dat$CRDresid[5])/2,
+      (row.dat$CRDresid[4]+row.dat$CRDresid[6])/2,
+      (row.dat$CRDresid[5]+row.dat$CRDresid[7])/2,
+      (row.dat$CRDresid[6]+row.dat$CRDresid[8])/2),
+  lbl = c("covariate 2","covariate 3","covariate 4","covariate 5","covariate 6","covariate 7")
+      )
+@
+
+
+
+grid.arrange(
+  arrangeGrob(
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = cbPalette[1],size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2), se=FALSE, size = 1) ,
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = cbPalette[1],size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2)+I(x^3), se=FALSE, size = 1) ,
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = cbPalette[1],size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2)+I(x^3)+I(x^4), se=FALSE, size = 1),
+nrow=3))
+
+
+<<ComputeNNEffect,fig=TRUE,echo=false,width=6,height=7>>=
+#"dashed", "dotted", "dotdash", "longdash", and "twodash"
+grid.arrange(
+  arrangeGrob(
+ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = cbPalette[1],size = 3) + labs(x="Column Number",y="Treatment Residuals"),
+ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = cbPalette[1],size = 3) + labs(x="Column Number",y="Treatment Residuals") + 
+    geom_segment(x =row.dat$x[1], y = row.dat$CRDresid[1], xend = row.dat$x[3], yend = row.dat$CRDresid[3],linetype="dashed") +
+    geom_segment(x =row.dat$x[2], y = row.dat$CRDresid[2], xend = row.dat$x[4], yend = row.dat$CRDresid[4],linetype="dotdash") +
+    geom_segment(x =row.dat$x[3], y = row.dat$CRDresid[3], xend = row.dat$x[5], yend = row.dat$CRDresid[5],linetype="dotted") + 
+    geom_segment(x =row.dat$x[4], y = row.dat$CRDresid[4], xend = row.dat$x[6], yend = row.dat$CRDresid[6],linetype="dashed") +
+    geom_segment(x =row.dat$x[5], y = row.dat$CRDresid[5], xend = row.dat$x[7], yend = row.dat$CRDresid[7],linetype="dotdash") +
+    geom_segment(x =row.dat$x[6], y = row.dat$CRDresid[6], xend = row.dat$x[8], yend = row.dat$CRDresid[8],linetype="dotted") +
+    geom_text(data = midpoints, aes(x =x ,y = y, label = lbl),colour = cbPalette[2]),
+    ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = cbPalette[1],size = 3) + labs(x="Column Number",y="Treatment Residuals") + 
+    geom_point(colour = cbPalette[1],size = 3) + labs(x="Column Number",y="Treatment Residuals") +
+    geom_point(colour = cbPalette[2],size = 3,aes(x, y),data=midpoints) + geom_line(colour = cbPalette[2],size = 1,aes(x, y), data=midpoints) +
+        geom_text(data = midpoints, aes(x =x ,y = y, label = lbl),colour = cbPalette[2])   
+      ))
+@
+
+
+    
+geom_point(colour = cbPalette[1],size = 3) + labs(x="Column Number",y="Treatment Residuals")
+  geom_segment(x =row.dat$x[1], y = row.dat$CRDresid[1], xend = row.dat$x[3], yend = row.dat$CRDresid[3],linetype="dashed") +
+  geom_segment(x =row.dat$x[2], y = row.dat$CRDresid[2], xend = row.dat$x[4], yend = row.dat$CRDresid[4],linetype="dotdash") +
+  geom_segment(x =row.dat$x[3], y = row.dat$CRDresid[3], xend = row.dat$x[5], yend = row.dat$CRDresid[5],linetype="dotted") +
+  geom_segment(x =row.dat$x[4], y = row.dat$CRDresid[4], xend = row.dat$x[6], yend = row.dat$CRDresid[6],linetype="dashed") +
+  geom_segment(x =row.dat$x[5], y = row.dat$CRDresid[5], xend = row.dat$x[7], yend = row.dat$CRDresid[7],linetype="dotdash") +
+  geom_segment(x =row.dat$x[6], y = row.dat$CRDresid[6], xend = row.dat$x[8], yend = row.dat$CRDresid[8],linetype="dotted"),
+  
+  
+  ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = cbPalette[1],size = 3) + labs(x="Column Number",y="Treatment Residuals") + 
+    geom_segment(x =row.dat$x[1], y = row.dat$CRDresid[1], xend = row.dat$x[3], yend = row.dat$CRDresid[3],linetype="dashed") +
+    geom_segment(x =row.dat$x[2], y = row.dat$CRDresid[2], xend = row.dat$x[4], yend = row.dat$CRDresid[4],linetype="dotdash") +
+    geom_segment(x =row.dat$x[3], y = row.dat$CRDresid[3], xend = row.dat$x[5], yend = row.dat$CRDresid[5],linetype="dotted") +
+    geom_segment(x =row.dat$x[4], y = row.dat$CRDresid[4], xend = row.dat$x[6], yend = row.dat$CRDresid[6],linetype="dashed") +
+    geom_segment(x =row.dat$x[5], y = row.dat$CRDresid[5], xend = row.dat$x[7], yend = row.dat$CRDresid[7],linetype="dotdash") +
+    geom_segment(x =row.dat$x[6], y = row.dat$CRDresid[6], xend = row.dat$x[8], yend = row.dat$CRDresid[8],linetype="dotted")
+    
+<<ComputeTrends,fig=TRUE,echo=false,width=6,height=8>>=
+trend.labels <- 
+grid.arrange(
+  arrangeGrob(
+ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = cbPalette[1],size = 3) + 
+   labs(x="Column Number",y="Treatment Residuals",title=expression(yield == mu)) + 
+   stat_smooth(method = "lm", formula = y ~ 1, se=FALSE, size = 1, color=cbPalette[2]),
+ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = cbPalette[1],size = 3) + 
+    labs(x="Column Number",y="Treatment Residuals",title=expression(yield == mu + x)) + 
+    stat_smooth(method = "lm", formula = y ~ x, se=FALSE, size = 1, color=cbPalette[2]),
+ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = cbPalette[1],size = 3) + 
+   labs(x="Column Number",y="Treatment Residuals",title=expression(yield == mu + x + x^2)) + 
+   stat_smooth(method = "lm", formula = y ~ x + I(x^2), se=FALSE, size = 1, color=cbPalette[2]),
+ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = cbPalette[1],size = 3) +
+   labs(x="Column Number",y="Treatment Residuals",title=expression(yield == mu + x + x^2 + x^3)) + 
+   stat_smooth(method = "lm", formula = y ~ x + I(x^2)+I(x^3), se=FALSE, size = 1, color=cbPalette[2]),
+   ncol=1
+      ))
+@
+
+<<OverfitTrends,fig=TRUE,echo=false,width=6,height=8>>=
+grid.arrange(
+  arrangeGrob(
+ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = cbPalette[1],size = 3) + 
+  labs(x="Column Number",y="Treatment Residuals",title=expression(yield == mu + x + x^2 + x^3 + x^4)) + 
+  stat_smooth(method = "lm", formula = y ~ poly(x,4), se=FALSE, size = 1, color=cbPalette[2]),
+ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = cbPalette[1],size = 3) + 
+  labs(x="Column Number",y="Treatment Residuals",title=expression(yield == mu + x + x^2 + x^3 + x^4 + x^5)) + 
+  stat_smooth(method = "lm", formula = y ~ poly(x,5), se=FALSE, size = 1, color=cbPalette[2]),
+ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = cbPalette[1],size = 3) + 
+  labs(x="Column Number",y="Treatment Residuals",title=expression(yield == mu + x + x^2 + x^3 + x^4 + x^5 + x^6)) + 
+  stat_smooth(method = "lm", formula = y ~ poly(x,6), se=FALSE, size = 1, color=cbPalette[2]),
+ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = cbPalette[1],size = 3) +
+  labs(x="Column Number",y="Treatment Residuals",title=expression(yield == mu + x + x^2 + x^3 + x^4 + x^5 + x^6 + x^7)) + 
+  stat_smooth(method = "lm", formula = y ~ poly(x,7), se=FALSE, size = 1, color=cbPalette[2]), 
+ncol=1
+      ))
+@
+
+
+trends <- list(
+  lm(assessment1 ~ polym(lat,lon,degree = 1) + treatment,data=arm.dat),
+  lm(assessment1 ~ polym(lat,lon,degree = 2) + treatment,data=arm.dat),
+  lm(assessment1 ~ polym(lat,lon,degree = 3) + treatment,data=arm.dat)#,
+  #lm(assessment1 ~ polym(lat,lon,degree = 4) + treatment,data=arm.dat),
+  #lm(assessment1 ~ polym(lat,lon,degree = 5) + treatment,data=arm.dat),
+  #lm(assessment1 ~ polym(lat,lon,degree = 6) + treatment,data=arm.dat),
+  #lm(assessment1 ~ polym(lat,lon,degree = 7)+ treatment,data=arm.dat)
+)
+trends.tbl <- do.call(anova, trends)
+trends.tbl$RMS <- trends.tbl$RSS/trends.tbl$Res.Df
+trends.tbl$logLik <- unlist(lapply(trends, logLik))
+trends.tbl$AIC <- unlist(lapply(trends, AIC))
+trends.tbl$BIC <- unlist(lapply(trends, BIC))
+trends.tbl
+lm(assessment1 ~ poly(lat, 3) * poly(lon,4)+ treatment,data=arm.dat)
+
+<<>>=
+library(nlme)
+yield.gls <- gls(assessment1 ~ treatment,data=arm.dat)
+
+yield.lin.gls <- update(yield.gls, corr = corLin(form = ~ x + y))
+yield.rat.gls <- update(yield.gls, corr = corRatio(form = ~ x + y,nugget=TRUE))
+yield.sph.gls <- update(yield.gls, corr = corSpher(form = ~ x + y,nugget=TRUE))
+yield.exp.gls <- update(yield.gls, corr = corExp(form = ~ x + y,nugget=TRUE))
+yield.gaus.gls <- update(yield.gls, corr = corGaus(form = ~ x + y,nugget=TRUE))
+
+comp.tbl <- anova(yield.lin.gls, yield.rat.gls, yield.sph.gls, yield.exp.gls, yield.gaus.gls)
+corr.list <- list(yield.lin.gls, yield.rat.gls, yield.sph.gls, yield.exp.gls, yield.gaus.gls)
+best.corr  <- corr.list[[which(comp.tbl$AIC==min(comp.tbl$AIC))]]
+@
+
+<<best_corr_variogram,fig=TRUE,echo=false,width=6,height=7>>=
+plot(Variogram(best.corr, form = ~ x + y), main = "Variogram of Residuals")
+@
+
+
+We'll assume the trend model is the appropriate model. We will simulate repeated experiments by
+
+
+Computing a treatment effect
+<<>>=
+treatment <- as.numeric(as.character(arm.dat$treatment))
+arm.dat$trtno <- treatment
+A <- (treatment-1)%%2
+B <- ((treatment-1)%/%2)%%2
+C <- ((treatment-1)%/%4)%%2
+D <- ((treatment-1)%/%8)%%2
+arm.dat$A <- as.factor(A)
+arm.dat$B <- as.factor(B)
+arm.dat$C <- as.factor(C)
+arm.dat$D <- as.factor(D)
+arm.dat$A[arm.dat$treatment==2] <- 0
+arm.dat[,c("treatment","A","B","C","D")]
+factorial.lm <- lm(assessment1 ~ poly(lat, 3) * poly(lon,3) + A:B:C:D,data=arm.dat)
+library(lsmeans)
+means.tbl <- summary(lsmeans(factorial.lm, ~ A + B + C + D))
+
+#treatment.effects <- means.tbl$lsmean - mean(means.tbl$lsmean)
+treatment.effects <- means.tbl$lsmean - mean(means.tbl$lsmean,na.rm=TRUE)
+treatment.effects[2] <- treatment.effects[1]
+
+
+set.seed(1000)
+pred.dat$Trend3
+treatment.effects[arm.dat$trtno] 
+error <- rnorm(n=length(pred.dat$Trend3),mean=0,sd=sqrt(5835))
+assessment1 <- pred.dat$Trend3 + treatment.effects[arm.dat$trtno] + error
+@
+
+Copy this to ARM and analyze.
+
+
+<<>>=
+arm2.dat <- data.frame(
+plot=c(304, 804, 301, 502, 402, 704, 401, 803, 103, 801, 203, 601, 403, 603, 204, 504, 303, 604, 102, 702, 202, 802, 101, 501, 404, 503, 104, 602, 302, 701, 201, 703), 
+treatment=as.factor(c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16)), 
+replicate=as.factor(c(1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2)), 
+block=as.factor(c(3, 4, 3, 1, 4, 3, 4, 4, 1, 4, 2, 2, 4, 2, 2, 1, 3, 2, 1, 3, 2, 4, 1, 1, 4, 1, 1, 2, 3, 3, 2, 3)), 
+column=as.factor(c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)), 
+y=c(3, 4, 3, 1, 4, 3, 4, 4, 1, 4, 2, 2, 4, 2, 2, 1, 3, 2, 1, 3, 2, 4, 1, 1, 4, 1, 1, 2, 3, 3, 2, 3), 
+x=c(4, 8, 1, 6, 2, 8, 1, 7, 3, 5, 3, 5, 3, 7, 4, 8, 3, 8, 2, 6, 2, 6, 1, 5, 4, 7, 4, 6, 2, 5, 1, 7), 
+lat=c(17, 24, 17, 3, 24, 17, 24, 24, 3, 24, 10, 10, 24, 10, 10, 3, 17, 10, 3, 17, 10, 24, 3, 3, 24, 3, 3, 10, 17, 17, 10, 17), 
+lon=c(15.5, 33.5, 2, 24.5, 6.5, 33.5, 2, 29, 11, 20, 11, 20, 11, 29, 15.5, 33.5, 11, 33.5, 6.5, 24.5, 6.5, 24.5, 2, 20, 15.5, 29, 15.5, 24.5, 6.5, 20, 2, 29), 
+assessment1=c(1442.774381, 813.851848, 1382.830813, 1509.45138, -140.38841, 671.300869, -225.818267, 165.223825, 1549.108362, 535.287388, 1880.206682, 2010.270507, 157.911892, 1479.373383, 2102.259147, 1157.476666, 1165.819491, 1242.147023, 1252.064189, 1198.721045, 2351.965354, 1112.680312, 1269.623441, 1581.985307, 365.975155, 973.864074, 1774.53922, 1762.706966, 1408.667276, 1433.558528, 1814.450281, 1110.317836),
+trend=c(1365.1256, 640.4198, 1264.2398, 1387.5423, 283.9255, 1060.7964, 162.2289, 578.6953, 1539.6248, 486.094, 1927.9893, 1817.7437, 372.2292, 1527.9085, 1899.9947, 993.9097, 1378.4414, 1339.0424, 1435.9851, 1244.4562, 1892.3683, 530.373, 1239.5802, 1506.0443, 436.499, 1213.711, 1559.8582, 1690.5953, 1347.9324, 1317.3442, 1783.7729, 1155.8206),
+effect=c(120.004605, 120.004605, 120.004605, 120.004605, -415.080816, -415.080816, -397.319133, -397.319133, 6.342039, 6.342039, -11.432416, -11.432416, -112.260911, -112.260911, 147.284727, 147.284727, -137.577026, -137.577026, -91.808938, -91.808938, 489.043491, 489.043491, 64.094982, 64.094982, -83.514055, -83.514055, 165.839948, 165.839948, 165.623458, 165.623458, 90.760044, 90.760044)
+)
+@
+
+<<>>=
+select.spatial.lattice <- function(arm.dat) {
+  #Calculate base (treatment only) model
+  crd.lm <- lm(assessment1 ~ treatment, data=arm.dat,x=TRUE)
+  #Calculate neighbor residuals
+  plots <- dim(arm.dat)[1]
+  cols <- max(arm.dat$x)
+rows <- max(arm.dat$y)
+mat.dim <- rows*cols
+W.row <- matrix(rep(0, mat.dim*mat.dim),nrow = mat.dim)
+W.col <- matrix(rep(0, mat.dim*mat.dim),nrow = mat.dim)
+arm.dat$plot <- 1:plots
+trial.map <- matrix(rep(0,mat.dim),nrow=rows)
+for(p in 1:plots) {
+  trial.map[arm.dat$y[p],arm.dat$x[p]] <- arm.dat$plot[p]
+}
+arm.dat$x.m <- arm.dat$x-1
+arm.dat$x.p <- arm.dat$x+1
+arm.dat$y.m <- arm.dat$y-1
+arm.dat$y.p <- arm.dat$y+1
+arm.dat$x.m[arm.dat$x.m<min(arm.dat$x)] <- NA
+arm.dat$x.p[arm.dat$x.p>cols] <- NA
+arm.dat$y.m[arm.dat$y.m<min(arm.dat$y)] <- NA
+arm.dat$y.p[arm.dat$y.p>rows] <- NA
+plot.width <- 4
+plot.height <- 6
+plot.buffer <- 0.5
+row.buffer <- 1
+col.space <- plot.width+plot.buffer
+row.space <- plot.height+row.buffer
+row.neighbors <- NA
+for(p in 1:plots) {
+  col.neighbors <- trial.map[c(arm.dat$y.m[p], arm.dat$y.p[p]), arm.dat$x[p]]
+  row.neighbors <- trial.map[arm.dat$y[p], c(arm.dat$x.m[p],arm.dat$x.p[p])]
+  W.row[p,row.neighbors] <- 1/col.space
+  W.col[p,col.neighbors] <- 1/row.space
+}
+W <- W.col + W.row
+W <- W[1:plots,1:plots]
+row.sums <- rowSums(W)
+row.sums[row.sums==0] <- 1
+W <- W/row.sums
+W.row <- W.row[1:plots,1:plots]
+row.sums <- rowSums(W.row)
+row.sums[row.sums==0] <- 1
+W.row <- W.row/row.sums
+W.col <- W.col[1:plots,1:plots]
+row.sums <- rowSums(W.col)
+row.sums[row.sums==0] <- 1
+W.col <- W.col/row.sums
+arm.dat$res <- NA
+crd.res <- residuals(crd.lm)
+arm.dat$res[as.numeric(names(crd.res))] <- crd.res
+arm.dat$res[is.na(arm.dat$res)] <- 0
+arm.dat$X.row = W.row %*% arm.dat$res
+arm.dat$X.col = W.col %*% arm.dat$res
+arm.dat$X = W %*% arm.dat$res
+
+#Compute design model
+arm.lm <- update(crd.lm, . ~ . + replicate + block:replicate)
+#Calculate and compare trend and neighbor models
+
+trend1.lm <- update(crd.lm, . ~ lat + lon + . )
+trend2.lm <- update(crd.lm, . ~ lat + lon + I(lat^2) + I(lon^2) + I(lat*lon) + . )
+trend3.lm <- update(crd.lm, . ~ lat + lon + I(lat^2) + I(lon^2) + I(lat*lon) + I(lat^3) + I(lon^3) + I(lat*lon^2) + I(lat^2*lon) + . )
+nnx.lm <- update(crd.lm, . ~ X.col + . , data=arm.dat)
+nny.lm <- update(crd.lm, . ~ X.row + . , data=arm.dat)
+nnxy.lm <- update(crd.lm, . ~ X + . , data=arm.dat)
+nns.lm <- update(crd.lm, . ~ X.row + X.col + . , data=arm.dat)
+model.list <- list(crd.lm, arm.lm, nnx.lm, nny.lm, nnxy.lm, nns.lm, trend1.lm, trend2.lm, trend3.lm)
+model.names <- c("CRD","Design","NNCol","NNRow","NNPap","NNRowCol","Trend1","Trend2","Trend3")
+anova.tbl <- do.call(anova, model.list)
+anova.tbl$RMS <- anova.tbl$RSS/anova.tbl$Res.Df
+anova.tbl$AIC <- unlist(lapply(model.list, AIC))
+anova.tbl$BIC <- unlist(lapply(model.list, BIC))
+anova.tbl$logLik <- unlist(lapply(model.list, logLik))
+best.tbl <- anova.tbl[, c('Res.Df','RMS', 'AIC', 'BIC', 'logLik')]
+best.aic <- which.min(anova.tbl$AIC)
+best.bic <- which.min(anova.tbl$BIC)
+best.rms <- which.min(anova.tbl$RMS)
+best.tbl <- rbind(c(0,best.rms,best.aic,best.bic,0),best.tbl)
+row.names(best.tbl) <- c("Best Index",model.names)
+best.idx <- best.aic
+names(model.list) <- model.names
+
+arm.lm <- model.list[[best.idx]]
+aov.tbl<-anova(arm.lm)
+res.row <- dim(aov.tbl)[1]
+
+coeffs.fix <- arm.lm$coefficients
+na.coeffs.fix <- is.na(coeffs.fix)
+if(any(na.coeffs.fix)) {
+  coeffs.fix[na.coeffs.fix] <- 0 
+}
+if(any(na.coeffs.fix)) {
+  idx<-which(na.coeffs.fix)
+  for(i in idx) {
+    aov.tbl <- rbind(aov.tbl[1:(i-2),],rep(0,dim(aov.tbl)[2]),aov.tbl[-(1:(i-2)),])
+  }
+}
+crd.tbl<-anova(crd.lm)
+arith.means <- tapply(arm.dat$assessment1, list(arm.dat$treatment), mean, na.rm=TRUE)
+valid.arith.means <- !is.na(arith.means)
+arith.means <- arith.means[valid.arith.means]
+trt.names <- as.numeric(levels(arm.dat$treatment)[valid.arith.means])
+
+return(list(arm.dat=arm.dat,
+  model.list=model.list,
+  anova.tbl=anova.tbl,
+  best.tbl=best.tbl
+  ))
+}
+@
+
+<<>>=
+arm2res <- select.spatial.lattice(arm2.dat)
+#arm.dat will have X
+arm2.dat <- arm2res$arm.dat
+pred2.dat <- arm2.dat[,c("plot","replicate", "block", "y", "x", "lat", "lon","X.col","X.row","X")]
+pred2.dat$treatment <- levels(arm2.dat$treatment)[which(levels(arm2.dat$treatment)==check.trt)]
+
+pred2.dat$CRD <- predict(arm2res$model.list$CRD,newdata=pred2.dat)
+pred2.dat$Lattice <- predict(arm2res$model.list$Design,newdata=pred2.dat)
+pred2.dat$Col <- predict(arm2res$model.list$NNCol,newdata=pred2.dat)
+pred2.dat$Row <- predict(arm2res$model.list$NNRow,newdata=pred2.dat)
+pred2.dat$RowCol <- predict(arm2res$model.list$NNRowCol,newdata=pred2.dat)
+pred2.dat$Pap <- predict(arm2res$model.list$NNPap,newdata=pred2.dat)
+pred2.dat$Trend1 <- predict(arm2res$model.list$Trend1,newdata=pred2.dat)
+pred2.dat$Trend2 <- predict(arm2res$model.list$Trend2,newdata=pred2.dat)
+pred2.dat$Trend3 <- predict(arm2res$model.list$Trend3,newdata=pred2.dat)
+pred2.dat[,c("Lattice","Col","Row","RowCol","Pap","Trend1","Trend2","Trend3")]
+@
+
+<<>>=
+sim.dat <- arm2.dat
+treatment <- as.numeric(as.character(sim.dat$treatment))
+sim.dat$trtno <- treatment
+
+sim <- select.spatial.lattice(sim.dat)
+sim$best.tbl
+sims.dat <- sim$best.tbl[1,]
+
+sim.sd <- sqrt(5835)
+sims <- 2:5
+for(i in sims) {
+  sim.dat$assessment1 <- sim.dat$trend + treatment.effects[sim.dat$trtno] + rnorm(n=length(sim.dat$trend),mean=0,sd=sim.sd)
+  sim <- select.spatial.lattice(sim.dat)
+  sims.dat <- rbind(sims.dat,sim$best.tbl[1,])
+}
+sims.dat$Simulation <- c(1,sims)
+sims.dat$RMS <- as.factor(sims.dat$RMS)
+sims.dat$AIC <- as.factor(sims.dat$AIC)
+sims.dat$BIC <- as.factor(sims.dat$BIC)
+tapply(sims.dat$RMS ,list(sims.dat$RMS),length)
+tapply(sims.dat$AIC ,list(sims.dat$AIC),length)
+tapply(sims.dat$BIC ,list(sims.dat$BIC),length)
+@
+
+
+<<>>=
+
+treatment <- as.numeric(as.character(arm2.dat$treatment))
+arm2.dat$trtno <- treatment
+sim.dat <- arm2.dat
+#sim.dat$plot <- sim.dat$replicate:sim.dat$block:sim.dat$column
+#plan.dat <- sim.dat[,c("treatment","replicate","block","column")]
+
+sim.dat$assessment1 <- sim.dat$trend + treatment.effects[sim.dat$trtno] + rnorm(n=length(sim.dat$trend),mean=0,sd=sim.sd)
+sim2 <- select.spatial.lattice(sim.dat)
+sims2.dat <- sim2$best.tbl[1,]
+
+#plot.names <- as.character(sim.dat$plot)
+#newplots <- sim.dat$trend + sim.dat$effect + rnorm(n=length(sim.dat$effect),mean=0,sd=sim.sd)
+
+sim.sd <- sqrt(5835)
+sims <- 2:10
+
+newsim.dat <- NULL
+for(i in sims) {
+  #newplan.dat <- plan.dat
+  sim.dat <- arm2.dat
+  #newsim.dat$plot <- newsim.dat$replicate:newsim.dat$block:newsim.dat$column
+  
+  
+  #newplan.dat$block[plan.dat$replicate==1] <- sample(1:4)[plan.dat$block[plan.dat$replicate==1]]
+  #newplan.dat$block[plan.dat$replicate==2] <- sample(1:4)[plan.dat$block[plan.dat$replicate==2]]
+  #newplan.dat$column[plan.dat$replicate==1] <- sample(1:4)[plan.dat$column[plan.dat$replicate==1]]
+  #newplan.dat$column[plan.dat$replicate==2] <- sample(1:4)[plan.dat$column[plan.dat$replicate==2]]
+  #newplan.dat$plot <- newplan.dat$replicate:newplan.dat$block:newplan.dat$column
+
+  #newtreatments <- newplan.dat$treatment
+  #names(newtreatments) <- as.character(newplan.dat$plot)
+  #newplan.dat$assessment1 <- newplots[as.character(newplan.dat$plot)]
+  #newsim.dat$treatment <- newtreatments[as.character(newsim.dat$plot)]
+  sim.dat$trtno <- sample(1:16)[sim.dat$trtno]
+  sim.dat$treatment <- levels(sim.dat$treatment)[sim.dat$trtno]
+  sim.dat$assessment1 <- sim.dat$trend + treatment.effects[sim.dat$trtno] + rnorm(n=length(sim.dat$trend),mean=0,sd=sim.sd)
+  sim2 <- select.spatial.lattice(sim.dat)
+
+  sims2.dat <- rbind(sims2.dat,sim2$best.tbl[1,])
+}
+sims2.dat$Simulation <- c(1,sims)
+sims2.dat$RMS <- as.factor(sims2.dat$RMS)
+sims2.dat$AIC <- as.factor(sims2.dat$AIC)
+sims2.dat$BIC <- as.factor(sims2.dat$BIC)
+tapply(sims2.dat$RMS ,list(sims2.dat$RMS),length)
+tapply(sims2.dat$AIC ,list(sims2.dat$AIC),length)
+tapply(sims2.dat$BIC ,list(sims2.dat$BIC),length)
+sim2$arm.dat
+@
+
+<<>>=
+library(lme4)
+rcb.lmer <- lmer(assessment1 ~ treatment + (1 | replicate),data=arm2.dat,REML=FALSE)
+lattice.lmer <- lmer(assessment1 ~ treatment + (1 | replicate/block),data=arm2.dat,REML=FALSE)
+rcb.lm <- lm(assessment1 ~ treatment + replicate,data=arm2.dat)
+lattice.lm <- lm(assessment1 ~ treatment + replicate/block,data=arm2.dat)
+AIC(rcb.lmer)
+AIC(lattice.lmer)
+AIC(rcb.lm)
+AIC(lattice.lm)
+summary(lattice.lmer)
+anova(lattice.lmer)
+anova(lattice.lm)
+@
+
+
+
+Overlay on field
+<<>>=
+path = "~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R"
+for (nm in list.files(path)) {
+   source(file.path(path, nm))
+}
+load(file="trimmed.dat.Rda")
+load(file="trimmed.vgm.Rda")
+@
+
+<<>>=
+plan1 <- data.frame(
+plot=c(101, 804, 103, 503, 303, 801, 302, 803, 202, 701, 403, 504, 404, 802, 102, 602, 104, 501, 304, 604, 401, 703, 204, 702, 301, 601, 402, 603, 203, 704, 201, 502), 
+trt=as.factor(c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16)), 
+rep=as.factor(c(1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2)), 
+blk=as.factor(c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)), 
+column=as.factor(c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)), 
+row=c(1, 4, 1, 1, 3, 4, 3, 4, 2, 3, 4, 1, 4, 4, 1, 2, 1, 1, 3, 2, 4, 3, 2, 3, 3, 2, 4, 2, 2, 3, 2, 1), 
+col=c(1, 8, 3, 7, 3, 5, 2, 7, 2, 5, 3, 8, 4, 6, 2, 6, 4, 5, 4, 8, 1, 7, 4, 6, 1, 5, 2, 7, 3, 8, 1, 6)
+)
+plan1$plotno <- 1:(dim(plan1)[1])
+@
+
+
+<<>>=
+arm.plot.dim <- c(4,6)
+arm.buffer.dim <- c(0.5,1)
+@
+
+  
+Place this trial at the lower left corner of the field, set in 3 meters. 
+
+<<>>=
+rcb.sw <- superimpose.plan(plan1,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,
+                           sample.vgm=trimmed.vgm
+                           )
+@
+
+This function returns the original plan 
+<<>>=
+rcb.sw$plan
+@
+
+<<00SingleRCBTrial,fig=TRUE,echo=false,width=4,height=4.4>>=
+ggplot(rcb.sw$plan, aes(LonM, LatM)) + 
+geom_point(aes(colour = trt),size = 6) + 
+scale_colour_manual(values=cbPalette) +
+#xlim(c(4,29)) + ylim(c(4,28)) +
+labs(colour = "Treatment", x="Longitude (m)", y="Latitude (m)")
+
+@
+
+<<>>=
+if(!file.exists("plotsCochran.dat.Rda")) {
+  plotsCochran.dat <- overlay.field(plan1,
+                                trimmed.dat,
+                                plot.dim=arm.plot.dim,
+                                buffer.dim=arm.buffer.dim,
+                                sample.vgm=trimmed.vgm)
+  save(plotsCochran.dat,file="plotsCochran.dat.Rda")
+} else {
+  load(file="plotsCochran.dat.Rda")
+}
+@
+
+<<02OverlayedTrialsPoints,fig=TRUE,echo=false,width=4,height=4.5>>=
+ggplot(plotsCochran.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1) + scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Simulated Plot Means")
+@
+
+<<03OverlayedTrialsMap,fig=TRUE,echo=false,width=4,height=4.5>>=
+ggplot(plotsCochran.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=.6) + scale_colour_manual(values=cbPalette) +
+labs(colour = "Treatment", x="Longitude (m)", y="Latitude (m)", title = "Trial Maps")
+@
+
+For each overlayed experiment,
+<<>>=
+ratio <- mean(arm.dat$assessment1,na.rm=TRUE)/mean(plotsCochran.dat$YldVolDry,na.rm=TRUE)
+min.lat <- min(arm.dat$lat)
+min.lon <- min(arm.dat$lon)
+max(plotsCochran.dat$number)
+rcbsim.dat <- NULL
+for(idx in 1:max(plotsCochran.dat$number)) {
+  current.dat <- subset(plotsCochran.dat,plotsCochran.dat$number==idx)
+  current.dat <- subset(current.dat,!is.na(current.dat$YldVolDry))
+  #current.dat$lat <- current.dat$LatM - min(current.dat$LatM) + min.lat
+  #current.dat$lon <- current.dat$LonM - min(current.dat$LonM) + min.lon
+  current.dat$lon <- current.dat$col
+  current.dat$lat <- current.dat$row
+  current.dat$x <- current.dat$col
+  current.dat$y <- current.dat$row
+  current.dat$treatment <- as.factor(current.dat$trt)
+  current.dat$replicate <- as.factor(current.dat$rep)
+  current.dat$assessment1 <- current.dat$YldVolDry*ratio
+  #we index by row names, so 
+  row.names(current.dat) <- as.numeric(row.names(current.dat))-min(as.numeric(row.names(current.dat)))+1
+  best.rcb <- select.spatial.model(current.dat)
+  
+  best.tbl <- best.rcb$best.tbl
+  best.tbl$Model <- row.names(best.tbl)
+  best.tbl$Number <- idx
+  best.tbl$BestRMS <- best.tbl$RMS[1]
+  best.tbl$BestAIC <- best.tbl$AIC[1]
+  best.tbl$BestBIC <- best.tbl$BIC[1]
+  if(is.null(rcbsim.dat)) {
+    rcbsim.dat <- best.tbl
+  } else {
+    rcbsim.dat <- rbind(rcbsim.dat,best.tbl)
+  }
+  
+}
+
+rcbidx.dat <- subset(rcbsim.dat,rcbsim.dat$Model=="Best Index")
+rcbsim.dat <- subset(rcbsim.dat,rcbsim.dat$Model!="Best Index")
+rcbidx.dat$RMS <- as.factor(rcbidx.dat$RMS)
+rcbidx.dat$AIC <- as.factor(rcbidx.dat$AIC)
+rcbidx.dat$BIC <- as.factor(rcbidx.dat$BIC)
+tapply(rcbidx.dat$RMS ,list(rcbidx.dat$RMS),length)
+tapply(rcbidx.dat$AIC ,list(rcbidx.dat$AIC),length)
+tapply(rcbidx.dat$BIC ,list(rcbidx.dat$BIC),length)
+
+@
+
+
+Repeat with lattice
+
+<<>>=
+plan2 <- data.frame(
+plot=c(304, 804, 301, 502, 402, 704, 401, 803, 103, 801, 203, 601, 403, 603, 204, 504, 303, 604, 102, 702, 202, 802, 101, 501, 404, 503, 104, 602, 302, 701, 201, 703), 
+trt=as.factor(c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16)), 
+rep=as.factor(c(1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2)), 
+blk=as.factor(c(3, 4, 3, 1, 4, 3, 4, 4, 1, 4, 2, 2, 4, 2, 2, 1, 3, 2, 1, 3, 2, 4, 1, 1, 4, 1, 1, 2, 3, 3, 2, 3)), 
+column=as.factor(c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)), 
+row=c(3, 4, 3, 1, 4, 3, 4, 4, 1, 4, 2, 2, 4, 2, 2, 1, 3, 2, 1, 3, 2, 4, 1, 1, 4, 1, 1, 2, 3, 3, 2, 3), 
+col=c(4, 8, 1, 6, 2, 8, 1, 7, 3, 5, 3, 5, 3, 7, 4, 8, 3, 8, 2, 6, 2, 6, 1, 5, 4, 7, 4, 6, 2, 5, 1, 7)
+
+)
+plan2$plotno <- 1:(dim(plan2)[1])
+@
+
+
+<<>>=
+lattice.sw <- superimpose.plan(plan2,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,
+                           sample.vgm=trimmed.vgm
+                           )
+@
+
+This function returns the original plan 
+<<>>=
+lattice.sw$plan
+@
+
+<<SingleLatticeTrial,fig=TRUE,echo=false,width=4,height=4.4>>=
+ggplot(lattice.sw$plan, aes(LonM, LatM)) + 
+geom_point(aes(colour = trt),size = 6) + 
+scale_colour_manual(values=cbPalette) +
+#xlim(c(4,29)) + ylim(c(4,28)) +
+labs(colour = "Treatment", x="Longitude (m)", y="Latitude (m)")
+
+@
+
+<<>>=
+if(!file.exists("plotsLattice.dat.Rda")) {
+  plotsLattice.dat <- overlay.field(plan2,
+                                trimmed.dat,
+                                plot.dim=arm.plot.dim,
+                                buffer.dim=arm.buffer.dim,
+                                sample.vgm=trimmed.vgm)
+  save(plotsLattice.dat,file="plotsLattice.dat.Rda")
+} else {
+  load(file="plotsLattice.dat.Rda")
+}
+@
+
+<<OverlayedLatticePoints,fig=TRUE,echo=false,width=4,height=4.5>>=
+ggplot(plotsLattice.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1) + scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Simulated Plot Means")
+@
+
+<<OverlayedLatticeMap,fig=TRUE,echo=false,width=4,height=4.5>>=
+ggplot(plotsLattice.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=.6) + scale_colour_manual(values=cbPalette) +
+labs(colour = "Treatment", x="Longitude (m)", y="Latitude (m)", title = "Trial Maps")
+@
+
+For each overlayed experiment,
+<<>>=
+ratio <- mean(arm2.dat$assessment1,na.rm=TRUE)/mean(plotsCochran.dat$YldVolDry,na.rm=TRUE)
+min.lat <- min(arm2.dat$lat)
+min.lon <- min(arm2.dat$lon)
+max(plotsLattice.dat$number)
+latticesim.dat <- NULL
+for(idx in 1:max(plotsLattice.dat$number)) {
+  current.dat <- subset(plotsLattice.dat,plotsLattice.dat$number==idx)
+  current.dat <- subset(current.dat,!is.na(current.dat$YldVolDry))
+  #current.dat$lat <- current.dat$LatM - min(current.dat$LatM) + min.lat
+  #current.dat$lon <- current.dat$LonM - min(current.dat$LonM) + min.lon
+  current.dat$lon <- current.dat$col
+  current.dat$lat <- current.dat$row
+  current.dat$x <- current.dat$col
+  current.dat$y <- current.dat$row
+  current.dat$treatment <- as.factor(current.dat$trt)
+  current.dat$replicate <- as.factor(current.dat$rep)
+  current.dat$block <- as.factor(current.dat$blk)
+  current.dat$assessment1 <- current.dat$YldVolDry*ratio
+  #we index by row names, so 
+  row.names(current.dat) <- as.numeric(row.names(current.dat))-min(as.numeric(row.names(current.dat)))+1
+  best.lattice <- select.spatial.lattice(current.dat)
+  best.tbl <- best.lattice$best.tbl
+  best.tbl$Model <- row.names(best.tbl)
+  best.tbl$Number <- idx
+  best.tbl$BestRMS <- best.tbl$RMS[1]
+  best.tbl$BestAIC <- best.tbl$AIC[1]
+  best.tbl$BestBIC <- best.tbl$BIC[1]
+  if(is.null(latticesim.dat)) {
+    latticesim.dat <- best.tbl
+  } else {
+    latticesim.dat <- rbind(latticesim.dat,best.tbl)
+  }
+}
+latticeidx.dat <- subset(latticesim.dat,latticesim.dat$Model=="Best Index")
+latticesim.dat <- subset(latticesim.dat,latticesim.dat$Model!="Best Index")
+latticeidx.dat$RMS <- as.factor(latticeidx.dat$RMS)
+latticeidx.dat$AIC <- as.factor(latticeidx.dat$AIC)
+latticeidx.dat$BIC <- as.factor(latticeidx.dat$BIC)
+tapply(latticeidx.dat$RMS ,list(latticeidx.dat$RMS),length)
+tapply(latticeidx.dat$AIC ,list(latticeidx.dat$AIC),length)
+tapply(latticeidx.dat$BIC ,list(latticeidx.dat$BIC),length)
+@
+
+ggplot(latticesim.dat, aes(log(AIC), RMS)) + geom_point(aes(colour = Model),size=1) + scale_colour_manual(values=cbPalette) +
+labs(colour = "Model", x="RMS", y="AIC", title = "Trial Maps")
+
+<<AICRCBComp,fig=TRUE,echo=false,width=4,height=6>>=
+latticesim.dat$k <- 31-latticesim.dat$Res.Df
+grid.arrange(
+  arrangeGrob(
+    ggplot(latticesim.dat, aes(k,log(RMS))) + geom_point(aes(colour = Model),size=1) + scale_colour_manual(values=cbPalette) +
+     labs(colour = "Model", x="k", y="RMS"),
+   ggplot(latticesim.dat, aes(k,log(AIC))) + geom_point(aes(colour = Model),size=1) + scale_colour_manual(values=cbPalette) +
+    labs(colour = "Model", x="k", y="AIC"),
+    ggplot(latticesim.dat, aes(k,log(BIC))) + geom_point(aes(colour = Model),size=1) + scale_colour_manual(values=cbPalette) +
+     labs(colour = "Model", x="k", y="BIC")
+   )
+)
+@
+
+<<AICLatticeComp,fig=TRUE,echo=false,width=4,height=6>>=
+latticesim.dat$k <- 31-latticesim.dat$Res.Df
+grid.arrange(
+  arrangeGrob(
+    ggplot(latticesim.dat, aes(k,log(RMS))) + geom_point(aes(colour = Model),size=1) + scale_colour_manual(values=cbPalette) +
+     labs(colour = "Model", x="k", y="RMS"),
+   ggplot(latticesim.dat, aes(k,log(AIC))) + geom_point(aes(colour = Model),size=1) + scale_colour_manual(values=cbPalette) +
+    labs(colour = "Model", x="k", y="AIC"),
+    ggplot(latticesim.dat, aes(k,log(BIC))) + geom_point(aes(colour = Model),size=1) + scale_colour_manual(values=cbPalette) +
+     labs(colour = "Model", x="k", y="BIC")
+   )
+)
+@
+
+<<>>=
+setwd(initwd)
+@
+
+
+rcbidx.dat[which(rcbidx.dat$BestRMS!=rcbidx.dat$BestAIC),]
+
+              Res.Df RMS AIC BIC logLik Model Number BestRMS BestAIC BestBIC
+Best Index29       0   3   3   4      0           30       8       9       9
+Best Index33       0   3   3   3      0           34       8       9       8
+Best Index66       0   3   3   3      0           67       8       9       8
+Best Index84       0   1   3   1      0           85       4       9       4
+Best Index95       0   3   3   3      0           96       8       9       8
+Best Index99       0   3   3   3      0          100       8       9       8
+Best Index100      0   3   3   3      0          101       8       9       8
+Best Index102      0   3   3   3      0          103       8       9       8
+Best Index103      0   3   3   2      0          104       8       9       7
+Best Index124      0   3   3   3      0          125       8       9       8
+
+  number29.dat$lat <- number29.dat$row
+  number29.dat$lon <- number29.dat$col
+  number29.dat$x <- number29.dat$col
+  number29.dat$y <- number29.dat$row
+  number29.dat$treatment <- as.factor(number29.dat$trt)
+  number29.dat$replicate <- as.factor(number29.dat$rep)
+  number29.dat$assessment1 <- number29.dat$YldVolDry*ratio
+  
+number29.dat <- subset(plotsCochran.dat,plotsCochran.dat$number==29)
+number29trend2.lm <- lm(assessment1 ~ row + col + I(row^2) + I(col^2) + I(row*col) + treatment, data=number29.dat)
+number29trend3.lm <- lm(assessment1 ~ row + col + I(row^2) + I(col^2) + I(row*col) + I(row^3) + I(col^3) + I(row*col^2) + I(row^2*col) + treatment, data=number29.dat)
+
+
+anova(number29trend2.lm)
+anova(number29trend3.lm)
+anova(number29trend2.lm,number29trend3.lm)
+
+
+
+number30.dat <- subset(plotsCochran.dat,plotsCochran.dat$number==30)
+
+  number30.dat$lat <- number30.dat$row
+  number30.dat$lon <- number30.dat$col
+  number30.dat$x <- number30.dat$col
+  number30.dat$y <- number30.dat$row
+  number30.dat$treatment <- as.factor(number30.dat$trt)
+  number30.dat$replicate <- as.factor(number30.dat$rep)
+  number30.dat$assessment1 <- number30.dat$YldVolDry*ratio
+  
+  
+
+number30trend2.lm <- lm(assessment1 ~ row + col + I(row^2) + I(col^2) + I(row*col) + treatment, data=number30.dat)
+number30trend3.lm <- lm(assessment1 ~ row + col + I(row^2) + I(col^2) + I(row*col) + I(row^3) + I(col^3) + I(row*col^2) + I(row^2*col) + treatment, data=number30.dat)
+
+res30 <- select.spatial.model(number30.dat)
+
+
+anova(number30trend2.lm)
+anova(number30trend3.lm)
+anova(number30trend2.lm,number30trend3.lm)
+
+
+res29 <- select.spatial.model(number29.dat)
+res$aov.tbl
+arm.dat <- res$arm.dat
+rcb.lm <- res$model.list[[2]]
+
+
+> which(rcbidx.dat$BestRMS!=rcbidx.dat$BestAIC)
+ [1]  30  34  67  85  96 100 101 103 104 125
+> which(rcbidx.dat$BestBIC!=rcbidx.dat$BestAIC)
+ [1]  23  34  67  85  96 100 101 103 104 125
+ 
+example
+\end{document}

@@ -1,0 +1,546 @@
+---
+title: "Exploring Treatment x Trial
+  Interactions using Treatment Stability/Trial Dendrogram plots"
+author: "Peter Claussen"
+date: "November, 2015"
+output: html_document
+---
+
+I'm using a colorblind friendly palette for the ASA presentation, so I'm sourcing the working files from ARM ST analysis with some modification. I'll also be showing features that are not yet available from ARM ST.
+
+```{r}
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cbColors <- c(cbbPalette,cbPalette)
+trtPalette <- cbColors
+```
+
+```{r,echo=FALSE}
+library(ARMR)
+source("../ASA_CSSA_SSSA/R/gei.table.to.frame.R")
+source("../ASA_CSSA_SSSA/R/nonadditivity.gei.R")
+source("../ASA_CSSA_SSSA/R/heterogeneity.gei.R")
+source("../ASA_CSSA_SSSA/R/standard.sensitivity.plot.R")
+source("../ASA_CSSA_SSSA/R/expand.incidence.R")
+source("../ASA_CSSA_SSSA/R/decompose.means.table.R")
+source("../ASA_CSSA_SSSA/R/interaction.outliers.R")
+source("../ASA_CSSA_SSSA/R/plot.interaction.ARMST.R")
+```
+
+```{r}
+TreatmentName="TrtNo"
+response="Plot.Mean"
+TreatmentName="Treatment"
+TrialName="Trial"
+```
+
+### ST Exam1
+
+```{r}
+
+means.vector <- read.delim('../Manuscripts/scripts/ST-Exam1/trialMeans.SmyCol11.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/ST-Exam1/trialTable.SmyCol11.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 6, 2, 1) + 0.1), ps = 12, cex.lab = 1.166667, cex.main = 1.333333, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \n%UNCK YIELD',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 11', show.legend=TRUE,legend.columns=1, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 6, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nST-Exam', ylab='')
+par(fig=c(0,1,0,.4),mar=(c(4, 6, 0, 1) + 0.1), new=TRUE)
+par(fig = c(0, 1, 0, 1))
+```
+
+
+
+```{r}
+means.table <- gei.table.to.frame(t(means.matrix))
+tdf=nonadditivity.gei(means.table)
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(means.table)
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```
+  
+### Multilocation
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/multilocation/trialMeans.SmyCol1.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/multilocation/trialTable.SmyCol1.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 6, 2, 1) + 0.1), ps = 12, cex.lab = 1.166667, cex.main = 1.333333, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nYield',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=1, legend.pos=c(.01,.98))
+par(fig=c(0,1,0,.4),mar=(c(4, 6, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nMultilocation', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+```{r}
+res1$data[["TrtNo"]] <- as.factor(res1$data[["TrtNo"]])
+tdf=nonadditivity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```
+
+```{r}
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 6, 2, 1) + 0.1), ps = 12, cex.lab = 1.166667, cex.main = 1.333333, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nYield',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=1, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 6, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nMultilocation', ylab='',trt.colors =trtPalette)
+par(fig = c(0, 1, 0, 1))
+```
+
+
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/multilocation/trialMeans.SmyCol1.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/multilocation/trialTable.SmyCol1.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 6, 2, 1) + 0.1), ps = 12, cex.lab = 1.166667, cex.main = 1.333333, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nYield',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=1, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 6, 0, 1) + 0.1), new=TRUE)
+decomp <- decompose.means.table(means.matrix)
+fg="black"
+res2<-plot.clusters.ARMST(means.matrix, means.vector, fg=fg,xlab='Trial Mean \nMultilocation', ylab='',reference=(decomp$mu + decomp$alpha + decomp$beta),mark.nodes=FALSE,trt.colors=trtPalette)
+fg=cbColors[2]
+res3 <- plot.clusters.ARMST(decomp$mu + decomp$alpha + decomp$beta, means.vector, fg=fg,add=TRUE,xlab='Trial Mean \nMultilocation', ylab='',trt.colors=cbColors)
+par(fig = c(0, 1, 0, 1))
+```
+
+### sample RCBD
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/sampleRCBD/trialMeans.SmyCol1.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/sampleRCBD/trialTable.SmyCol1.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nTasselling',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSampleRCBD', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+```{r}
+TreatmentName="TrtNo"
+res1$data[[TreatmentName]] <- as.factor(res1$data[[TreatmentName]])
+tdf=nonadditivity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```
+
+```{r}
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nTasselling',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSampleRCBD', ylab='',trt.colors=trtPalette,use.colors = TRUE)
+par(fig = c(0, 1, 0, 1))
+```
+
+
+```{r}
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nTasselling',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSampleRCBD', ylab='')
+decomp <- decompose.means.table(means.matrix)
+fg="black"
+fg=cbColors[2]
+res3 <- plot.clusters.ARMST(decomp$mu + decomp$alpha + decomp$beta, means.vector, fg=fg,add=TRUE,ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/sampleRCBD/trialMeans.SmyCol2.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/sampleRCBD/trialTable.SmyCol2.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nPlant Height',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 2', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSampleRCBD', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+```{r}
+TreatmentName="TrtNo"
+res1$data[[TreatmentName]] <- as.factor(res1$data[[TreatmentName]])
+tdf=nonadditivity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```
+
+```{r}
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nPlant Height',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 2', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSampleRCBD', ylab='')
+decomp <- decompose.means.table(means.matrix)
+fg="black"
+fg=cbColors[2]
+res3 <- plot.clusters.ARMST(decomp$mu + decomp$alpha + decomp$beta, means.vector, fg=fg,add=TRUE,ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/sampleRCBD/trialMeans.SmyCol3.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/sampleRCBD/trialTable.SmyCol3.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nMoisture',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 3', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSampleRCBD', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+```{r}
+TreatmentName="TrtNo"
+res1$data[[TreatmentName]] <- as.factor(res1$data[[TreatmentName]])
+tdf=nonadditivity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/sampleRCBD/trialMeans.SmyCol3.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/sampleRCBD/trialTable.SmyCol3.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nMoisture',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 3', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSampleRCBD', ylab='')
+decomp <- decompose.means.table(means.matrix)
+fg="black"
+fg=cbColors[2]
+res3 <- plot.clusters.ARMST(decomp$mu + decomp$alpha + decomp$beta, means.vector, fg=fg,add=TRUE,ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/sampleRCBD/trialMeans.SmyCol4.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/sampleRCBD/trialTable.SmyCol4.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nYield',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 4', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSampleRCBD', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+
+trt.colors=trtPalette
+```{r}
+TreatmentName="TrtNo"
+res1$data[[TreatmentName]] <- as.factor(res1$data[[TreatmentName]])
+tdf=nonadditivity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```
+
+
+```{r}
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nYield',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 4', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSampleRCBD', ylab='',use.colors=TRUE,trt.colors=trtPalette)
+par(fig = c(0, 1, 0, 1))
+
+
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nYield',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 4', show.legend=TRUE,legend.columns=4, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+decomp <- decompose.means.table(means.matrix)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSampleRCBD', ylab='')
+res3 <- plot.clusters.ARMST(decomp$mu + decomp$alpha + decomp$beta, means.vector, fg=cbColors[2],ylab='',add=TRUE)
+par(fig = c(0, 1, 0, 1))
+```
+
+
+### EVT16b
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/evt16b/trialMeans.SmyCol1.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/evt16b/trialTable.SmyCol1.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nYIELD kg/ha',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=3, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nEVT16B', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+```{r}
+TreatmentName="TrtNo"
+res1$data[[TreatmentName]] <- as.factor(res1$data[[TreatmentName]])
+tdf=nonadditivity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```
+
+Now, mark outliers
+```{r}
+random.outliers <- interaction.outliers(means.matrix, means.vector,fixed=FALSE,sigma=3)
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nYIELD kg/ha',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=3, legend.pos=c(.01,.98),trt.colors=trtPalette,
+                             mark.int=random.outliers$pairs)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nEVT16B', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+
+Less stringent
+```{r}
+random.outliers <- interaction.outliers(means.matrix, means.vector,fixed=FALSE,sigma=2)
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nYIELD kg/ha',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=3, legend.pos=c(.01,.98),trt.colors=trtPalette,
+                             mark.int=random.outliers$pairs)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nEVT16B', ylab='', trt.colors=trtPalette,use.colors=TRUE)
+par(fig = c(0, 1, 0, 1))
+```
+
+
+Finally, show alternate dendrogram
+
+```{r}
+random.outliers <- interaction.outliers(means.matrix, means.vector,fixed=FALSE,sigma=2)
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nYIELD kg/ha',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=3, legend.pos=c(.01,.98),trt.colors=trtPalette,
+                             mark.int=random.outliers$pairs)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+decomp <- decompose.means.table(means.matrix)
+fg="black"
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nEVT16B', ylab='', trt.colors=trtPalette,use.colors=TRUE)
+fg=cbColors[2]
+res3 <- plot.clusters.ARMST(decomp$mu + decomp$alpha + decomp$beta, means.vector, fg=fg,add=TRUE,ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+### CPT
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/cpt2007sub/trialMeans.SmyCol1.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/cpt2007sub/trialTable.SmyCol1.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nGross Yield',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=3, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSD CPT 2007', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+```{r}
+TreatmentName="TrtNo"
+res1$data[[TreatmentName]] <- as.factor(res1$data[[TreatmentName]])
+tdf=nonadditivity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```
+
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/cpt2007sub/trialMeans.SmyCol2.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/cpt2007sub/trialTable.SmyCol2.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nTest Weight',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 2', show.legend=TRUE,legend.columns=3, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSD CPT 2007', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+```{r}
+TreatmentName="TrtNo"
+res1$data[[TreatmentName]] <- as.factor(res1$data[[TreatmentName]])
+tdf=nonadditivity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/cpt2007sub/trialMeans.SmyCol3.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/cpt2007sub/trialTable.SmyCol3.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nHeading Date',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 3', show.legend=TRUE,legend.columns=3, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSD CPT 2007', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+
+```{r}
+TreatmentName="TrtNo"
+res1$data[[TreatmentName]] <- as.factor(res1$data[[TreatmentName]])
+tdf=nonadditivity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/cpt2007sub/trialMeans.SmyCol4.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/cpt2007sub/trialTable.SmyCol4.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nPlant Height',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 4', show.legend=TRUE,legend.columns=2, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSD CPT 2007', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+```{r}
+TreatmentName="TrtNo"
+res1$data[[TreatmentName]] <- as.factor(res1$data[[TreatmentName]])
+tdf=nonadditivity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```
+
+```{r}
+means.vector <- read.delim('../Manuscripts/scripts/latin/trialMeans.SmyCol1.tab',header=FALSE)
+means.matrix <- read.delim('../Manuscripts/scripts/latin/trialTable.SmyCol1.tab',header=FALSE)
+means.vector <- means.vector[,1]
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+res1<-plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nPlant Height',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 4', show.legend=TRUE,legend.columns=2, legend.pos=c(.01,.98),trt.colors=trtPalette)
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+res2<-plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nLatin Changeover', ylab='')
+par(fig = c(0, 1, 0, 1))
+```
+```{r}
+TreatmentName="TrtNo"
+res1$data[[TreatmentName]] <- as.factor(res1$data[[TreatmentName]])
+tdf=nonadditivity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(tdf$multiplicative.lm)
+anova(tdf$additive.lm)
+anova(tdf$multiplicative.lm)
+het=heterogeneity.gei(res1$data,response="values",
+                      TreatmentName="TrtNo",
+                      TrialName="Trial.ID")
+summary(het$heterogeneous.lm)
+summary(het$heterogeneous0.lm)
+extract.slopes(summary(het$heterogeneous0.lm)$coefficients,het$heterogeneous0.lm$df.residual)
+res1$fit
+anova(het$heterogeneous.lm)
+anova(het$heterogeneous0.lm)
+```

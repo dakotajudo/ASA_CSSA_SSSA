@@ -1,0 +1,434 @@
+---
+title: "Cochran 1947"
+author: "Peter Claussen"
+date: "10/3/2017"
+output: html_document
+---
+
+```{r,echo=FALSE}
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000")
+```
+
+Spatial analysis of Cochran, 1947, in ARM table format:
+
+```{r}
+arm.dat <- data.frame(
+plot=c(101, 804, 103, 503, 303, 801, 302, 803, 202, 701, 403, 504, 404, 802, 102, 602, 104, 501, 304, 604, 401, 703, 204, 702, 301, 601, 402, 603, 203, 704, 201, 502), 
+treatment=as.factor(c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16)), 
+replicate=as.factor(c(1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2)), 
+block=as.factor(c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)), 
+column=as.factor(c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)), 
+y=c(1, 4, 1, 1, 3, 4, 3, 4, 2, 3, 4, 1, 4, 4, 1, 2, 1, 1, 3, 2, 4, 3, 2, 3, 3, 2, 4, 2, 2, 3, 2, 1), 
+x=c(1, 8, 3, 7, 3, 5, 2, 7, 2, 5, 3, 8, 4, 6, 2, 6, 4, 5, 4, 8, 1, 7, 4, 6, 1, 5, 2, 7, 3, 8, 1, 6), 
+lat=c(3, 24, 3, 3, 17, 24, 17, 24, 10, 17, 24, 3, 24, 24, 3, 10, 3, 3, 17, 10, 24, 17, 10, 17, 17, 10, 24, 10, 10, 17, 10, 3), 
+lon=c(2, 33.5, 11, 29, 11, 20, 6.5, 29, 6.5, 20, 11, 33.5, 15.5, 24.5, 6.5, 24.5, 15.5, 20, 15.5, 33.5, 2, 29, 15.5, 24.5, 2, 20, 6.5, 29, 11, 33.5, 2, 24.5), 
+assessment1=c(1240, 640, 1770, 1410, 1460, 630, 1370, 560, 2180, 1680, 700, 1300, 810, 970, 1660, 1950, 1530, 1330, 1710, 1790, 840, 1890, 2280, 1580, 1480, 1910, 660, 1890, 2470, 1520, 1790, 1450)
+)
+arm.dat$block <- as.factor(arm.dat$y)
+arm.dat$column<- as.factor(arm.dat$x)
+```
+
+Edited code from ARM
+
+Calculate base (treatment only) model
+```{r}
+crd.lm <- lm(assessment1 ~ treatment, data=arm.dat,x=TRUE)
+```
+
+Calculate Neighbor residuals
+```{r}
+plots <- dim(arm.dat)[1]
+cols <- max(arm.dat$x)
+rows <- max(arm.dat$y)
+mat.dim <- rows*cols
+W.row <- matrix(rep(0, mat.dim*mat.dim),nrow = mat.dim)
+W.col <- matrix(rep(0, mat.dim*mat.dim),nrow = mat.dim)
+arm.dat$plot <- 1:plots
+trial.map <- matrix(rep(0,mat.dim),nrow=rows)
+for(p in 1:plots) {
+  trial.map[arm.dat$y[p],arm.dat$x[p]] <- arm.dat$plot[p]
+}
+arm.dat$x.m <- arm.dat$x-1
+arm.dat$x.p <- arm.dat$x+1
+arm.dat$y.m <- arm.dat$y-1
+arm.dat$y.p <- arm.dat$y+1
+arm.dat$x.m[arm.dat$x.m<min(arm.dat$x)] <- NA
+arm.dat$x.p[arm.dat$x.p>cols] <- NA
+arm.dat$y.m[arm.dat$y.m<min(arm.dat$y)] <- NA
+arm.dat$y.p[arm.dat$y.p>rows] <- NA
+plot.width <- 6
+plot.height <- 4
+plot.buffer <- 0.5
+row.buffer <- 1
+col.space <- plot.width+plot.buffer
+row.space <- plot.height+row.buffer
+row.neighbors <- NA
+for(p in 1:plots) {
+  col.neighbors <- trial.map[c(arm.dat$y.m[p], arm.dat$y.p[p]), arm.dat$x[p]]
+  row.neighbors <- trial.map[arm.dat$y[p], c(arm.dat$x.m[p],arm.dat$x.p[p])]
+  W.row[p,row.neighbors] <- 1/col.space
+  W.col[p,col.neighbors] <- 1/row.space
+}
+W <- W.col + W.row
+W <- W[1:plots,1:plots]
+row.sums <- rowSums(W)
+row.sums[row.sums==0] <- 1
+W <- W/row.sums
+W.row <- W.row[1:plots,1:plots]
+row.sums <- rowSums(W.row)
+row.sums[row.sums==0] <- 1
+W.row <- W.row/row.sums
+W.col <- W.col[1:plots,1:plots]
+row.sums <- rowSums(W.col)
+row.sums[row.sums==0] <- 1
+W.col <- W.col/row.sums
+arm.dat$res <- NA
+crd.res <- residuals(crd.lm)
+arm.dat$res[as.numeric(names(crd.res))] <- crd.res
+arm.dat$res[is.na(arm.dat$res)] <- 0
+arm.dat$X.row = W.row %*% arm.dat$res
+arm.dat$X.col = W.col %*% arm.dat$res
+arm.dat$X = W %*% arm.dat$res
+```
+
+Compute design model
+```{r}
+arm.lm <- update(crd.lm, . ~ . + replicate )
+```
+
+Calculate and compare trend and neighbor models
+
+```{r}
+trend1.lm <- update(crd.lm, . ~ lat + lon + . )
+trend2.lm <- update(crd.lm, . ~ lat + lon + I(lat^2) + I(lon^2) + I(lat*lon) + . )
+trend3.lm <- update(crd.lm, . ~ lat + lon + I(lat^2) + I(lon^2) + I(lat*lon) + I(lat^3) + I(lon^3) + I(lat*lon^2) + I(lat^2*lon) + . )
+nnx.lm <- update(crd.lm, . ~ X.col + . , data=arm.dat)
+nny.lm <- update(crd.lm, . ~ X.row + . , data=arm.dat)
+nnxy.lm <- update(crd.lm, . ~ X + . , data=arm.dat)
+nns.lm <- update(crd.lm, . ~ X.row + X.col + . , data=arm.dat)
+model.list <- list(crd.lm, arm.lm, nnx.lm, nny.lm, nnxy.lm, nns.lm, trend1.lm, trend2.lm, trend3.lm)
+anova.tbl <- do.call(anova, model.list)
+anova.tbl$RMS <- anova.tbl$RSS/anova.tbl$Res.Df
+anova.tbl$AIC <- unlist(lapply(model.list, AIC))
+anova.tbl$BIC <- unlist(lapply(model.list, BIC))
+anova.tbl$logLik <- unlist(lapply(model.list, logLik))
+best.tbl <- anova.tbl[, c('RMS', 'AIC', 'BIC', 'logLik')]
+```
+
+```{r}
+best.aic <- which.min(anova.tbl$AIC)
+best.bic <- which.min(anova.tbl$BIC)
+best.rms <- which.min(anova.tbl$RMS)
+best.tbl <- rbind(c(best.rms,best.aic,best.bic,0),best.tbl)
+best.idx <- best.aic
+
+arm.lm <- model.list[[best.idx]]
+aov.tbl<-anova(arm.lm)
+res.row <- dim(aov.tbl)[1]
+print(aov.tbl)
+coeffs.fix <- arm.lm$coefficients
+na.coeffs.fix <- is.na(coeffs.fix)
+if(any(na.coeffs.fix)) {
+  coeffs.fix[na.coeffs.fix] <- 0 
+}
+if(any(na.coeffs.fix)) {
+  idx<-which(na.coeffs.fix)
+  aov.tbl <- rbind(aov.tbl[1:(idx-2),],rep(0,dim(aov.tbl)[2]),aov.tbl[-(1:(idx-2)),])
+}
+crd.tbl<-anova(crd.lm)
+arith.means <- tapply(arm.dat$assessment1, list(arm.dat$treatment), mean, na.rm=TRUE)
+valid.arith.means <- !is.na(arith.means)
+arith.means <- arith.means[valid.arith.means]
+trt.names <- as.numeric(levels(arm.dat$treatment)[valid.arith.means])
+treatments <- length(arith.means)
+C.t <- match.fun(arm.lm$contrasts[['treatment']])(treatments)
+C.m <- rep(1,treatments)
+L.fix <- NULL
+  if(best.idx %in% c(3,4,5,6)) {
+    cov.list <- NULL
+    if(best.idx == 3) {
+       cov.list <- c('X.col')
+    } else if(best.idx == 4) {
+       cov.list <- c('X.row')
+    } else if(best.idx == 5) {
+       cov.list <- c('X')
+    } else if(best.idx == 6) {
+       cov.list <- c('X.row', 'X.col')
+    } 
+    col.means <- colMeans(arm.dat[,cov.list])
+    cov.means <- matrix(rep(col.means, treatments), nrow = treatments, byrow = TRUE)
+    L.fix  <- cbind(C.m,cov.means,C.t)
+} else {
+  m.r <- (min(arm.dat$lat)+max(arm.dat$lat))/2
+  m.c <- (min(arm.dat$lon)+max(arm.dat$lon))/2
+  if (best.idx == 7) {
+    C.trend <- c(1, m.r, m.c)
+  } else if(best.idx == 8) {
+    C.trend <- c(1, m.r, m.c, m.r^2, m.c^2, m.r*m.c)
+  } else if(best.idx == 9) {
+    C.trend <- c(1, m.r, m.c, m.r^2, m.c^2, m.r*m.c, m.r^3, m.c^3, m.r*m.c^2, m.r^2*m.c)
+  }
+  L.trend <- matrix(rep(C.trend,treatments),nrow=treatments, byrow=TRUE)
+  L.fix <- cbind(L.trend,C.t)
+}
+if(best.idx %in% c(7,8,9)) {
+  y.III.tbl <- anova(update(arm.lm, . ~ . - lat), arm.lm)
+  x.III.tbl <- anova(update(arm.lm, . ~ . - lon), arm.lm)
+  x.III.tbl <- rbind(y.III.tbl[2,], x.III.tbl[2,])
+  if(best.idx %in% c(8,9)) {
+    yy.III.tbl <- anova(update(arm.lm, . ~ . -  I(lat^2)), arm.lm)
+    x.III.tbl <- rbind(x.III.tbl, yy.III.tbl[2,])
+    xx.III.tbl <- anova(update(arm.lm, . ~ . -  I(lon^2)), arm.lm)
+    x.III.tbl <- rbind(x.III.tbl, xx.III.tbl[2,])
+    xy.III.tbl <- anova(update(arm.lm, . ~ . -  I(lat*lon)), arm.lm)
+    x.III.tbl <- rbind(x.III.tbl, xy.III.tbl[2,])
+  }
+  if(best.idx == 9) {
+    yyy.III.tbl <- anova(update(arm.lm, . ~ . -  I(lat^3)), arm.lm)
+    x.III.tbl <- rbind(x.III.tbl, yyy.III.tbl[2,])
+    xxx.III.tbl <- anova(update(arm.lm, . ~ . -  I(lon^3)), arm.lm)
+    x.III.tbl <- rbind(x.III.tbl, xxx.III.tbl[2,])
+    yxx.III.tbl <- anova(update(arm.lm, . ~ . -  I(lat*lon^2)), arm.lm)
+    x.III.tbl <- rbind(x.III.tbl, yxx.III.tbl[2,])
+    yyx.III.tbl <- anova(update(arm.lm, . ~ . -  I(lat^2*lon)), arm.lm)
+    x.III.tbl <- rbind(x.III.tbl, yyx.III.tbl[2,])
+  }
+} else {
+  if(best.idx == 3) {
+    x.III.tbl <- anova(update(arm.lm, . ~ . - X.col), arm.lm)[-1,]
+  } else if(best.idx == 4) {
+    x.III.tbl <- anova(update(arm.lm, . ~ . - X.row), arm.lm)[-1,]
+  } else if(best.idx == 5) {
+    x.III.tbl <- anova(update(arm.lm, . ~ . - X), arm.lm)[-1,]
+  } else if(best.idx == 6) {
+    x.III.tbl <- anova(update(arm.lm, . ~ . - X.row), arm.lm)[-1,]
+    col.III.tbl <- anova(update(arm.lm, . ~ . -  X.col), arm.lm)
+    x.III.tbl <- rbind(x.III.tbl, col.III.tbl[2,])
+  }
+}
+  L <- L.fix
+  na.coeffs <- na.coeffs.fix
+  coeffs <- coeffs.fix
+trt.means <- L %*% coeffs
+means.tbl <- data.frame(trt= trt.names,arith=arith.means,lsmean= trt.means)
+L.rows <- dim(L)[1]
+L.contrasts <- matrix(0,nrow=((L.rows-1)*(L.rows)/2),ncol=dim(L)[2])
+l.idx <- 1
+for(i in 1:(L.rows-1)) {
+  for(j in (i+1):L.rows) {
+    L.contrasts[l.idx,] <- L[i,]-L[j,]
+    l.idx <- l.idx+1
+  }
+}
+L.contrasts <- L.contrasts[,!na.coeffs]
+  Vcoeffs <- vcov(arm.lm)
+LVL <- L.contrasts %*% Vcoeffs %*% t(L.contrasts)
+se.vec <- diag(LVL)
+SE.table <- matrix(0,nrow=treatments,ncol=treatments)
+se.idx <- 1
+for (i in 1:(L.rows-1)) {
+   for(j in (i+1):L.rows) {
+      SE.table[i,j] <- sqrt(se.vec[se.idx])
+      SE.table[j,i] <- sqrt(se.vec[se.idx])
+      se.idx <- se.idx + 1
+   }
+}
+X <- crd.lm$x
+alpha = 0.05
+err.df <- arm.lm$df.residual
+crit.t <-qt(1 - alpha / 2, err.df)
+crit.tbl <- SE.table * crit.t
+```
+
+
+# Explanation of analysis
+
+We start with the designed analysis of variance. This will be the second entry in `model.list`, the first is the treatment only (CRD) model.
+
+```{r}
+rcb.lm <- model.list[[2]]
+anova(rcb.lm)
+```
+
+We will be creating an imaginary uniformity trial by calculating spatial effects and estimate plot yield as if only a single treatment where planted in each plot. We'll use the treatment with an arithmetic mean closest to the median of all treatments as our check for an imaginary uniformity trial.
+
+```{r}
+print(treatment.means <- tapply(arm.dat$assessment1,list(arm.dat$treatment),mean))
+print(treatment.median <- median(treatment.means))
+print(check.trt <-which.min(abs(treatment.means-treatment.median)))
+```
+
+This suggests why there's a need for spatial analysis - the median is an untreated treatment.
+
+Now create a data frame for prediction
+```{r}
+pred.dat <- arm.dat[,c("plot","replicate", "y", "x", "lat", "lon","X.col","X.row","X")]
+pred.dat$treatment <- levels(arm.dat$treatment)[which(levels(arm.dat$treatment)==check.trt)]
+pred.dat$rcb <- predict(rcb.lm,pred.dat)
+
+pred.dat$block <- as.factor(pred.dat$y)
+pred.dat$column<- as.factor(pred.dat$x)
+```
+
+```{r}
+library(agridat)
+desplot(assessment1 ~ x+y, arm.dat, out1=replicate, out2=plot)
+desplot(rcb ~ x+y, pred.dat, out1=replicate, out2=plot)
+```
+
+
+
+Add residuals to the table.
+```{r}
+pred.dat$CRDresid <- resid(crd.lm)
+pred.dat$RCBresid <- resid(rcb.lm)
+pred.dat$Trend1resid <- resid(trend1.lm)
+pred.dat$Trend2resid <- resid(trend2.lm)
+pred.dat$Trend3resid <- resid(trend3.lm)
+pred.dat$Colresid <- resid(nnx.lm)
+pred.dat$Rowresid <- resid(nny.lm)
+pred.dat$RowColresid <- resid(nnxy.lm)
+pred.dat$Papresid <- resid(nns.lm)
+```
+
+And a data frame for plotting residuals
+```{r}
+residuals.dat <- data.frame(
+  Residual = c(pred.dat$CRDresid,
+               pred.dat$RCBresid,
+               pred.dat$Trend1resid,
+               pred.dat$Trend2resid,
+               pred.dat$Trend3resid,
+               pred.dat$Colresid,
+               pred.dat$Rowresid,
+               pred.dat$RowColresid,
+               pred.dat$Papresid),
+  Model = c(rep("CRD",length(pred.dat$CRDresid)),
+            rep("RCB",length(pred.dat$RCBresid)),
+            rep("Trend1",length(pred.dat$Trend1resid)),
+            rep("Trend2",length(pred.dat$Trend2resid)),
+            rep("Trend3",length(pred.dat$Trend3resid)),
+            rep("Col",length(pred.dat$Colresid)),
+            rep("Row",length(pred.dat$Rowresid)),
+            rep("RowCol",length(pred.dat$RowColresid)),
+            rep("Pap",length(pred.dat$Papresid)))
+)
+```
+
+```{r}
+ggplot(residuals.dat, aes(sample=Residual,color=Model,linetype=Model)) + 
+  stat_qq(aes(color=Model)) +
+ #stat_density(geom="line",position="identity",size=1)
+ # stat_ecdf(size=1)  +  #facet_wrap(~Source,scales = "free") + 
+  scale_colour_manual(values=cbPalette) +
+  labs(colour = "Model",x="Residuals")
+```
+
+```{r}
+ggplot(pred.dat, aes(x, CRDresid)) + geom_point(aes(colour = block),size = 2) + geom_line(aes(colour = block)) + scale_colour_manual(values=cbPalette) 
+#+ stat_smooth(aes(group=block,colour=block),method = "lm", formula = y ~ poly(x, 3), se=FALSE, size = 1)
+  
+# + labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+```{r}
+ggplot(pred.dat, aes(x, CRDresid)) + geom_point(aes(colour = block),size = 3) + geom_line(aes(colour = block),size = 2) + scale_colour_manual(values=cbPalette) + facet_wrap(~block, nrow = 4)
+```
+
+```{r}
+ggplot(pred.dat, aes(y, CRDresid)) + geom_point(aes(colour = block), size = 2) + stat_smooth(aes(group=block,colour=block),method = "lm", formula = x ~ poly(y, 3), se=FALSE, size = 1) + facet_wrap(~x, nrow = 4)
+```
+
+Compare residuals.
+
+```{r}
+qqnorm(trend1.lm$residuals)
+qqnorm(trend2.lm$residuals)
+qqnorm(trend3.lm$residuals)
+qqnorm(nnx.lm$residuals)
+qqnorm(nny.lm$residuals)
+qqnorm(nnxy.lm$residuals)
+qqnorm(nns.lm$residuals)
+```
+
+```{r}
+ggplot(pred.dat, aes(x, Trend3resid)) + geom_point(aes(colour = block),size = 3) + geom_line(aes(colour = block),size = 2) + scale_colour_manual(values=cbPalette) + facet_wrap(~block, nrow = 4)
+```
+
+               
+```{r}
+ggplot(pred.dat, aes(x, RowColresid)) + geom_point(aes(colour = block),size = 3) + geom_line(aes(colour = block),size = 2) + scale_colour_manual(values=cbPalette) + facet_wrap(~block, nrow = 4)
+```
+
+```{r}
+library(gridExtra)
+
+row.dat <- subset(pred.dat,pred.dat$block==3)
+row.dat <- subset(row.dat,row.dat$x<6)
+#tbl12.3.row1 <- subset(tbl12.3.row1,tbl12.3.row1$rep==1)
+row.dat <- row.dat[order(row.dat$x),]
+midpoints <- data.frame(
+  x = row.dat$x[2:4],
+  y=c((row.dat$CRDresid[1]+row.dat$CRDresid[3])/2,
+      (row.dat$CRDresid[2]+row.dat$CRDresid[4])/2,
+      (row.dat$CRDresid[3]+row.dat$CRDresid[5])/2),
+  lbl = c("covariate 2","covariate 3","covariate 4")
+      )
+
+```
+
+<<row_poly,fig=TRUE,echo=false,width=6,height=7>>=
+grid.arrange(
+  arrangeGrob(
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ 1, se=FALSE, size = 1) ,
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ x, se=FALSE, size = 1) ,
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2), se=FALSE, size = 1) ,
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2)+I(x^3), se=FALSE, size = 1),
+nrow=4))
+@
+
+<<row_overfit,fig=TRUE,echo=false,width=6,height=7>>=
+grid.arrange(
+  arrangeGrob(
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2), se=FALSE, size = 1) ,
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2)+I(x^3), se=FALSE, size = 1) ,
+ggplot(tbl12.3.row1, aes(x, resid)) + geom_point(colour = "black",size = 3) + stat_smooth(method = "lm", formula = y ~ x + I(x^2)+I(x^3)+I(x^4), se=FALSE, size = 1),
+nrow=3))
+@
+
+```{r}
+grid.arrange(
+  arrangeGrob(
+ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = "black",size = 3),
+ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = "black",size = 3) + 
+  geom_segment(x =row.dat$x[1], y = row.dat$CRDresid[1], xend = row.dat$x[3], yend = row.dat$CRDresid[3],linetype="dashed") +
+  geom_segment(x =row.dat$x[2], y = row.dat$CRDresid[2], xend = row.dat$x[4], yend = row.dat$CRDresid[4],linetype="dashed") +
+  geom_segment(x =row.dat$x[3], y = row.dat$CRDresid[3], xend = row.dat$x[5], yend = row.dat$CRDresid[5],linetype="dotted"),
+  ggplot(row.dat, aes(x, CRDresid)) + geom_point(colour = "black",size = 3) + 
+    geom_segment(x =row.dat$x[1], y = row.dat$CRDresid[1], xend = row.dat$x[3], yend = row.dat$CRDresid[3],linetype="dashed") +
+    geom_segment(x =row.dat$x[2], y = row.dat$CRDresid[2], xend = row.dat$x[4], yend = row.dat$CRDresid[4],linetype="dashed") +
+    geom_segment(x =row.dat$x[3], y = row.dat$CRDresid[3], xend = row.dat$x[5], yend = row.dat$CRDresid[5],linetype="dotted") + geom_text(data = midpoints, aes(x =x ,y = y, label = lbl))
+      ))
+```
+
+<<>>=
+library(nlme)
+yield.gls <- gls(yield ~ trt,data=tbl12.3)
+
+yield.lin.gls <- update(yield.gls, corr = corLin(form = ~ x + y))
+yield.rat.gls <- update(yield.gls, corr = corRatio(form = ~ x + y,nugget=TRUE))
+yield.sph.gls <- update(yield.gls, corr = corSpher(form = ~ x + y,nugget=TRUE))
+yield.exp.gls <- update(yield.gls, corr = corExp(form = ~ x + y,nugget=TRUE))
+yield.gaus.gls <- update(yield.gls, corr = corGaus(form = ~ x + y,nugget=TRUE))
+
+comp.tbl <- anova(yield.lin.gls, yield.rat.gls, yield.sph.gls, yield.exp.gls, yield.gaus.gls)
+corr.list <- list(yield.lin.gls, yield.rat.gls, yield.sph.gls, yield.exp.gls, yield.gaus.gls)
+best.corr  <- corr.list[[which(comp.tbl$AIC==min(comp.tbl$AIC))]]
+@
+
+<<best_corr_variogram,fig=TRUE,echo=false,width=6,height=7>>=
+plot(Variogram(best.corr, form = ~ x + y), main = "Variogram of Residuals")
+@
+
+

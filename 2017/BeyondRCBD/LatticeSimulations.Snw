@@ -1,0 +1,1532 @@
+\documentclass{report}
+\usepackage{amsmath}
+
+\begin{document}
+	
+R preliminaries
+
+<<>>=
+initwd <- getwd() 
+path = "~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R"
+for (nm in list.files(path)) {
+   source(file.path(path, nm))
+}
+setwd(initwd)
+setwd("./working")
+bestseed <- 1500
+set.seed(bestseed)
+library(ggplot2)
+library(nlme)
+library(lsmeans)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3",
+               "#969696", "#E39C00", "#53B1E6", "#006E70", "#004292", "#A55B00", "#e0E439","#C073A1","#060606","#674c80", "#205a71", "#064f36", "#727221", "#003353", "#6aaf06", "#633cd0")
+
+@
+
+\section{Simulating plot yields}
+
+Assume we have yield (or other agronomic assessment) data in spatial format, such as yield monitor data. For example, this data from the SDSU research station near Beresford. This file has been edited from the original format and is comma-seperated. It has been trimmed and converted to metric coordinates as descrbed elsewhere.
+
+<<>>=
+load(file="trimmed.dat.Rda")
+load(file="trimmed.vgm.Rda")
+@
+
+<<00TrimmedDataMap,fig=TRUE,echo=false,width=4,height=4.4>>=
+ggplot(trimmed.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = YldVolDry),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Trimmed Yield Monitor Data")
+@
+
+
+<<>>=
+arm.plot.dim <- c(4,6)
+arm.buffer.dim <- c(0.5,1)
+@
+
+Start with a typical RCB, with first block unrandomized. This trial was randomized in ARM with default setttings. 
+
+<<>>=
+base.plan <-data.frame(
+  trt=as.factor(c(1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13, 14, 14, 14, 15, 15, 15, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20, 21, 21, 21, 22, 22, 22, 23, 23, 23, 24, 24, 24, 25, 25, 25)), 
+  rep=as.factor(c(1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3)), 
+  blk=as.factor(c(3, 4, 2, 1, 4, 1, 2, 4, 3, 5, 4, 4, 4, 4, 5, 1, 5, 4, 2, 5, 5, 5, 5, 2, 4, 5, 1, 3, 5, 3, 2, 2, 1, 5, 2, 3, 4, 2, 4, 3, 2, 5, 1, 2, 2, 5, 1, 5, 4, 1, 2, 3, 1, 1, 1, 1, 3, 2, 1, 4, 4, 3, 3, 3, 3, 4, 1, 3, 5, 2, 3, 2, 5, 3, 1)), 
+  column=as.factor(c(3, 4, 5, 5, 2, 4, 4, 5, 2, 2, 3, 3, 1, 1, 1, 4, 4, 1, 2, 2, 5, 1, 5, 4, 3, 3, 2, 5, 1, 3, 1, 4, 3, 3, 2, 1, 5, 5, 5, 4, 3, 4, 2, 1, 2, 5, 4, 2, 4, 2, 3, 2, 5, 1, 1, 3, 5, 3, 1, 4, 2, 4, 4, 1, 2, 2, 3, 5, 3, 5, 3, 1, 4, 1, 5)), 
+  row=c(3, 9, 12, 1, 9, 11, 2, 9, 13, 5, 9, 14, 4, 9, 15, 1, 10, 14, 2, 10, 15, 5, 10, 12, 4, 10, 11, 3, 10, 13, 2, 7, 11, 5, 7, 13, 4, 7, 14, 3, 7, 15, 1, 7, 12, 5, 6, 15, 4, 6, 12, 3, 6, 11, 1, 6, 13, 2, 6, 14, 4, 8, 13, 3, 8, 14, 1, 8, 15, 2, 8, 12, 5, 8, 11), 
+  col=c(3, 4, 5, 5, 2, 4, 4, 5, 2, 2, 3, 3, 1, 1, 1, 4, 4, 1, 2, 2, 5, 1, 5, 4, 3, 3, 2, 5, 1, 3, 1, 4, 3, 3, 2, 1, 5, 5, 5, 4, 3, 4, 2, 1, 2, 5, 4, 2, 4, 2, 3, 2, 5, 1, 1, 3, 5, 3, 1, 4, 2, 4, 4, 1, 2, 2, 3, 5, 3, 5, 3, 1, 4, 1, 5)
+ )
+#base.plan
+
+base.plan$trt <- as.factor(base.plan$trt)
+base.plan$blk <- as.factor(base.plan$row)
+base.plan$rep <- as.factor(base.plan$rep)
+base.plan$plotno <- 1:(dim(base.plan)[1])
+base.plan <- base.plan
+@
+  
+Place this trial at the lower left corner of the field, set in 3 meters. 
+
+<<>>=
+rcb.sw <- superimpose.plan(base.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,
+                           sample.vgm=trimmed.vgm
+                           )
+@
+
+This function returns the original plan 
+<<>>=
+rcb.sw$plan
+@
+
+<<00SingleRCBTrial,fig=TRUE,echo=false,width=4,height=4.4>>=
+ggplot(rcb.sw$plan, aes(LonM, LatM)) + 
+geom_point(aes(colour = trt),size = 6) + 
+scale_colour_manual(values=cbPalette) +
+#xlim(c(4,29)) + ylim(c(4,28)) +
+labs(colour = "Treatment", x="Longitude (m)", y="Latitude (m)")
+
+@
+
+And, for convenience, a set of pooled points, so that we can compare kriged plot means with raw points. 
+
+<<01SingleTrialPoints,fig=TRUE,echo=false,width=4,height=4.4>>=
+rcb.sw$krig$n <- rcb.sw$krig$LatM+3
+rcb.sw$krig$s <- rcb.sw$krig$LatM-3
+rcb.sw$krig$e <- rcb.sw$krig$LonM-2
+rcb.sw$krig$w <- rcb.sw$krig$LonM+2
+base.plot <- ggplot(rcb.sw$pooled, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry,shape=Sample),size = 2) + scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Yield Monitor and Kriged Data Points")
+base.plot <- base.plot + geom_segment(aes(x = e, y = s, xend = e+4, yend = s), data = rcb.sw$krig,color = cbPalette[15])
+base.plot <- base.plot + geom_segment(aes(x = e, y = s, xend = e, yend = s+6), data = rcb.sw$krig,color = cbPalette[15])
+base.plot <- base.plot + geom_segment(aes(x = e, y = n, xend = e+4, yend = n), data = rcb.sw$krig,color = cbPalette[15])
+base.plot <- base.plot + geom_segment(aes(x = w, y = s, xend = w, yend = s+6), data = rcb.sw$krig,color = cbPalette[15])
+base.plot
+@
+
+
+We'll want to remember this for later -- each plot contains (and averages over) roughly 4 yield monitor samples.
+
+Now we repeat this plan over the entire field. This may take a while, so we save for repeated use. 
+
+<<>>=
+if(!file.exists("plots4x6.dat.Rda")) {
+  plots4x6.dat <- overlay.field(base.plan,
+                                trimmed.dat,
+                                plot.dim=arm.plot.dim,
+                                buffer.dim=arm.buffer.dim,
+                                sample.vgm=trimmed.vgm)
+  save(plots4x6.dat,file="plots4x6.dat.Rda")
+} else {
+  load(file="plots4x6.dat.Rda")
+}
+if(!file.exists("means4x6.dat.Rda")) {
+  means4x6.dat <- overlay.field(base.plan,
+                                trimmed.dat,
+                                plot.dim=arm.plot.dim,
+                                buffer.dim=arm.buffer.dim,
+                                sample.vgm=trimmed.vgm,
+                                mean=TRUE)
+  save(means4x6.dat,file="means4x6.dat.Rda")
+} else {
+  load(file="means4x6.dat.Rda")
+}
+@
+
+<<comp_full_points,fig=TRUE,echo=false>>=
+comp.full.dat <- data.frame(
+  YldVolDry = c(means4x6.dat$YldVolDry,plots4x6.dat$YldVolDry),
+  Method=c(rep("Mean",length(means4x6.dat$YldVolDry)),rep("Kriged",length(plots4x6.dat$YldVolDry)))
+)
+ggplot(comp.full.dat, aes(YldVolDry,color=Method,linetype=Method)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)
+@
+
+<<comp_full_points2,fig=TRUE,echo=false>>=
+pair.full.dat <- data.frame(
+  Mean = means4x6.dat$YldVolDry,
+  Kriged=plots4x6.dat$YldVolDry,
+  LatM=plots4x6.dat$LatM,
+  LonM=plots4x6.dat$LonM)
+ggplot(pair.full.dat, aes(Mean,Kriged)) + geom_point(aes(colour = LatM),size = 2) + scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) 
+@
+
+<<comp_full_points3,fig=TRUE,echo=false>>=
+pair.full.dat$Diff <- pair.full.dat$Mean - pair.full.dat$Kriged
+ggplot(pair.full.dat, aes(Diff)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+@
+
+ggplot(comp.full.dat, aes(YldVolDry,color=Method,linetype=Method)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+
+<<02OverlayedTrialsPoints,fig=TRUE,echo=false,width=4,height=4.5>>=
+ggplot(plots4x6.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1) + scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Kriged Plot Means")
+@
+
+<<03OverlayedTrialsMap,fig=TRUE,echo=false,width=4,height=4.5>>=
+ggplot(plots4x6.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=.6) + scale_colour_manual(values=cbPalette) +
+labs(colour = "Treatment", x="Longitude (m)", y="Latitude (m)", title = "Trial Maps")
+@
+
+
+
+Define a lattice analysis
+<<>>=
+lattice.analysis <- function(current.dat,REML=TRUE) {
+  require(lme4)
+  #is there valid data?
+  current.dat <- subset(current.dat,!is.na(current.dat$YldVolDry))
+  if(dim(current.dat)[1]<10) {
+    return(NULL)
+  }
+  current.dat$trt <- as.factor(current.dat$trt)
+  current.dat$rep <- as.factor(current.dat$rep)
+  current.dat$blk <- as.factor(current.dat$blk)
+  current.dat$column <- as.factor(current.dat$column)
+  
+  des.lm <- lm(YldVolDry ~ trt + rep + rep:blk + rep:col,data=current.dat)
+  aov.tbl <- summary(aov(des.lm))
+  trt.rc.III.tbl <- anova(update(des.lm, . ~ . - trt), des.lm)
+  
+  lattice.lm <- lm(YldVolDry ~ trt+rep + rep:blk,data=current.dat)
+  
+  lattice.tbl <- summary(aov(lattice.lm))
+  trt.lat.III.tbl <- anova(update(lattice.lm, . ~ . - trt), lattice.lm)
+  
+  rcb.tbl <- summary(aov(YldVolDry ~ trt+rep,data=current.dat))
+#            Df Sum Sq Mean Sq F value   Pr(>F)    
+#trt         24   1465    61.0   2.525 0.007019 ** 
+#rep          2   5862  2931.0 121.256 6.21e-16 ***
+#rep:blk     12   1209   100.7   4.167 0.000551 ***
+#rep:col      3   1099   366.3  15.154 2.26e-06 ***
+#Residuals   33    798    24.2 
+
+
+  #print(aov.tbl)
+  rcb.mle <- lmer(YldVolDry ~ trt + (1 | rep) , data=current.dat)
+  lattice.mle <- lmer(YldVolDry ~ trt + (1 | rep) + (1 | rep:blk) + (1 | rep:col), data=current.dat)
+  aov.mle <- lmer(YldVolDry ~ trt + (1 | rep) + (1 | rep:blk) + (1 | rep:col), data=current.dat)
+  var.tbl <- VarCorr(aov.mle)
+  var.rcb.tbl <- VarCorr(rcb.mle)
+  var.lattice.tbl <- VarCorr(rcb.mle)
+  #print(str(var.tbl))
+  
+  edf <- des.lm$df.residual
+  rc.tbl <- anova(aov.mle)
+  rc.F <- rc.tbl[1,4]
+  rc.Tdf <- rc.tbl[1,1]
+  rc.TrtP <- 1-pf(rc.F, rc.Tdf,edf)
+  
+  
+  ResVar <- attr(var.tbl, "sc")
+  RepVar <- attr(var.tbl[[3]], "stddev")
+  BlockVar <- attr(var.tbl[[2]], "stddev")
+  ColumnVar <- attr(var.tbl[[1]], "stddev")
+#  Groups   Name        Std.Dev.
+#  rep:col  (Intercept) 4.1690  
+#  rep:blk  (Intercept) 4.9323  
+#  rep      (Intercept) 5.1056  
+#  Residual             5.5057 
+  
+  #posthoc power
+  means <- tapply(current.dat$YldVolDry,list(current.dat$trt),mean)
+  GrandMean=mean(current.dat$YldVolDry)
+  ResMS = aov.tbl[[1]][5,3]
+  SD <- sqrt(ResMS)
+  CV=100*SD/GrandMean
+  PerMeanDiff=100*(max(means)-min(means))/GrandMean
+  
+  RepDF <- aov.tbl[[1]][2,1]
+  TrtDF = aov.tbl[[1]][1,1]
+  ResDF = aov.tbl[[1]][5,1]
+  
+  effect.size <-PerMeanDiff/CV
+
+  #trt.III.tbl <- anova(update(des.lm, . ~ . - trt), des.lm)
+
+  return(data.frame(
+    TrtDF = TrtDF,
+    TrtMS = aov.tbl[[1]][1,3],
+    TrtP = aov.tbl[[1]][1,5],
+    TrtP.III = trt.rc.III.tbl[2,6],
+    TrtP.mle = rc.TrtP,
+    
+    TrtRCBDF = rcb.tbl[[1]][1,1],
+    TrtRCBMS = rcb.tbl[[1]][1,3],
+    TrtRCBP = rcb.tbl[[1]][1,5],
+    
+    TrtLatticeP = lattice.tbl[[1]][1,5], 
+    TrtLatticeP.III = trt.lat.III.tbl[2,6],
+    
+    RepDF = RepDF,
+    RepMS = aov.tbl[[1]][2,3],
+    RepVar = RepVar,
+  
+    BlockDF = aov.tbl[[1]][3,1],
+    BlockMS = aov.tbl[[1]][3,3],
+    BlockVar = BlockVar,
+    
+    ColumnDF = aov.tbl[[1]][4,1],
+    ColumnMS = aov.tbl[[1]][4,3],
+    ColumnVar = ColumnVar,
+    
+    RepP = aov.tbl[[1]][2,5],
+    ResDF = aov.tbl[[1]][5,1],
+    ResMS = ResMS,
+    ResVar = ResVar,
+    ResRCBMS = aov.tbl[[1]][3,3],
+    ResRCBVar = attr(var.rcb.tbl, "sc"),
+    ResLatticeMS = lattice.tbl[[1]][4,3],
+    ResLatticeVar = attr(var.lattice.tbl, "sc"),
+    GrandMean=GrandMean,
+    SD=SD,
+    CV=CV,
+    PerMeanDiff=PerMeanDiff,
+    EffectSize=effect.size
+  ))
+}
+@
+
+We can do analysis of each plan at the same time while overlaying plans by calling: 
+
+<<>>=
+if(!file.exists("simulationsSingleRCB.dat.Rda")) {
+  simulationsSingleRCB.dat <- simulate.plan(base.plan,
+                              trimmed.dat,
+                              analysis.fn=lattice.analysis,
+                              plot.dim=arm.plot.dim,
+                              buffer.dim=arm.buffer.dim,
+                              sample.vgm=trimmed.vgm)
+  save(simulationsSingleRCB.dat,file="simulationsSingleRCB.dat.Rda")
+} else {
+  load(file="simulationsSingleRCB.dat.Rda")
+}
+@
+ 
+
+<<>>=
+if(!file.exists("twostepRCB.dat.Rda")) {
+twostepRCB.dat <- simulate.plan(base.plan,
+                              plots=plots4x6.dat,model="Krigged")
+  save(twostepRCB.dat,file="twostepRCB.dat.Rda")
+} else {
+  load(file="twostepRCB.dat.Rda")
+}
+
+head(simulationsSingleRCB.dat$aov)
+head(twostepRCB.dat$aov)
+@
+
+<<>>=
+TypeIComp.dat <- data.frame(
+  TrtP = c(simulationsSingleRCB.dat$aov$TrtP,
+    simulationsSingleRCB.dat$aov$TrtLatticeP,
+    simulationsSingleRCB.dat$aov$TrtRCBP,
+    simulationsSingleRCB.dat$aov$TrtP.III,
+    simulationsSingleRCB.dat$aov$TrtLatticeP.III,
+    simulationsSingleRCB.dat$aov$TrtP.mle
+    ),
+  Source = c(rep("RowCol",length(simulationsSingleRCB.dat$aov$TrtP)),
+             rep("Lattice",length(simulationsSingleRCB.dat$aov$TrtLatticeP)),
+             rep("RCB",length(simulationsSingleRCB.dat$aov$TrtRCBP)),
+             rep("RowCol III",length(simulationsSingleRCB.dat$aov$TrtP.III)),
+             rep("Lattice III",length(simulationsSingleRCB.dat$aov$TrtLatticeP.III)),
+             rep("RowCol mle",length(simulationsSingleRCB.dat$aov$TrtP.mle)))
+             )
+TypeIComp.dat$TypeIError  <- simulationsSingleRCB.dat$aov$TrtP<0.05
+TypeIComp.dat$MLETypeIError  <- simulationsSingleRCB.dat$aov$TrtP.mle<0.05
+@
+
+
+<<04SingleRCBECDF,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(TypeIComp.dat, 
+              aes(TrtP,color=Source,linetype=Source)) + stat_ecdf(size=1) + 
+                      scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+annotate("text", x = 0.12, y = 0.90, label = "p=0.05",colour=cbPalette[13]) + geom_abline() +
+labs(colour = "Count", linetype ="Count",x="Prob(Treatment F)",title = "ECDF of Treatment p over 180 RCB Simulations")
+@
+
+<<>>=
+TypeIIIComp.dat <- data.frame(
+  TrtP = c(simulationsSingleRCB.dat$aov$TrtP.III,
+    simulationsSingleRCB.dat$aov$TrtLatticeP.III,
+    simulationsSingleRCB.dat$aov$TrtRCBP),
+  Source = c(rep("RowCol",length(simulationsSingleRCB.dat$aov$TrtP.III)),
+             rep("Lattice",length(simulationsSingleRCB.dat$aov$TrtLatticeP.III)),
+             rep("RCB",length(simulationsSingleRCB.dat$aov$TrtRCBP)))
+             )
+TypeIIIComp.dat$RCBTypeIError  <- simulationsSingleRCB.dat$aov$TrtP<0.05
+TypeIIIComp.dat$LatticeTypeIError  <- simulationsSingleRCB.dat$aov$TrtP.III<0.05
+TypeIIIComp.dat$RCTypeIError  <- simulationsSingleRCB.dat$aov$TrtP.III<0.05
+@
+
+
+
+ggplot(TypeIIIComp.dat, 
+              aes(TrtP,color=Source,linetype=Source)) + stat_ecdf(size=1) + 
+                      scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+annotate("text", x = 0.12, y = 0.90, label = "p=0.05",colour=cbPalette[13]) + geom_abline() +
+labs(colour = "Count", linetype ="Count",x="Prob(Treatment F)",title = "ECDF of Treatment p over 180 RCB Simulations")
+
+
+
+
+<<>>=
+ResidualsComp.dat <- data.frame(
+  RCB = c(simulationsSingleRCB.dat$aov$ResRCBMS,simulationsSingleRCB.dat$aov$ResRCBMS),
+  Residuals = c(simulationsSingleRCB.dat$aov$ResMS,simulationsSingleRCB.dat$aov$ResLatticeMS),
+  Source = c(rep("RowCol",length(simulationsSingleRCB.dat$aov$ResMS)),
+             rep("Lattice",length(simulationsSingleRCB.dat$aov$ResLatticeMS)))
+             )
+@
+
+<<05Residuals,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(ResidualsComp.dat, aes(RCB, Residuals)) + geom_point(aes(colour = Source),size=.2) + scale_colour_manual(values=cbPalette)
+@
+
+Consider that by kriging, we've reduced variance. Later, when we compare trend analysis, we may want the original point-level variances. 
+
+<<>>=
+mean(trimmed.dat$YldVolDry)
+mean(plots4x6.dat$YldVolDry)
+print(original.sd <- sd(trimmed.dat$YldVolDry,na.rm=TRUE))
+print(plot.sd <- sd(plots4x6.dat$YldVolDry,na.rm=TRUE))
+@
+
+
+Assume additivity for standard deviations, and create a set of plot level errors. Through trial and error, I've found that 4.5 provides a distribution of plot yields comparable to the original data (rememver, about 4 yield monitor points per plot?) 
+
+<<>>=
+errors <- rnorm(length(plots4x6.dat$YldVolDry), mean = 0, sd = original.sd-plot.sd/4.5)
+@
+
+Let's compare raw data, plots and plots with errors
+
+<<>>=
+comp.dat <- data.frame(
+  YldVolDry=c(trimmed.dat$YldVolDry,
+              plots4x6.dat$YldVolDry,
+              plots4x6.dat$YldVolDry+errors),
+  Source=c(rep("Yield Monitor Data",length(trimmed.dat$YldVolDry)),
+           rep("Kriged Plot Mean",length(plots4x6.dat$YldVolDry)),
+           rep("Plot Mean + Error",length(plots4x6.dat$YldVolDry))))
+@
+
+<<fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(comp.dat, aes(YldVolDry,color=Source,linetype=Source)) + 
+       stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)
+@
+
+<<>>=
+tapply(comp.dat$YldVolDry,list(comp.dat$Source),sd)
+@
+
+Now simulate our single RCB trial over plots with error. 
+
+<<>>=
+if(!file.exists("errorsRCB.aov.Rda")) {
+   errors2x.dat <- plots4x6.dat
+   errors2x.dat$YldVolDry <- plots4x6.dat$YldVolDry+(2*errors)
+   errorsRCB2x.dat <- simulate.plan(base.plan, plots=errors2x.dat,model="2X")
+
+  errors.dat <- plots4x6.dat
+  errors.dat$YldVolDry <- plots4x6.dat$YldVolDry+errors
+  errorsRCB.dat <- simulate.plan(base.plan, plots=errors.dat,model="1X")
+  
+  errors34.dat <- plots4x6.dat
+  errors34.dat$YldVolDry <- plots4x6.dat$YldVolDry+(3/4)*errors
+  errorsRCB34.dat <- simulate.plan(base.plan,plots=errors34.dat,model="0.75X")
+  
+  errors2.dat <- plots4x6.dat
+  errors2.dat$YldVolDry <- plots4x6.dat$YldVolDry+(errors/2)
+  errorsRCB2.dat <- simulate.plan(base.plan,plots=errors2.dat,model="0.5X")
+
+  errors4.dat <- plots4x6.dat
+  errors4.dat$YldVolDry <- plots4x6.dat$YldVolDry+(errors/4)
+  errorsRCB4.dat <- simulate.plan(base.plan,plots=errors4.dat,model="0.25X")
+
+
+  errors8.dat <- plots4x6.dat
+  errors8.dat$YldVolDry <- plots4x6.dat$YldVolDry+(errors/8)
+  errorsRCB8.dat <- simulate.plan(base.plan, plots=errors8.dat,model="0.125X")
+
+  errorsRCB2x.dat$aov$ErrorLevel <- 2
+  errorsRCB2x.dat$plots$ErrorLevel <- 2
+  errorsRCB.dat$aov$ErrorLevel <- 1
+  errorsRCB.dat$plots$ErrorLevel <- 1
+  errorsRCB34.dat$aov$ErrorLevel <- 0.75
+  errorsRCB34.dat$plots$ErrorLevel <- 0.75
+  errorsRCB2.dat$aov$ErrorLevel <- 0.5
+  errorsRCB2.dat$plots$ErrorLevel <- 0.5
+  errorsRCB4.dat$aov$ErrorLevel <- 0.25
+  errorsRCB4.dat$plots$ErrorLevel <- 0.25
+  errorsRCB8.dat$aov$ErrorLevel <- 0.125
+  errorsRCB8.dat$plots$ErrorLevel <- 0.125
+  
+  
+  save(errors34.dat,file="errors34.dat.Rda")
+  save(errors2x.dat,file="errors2x.dat.Rda")
+  save(errors.dat,file="errors.dat.Rda")
+  save(errors2.dat,file="errors2.dat.Rda")
+  save(errors4.dat,file="errors4.dat.Rda")
+  save(errors8.dat,file="errors8.dat.Rda")
+  
+  tmp <- twostepRCB.dat$aov
+  tmp$Model <- "0 (Kriged)"
+  tmp$ErrorLevel <- 0
+   
+  errorsRCB.aov <- rbind(tmp, errorsRCB8.dat$aov, errorsRCB4.dat$aov, errorsRCB2.dat$aov, 
+                         errorsRCB34.dat$aov,errorsRCB.dat$aov,errorsRCB2x.dat$aov)
+
+   tmp <- twostepRCB.dat$plots
+   tmp$Model <- "0 (Kriged)"
+   tmp$ErrorLevel <- 0
+   errorsRCB.plots <- rbind(tmp, errorsRCB8.dat$plots, errorsRCB4.dat$plots, errorsRCB2.dat$plots, 
+                         errorsRCB34.dat$plots,errorsRCB.dat$plots,errorsRCB2x.dat$plots) 
+
+                         
+  save(errorsRCB.aov,file="errorsRCB.aov.Rda")
+  save(errorsRCB.plots,file="errorsRCB.plots.Rda")
+  save(errorsRCB.dat,file="errorsRCB.dat.Rda")
+} else {
+  load(file="errors34.dat.Rda")
+  load(file="errors2x.dat.Rda")
+  load(file="errors.dat.Rda")
+  load(file="errors2.dat.Rda")
+  load(file="errors4.dat.Rda")
+  load(file="errors8.dat.Rda")
+  load(file="errorsRCB.aov.Rda")
+  load(file="errorsRCB.plots.Rda")
+  load(file="errorsRCB.dat.Rda")
+}
+@
+
+For plotting, it looks better if we have 6 levels
+<<>>=
+errorsRCB.aov <- subset(errorsRCB.aov,errorsRCB.aov$ErrorLevel!=0.75)
+errorsRCB.plots <- subset(errorsRCB.plots,errorsRCB.plots$ErrorLevel!=0.75)
+errorsRCB.dat <- list(aov=errorsRCB.aov,plots=errorsRCB.plots)
+@
+
+We'll compare two sources of error. We'll refer to the names later.
+
+<<>>=
+trials.list <- list(plots4x6.dat,errors.dat)
+names(trials.list) <- c("Kriged","Errors")
+@
+
+<<fig=TRUE,echo=false,width=7,height=4>>=
+# best point size fo 7,4 is .4
+ggplot(errorsRCB.plots, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=.4) + scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) + facet_wrap(~Model)
+@
+
+<<fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(errorsRCB.plots, aes(YldVolDry,color=Model,linetype=Model)) + stat_density(geom="line",position="identity",size=1) + scale_colour_manual(values=cbPalette)
+@
+
+
+<<>>=
+tapply(errorsRCB.plots$YldVolDry,list(errorsRCB.plots$Model),sd)
+
+errorsRCB.aov$TypeIError <- errorsRCB.aov$TrtP<0.05
+error.counts <- tapply(errorsRCB.aov$TypeIError,list(errorsRCB.aov$Model),sum)
+error.counts
+trt.counts <- tapply(errorsRCB.aov$TypeIError,list(errorsRCB.aov$Model),length)
+100*error.counts/trt.counts
+@
+  
+Now we can compare the distribution of p(Trt F); this gives us an insight into Type I error rates. 
+
+<<fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(errorsRCB.aov, aes(TrtP,color=Model,fill=Model)) + #stat_density(geom="line",position="identity",size=1,aes(linetype=Modell)) + 
+#scale_colour_manual(values=cbPalette)
+#geom_histogram(bins=20,binwidth = 0.05,position="dodge") +
+#center = NULL, boundary = NULL, 
+#show.legend = NA
+#closed = c("right", "left"),
+stat_bin(binwidth = 0.05,position="dodge",center=0.025) + 
+geom_vline(xintercept = 0.05, colour=cbPalette[13], linetype = "longdash")+
+annotate("text", x = 0.12, y = -1, label = "p=0.05",colour=cbPalette[13]) +
+scale_colour_manual(values=cbPalette) +
+scale_fill_manual(values=cbPalette)
+@
+
+<<fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(errorsRCB.aov, aes(TrtP,color=Model,fill=Model)) + 
+stat_density(geom="line",position="identity",size=1,aes(linetype=Model)) + 
+scale_colour_manual(values=cbPalette,name = "Added Error") + 
+geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+annotate("text", x = 0.12, y = 0.25, label = "p=0.05",colour=cbPalette[13]) +
+labs(colour = "Added Error", linetype ="Added Error",x="Prob(Treatment F)",title = "Distribution of Treatment p at Simulated Error Levels")
+@
+
+
+
+
+
+Plot the number of trials that have Type I Error.
+<<>>=
+#simulationsSingleRCB.dat$aov$SourceClass <- as.factor(simulationsSingleRCB.dat$aov$Source):as.factor(simulationsSingleRCB.dat$aov$plan)
+#simulationsSingleRCB.dat$plots$SourceClass <- as.factor(simulationsSingleRCB.dat$plots$Source):as.factor(simulationsSingleRCB.dat$plots$plan)
+TypeIError <- simulationsSingleRCB.dat$aov$TrtP <= 0.05
+#ErrorCounts <- tapply(TypeIError, list(simulationsSingleRCB.dat$aov$SourceClass), sum)
+#TrialCounts <- tapply(TypeIError, list(simulationsSingleRCB.dat$aov$SourceClass), length)
+#100*ErrorCounts/TrialCounts
+simulationsSingleRCB.dat$aov$plan <- 1
+simulationsSingleRCB.dat$plots$plan <- 1
+simulationsSingleRCB.dat$aov$PlanNo <- as.factor(simulationsSingleRCB.dat$aov$plan):as.factor(simulationsSingleRCB.dat$aov$Number)
+simulationsSingleRCB.dat$plots$PlanNo <- as.factor(simulationsSingleRCB.dat$plots$plan):as.factor(simulationsSingleRCB.dat$plots$number)
+simulationsSingleRCB.dat$aov$plan <- 1
+simulationsSingleRCB.dat$plots$plan <- 1
+simulationsSingleRCB.dat$aov$Source <- 1
+simulationsSingleRCB.dat$plots$Source <- 1
+simulationsSingleRCB.dat$aov$Experiment <- as.factor(simulationsSingleRCB.dat$aov$Source):simulationsSingleRCB.dat$aov$PlanNo
+simulationsSingleRCB.dat$plots$Experiment <- as.factor(simulationsSingleRCB.dat$plots$Source):simulationsSingleRCB.dat$plots$PlanNo
+names(TypeIError) <- simulationsSingleRCB.dat$aov$Experiment
+simulationsSingleRCB.dat$plots$TypeIError <- TypeIError[as.character(simulationsSingleRCB.dat$plots$Experiment)]
+simulationsSingleRCB.dat$plots$TypeIErrorSource <- as.factor(simulationsSingleRCB.dat$plots$TypeIError):as.factor(simulationsSingleRCB.dat$plots$Source)
+@
+
+<<fig=TRUE,echo=false,width=4,height=4.5>>=
+ggplot(simulationsSingleRCB.dat$plots, aes(LonM, LatM)) + geom_point(aes(colour = TypeIError),size=.2) + scale_colour_manual(values=cbPalette)
+@
+
+
+
+
+
+
+\subsectio{Source of Type I Errors}
+
+<<fig=TRUE,echo=false,width=7,height=4>>=
+resms.plot <- ggplot(simulationsSingleRCB.dat$aov, aes(log(ResMS))) + stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
+repms.plot <- ggplot(simulationsSingleRCB.dat$aov, aes(log(RepMS))) + stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
+trtms.plot <- ggplot(simulationsSingleRCB.dat$aov, aes(log(TrtMS))) + stat_density(geom="line",position="identity",size=1) + facet_wrap(~Source) + scale_colour_manual(values=cbPalette)
+grid.arrange(arrangeGrob(repms.plot, resms.plot, trtms.plot))
+@
+
+
+
+
+
+\section{Trend Analysis}
+
+<<>>=
+best.spatial <- function(current.dat) {
+current.dat$x <- current.dat$col - min(current.dat$col) + 1
+current.dat$y <- current.dat$row - min(current.dat$row) + 1
+
+plots <- dim(current.dat)[1]
+
+#we need this to map to residuals, since residuals use row names as indices.
+rownames(current.dat) <- as.character(1:plots)
+current.dat$YldVolDry[is.nan(current.dat$YldVolDry)]<-NA
+
+#current.dat <- subset(current.dat,!is.na(current.dat$YldVolDry))
+crd.lm <- lm(YldVolDry ~ trt, data=current.dat)
+ 
+cols <- max(current.dat$x) 
+rows <- max(current.dat$y)
+
+mat.dim <- rows*cols
+W.row <- matrix(rep(0, mat.dim*mat.dim),nrow=mat.dim)
+W.col <- matrix(rep(0, mat.dim*mat.dim),nrow=mat.dim)
+current.dat$plot <- 1:plots
+
+trial.map <- matrix(rep(0,mat.dim),nrow=rows)
+
+for(p in 1:plots) {
+  trial.map[current.dat$y[p],current.dat$x[p]] <- current.dat$plot[p]
+}
+current.dat$x.m <- current.dat$x-1
+current.dat$x.p <- current.dat$x+1
+current.dat$y.m <- current.dat$y-1
+current.dat$y.p <- current.dat$y+1
+current.dat$x.m[current.dat$x.m<1] <- NA
+current.dat$x.p[current.dat$x.p>cols] <- NA
+current.dat$y.m[current.dat$y.m<1] <- NA
+current.dat$y.p[current.dat$y.p>rows] <- NA
+
+
+row.neighbors <- NA
+
+for(p in 1:plots) {
+  col.neighbors <- trial.map[c(current.dat$y.m[p], current.dat$y.p[p]), current.dat$x[p]]
+  row.neighbors <- trial.map[current.dat$y[p], c(current.dat$x.m[p],current.dat$x.p[p])]
+  W.row[p,row.neighbors] <- 1/col.space
+  W.col[p,col.neighbors] <- 1/row.space
+}
+W <- W.col + W.row
+row.sums <- rowSums(W)
+row.sums[row.sums==0] <- 1
+W <- W/row.sums
+row.sums <- rowSums(W.row)
+row.sums[row.sums==0] <- 1
+W.row <- W.row/row.sums
+row.sums <- rowSums(W.col)
+row.sums[row.sums==0] <- 1
+W.col <- W.col/row.sums
+
+current.dat$res <- NA
+
+crd.res <- residuals(crd.lm)
+#print("Residuals")
+#print(str(crd.res))
+#current.dat$res = crd.lm$resid
+
+current.dat$res[as.numeric(names(crd.res))] <- crd.res
+current.dat$res[is.na(current.dat$res)] <- 0
+
+des.lm <- update(crd.lm, . ~ rep + rep:blk + rep:column + .)
+lattice.lm <- update(crd.lm, . ~ rep + rep:blk + .)
+rcb.lm <- update(crd.lm, . ~ rep + .)
+trend1.lm <- update(crd.lm, . ~ y + x + . )
+trend2.lm <- update(crd.lm, . ~ y + x + I(y^2) + I(x^2) + I(y*x) + . )
+trend3.lm <- update(crd.lm, . ~ y + x + I(y^2) + I(x^2) + I(y*x) + I(y^3) + I(x^3) + I(y*x^2) + I(y^2*x) + . )
+
+trt.III.tbl <- anova(update(des.lm, . ~ . - trt), des.lm)
+TrtP.III <-trt.III.tbl[2,6]
+#print(trt.III.tbl)
+
+  
+  #TODO: how to manage residuals?
+  #current.dat$res[is.na(current.dat$res)] <- 0
+  
+  current.dat$X.row = W.row %*% current.dat$res
+  current.dat$X.col = W.col %*% current.dat$res
+  current.dat$X = W %*% current.dat$res
+
+  nnx.lm <- update(crd.lm, . ~ X.col + . , data=current.dat)
+  nny.lm <- update(crd.lm, . ~ X.row + . , data=current.dat)
+  nnxy.lm <- update(crd.lm, . ~ X + . , data=current.dat)
+  nns.lm <- update(crd.lm, . ~ X.col + X.row + . , data=current.dat)
+  anova.tbl <- anova(crd.lm, des.lm, trend1.lm, trend2.lm, trend3.lm, nnx.lm, nny.lm, nnxy.lm, nns.lm)
+  
+  
+  tmp.tbl <- anova(crd.lm)
+  TrtP <- c(tmp.tbl[dim(tmp.tbl)[1]-1,5])
+  tmp.tbl <- anova(des.lm)
+  TrtP <- c(TrtP,tmp.tbl[dim(tmp.tbl)[2]-1,5])
+  tmp.tbl <- anova(trend1.lm)
+  TrtP <- c(TrtP,tmp.tbl[dim(tmp.tbl)[1]-1,5])
+  tmp.tbl <- anova(trend2.lm)
+  TrtP <- c(TrtP,tmp.tbl[dim(tmp.tbl)[1]-1,5])
+  tmp.tbl <- anova(trend3.lm)
+  TrtP <- c(TrtP,tmp.tbl[dim(tmp.tbl)[1]-1,5])
+  tmp.tbl <- anova(nnx.lm)
+  TrtP <- c(TrtP,tmp.tbl[dim(tmp.tbl)[1]-1,5])
+  tmp.tbl <- anova(nny.lm)
+  TrtP <- c(TrtP,tmp.tbl[dim(tmp.tbl)[1]-1,5])
+  tmp.tbl <- anova(nnxy.lm)
+  TrtP <- c(TrtP,tmp.tbl[dim(tmp.tbl)[1]-1,5])
+  tmp.tbl <- anova(nns.lm)
+  TrtP <- c(TrtP,tmp.tbl[dim(tmp.tbl)[1]-1,5])
+  
+  #TrtP.III <-trt.III.tbl[2,6]
+  #print(TrtP.III)
+  
+  AIC <- c(AIC(crd.lm), AIC(rcb.lm), AIC(lattice.lm), AIC(des.lm), AIC(trend1.lm), AIC(trend2.lm), AIC(trend3.lm), AIC(nnx.lm), AIC(nny.lm), AIC(nnxy.lm), AIC(nns.lm))
+  BIC <- c(BIC(crd.lm), BIC(rcb.lm), BIC(lattice.lm), BIC(des.lm), BIC(trend1.lm), BIC(trend2.lm), BIC(trend3.lm), BIC(nnx.lm), BIC(nny.lm), BIC(nnxy.lm), BIC(nns.lm))
+  RMS <- c(lm.ems(crd.lm), lm.ems(rcb.lm), lm.ems(lattice.lm), lm.ems(des.lm), lm.ems(trend1.lm), lm.ems(trend2.lm), lm.ems(trend3.lm), lm.ems(nnx.lm), lm.ems(nny.lm), lm.ems(nnxy.lm), lm.ems(nns.lm))
+  
+  return(list(AIC=AIC,
+              BIC=BIC,
+              RMS=RMS,
+              TrtP=TrtP,
+              TrtP.III=TrtP.III))
+}
+@
+
+
+WARNING : THIS DOES NOT USE POSITION
+Recalculate a trend model for each individual trial
+
+Other criteria:
+Mallow's Cp
+Adj R2
+<<>>=
+lm.ems <- function(model) {
+  sum((model$residuals)^2,na.rm=TRUE)/model$df.residual
+}
+
+
+col.space <- 1
+row.space <- 1
+
+trend.analysis <- function(simulations) {
+  simulations$aov$Missing <- FALSE
+  
+  simulations$aov$PlanNo <- as.factor(simulations$aov$plan):as.factor(simulations$aov$Number)
+  simulations$plots$PlanNo <- as.factor(simulations$plots$plan):as.factor(simulations$plots$number)
+  simulations$aov$Experiment <- as.factor(simulations$aov$Source):simulations$aov$PlanNo
+  simulations$plots$Experiment <- as.factor(simulations$plots$Source):simulations$plots$PlanNo
+  
+  simulations$aov$CRDAIC <- NA
+  simulations$aov$RCBAIC <- NA
+  simulations$aov$LatticeAIC <- NA
+  simulations$aov$RowColAIC <- NA
+  simulations$aov$Trend1AIC <- NA
+  simulations$aov$Trend2AIC <- NA
+  simulations$aov$Trend3AIC <- NA
+  simulations$aov$NNXAIC <- NA
+  simulations$aov$NNYAIC <- NA
+  simulations$aov$NNXYAIC <- NA
+  simulations$aov$NNSAIC <- NA
+  simulations$aov$BestAIC <- NA
+  simulations$aov$BestAICIdx <- NA
+  
+  simulations$aov$CRDBIC <- NA
+  simulations$aov$RCBBIC <- NA
+  simulations$aov$LatticeBIC <- NA
+  simulations$aov$RowColBIC <- NA
+  simulations$aov$Trend1BIC <- NA
+  simulations$aov$Trend2BIC <- NA
+  simulations$aov$Trend3BIC <- NA
+  simulations$aov$NNXBIC <- NA
+  simulations$aov$NNYBIC <- NA
+  simulations$aov$NNXYBIC <- NA
+  simulations$aov$NNSBIC <- NA
+  simulations$aov$BestBIC <- NA
+  simulations$aov$BestBICIdx <- NA
+  
+  
+  simulations$aov$CRDRMS <- NA
+  simulations$aov$RCBRMS <- NA
+  simulations$aov$LatticeRMS <- NA
+  simulations$aov$RowColRMS <- NA
+  simulations$aov$Trend1RMS <- NA
+  simulations$aov$Trend2RMS <- NA
+  simulations$aov$Trend3RMS <- NA
+  simulations$aov$NNXRMS <- NA
+  simulations$aov$NNYRMS <- NA
+  simulations$aov$NNXYRMS <- NA
+  simulations$aov$NNSRMS <- NA
+  simulations$aov$BestAICRMS <- NA
+  simulations$aov$BestBICRMS <- NA
+  simulations$aov$MinRMS <- NA
+  simulations$aov$MinRMSIdx <- NA
+  
+  simulations$aov$CRDTrtP <- NA
+  simulations$aov$RCBTrtP <- NA
+  simulations$aov$LatticeTrtP <- NA
+  simulations$aov$RowColTrtP <- NA
+  simulations$aov$RowColTrtPIII <- NA
+  simulations$aov$Trend1TrtP <- NA
+  simulations$aov$Trend2TrtP <- NA
+  simulations$aov$Trend3TrtP <- NA
+  simulations$aov$NNXTrtP <- NA
+  simulations$aov$NNYTrtP <- NA
+  simulations$aov$NNXYTrtP <- NA
+  simulations$aov$NNSTrtP <- NA
+  simulations$aov$MinTrtPIdx <- NA
+  simulations$aov$MinTrtP <- NA
+  simulations$aov$BestBICTrtP <- NA
+  simulations$aov$BestAICTrtP <- NA
+  
+  for(idx in 1:dim(simulations$aov)[1]) {
+    
+    experiment <- simulations$aov$Experiment[idx]
+
+    current.dat <- subset(simulations$plots,simulations$plots$Experiment==experiment)
+
+    if(sum(is.na(current.dat$YldVolDry))>0) {
+      simulations$aov$Missing[idx] <- TRUE
+    }
+    
+    res <- best.spatial(current.dat)
+
+      simulations$aov$CRDAIC[idx] <- res$AIC[1]
+      simulations$aov$RCBAIC[idx] <- res$AIC[2]
+      simulations$aov$LatticeAIC[idx] <- res$AIC[3]
+      simulations$aov$RowColAIC[idx] <- res$AIC[4]
+      simulations$aov$Trend1AIC[idx] <- res$AIC[5]
+      simulations$aov$Trend2AIC[idx] <- res$AIC[6]
+      simulations$aov$Trend3AIC[idx] <- res$AIC[7]
+      simulations$aov$NNXAIC[idx] <- res$AIC[8]
+      simulations$aov$NNYAIC[idx] <- res$AIC[9]
+      simulations$aov$NNXYAIC[idx] <- res$AIC[10]
+      simulations$aov$NNSAIC[idx] <- res$AIC[11]
+      simulations$aov$BestAICIdx[idx] <- which.min(res$AIC)
+      simulations$aov$BestAIC[idx] <- min(res$AIC)
+
+
+      simulations$aov$CRDBIC[idx] <- res$BIC[1]
+      simulations$aov$RCBBIC[idx] <- res$BIC[2]
+      simulations$aov$LatticeBIC[idx] <- res$BIC[3]
+      simulations$aov$RowColBIC[idx] <- res$BIC[4]
+      simulations$aov$Trend1BIC[idx] <- res$BIC[5]
+      simulations$aov$Trend2BIC[idx] <- res$BIC[6]
+      simulations$aov$Trend3BIC[idx] <- res$BIC[7]
+      simulations$aov$NNXBIC[idx] <- res$BIC[8]
+      simulations$aov$NNYBIC[idx] <- res$BIC[9]
+      simulations$aov$NNXYBIC[idx] <- res$BIC[10]
+      simulations$aov$NNSBIC[idx] <- res$BIC[11]
+      simulations$aov$BestBICIdx[idx] <- which.min(res$BIC)
+      simulations$aov$BestBIC[idx] <- min(res$BIC)
+      
+      simulations$aov$CRDRMS[idx] <- res$RMS[1]
+      simulations$aov$RCBRMS[idx] <- res$RMS[2]
+      simulations$aov$LatticeRMS[idx] <- res$RMS[3]
+      simulations$aov$RowColRMS[idx] <- res$RMS[4]
+      simulations$aov$Trend1RMS[idx] <- res$RMS[5]
+      simulations$aov$Trend2RMS[idx] <- res$RMS[6]
+      simulations$aov$Trend3RMS[idx] <- res$RMS[7]
+      simulations$aov$NNXRMS[idx] <- res$RMS[8]
+      simulations$aov$NNYRMS[idx] <- res$RMS[9]
+      simulations$aov$NNXYRMS[idx] <- res$RMS[10]
+      simulations$aov$NNSRMS[idx] <- res$RMS[11]
+      simulations$aov$MinRMSIdx[idx] <- which.min(res$RMS)
+      simulations$aov$MinRMS[idx] <- min(res$RMS)
+      simulations$aov$BestBICRMS[idx] <- res$RMS[which.min(res$AIC)]
+      simulations$aov$BestAICRMS[idx] <- res$RMS[which.min(res$BIC)]
+
+      simulations$aov$CRDTrtP[idx] <- res$TrtP[1]
+      simulations$aov$RCBTrtP[idx] <- res$TrtP[2]
+      simulations$aov$LatticeTrtP[idx] <- res$TrtP[3]
+      simulations$aov$RowColTrtP[idx] <- res$TrtP[4]
+      simulations$aov$RowColTrtPIII[idx] <- res$TrtP.III
+      simulations$aov$Trend1TrtP[idx] <- res$TrtP[5]
+      simulations$aov$Trend2TrtP[idx] <- res$TrtP[6]
+      simulations$aov$Trend3TrtP[idx] <- res$TrtP[7]
+      simulations$aov$NNXTrtP[idx] <- res$TrtP[8]
+      simulations$aov$NNYTrtP[idx] <- res$TrtP[9]
+      simulations$aov$NNXYTrtP[idx] <- res$TrtP[10]
+      simulations$aov$NNSTrtP[idx] <- res$TrtP[11]
+      simulations$aov$MinTrtPIdx[idx] <- which.min(res$TrtP)
+      simulations$aov$MinTrtP[idx] <- min(res$TrtP)
+      simulations$aov$BestBICTrtP[idx] <- res$TrtP[which.min(res$AIC)]
+      simulations$aov$BestAICTrtP[idx] <- res$TrtP[which.min(res$BIC)]
+      
+      #}
+    #anova.tbl$RMS <- anova.tbl$RSS/anova.tbl$Res.Df
+    #anova.tbl$logLik <- c(logLik(crd.lm), logLik(des.lm), logLik(trend1.lm), logLik(trend2.lm), logLik(trend3.lm), logLik(nnx.lm), logLik(nny.lm), logLik(nnxy.lm), logLik(nns.lm))
+    #anova.tbl$LR = 2*(anova.tbl$logLik - anova.tbl$logLik[2])
+    #anova.tbl$LRdf = anova.tbl$Res.Df - anova.tbl$Res.Df[2]
+    #flip.mask <- anova.tbl$LRdf<0
+    #anova.tbl$LR[flip.mask] <- -anova.tbl$LR[flip.mask]
+    #anova.tbl$LRdf[flip.mask] <- -anova.tbl$LRdf[flip.mask]
+    #anova.tbl$LRP = 1-pchisq(q=anova.tbl$LR,df=anova.tbl$LRdf)
+    #best.tbl <- anova.tbl[, c('RMS', 'AIC', 'BIC', 'logLik', 'LR','LRdf','LRP')]
+    #min.aic <- min(anova.tbl$AIC)
+    #min.bic <- min(anova.tbl$BIC)
+    #min.rms <- min(anova.tbl$RMS)
+    #max.LR <- max(anova.tbl$LR)
+    #best.aic <- which(anova.tbl$AIC== min.aic)
+    #best.bic <- which(anova.tbl$BIC==min.bic)
+    #best.rms <- which(anova.tbl$RMS==min.rms)
+    #best.LR <- which(anova.tbl$LR==max.LR)
+    #best.tbl <- rbind(c(best.rms,best.aic,best.bic,0,best.LR,0,0),best.tbl)
+    #model.list <- list(crd.lm, des.lm, trend1.lm, trend2.lm, trend3.lm, nnx.lm, nny.lm, nnxy.lm, nns.lm)
+    #if (length(best.LR) > 1)  {best.LR <- max(best.LR)}
+    #best.idx <- best.aic
+    #spatial.lm <- model.list[[best.idx]]
+    #write.table(best.tbl,file='best.11.tab',row.names=TRUE,col.names=FALSE,sep='\t')
+    #aov.tbl<-anova(spatial.lm)
+    #print(summary(spatial.lm))
+    
+    #simulations$aov$TrtDFTrend[idx] <- tbl[1,1]
+    #simulations$aov$TrendTrtMS[idx] <- tbl[1,3]
+    #simulations$aov$TrtPTrend[idx] <- tbl[1,5]
+    #simulations$aov$LonP[idx] <- tbl[2,5]
+    #simulations$aov$LatP[idx] <- tbl[3,5]
+    #simulations$aov$Lon2P[idx] <- tbl[4,5]
+    #simulations$aov$Lat2P[idx] <- tbl[5,5]
+    #simulations$aov$LonLatP[idx] <- tbl[6,5]
+    #simulations$aov$TrendResMS[idx] <- tbl[7,3]
+    #simulations$aov$TrendResDF[idx] <- tbl[7,1]
+    
+    #model.tbl <- anova(trt.lm,trend.lm)
+    #simulations$aov$TrendDF[idx] <- model.tbl$Df[2]
+    #simulations$aov$TrendMS[idx] <- (model.tbl$RSS[1] - model.tbl$RSS[2])/model.tbl$Df[2]
+    #simulations$aov$TrendF[idx] <- model.tbl$F[2]
+    #simulations$aov$TrendP[idx] <- model.tbl[2,"Pr(>F)"]
+  }
+
+  return(simulations$aov)
+}
+@
+
+Check that this works on a single set
+<<>>=
+if(!file.exists("trend.RCB.Rda")) {
+  trend.RCB <- trend.analysis(simulationsSingleRCB.dat)
+  save(trend.RCB,file="trend.RCB.Rda")
+} else {
+  load(file="trend.RCB.Rda")
+}
+@
+
+<<>>=
+tapply(trend.RCB$CRDAIC,list(trend.RCB$MinRMSIdx),length)
+tapply(trend.RCB$CRDAIC,list(trend.RCB$BestAICIdx),length)
+tapply(trend.RCB$CRDAIC,list(trend.RCB$BestBICIdx),length)
+@
+
+<<>>=
+TrendResidualsComp.dat <- data.frame(
+  RowColumn = c(trend.RCB$RowColRMS,
+                trend.RCB$RowColRMS,
+                trend.RCB$RowColRMS,
+                trend.RCB$RowColRMS,
+                trend.RCB$RowColRMS,
+                trend.RCB$RowColRMS,
+                trend.RCB$RowColRMS,
+                trend.RCB$RowColRMS,
+                trend.RCB$RowColRMS,
+                trend.RCB$RowColRMS,
+                trend.RCB$RowColRMS,
+                trend.RCB$RowColRMS),
+  Residuals = c(trend.RCB$CRDRMS,
+                trend.RCB$RCBRMS,
+                trend.RCB$LatticeRMS,
+                trend.RCB$Trend1RMS,
+                trend.RCB$Trend2RMS,
+                trend.RCB$Trend3RMS,
+                trend.RCB$NNXRMS,
+                trend.RCB$NNYRMS,
+                trend.RCB$NNXYRMS,
+                trend.RCB$NNSRMS,
+                trend.RCB$BestAICRMS,
+                trend.RCB$MinRMS),
+  Source = c(rep("CRD",length(trend.RCB$CRDRMS)),
+             rep("RCB",length(trend.RCB$RCBRMS)),
+             rep("Lattice",length(trend.RCB$LatticeRMS)),
+             rep("Trend1",length(trend.RCB$Trend1RMS)),
+             rep("Trend2",length(trend.RCB$Trend2RMS)),
+             rep("Trend3",length(trend.RCB$Trend3RMS)),
+             rep("NNX",length(trend.RCB$NNXRMS)),
+             rep("NNY",length(trend.RCB$NNYRMS)),
+             rep("NNXY",length(trend.RCB$NNXYRMS)),
+             rep("NNS",length(trend.RCB$NNSRMS)),
+             rep("BestRMS",length(trend.RCB$BestAICRMS)),
+             rep("MinRMS",length(trend.RCB$MinRMS))
+             ))
+             
+#length(trend.RCB$CRDRMS)
+#length(trend.RCB$RCBRMS)
+#length(trend.RCB$LatticeRMS)
+#length(trend.RCB$Trend1RMS)
+#length(trend.RCB$Trend2RMS)
+#ength(trend.RCB$Trend3RMS)
+#length(trend.RCB$NNXRMS)
+#length(trend.RCB$NNYRMS)
+#length(trend.RCB$NNXYRMS)
+#length(trend.RCB$NNSRMS)
+#length(trend.RCB$BestAICRMS)
+#length(trend.RCB$MinRMS)
+@
+
+
+             
+<<06TrendResiduals,fig=TRUE,echo=false,width=7,height=5>>=
+TrendResidualsComp.dat <- subset(TrendResidualsComp.dat, TrendResidualsComp.dat$Source %in% c("Trend1","Trend2","Trend3","NNX","NNY","NNXY","NNS","BestRMS","MinRMS"))
+ggplot(TrendResidualsComp.dat, aes(RowColumn, Residuals)) + 
+  geom_point(aes(colour = Source),size=1) + 
+  scale_colour_manual(values=cbPalette) +
+  geom_smooth(aes(group= Source,color=Source,linetype=Source),se = FALSE,method="lm") +
+  geom_abline()
+@
+
+<<>>=
+TrendAICComp.dat <- data.frame(
+  RowColumn = c(trend.RCB$RowColAIC,
+                trend.RCB$RowColAIC,
+                trend.RCB$RowColAIC,
+                trend.RCB$RowColAIC,
+                trend.RCB$RowColAIC,
+                trend.RCB$RowColAIC,
+                trend.RCB$RowColAIC,
+                trend.RCB$RowColAIC,
+                trend.RCB$RowColAIC,
+                trend.RCB$RowColAIC,
+                trend.RCB$RowColAIC),
+  AIC = c(trend.RCB$CRDAIC,
+                trend.RCB$RCBAIC,
+                trend.RCB$LatticeAIC,
+                trend.RCB$Trend1AIC,
+                trend.RCB$Trend2AIC,
+                trend.RCB$Trend3AIC,
+                trend.RCB$NNXAIC,
+                trend.RCB$NNYAIC,
+                trend.RCB$NNXYAIC,
+                trend.RCB$NNSAIC,
+                trend.RCB$BestAIC),
+  Source = c(rep("CRD",length(trend.RCB$CRDAIC)),
+             rep("RCB",length(trend.RCB$RCBAIC)),
+             rep("Lattice",length(trend.RCB$LatticeAIC)),
+             rep("Trend1",length(trend.RCB$Trend1AIC)),
+             rep("Trend2",length(trend.RCB$Trend2AIC)),
+             rep("Trend3",length(trend.RCB$Trend3AIC)),
+             rep("NNX",length(trend.RCB$NNXAIC)),
+             rep("NNY",length(trend.RCB$NNYAIC)),
+             rep("NNXY",length(trend.RCB$NNXYAIC)),
+             rep("NNS",length(trend.RCB$NNSAIC)),
+             rep("Best",length(trend.RCB$BestAIC))
+             ))
+@
+
+
+             
+<<07TrendAIC,fig=TRUE,echo=false,width=7,height=5>>=
+TrendAICComp.dat <- subset(TrendAICComp.dat, TrendAICComp.dat$Source %in% c("Trend1","Trend2","Trend3","NNX","NNY","NNXY","NNS","Best"))
+ggplot(TrendAICComp.dat, aes(RowColumn, AIC)) + 
+  geom_point(aes(colour = Source),size=1) + 
+  scale_colour_manual(values=cbPalette) +
+  geom_smooth(aes(group= Source,color=Source,linetype=Source),se = FALSE,method="lm") +
+  geom_abline()
+@
+
+
+
+<<>>=
+TrendBICComp.dat <- data.frame(
+  RowColumn = c(trend.RCB$RowColBIC,
+                trend.RCB$RowColBIC,
+                trend.RCB$RowColBIC,
+                trend.RCB$RowColBIC,
+                trend.RCB$RowColBIC,
+                trend.RCB$RowColBIC,
+                trend.RCB$RowColBIC,
+                trend.RCB$RowColBIC,
+                trend.RCB$RowColBIC,
+                trend.RCB$RowColBIC,
+                trend.RCB$RowColBIC),
+  BIC = c(trend.RCB$CRDBIC,
+                trend.RCB$RCBBIC,
+                trend.RCB$LatticeBIC,
+                trend.RCB$Trend1BIC,
+                trend.RCB$Trend2BIC,
+                trend.RCB$Trend3BIC,
+                trend.RCB$NNXBIC,
+                trend.RCB$NNYBIC,
+                trend.RCB$NNXYBIC,
+                trend.RCB$NNSBIC,
+                trend.RCB$BestBIC),
+  Source = c(rep("CRD",length(trend.RCB$CRDBIC)),
+             rep("RCB",length(trend.RCB$RCBBIC)),
+             rep("Lattice",length(trend.RCB$LatticeBIC)),
+             rep("Trend1",length(trend.RCB$Trend1BIC)),
+             rep("Trend2",length(trend.RCB$Trend2BIC)),
+             rep("Trend3",length(trend.RCB$Trend3BIC)),
+             rep("NNX",length(trend.RCB$NNXBIC)),
+             rep("NNY",length(trend.RCB$NNYBIC)),
+             rep("NNXY",length(trend.RCB$NNXYBIC)),
+             rep("NNS",length(trend.RCB$NNSBIC)),
+             rep("Best",length(trend.RCB$BestBIC))
+             ))
+@
+
+
+             
+<<07TrendBIC,fig=TRUE,echo=false,width=7,height=5>>=
+TrendBICComp.dat <- subset(TrendBICComp.dat, TrendBICComp.dat$Source %in% c("Trend1","Trend2","Trend3","NNX","NNY","NNXY","NNS","Best"))
+ggplot(TrendBICComp.dat, aes(RowColumn, BIC)) + 
+  geom_point(aes(colour = Source),size=1) + 
+  scale_colour_manual(values=cbPalette) +
+  geom_smooth(aes(group= Source,color=Source,linetype=Source),se = FALSE,method="lm") +
+  geom_abline()
+@
+
+
+<<>>=
+TrendTrtPComp.dat <- data.frame(
+  RowColumn = c(trend.RCB$RowColTrtP,
+                trend.RCB$RowColTrtP,
+                trend.RCB$RowColTrtP,
+                trend.RCB$RowColTrtP,
+                trend.RCB$RowColTrtP,
+                trend.RCB$RowColTrtP,
+                trend.RCB$RowColTrtP,
+                trend.RCB$RowColTrtP,
+                trend.RCB$RowColTrtP,
+                trend.RCB$RowColTrtP,
+                trend.RCB$RowColTrtP,
+                trend.RCB$RowColTrtP),
+ RowColumnIII = c(trend.RCB$RowColTrtPIII,
+                trend.RCB$RowColTrtPIII,
+                trend.RCB$RowColTrtPIII,
+                trend.RCB$RowColTrtPIII,
+                trend.RCB$RowColTrtPIII,
+                trend.RCB$RowColTrtPIII,
+                trend.RCB$RowColTrtPIII,
+                trend.RCB$RowColTrtPIII,
+                trend.RCB$RowColTrtPIII,
+                trend.RCB$RowColTrtPIII,
+                trend.RCB$RowColTrtPIII,
+                trend.RCB$RowColTrtPIII),
+  TrtP = c(trend.RCB$CRDTrtP,
+                trend.RCB$RCBTrtP,
+                trend.RCB$LatticeTrtP,
+                trend.RCB$Trend1TrtP,
+                trend.RCB$Trend2TrtP,
+                trend.RCB$Trend3TrtP,
+                trend.RCB$NNXTrtP,
+                trend.RCB$NNYTrtP,
+                trend.RCB$NNXYTrtP,
+                trend.RCB$NNSTrtP,
+                trend.RCB$BestBICTrtP,
+                trend.RCB$BestAICTrtP),
+  Source = c(rep("CRD",length(trend.RCB$CRDTrtP)),
+             rep("RCB",length(trend.RCB$RCBTrtP)),
+             rep("Lattice",length(trend.RCB$LatticeTrt)),
+             rep("Trend1",length(trend.RCB$Trend1TrtP)),
+             rep("Trend2",length(trend.RCB$Trend2TrtP)),
+             rep("Trend3",length(trend.RCB$Trend3TrtP)),
+             rep("NNX",length(trend.RCB$NNXTrtP)),
+             rep("NNY",length(trend.RCB$NNYTrtP)),
+             rep("NNXY",length(trend.RCB$NNXYTrtP)),
+             rep("NNS",length(trend.RCB$NNSTrtP)),
+             rep("BestBIC",length(trend.RCB$BestBICTrtP)),
+             rep("BestAIC",length(trend.RCB$BestAICTrtP))
+             ))
+@
+
+<<07TrendTrtPIII,fig=TRUE,echo=false,width=7,height=5>>=
+TrendTrtPComp.dat <- subset(TrendTrtPComp.dat, TrendTrtPComp.dat$Source %in% c("Trend1","Trend2","Trend3","NNX","NNY","NNXY","NNS","Best"))
+ggplot(TrendTrtPComp.dat, aes(RowColumn, TrtP)) + 
+  geom_point(aes(colour = Source),size=1) + 
+  scale_colour_manual(values=cbPalette) +
+  geom_smooth(aes(group= Source,color=Source,linetype=Source),se = FALSE,method="lm") +
+  geom_abline()
+@
+             
+<<07TrendTrtP,fig=TRUE,echo=false,width=7,height=5>>=
+TrendTrtPComp.dat <- subset(TrendTrtPComp.dat, TrendTrtPComp.dat$Source %in% c("BestBIC","BestAIC"))
+ggplot(TrendTrtPComp.dat, aes(RowColumnIII, TrtP)) + 
+  geom_point(aes(colour = Source),size=1) + 
+  scale_colour_manual(values=cbPalette) +
+  geom_smooth(aes(group= Source,color=Source,linetype=Source),se = FALSE,method="lm") +
+  geom_abline()
+@
+
+<<07TrendBestTrtPIII,fig=TRUE,echo=false,width=7,height=5>>=
+TrendTrtPComp.dat <- subset(TrendTrtPComp.dat, TrendTrtPComp.dat$Source %in% c("BestBIC", "BestAIC"))
+ggplot(TrendTrtPComp.dat, aes(RowColumn, TrtP)) + 
+  geom_point(aes(colour = Source),size=1) + 
+  scale_colour_manual(values=cbPalette) +
+  geom_smooth(aes(group= Source,color=Source,linetype=Source),se = FALSE,method="lm") +
+  geom_abline()
+@
+             
+<<07TrendBestTrtP,fig=TRUE,echo=false,width=7,height=5>>=
+TrendTrtPComp.dat <- subset(TrendTrtPComp.dat, TrendTrtPComp.dat$Source %in% c("Trend1","Trend2","Trend3","NNX","NNY","NNXY","NNS","Best"))
+ggplot(TrendTrtPComp.dat, aes(RowColumnIII, TrtP)) + 
+  geom_point(aes(colour = Source),size=1) + 
+  scale_colour_manual(values=cbPalette) +
+  geom_smooth(aes(group= Source,color=Source,linetype=Source),se = FALSE,method="lm") +
+  geom_abline()
+@
+
+<<>>=
+#trend.RCB$Source <- as.factor(trend.RCB$Source)
+#ggplot(trend.RCB, aes(log(TrtPTrend),color=Source,linetype=Source)) + 
+#  stat_density(geom="line",position="identity",size=1)
+#  
+@
+
+<<>>=
+#ggplot(trend.RCB, aes(TrendMS,color=Source,linetype=Source)) + stat_density(geom="line",position="identity",size=1)
+@
+
+<<>>=
+#ggplot(trend.RCB, aes(log(TrendP),color=Source,linetype=Source)) + stat_density(geom="line",position="identity",size=1)
+@
+
+\section{Permutations}
+<<>>=
+permute.lattice <- function(plan,rows=TRUE,cols=TRUE,reps=TRUE) {
+}
+@
+
+<<>>=
+if(!file.exists("trend.Pooled.Rda")) {
+  errorsRCB.dat$plots$ErrorLevel <- as.factor(errorsRCB.dat$plots$ErrorLevel)
+  errorsRCB.dat$aov$ErrorLevel <- as.factor(errorsRCB.dat$aov$ErrorLevel)
+  errorsRCB.dat$aov$plan <- 1
+  errorsRCB.dat$plots$plan <- 1
+  errorsRCB.dat$aov$Source <- errorsRCB.dat$aov$ErrorLevel
+  errorsRCB.dat$plots$Source <- errorsRCB.dat$plots$ErrorLevel
+  trend.Pooled <- trend.analysis(errorsRCB.dat)
+  save(trend.Pooled,file="trend.Pooled.Rda")
+} else {
+  load(file="trend.Pooled.Rda")
+}
+@
+
+
+
+What is the type I error with trend analysis?
+
+<<>>=
+#tapply(trend.Pooled$TrtPTrend,list(trend.Pooled$Source),mean)
+#tapply(trend.Pooled$TrendP,list(trend.Pooled$Source),mean)
+@
+
+
+\section{Power Analysis}
+
+<<>>=
+power.analysis <- function(simulations, step.size=1/200, save.steps=FALSE,analysis.fn = lattice.analysis) {
+  simulations$aov$PlanNo <- as.factor(simulations$aov$plan):as.factor(simulations$aov$Number)
+  simulations$plots$PlanNo <- as.factor(simulations$plots$plan):as.factor(simulations$plots$number)
+  simulations$aov$Experiment <- as.factor(simulations$aov$Source):simulations$aov$PlanNo
+  simulations$plots$Experiment <- as.factor(simulations$plots$Source):simulations$plots$PlanNo
+  
+
+  simulations$aov$PostHocCalcPower <- NA
+  simulations$aov$PostHocCalcReps <- NA
+  simulations$aov$PostHocCalcEffectSize <- NA
+  simulations$aov$PostHocCalcDiff <- NA
+  
+  simulations$aov$PostHocEffectSize <- NA
+  simulations$aov$PostHocMeasuredEffect <- NA
+  simulations$aov$PostHocMeasuredPower <- NA  
+  
+  simulations$aov$SigTrt <- NA
+  simulations$aov$MeanSigTrtP <- NA
+  simulations$aov$NCP <- NA
+  simulations$aov$Step <- NA
+  
+  #for each plan and source, iterate over the set of trials.
+  sources <- levels(as.factor(simulations$aov$Source))
+  plans <- levels(as.factor(simulations$aov$plan))
+  
+  #put a lower limit on step size, this is 0.05%
+  if(step.size<1/5000) {
+     step.size = 1/5000
+  }
+  steps <- NULL
+  for(source in sources) {
+     print(source)
+    for(plan in plans) {
+      print(plan)
+      aov.mask <- (simulations$aov$plan==plan & simulations$aov$Source==source)
+      
+      current.plots <- subset(simulations$plots,simulations$plots$Source==source)
+      current.plots <- current.plots[current.plots$plan==plan,]
+      #take the average over all possible plot values
+      GrandMean <- mean(current.plots$YldVolDry,na.rm=TRUE)
+      #GrandMean <- mean(simulations$aov$GrandMean[aov.mask])
+  
+      #start with a small effect size, and iterate over each trial
+      #increase effect size until we get >80% significant treatments
+      #we'll place an upper bound on effect size of 100% of grand mean
+      max.steps <- ceiling(GrandMean/step.size)
+      print(max.steps)
+      for(current.step in 1:max.steps) {
+        TotalSigTrt <- 0
+        TotalCount <- 0
+        for(num in 1:max(current.plots$number)) {
+          SigTrt <- 0
+          Count <- 0
+          current.dat <- subset(current.plots,current.plots$number==num)
+          aov.inner.mask <- aov.mask & simulations$aov$Number==num
+          #use the current trial CV
+          CV <- simulations$aov$CV[aov.inner.mask]
+          GrandMean <- simulations$aov$GrandMean[aov.inner.mask]
+         # RelDiff <- CV*(esize/2)
+          RelDiff <- GrandMean*current.step*step.size
+          TrtPs <- c()
+          
+          for(trt in levels(current.dat$trt)) {
+             tmp.dat <- current.dat
+             tmp.dat$YldVolDry[tmp.dat$trt==trt] <- RelDiff + tmp.dat$YldVolDry[tmp.dat$trt==trt]
+             
+             res <- analysis.fn(tmp.dat)
+             
+             #aov2.tbl <- summary(aov(YldVolDry ~ as.factor(trt)+as.factor(rep),data=tmp.dat))
+             TrtP = res$TrtProb #aov2.tbl[[1]][1,5]
+             TrtPs <- c(TrtPs,TrtP)
+             if(TrtP<0.05) {
+               TotalSigTrt <- TotalSigTrt+1
+               SigTrt <- SigTrt+1
+             }
+             Count = Count+1
+             TotalCount <- TotalCount+1
+          }
+          #save effect size for this loop
+          #simulations$aov$PostHocEffectSize[aov.inner.mask] <- esize/2
+          PerMeanDiff <- 100*RelDiff/GrandMean
+          simulations$aov$PostHocEffectSize[aov.inner.mask] <- PerMeanDiff/CV
+          #relative difference for just this trial
+          simulations$aov$PostHocMeasuredEffect[aov.inner.mask] <- RelDiff
+          #number of treatments detected as significant for the given effect
+          simulations$aov$SigTrt[aov.inner.mask] <- SigTrt
+          simulations$aov$TrtCount[aov.inner.mask] <- Count
+          #average treatment p
+          simulations$aov$MeanSigTrtP[aov.inner.mask] <- mean(TrtPs)
+          
+           RepDF <- simulations$aov$RepDF[aov.inner.mask]
+           ResDF <- simulations$aov$ResDF[aov.inner.mask]
+           PerMeanDiff <- simulations$aov$PerMeanDiff[aov.inner.mask]
+
+           EffectSize <- PerMeanDiff/CV
+           NCP <- sqrt(ResDF+1)*EffectSize
+        
+           simulations$aov$PostHocCalcPower[aov.inner.mask] <- post.hoc(effect.size=EffectSize, reps=(RepDF+1), osl=0.05, error.df=ResDF)$power
+           simulations$aov$PostHocCalcReps[aov.inner.mask] <- a.priori(effect.size=EffectSize, osl=0.05, power=0.80, error.df=ResDF)$reps
+           PostHocEffectSize <- sensitivity(osl=0.05, reps=(RepDF+1), error.df=ResDF) 
+           simulations$aov$PostHocCalcEffectSize[aov.inner.mask] <- PostHocEffectSize$effect.size
+           simulations$aov$PostHocCalcDiff[aov.inner.mask] = PostHocEffectSize$effect.size * CV
+        
+           simulations$aov$NCP[aov.inner.mask] <- NCP
+           
+           simulations$aov$Step[aov.inner.mask] <- current.step
+        }
+        
+        if(save.steps) {
+           print(current.step)
+           if(is.null(steps)) {
+              steps <- simulations$aov
+           } else {
+              steps <- rbind(steps, simulations$aov)
+           }
+        }
+        
+         simulations$aov$PostHocMeasuredPower[aov.inner.mask] <- TotalSigTrt/TotalCount
+         
+         print(TotalSigTrt/TotalCount)
+        if(TotalSigTrt/TotalCount>0.80) {
+          break;
+        }
+      }
+      }
+    }
+    
+    if(save.steps) {
+       return(steps)
+    } else {
+      return(simulations$aov)
+    }
+}
+@
+
+<<>>=
+if(!file.exists("power.singleRCB.Rda")) {
+  lattice.analysis.wrapper <- function(current.dat,...) {
+    res <- lattice.analysis(current.dat=current.dat,...)
+    res$TrtProb <- res$TrtLatticeP.III
+  }
+   #remove this if we refactor code above
+   simulationsSingleRCB.dat$aov$plan = "rcb"
+   simulationsSingleRCB.dat$aov$Source = simulationsSingleRCB.dat$aov$Model
+   simulationsSingleRCB.dat$plots$plan = "rcb"
+   simulationsSingleRCB.dat$plots$Source = simulationsSingleRCB.dat$plots$Model
+   simulationsSingleRCB.dat <- list(aov=simulationsSingleRCB.dat$aov,plots=simulationsSingleRCB.dat$plots)
+   power.singleRCB <- power.analysis(simulationsSingleRCB.dat,step.size=1/100,save.steps=TRUE,analysis.fn=lattice.analysis.wrapper)
+    save(power.singleRCB,file="power.singleRCB.Rda") 
+} else {
+   load(file="power.singleRCB.Rda")
+}
+
+tapply(power.singleRCB$SigTrt/power.singleRCB$TrtCount,list(power.singleRCB$Step),mean)
+tapply(power.singleRCB$SigTrt,list(power.singleRCB$Step),mean)
+tapply(power.singleRCB$MeanSigTrtP,list(power.singleRCB$Step),mean)
+tapply(power.singleRCB$PostHocMeasuredEffect,list(power.singleRCB$Step),mean)
+tapply(power.singleRCB$PostHocEffectSize,list(power.singleRCB$Step),mean)
+@
+
+
+<<25PowerAnalysisProgressECDF,fig=TRUE,echo=false,width=7,height=4>>=
+power.singleRCB$Step <- as.factor(power.singleRCB$Step)
+ggplot(power.singleRCB, aes(MeanSigTrtP,color=Step,linetype=Step)) + #stat_density(geom="line",position="identity",size=1) +
+ stat_ecdf(size=1) +  scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+                   annotate("text", x = 0.12, y = 0.05, label = "p=0.05",colour=cbPalette[13]) + geom_abline() + xlim(c(0,1)) +
+                   labs(x="Average Prob(Treatment F), 6 Treatments",title = "ECDF of Treatment p over Step Size 1%")
+@
+
+<<>>=
+if(!file.exists("power.trend3.Rda")) {
+  best.spatial.wrapper <- function(current.dat,...) {
+    res <- best.spatial(current.dat=current.dat,...)
+    res$TrtProb <- res$TrtP[5]
+    return(res)
+  }
+   #remove this if we refactor code above
+   power.singleTrend <- power.analysis(simulationsSingleRCB.dat,step.size=1/100,save.steps=TRUE,analysis.fn=best.spatial.wrapper)
+    save(power.singleTrend,file="power.trend3.Rda") 
+} else {
+   load(file="power.trend3.Rda")
+}
+
+tapply(power.singleTrend$SigTrt/power.singleTrend$TrtCount,list(power.singleTrend$Step),mean)
+tapply(power.singleTrend$SigTrt,list(power.singleTrend$Step),mean)
+tapply(power.singleTrend$MeanSigTrtP,list(power.singleTrend$Step),mean)
+tapply(power.singleTrend$PostHocMeasuredEffect,list(power.singleTrend$Step),mean)
+tapply(power.singleTrend$PostHocEffectSize,list(power.singleTrend$Step),mean)
+@
+
+
+<<Trend3PowerAnalysisProgressECDF,fig=TRUE,echo=false,width=7,height=4>>=
+power.singleTrend$Step <- as.factor(power.singleTrend$Step)
+ggplot(power.singleTrend, aes(MeanSigTrtP,color=Step,linetype=Step)) + #stat_density(geom="line",position="identity",size=1) +
+ stat_ecdf(size=1) +  scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+                   annotate("text", x = 0.12, y = 0.05, label = "p=0.05",colour=cbPalette[13]) + geom_abline() + xlim(c(0,1)) +
+                   labs(x="Average Prob(Treatment F), 6 Treatments",title = "ECDF of Treatment p over Step Size 1%")
+@
+
+
+<<>>=
+if(!file.exists("power.nns.Rda")) {
+  best.spatial.wrapper <- function(current.dat,...) {
+    res <- best.spatial(current.dat=current.dat,...)
+    res$TrtProb <- res$TrtP[9]
+    return(res)
+  }
+   #remove this if we refactor code above
+   power.singleNNS <- power.analysis(simulationsSingleRCB.dat,step.size=1/100,save.steps=TRUE,analysis.fn=best.spatial.wrapper)
+    save(power.singleNNS,file="power.nns.Rda") 
+} else {
+   load(file="power.nns.Rda")
+}
+
+tapply(power.singleNNS$SigTrt/power.singleNNS$TrtCount,list(power.singleNNS$Step),mean)
+tapply(power.singleNNS$SigTrt,list(power.singleNNS$Step),mean)
+tapply(power.singleNNS$MeanSigTrtP,list(power.singleNNS$Step),mean)
+tapply(power.singleNNS$PostHocMeasuredEffect,list(power.singleNNS$Step),mean)
+tapply(power.singleNNS$PostHocEffectSize,list(power.singleNNS$Step),mean)
+@
+
+
+<<NNSPowerAnalysisProgressECDF,fig=TRUE,echo=false,width=7,height=4>>=
+power.singleNNS$Step <- as.factor(power.singleNNS$Step)
+ggplot(power.singleNNS, aes(MeanSigTrtP,color=Step,linetype=Step)) + #stat_density(geom="line",position="identity",size=1) +
+ stat_ecdf(size=1) +  scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+                   annotate("text", x = 0.12, y = 0.05, label = "p=0.05",colour=cbPalette[13]) + geom_abline() + xlim(c(0,1)) +
+                   labs(x="Average Prob(Treatment F), 6 Treatments",title = "ECDF of Treatment p over Step Size 1%")
+@
+
+
+<<PowerAnalysisProgressECDF,fig=TRUE,echo=false,width=7,height=4>>=
+power.singleRCB$Source <- "Row Column"
+power.singleTrend$Source <- "Trend3"
+power.singleNNS$Source <- "NNS"
+powercomp <- data.frame(
+  Source=c(power.singleRCB$Source,
+           power.singleTrend$Source,
+           power.singleNNS$Source),
+   MeanSigTrtP=c(power.singleRCB$MeanSigTrtP,
+           power.singleTrend$MeanSigTrtP,
+           power.singleNNS$MeanSigTrtP),
+  Step=c(power.singleRCB$Step,
+                   power.singleTrend$Step,
+                   power.singleNNS$Step)
+    )
+powercomp$Step <- as.factor(powercomp$Step)
+powercomp$Source <- as.factor(powercomp$Source)
+ggplot(powercomp, aes(MeanSigTrtP,color=Step,linetype=Step)) + #stat_density(geom="line",position="identity",size=1) +
+ stat_ecdf(size=1) +  scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+                   annotate("text", x = 0.12, y = 0.05, label = "p=0.05",colour=cbPalette[13]) + geom_abline() + xlim(c(0,1)) +
+                   labs(x="Average Prob(Treatment F), 6 Treatments",title = "ECDF of Treatment p over Step Size 1%") + facet_wrap(~Source)
+@
+
+
+
+<<>>=
+setwd(initwd)
+@
+
+
+\end{document}

@@ -1,14 +1,3 @@
-asin(.99)
-acos(0)
-acos(-1)
-acos(0)
-cos(2*pi)
-sin(0.3)
-cos(0.3)
-asin(1-0.2955202*0.2955202)
-asin(1-0.0.9553365*0.9553365)
-asin(1-0.9553365*0.9553365)
-acos(1-0.2955202*0.2955202)
 acos(sqrt(1-0.2955202*0.2955202))
 asin(sqrt(1-0.9553365*0.9553365))
 asin(sqrt(1))
@@ -156,13 +145,250 @@ plot(xs,1/xs,type='l')
 plot(xs,1/sqrt(xs),type='l')
 fisher.test(rbind(c(44,19),c(26,2)))$p.value
 fisher.test(rbind(c(44,19),c(26,2)), alternative="less")$p.value
+1.6*1.6
+1.609*1.609
+sqrt(572)
+exo(1.3214172)
+exp(1.3214172)
+log(1.3214172)
+op <- par(mfrow = c(2,1), mgp = c(2,.8,0), mar = 0.1+c(3,3,3,1))#
+n <- 9#
+x <- 1:n#
+y <- rnorm(n)
+plot(x, y, main = paste("spline[fun](.) through", n, "points"))#
+lines(spline(x, y))#
+lines(spline(x, y, n = 201), col = 2)
+y <- sin((x-0.5)*pi)#
+f <- splinefun(x, y)
+(x, deriv = 1)
+f(x, deriv = 1)
+y <- sin((x-0.5)*pi)#
+f <- splinefun(x, y)#
+ls(envir = environment(f))#
+splinecoef <- get("z", envir = environment(f))#
+curve(f(x), 1, 10, col = "green", lwd = 1.5)#
+points(splinecoef, col = "purple", cex = 2)#
+curve(f(x, deriv = 1), 1, 10, col = 2, lwd = 1.5)#
+curve(f(x, deriv = 2), 1, 10, col = 2, lwd = 1.5, n = 401)#
+curve(f(x, deriv = 3), 1, 10, col = 2, lwd = 1.5, n = 401)
+y <- sin((x-0.5)*pi)#
+f <- splinefun(x, y)#
+ls(envir = environment(f))#
+splinecoef <- get("z", envir = environment(f))#
+curve(f(x), 1, 10, col = "green", lwd = 1.5)#
+points(splinecoef, col = "purple", cex = 2)#
+curve(f(x, deriv = 1), 1, 10, col = 2, lwd = 1.5)
+y <- sin((x-0.5)*pi)#
+f <- splinefun(x, y)#
+ls(envir = environment(f))#
+splinecoef <- get("z", envir = environment(f))#
+curve(f(x), 1, 10, col = "green", lwd = 1.5)#
+points(splinecoef, col = "purple", cex = 2)
+2/(40*4*60)
+100*0.0002083333
+100*2/(10*4*60)
+spilke1.dat <- data.frame(#
+   block=as.factor(c(rep(1:5,3))),#
+   cultivar=as.factor(c(rep(1,5),rep(2,5),rep(3,5))),#
+   yield=c(330,320,335,310,315,315,300,320,305,320,300,310,320,300,305))#
+#
+loglik.fun <- function(mu,sd,y) {#
+  sigma=sd*sd#
+  n <- length(y)#
+  tmp1 <- -(n/2)*log(2*pi)#
+  tmp2 <- (n/2)*log(2*sigma)#
+  difs <- y-mu#
+  ss <- sum(difs*difs)#
+  return(tmp1-tmp2-(1/(2*sigma))*ss)#
+}
+mu <- mean(spilke1.dat$yield)#
+mu.vec <- mu + (10-(1:200)/10)#
+sigma <- sd(spilke1.dat$yield)#
+sigma.vec <- sigma + (10-(1:200)/10)#
+mu.loglik <- unlist(lapply(mu.vec, loglik.fun, sd=sigma, y=spilke1.dat$yield))#
+mu.loglik.plus <- unlist(lapply(mu.vec, loglik.fun, sd=sigma-1, y=spilke1.dat$yield))#
+mu.loglik.minus <- unlist(lapply(mu.vec, loglik.fun, sd=sigma-.5, y=spilke1.dat$yield))#
+plot(mu.vec,mu.loglik,type="l")#
+lines(mu.vec,mu.loglik.plus,col="blue")#
+lines(mu.vec,mu.loglik.minus,col="red");v(width=6,height=4)
+plot(mu.vec,exp(mu.loglik),type="l")#
+lines(mu.vec,exp(mu.loglik.plus),col="blue")#
+lines(mu.vec,exp(mu.loglik.minus),col="red")
+s.loglik.fun <- function(sd,mu,y) {#
+  sigma=sd*sd#
+  n <- length(y)#
+  tmp1 <- -(n/2)*log(2*pi)#
+  tmp2 <- (n/2)*log(2*sigma)#
+  difs <- y-mu#
+  ss <- sum(difs*difs)#
+  return(tmp1-tmp2-(1/(2*sigma))*ss)#
+}#
+sigma.loglik <- unlist(lapply(X=sigma.vec, FUN=s.loglik.fun, mu=mu, y=spilke1.dat$yield))#
+sigma.loglik.plus <- unlist(lapply(X=sigma.vec, FUN=s.loglik.fun, mu=mu-2, y=spilke1.dat$yield))#
+sigma.loglik.minus <- unlist(lapply(X=sigma.vec, FUN=s.loglik.fun, mu=mu-1, y=spilke1.dat$yield))#
+plot(sigma.vec,sigma.loglik,type="l")#
+lines(sigma.vec,sigma.loglik.plus,col="blue")#
+lines(sigma.vec,sigma.loglik.minus,col="red");v(width=6,height=4)
+plot(sigma.vec,exp(sigma.loglik),type="l")#
+lines(sigma.vec,exp(sigma.loglik.plus),col="blue")#
+lines(sigma.vec,exp(sigma.loglik.minus),col="red")
+anova(lmer(yield ~ 1 + (1 | block), data=spilke1.dat,REML=TRUE))
+library(lme4)
+anova(lmer(yield ~ 1 + (1 | block), data=spilke1.dat,REML=TRUE))
+summary(lmer(yield ~ 1 + (1 | block), data=spilke1.dat,REML=TRUE))
+logLik(lmer(yield ~ 1 + (1 | block), data=spilke1.dat,REML=TRUE))
+199.7/2.95
+440.90+330.68+330.67+406.41+377.37+377.37
+2^32-1
+typeof?
+()
+?typeof
+?Arithmetic
+?Math
+log(x=2, base = exp(1))
+log(2, base = exp(1))
+gamma(sqrt(2))
+3/4 * 518
+sequence(3)
+crossprod(1:4
+)
+(1:4)%*%(1:4)
+seq(-3,3,0.1)
+tmp <- seq(-3,3,0.1)
+tmp[31]
+tmp[31]==0
+<-
+<- 9
+<
+=
+!is.na(4)==(9>7)|sqrt(9)>3&is.na(8)
+as.numeric('1')
+is.na(as.numeric('one'))
+e <- exp(1)
+e
+e^exp(-(.1-0)^2/(2*2))
+e^(-(.1-0)^2/(2*2))
+2^2
+2^2.1
+log(2.1*exp(2))
+log(2.1*2)
+exp(log(2.1*2))
+exp(2.1*log(2))
+exp(2*log(2))
+x<-3
+x^2
+exp(2*log(x))
+x^2.1
+exp(2.1*log(x))
+x^2.2#
+#
+exp(2.2*log(x))
+x*x#
+#
+x^2#
+#
+exp(2*log(x))
+x^2.2 - exp(2.2*log(x))
+find("exp")
+my.function <- function() {return("myfunction")}
+my.function
+find("my.function")
+find("my.functions")
+length(find("my.functions")==0)
+length(find("my.functions"))==0
+is.null(michelson.dat)
+length(find("michelson.dat"))==0
 setwd('/Users/dakotajudo/Work/git/ASA_CSSA_SSSA/literate')#
-Sweave('/Users/dakotajudo/Work/git/ASA_CSSA_SSSA/literate/RMixedModels.Snw')#
+Sweave('/Users/dakotajudo/Work/git/ASA_CSSA_SSSA/literate/WheatYields.Snw')#
 date()
-Ex16.8.1.lmer.tbl
-Ex16.8.1.MCMCglmm.tbl
-Ex16.8.1.lme.tbl
-lsmeans(Table5.7.lmer,~ Treatment)
-lsmeans(Table5.7.lmer,~ Variety)
-lsmeans(Ex16.8.1.lmer,~ Variety)
-Table5.7.comp.plot
+c(1,2,3,4)
+rep(10,20)
+rep(100000,20)
+rep(10000,20)
+rep(10000,30)
+10000
+length(10000)
+sd(10000)
+mean(10000)
+sum(10000)
+data=c(2,5,1,5,9,4,NA)#
+ ifelse(data<5,'low',ifelse(data>5,'high',NA))
+ifelse(data>5,'high',NA)
+ifelse(data<5,'low')
+dlply
+x<- 3
+x^2
+x<-c(2,3,5,7)
+x^2
+x^2+x
+x^2+x^3+x
+x=1:1000
+x^2+x^3+x
+n_i <- matrix(2:8)
+n_j <- matrix(8:2)
+n_i * n_j
+n_i %*% n_j
+n_i %*% t(n_j)
+t(n_i) %*% n_j
+n_i <- 2:8
+n_j <- 8:2
+n_i * n_j
+n_i %*% n_j
+n_i %*% t(n_j)
+t(n_i) %*% n_j
+n_i / n_j
+n_i <- matrix(2:8)
+n_i <- matrix(2:8)
+n_j <- matrix(8:2)
+n_i / n_j
+1 / n_j
+n_i %o% n_j
+n_i <- 2:8
+n_j <- 8:2
+n_i %o% n_j
+as.numeric('1')
+x==7
+!is.na(4)==(9>7)|sqrt(9)>3&is.na(8)
+?lm
+pi==3.14
+pi-3.14
+?round
+round(0.5)
+round(3.5)
+substitute(pi)
+class(substitute(pi))
+best.n_i = 5
+class(substitute(best.n_i))
+paste(substitute(best.n_i), "is not correct")
+substitute((1+2)^2*(2/2))
+substitute( a + b,            list(a = 1))
+eval(substitute( a + b, list(a = 1,b=2)))
+eval(substitute(x-mu, list(x=0.2,mu=0.1)))
+n_i <- (2:8)#
+n_j <-(8:2)#
+lsd <- c(2.085963447*sqrt(0.124611*(1/n_i+1/n_j)))
+min(lsd)
+options(digits=12)
+min(lsd)
+abs(min(lsd) - 0.46570926)
+options(digits=8)
+lsd <- c(2.085963447*sqrt(0.124611*(1/n_i+1/n_j)))
+min(lsd)
+abs(min(lsd) - 0.46570926)
+0.4657093 - 0.46570926
+min(lsd) = 0.4657093
+min(lsd) == 0.4657093
+c(2.085963447*sqrt(0.124611*(1/n_i+1/n_j)))
+length(seq(from=-3, to=3, by=0.1))
+as.Date()
+as.Date(0)
+as.Date()
+as.Date(734373, origin = "1970-01-01")
+Sys.Date
+Sys.Date()
+print(x<-1)
+print(x=1)
+print(delta.vec <- c(1,2,5,8,10))#
+print(delta.vec = c(1,2,5,8,10))
+print(lsd <- 2.085963447*sqrt(0.124611*(1/n_i + 1/n_j)))
+print(lsd = 2.085963447*sqrt(0.124611*(1/n_i + 1/n_j)))
