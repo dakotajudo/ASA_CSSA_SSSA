@@ -2,7 +2,11 @@
 \usepackage{amsmath}
 
 \begin{document}
-	
+
+\section{Introduction}
+
+Run this document to generate files for simulating uniformity trials.
+
 <<>>=
 initwd <- getwd() 
 path = "~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R"
@@ -35,7 +39,7 @@ For example, this data from the SDSU research statio near Beresford. This file h
 
 
 <<>>=
-raw.dat <- read.csv("../literate/data/sdsu/Swest_Corn2013-Clean.csv", header = TRUE)
+raw.dat <- read.csv("~/Work/git/ASA_CSSA_SSSA/data/sdsu/Swest_Corn2013-Clean.csv", header = TRUE)
 response <- "YldVolDry"
 @
 
