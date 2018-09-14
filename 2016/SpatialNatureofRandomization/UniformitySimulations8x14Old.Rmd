@@ -1,0 +1,502 @@
+---
+title: "Uniformity Simulations"
+author: "Peter Claussen"
+date: "May 18, 2016"
+output: html_document
+---
+
+
+Multiple Trial Simulations
+--------------------------
+
+```{r}
+currentwd <- getwd()
+setwd("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R")
+source("superimpose.plan.R")
+source("simulate.plan.R")
+source("trial.dimensions.R")
+setwd(currentwd)
+
+arm.plot.dim <- c(4,6)
+arm.row.buffer <- c(0.5,1)
+checks <- 81:84
+```
+
+```{r}
+library(ggplot2)
+```
+
+Assume we have yield (or other agronomic assessment) data in spatial format, such as yield monitor data.
+For example, this data from the SDSU research statio near Beresford. This file has been edited from the original format and is comma-seperated.
+
+```{r}
+raw.dat <- read.csv("./data/sdsu/Swest_Corn2013-Clean.csv", header = TRUE)
+
+response <- "YldVolDry"
+hist(raw.dat[,response],main=response)
+
+minLon <- min(raw.dat$Longitude)
+maxLon <- max(raw.dat$Longitude)
+minLat <- min(raw.dat$Latitude)
+maxLat <- max(raw.dat$Latitude)
+
+northBorder <- maxLat - 0.06*(maxLat-minLat)
+southBorder <- minLat + 0.09*(maxLat-minLat)
+eastBorder <- maxLon - 0.02*(maxLon-minLon)
+westBorder <- minLon + 0.02*(maxLon-minLon)
+
+trimmed.dat <- subset(raw.dat,raw.dat$Latitude>=southBorder)
+trimmed.dat <- subset(trimmed.dat,trimmed.dat$Latitude<=northBorder)
+trimmed.dat <- subset(trimmed.dat,trimmed.dat$Longitude<=eastBorder)
+trimmed.dat <- subset(trimmed.dat,trimmed.dat$Longitude>=westBorder)
+
+ggplot(trimmed.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = YldVolDry),size = 1)
+```
+
+Now, let's map a trial into one corner of the field. We will find this easier if we convert to meters. 
+This will require an approximation, see http://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters
+
+```{r}
+trimmed.dat$LonM <- trimmed.dat$Longitude - min(trimmed.dat$Longitude)
+trimmed.dat$LatM <- trimmed.dat$Latitude - min(trimmed.dat$Latitude)
+latMid <- (min(trimmed.dat$Latitude) + max(trimmed.dat$Latitude))/2
+m_per_deg_lat = 111132.954 - 559.822 * cos( 2.0 * latMid ) + 1.175 * cos( 4.0 * latMid)
+m_per_deg_lon = (3.14159265359/180 ) * 6367449 * cos ( latMid )
+trimmed.dat$LonM <- trimmed.dat$LonM*m_per_deg_lon
+trimmed.dat$LatM <- trimmed.dat$LatM*m_per_deg_lat
+ggplot(trimmed.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 1)
+```
+
+
+```{r}
+library(gstat)
+sample.var <- variogram(YldVolDry~1, 
+                        locations=~LonM+LatM, 
+                        data=trimmed.dat)
+plot(sample.var)
+sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
+sample.vgm
+```
+
+### Simulation
+
+
+```{r}
+library(nlme)
+```
+
+
+We might want to compare later to spatially balanced plans, so for now create a trial from vanEs
+
+```{r}
+plan8x14.plan <- data.frame(
+row=c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,8,8),
+col=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14),
+vanEs14x8=c(1,12,14,6,5,8,2,7,10,11,13,4,9,3,5,7,1,9,8,4,11,13,6,12,10,2,3,14,7,10,11,14,9,1,6,12,13,3,4,5,2,8,6,4,10,1,3,5,8,14,11,13,9,12,7,2,11,8,3,12,1,7,4,6,2,9,14,10,13,5,13,1,2,11,4,14,7,3,5,6,12,9,8,10,12,11,5,4,10,2,1,9,14,8,3,7,13,6,4,14,8,7,13,12,10,1,3,5,2,11,6,9)
+)
+
+plan8x14.plan$blk <- plan8x14.plan$row
+plan8x14.plan$trt <- plan8x14.plan$vanEs14x8
+
+plan8x14sw <- superimpose.plan(plan8x14.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+plan8x14sw$plan
+ggplot(plan8x14sw$trial, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 6)
+ggplot(plan8x14sw$plan, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 4)
+ggplot(plan8x14sw$pooled, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 4)
+```
+
+
+library(agridat)
+desplot(blk ~ col*row, data=plan8x16.plan, num=trt, main="8x16")
+desplot(blk ~ col*row, data=plan16x8.plan, num=trt, main="16x8")
+desplot(blk ~ col*row, data=plan32x4.plan, num=trt, main="32x4")
+
+desplot(YldVolDry ~ col*row, data=plan8x16sw.dat, num=trt, main="8x16 Yield")
+desplot(YldVolDry ~ col*row, data=plan16x8sw.dat, num=trt, main="16x8 Yield")
+desplot(YldVolDry ~ col*row, data=plan32x4sw.dat, num=trt, main="32x4 Yield")
+
+
+### Block Size 14
+Stagger 0
+
+```{r}
+aug8x14.plan <- data.frame(
+row=c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,8,8),
+col=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14,1,2,3,4,5,6,7,8,9,10,11,12,13,14)
+)
+aug8x14.plan$blk <- aug8x14.plan$row
+
+aug8x14adj0nonran1.plan <- aug8x14.plan
+aug8x14adj0nonran1.plan$trt <- as.factor(c(81,1,2,3,82,4,5,6,83,7,8,9,84,10,82,11,12,13,83,14,15,16,81,17,18,19,84,20,81,21,22,23,82,24,25,26,84,27,28,29,83,30,82,31,32,33,83,34,35,36,84,37,38,39,81,40,81,41,42,43,84,44,45,46,82,47,48,49,83,50,81,51,52,53,83,54,55,56,84,57,58,59,82,60,82,61,62,63,81,64,65,66,84,67,68,69,83,70,82,71,72,73,83,74,75,76,84,77,78,79,81,80))
+
+trial.dimensions(aug8x14.plan,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer)
+
+aug8x14adj0nonran1.sim <- simulate.plan(aug8x14adj0nonran1.plan,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+
+```
+
+```{r}
+aug8x14adj0nonran1.sim$points$check <- as.factor(aug8x14adj0nonran1.sim$points$trt %in% checks)
+
+ggplot(aug8x14adj0nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(aug8x14adj0nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug8x14adj0nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+```
+
+Stagger 1
+
+```{r}
+aug8x14adj1nonran1.plan <- aug8x14.plan
+aug8x14adj1nonran1.plan$trt <- as.factor(c(81,1,2,3,82,4,5,6,83,7,8,9,84,10,20,83,11,12,13,84,14,15,16,81,17,18,19,82,83,30,84,21,22,23,81,24,25,26,82,27,28,29,39,81,40,83,31,32,33,82,34,35,36,84,37,38,48,49,82,50,84,41,42,43,83,44,45,46,81,47,57,58,59,84,60,83,51,52,53,81,54,55,56,82,83,67,68,69,81,70,84,61,62,63,82,64,65,66,76,81,77,78,79,84,80,82,71,72,73,83,74,75))
+aug8x14adj1nonran1.sim <- simulate.plan(aug8x14adj1nonran1.plan,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+```
+
+```{r}
+aug8x14adj1nonran1.sim$points$check <- as.factor(aug8x14adj1nonran1.sim$points$trt %in% 81:84)
+ggplot(aug8x14adj1nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug8x14adj1nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+```
+
+Stagger 2
+
+```{r}
+aug8x14adj2nonran1.plan <- aug8x14.plan
+aug8x14adj2nonran1.plan$trt <- as.factor(c(81,1,2,3,82,4,5,6,83,7,8,9,84,10,83,20,84,11,12,13,81,14,15,16,82,17,18,19,28,29,81,30,83,21,22,23,82,24,25,26,84,27,83,37,38,39,84,40,82,31,32,33,81,34,35,36,45,46,84,47,48,49,83,50,81,41,42,43,82,44,81,54,55,56,83,57,58,59,84,60,82,51,52,53,62,63,82,64,65,66,81,67,68,69,83,70,84,61,81,71,72,73,83,74,75,76,84,77,78,79,82,80))
+aug8x14adj2nonran1.sim <- simulate.plan(aug8x14adj2nonran1.plan,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+```
+
+
+```{r}
+aug8x14adj2nonran1.sim$points$check <- as.factor(aug8x14adj2nonran1.sim$points$trt %in% 81:84)
+ggplot(aug8x14adj2nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug8x14adj2nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+```
+
+```{r}
+aug16x7.plan <- data.frame(
+row=c(1,1,1,1,1,1,1,2,2,2,2,2,2,2,3,3,3,3,3,3,3,4,4,4,4,4,4,4,5,5,5,5,5,5,5,6,6,6,6,6,6,6,7,7,7,7,7,7,7,8,8,8,8,8,8,8,9,9,9,9,9,9,9,10,10,10,10,10,10,10,11,11,11,11,11,11,11,12,12,12,12,12,12,12,13,13,13,13,13,13,13,14,14,14,14,14,14,14,15,15,15,15,15,15,15,16,16,16,16,16,16,16),
+col=c(1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7,1,2,3,4,5,6,7)
+)
+
+plan14x7sw <- superimpose.plan(aug16x7.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+```
+
+```{r}
+aug16x7.plan$blk <- ceiling(aug16x7.plan$row/2)
+aug16x7adj0nonran1 <- aug16x7.plan
+aug16x7adj0nonran1$trt <- as.factor(c(81,1,2,3,82,4,5,83,6,7,8,84,9,10,84,11,12,13,82,14,15,83,16,17,18,81,19,20,82,21,22,23,83,24,25,84,26,27,28,81,29,30,82,31,32,33,83,34,35,81,36,37,38,84,39,40,83,41,42,43,81,44,45,82,46,47,48,84,49,50,81,51,52,53,82,54,55,83,56,57,58,84,59,60,82,61,62,63,84,64,65,83,66,67,68,81,69,70,83,71,72,73,82,74,75,84,76,77,78,81,79,80))
+  
+aug16x7adj0nonran1.sim <- simulate.plan(aug16x7adj0nonran1,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+
+aug16x7adj1nonran1 <- aug16x7.plan
+aug16x7adj1nonran1$trt <- as.factor(c(81,1,2,3,82,4,5,10,83,6,7,8,84,9,14,15,82,11,12,13,83,81,19,20,84,16,17,18,23,84,24,25,83,21,22,27,28,81,29,30,82,26,31,32,33,84,34,35,83,81,36,37,38,82,39,40,45,84,41,42,43,83,44,49,50,82,46,47,48,81,83,54,55,84,51,52,53,58,81,59,60,82,56,57,62,63,84,64,65,83,61,66,67,68,81,69,70,82,81,71,72,73,84,74,75,80,82,76,77,78,83,79))
+
+aug16x7adj1nonran1.sim <- simulate.plan(aug16x7adj1nonran1,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+
+aug16x7adj2nonran1 <- aug16x7.plan
+aug16x7adj2nonran1$trt <- as.factor(c(81,1,2,3,82,4,5,9,10,83,6,7,8,84,13,81,14,15,84,11,12,16,17,18,83,19,20,82,25,81,21,22,23,84,24,83,29,30,82,26,27,28,32,33,81,34,35,83,31,84,36,37,38,82,39,40,44,45,81,41,42,43,84,48,83,49,50,82,46,47,51,52,53,81,54,55,84,60,83,56,57,58,82,59,83,64,65,84,61,62,63,67,68,81,69,70,82,66,84,71,72,73,82,74,75,79,80,83,76,77,78,81))
+
+aug16x7adj2nonran1.sim <- simulate.plan(aug16x7adj2nonran1,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+```
+
+```{r}
+aug16x7adj0nonran1.sim$points$check <- as.factor(aug16x7adj0nonran1.sim$points$trt %in% 81:84)
+
+ggplot(aug16x7adj0nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(aug16x7adj0nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug16x7adj0nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+
+aug16x7adj1nonran1.sim$points$check <- as.factor(aug16x7adj1nonran1.sim$points$trt %in% 81:84)
+
+ggplot(aug16x7adj1nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(aug16x7adj1nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug16x7adj1nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+
+aug16x7adj2nonran1.sim$points$check <- as.factor(aug16x7adj2nonran1.sim$points$trt %in% 81:84)
+
+ggplot(aug16x7adj2nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(aug16x7adj2nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug16x7adj2nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+```
+
+### Block Size = 4
+```{r}
+aug32x4.plan <- data.frame(
+row=c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7,8,8,8,8,9,9,9,9,10,10,10,10,11,11,11,11,12,12,12,12,13,13,13,13,14,14,14,14,15,15,15,15,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,22,22,22,22,23,23,23,23,24,24,24,24,25,25,25,25,26,26,26,26,27,27,27,27,28,28,28,28,29,29,29,29,30,30,30,30,31,31,31,31,32,32,32,32),
+col=c(1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4)
+)
+
+plan32x4sw <- superimpose.plan(aug32x4.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+```
+
+We should note very small differences in estimated plot yield for equivalent plots using the two plans.
+
+```{r}
+head(plan8x14sw$plan)
+head(plan14x7sw$plan)
+head(plan32x4sw$plan)
+```
+```{r}
+aug32x4.plan$blk <- ceiling(aug32x4.plan$row/4)
+```
+
+```{r}
+aug32x4adj0nonran1 <- aug32x4.plan
+aug32x4adj0nonran1$trt <- as.factor(c(81,1,2,3,82,4,5,6,83,7,8,9,84,10,11,12,82,13,14,15,83,16,17,18,84,19,20,21,81,22,23,24,83,25,26,27,84,28,29,30,81,31,32,33,82,34,35,36,82,37,38,39,83,40,41,42,81,43,44,45,84,46,47,48,82,49,50,51,83,52,53,54,81,55,56,57,84,58,59,60,81,61,62,63,82,64,65,66,83,67,68,69,84,70,71,72,83,73,74,75,82,76,77,78,81,79,80,81,84,82,83,84,82,81,82,83,81,84,81,82,83,83,84,81,84,82,83,84))
+  
+aug32x4adj0nonran1.sim <- simulate.plan(aug32x4adj0nonran1,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+
+aug32x4adj1nonran1 <- aug32x4.plan
+aug32x4adj1nonran1$trt <- as.factor(c(81,1,2,3,6,82,4,5,8,9,83,7,10,11,12,84,82,13,14,15,18,84,16,17,20,21,81,19,22,23,24,83,83,25,26,27,30,84,28,29,32,33,81,31,34,35,36,82,84,37,38,39,42,81,40,41,44,45,83,43,46,47,48,82,82,49,50,51,54,81,52,53,56,57,84,55,58,59,60,83,81,61,62,63,66,84,64,65,68,69,82,67,70,71,72,83,82,73,74,75,78,81,76,77,80,81,83,79,82,83,84,84,83,81,82,83,82,81,84,81,84,81,82,83,82,83,84,84))
+
+aug32x4adj1nonran1.sim <- simulate.plan(aug32x4adj1nonran1,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+
+aug32x4adj2nonran1 <- aug32x4.plan
+aug32x4adj2nonran1$trt <- as.factor(c(81,1,2,3,5,6,82,4,83,7,8,9,11,12,84,10,84,13,14,15,17,18,81,16,83,19,20,21,23,24,82,22,81,25,26,27,29,30,84,28,82,31,32,33,35,36,83,34,83,37,38,39,41,42,81,40,82,43,44,45,47,48,84,46,84,49,50,51,53,54,83,52,82,55,56,57,59,60,81,58,83,61,62,63,65,66,82,64,81,67,68,69,71,72,84,70,83,73,74,75,77,78,82,76,84,79,80,81,83,84,81,82,82,81,82,83,81,82,81,84,83,83,84,81,83,84,84,82))
+
+aug32x4adj2nonran1.sim <- simulate.plan(aug32x4adj2nonran1,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+```
+
+```{r}
+aug32x4adj0nonran1.sim$points$check <- as.factor(aug32x4adj0nonran1.sim$points$trt %in% 81:84)
+
+ggplot(aug32x4adj0nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(aug32x4adj0nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug32x4adj0nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+
+aug32x4adj1nonran1.sim$points$check <- as.factor(aug32x4adj1nonran1.sim$points$trt %in% 81:84)
+
+ggplot(aug32x4adj1nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(aug32x4adj1nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug32x4adj1nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+
+aug32x4adj2nonran1.sim$points$check <- as.factor(aug32x4adj2nonran1.sim$points$trt %in% 81:84)
+
+ggplot(aug32x4adj2nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(aug32x4adj2nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug32x4adj2nonran1.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+```
+
+```{r}
+aug8x14adj0nonran1.sim$points$stagger <- 0
+aug8x14adj1nonran1.sim$points$stagger <- 1
+aug8x14adj2nonran1.sim$points$stagger <- 2
+aug16x7adj0nonran1.sim$points$stagger <- 0
+aug16x7adj1nonran1.sim$points$stagger <- 1
+aug16x7adj2nonran1.sim$points$stagger <- 2
+aug32x4adj0nonran1.sim$points$stagger <- 0
+aug32x4adj1nonran1.sim$points$stagger <- 1
+aug32x4adj2nonran1.sim$points$stagger <- 2
+
+aug8x14adj0nonran1.sim$points$blocksize <- 14
+aug8x14adj1nonran1.sim$points$blocksize <- 14
+aug8x14adj2nonran1.sim$points$blocksize <- 14
+aug16x7adj0nonran1.sim$points$blocksize <- 7
+aug16x7adj1nonran1.sim$points$blocksize <- 7
+aug16x7adj2nonran1.sim$points$blocksize <- 7
+aug32x4adj0nonran1.sim$points$blocksize <- 4
+aug32x4adj1nonran1.sim$points$blocksize <- 4
+aug32x4adj2nonran1.sim$points$blocksize <- 4
+
+comparison.dat <- rbind(aug8x14adj0nonran1.sim$points,
+                        aug8x14adj1nonran1.sim$points,
+                        aug8x14adj2nonran1.sim$points,
+                        aug16x7adj0nonran1.sim$points,
+                        aug16x7adj1nonran1.sim$points,
+                        aug16x7adj2nonran1.sim$points,
+                        aug32x4adj0nonran1.sim$points,
+                        aug32x4adj1nonran1.sim$points,
+                        aug32x4adj2nonran1.sim$points)
+comparison.dat$blocksize <- as.factor(comparison.dat$blocksize)
+comparison.dat$stagger <- as.factor(comparison.dat$stagger)
+comparison.dat$number <- as.factor(comparison.dat$number)
+comparison.dat$blk <- as.factor(comparison.dat$blk)
+comparison.dat <- subset(comparison.dat,comparison.dat$trt %in% checks)
+comparison.dat$experiment <- comparison.dat$number:comparison.dat$blocksize:comparison.dat$stagger
+```
+
+```{r}
+summary(aov(YldVolDry ~ trt*blocksize*stagger + experiment + experiment:blk,data=comparison.dat))
+library(lme4)
+comp.reml <- lmer(YldVolDry ~ trt*blocksize*stagger + (1| experiment/blk), data=comparison.dat)
+summary(comp.reml)
+```
+
+
+plan16x7.plan <- plan8x14.plan
+plan16x7.plan$row=aug14_7.plan$row
+plan16x7.plan$col=aug14_7.plan$col
+
+
+plan16x7.plan$blk <- ceiling(plan16x7.plan$row/2)
+
+stag.vanes7 <- simulate.plan(plan16x7.plan,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+
+ggplot(stag.vanes7$aov, aes(Row, Col)) + geom_point(aes(colour = RepP),size = 8)
+ggplot(stag.vanes7$aov, aes(Row, Col)) + geom_point(aes(colour = ResMS),size = 8)
+ggplot(stag.vanes7$aov, aes(Row, Col)) + geom_point(aes(colour = TrtP),size = 8)
+
+hist(stag.vanes7$aov$TrtMS)
+hist(stag.vanes7$aov$TrtP)
+hist(stag.vanes7$aov$RepMS)
+hist(stag.vanes7$aov$RepP)
+hist(stag.vanes7$aov$ResMS)
+
+max(aug8x14adj0nonran1.sim$aov$Row)
+max(aug8x14adj0nonran1.sim$aov$Col)
+
+max(aug16x7adj0nonran1.sim$aov$Row)
+max(aug16x7adj0nonran1.sim$aov$Col)
+
+
+8 rows by 14 columns 
+vanEs14x8
+aug80v140n, etc.
+
+
+max(stag.vanes7$aov$Row)
+max(stag.vanes7$aov$Col)
+
+plan8x14sw <- superimpose.plan(plan8x14.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+#plan8x14sw$plan
+
+plan8x14se <- superimpose.plan(plan8x14.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(211,513),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+#plan8x14se$plan
+
+plan8x14nw <- superimpose.plan(plan8x14.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+#plan8x14nw$plan
+
+plan8x14ne <- superimpose.plan(plan8x14.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(211,513),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+#plan8x14ne$plan
+
+stag.vanes7 <- simulate.plan(plan16x7.plan,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+max(stag.vanes7$aov$Row)
+max(stag.vanes7$aov$Col)
+
+
+plan16x7sw <- superimpose.plan(plan16x7.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+#plan16x7sw$plan
+
+plan16x7nw <- superimpose.plan(plan16x7.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(211,3),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+#plan16x7nw$plan
+
+plan16x7se <- superimpose.plan(plan16x7.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,513),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+#plan16x7se$plan
+
+plan16x7ne <- superimpose.plan(plan16x7.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(211,513),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+#plan16x7ne$plan
+
+plan32x4.plan <- data.frame(
+row=c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,5,5,5,5,6,6,6,6,7,7,7,7,8,8,9,9,9,9,10,10,10,10,11,11,11,11,12,12,13,13,13,13,14,14,14,14,15,15,15,15,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,21,21,21,21,22,22,22,22,23,23,23,23,24,24,25,25,25,25,26,26,26,26,27,27,27,27,28,28,29,29,29,29,30,30,30,30,31,31,31,31,32,32),
+col=c(1,2,3,4,1,2,3,4,1,2,3,4,1,2,1,2,3,4,1,2,3,4,1,2,3,4,1,2,1,2,3,4,1,2,3,4,1,2,3,4,1,2,1,2,3,4,1,2,3,4,1,2,3,4,1,2,1,2,3,4,1,2,3,4,1,2,3,4,1,2,1,2,3,4,1,2,3,4,1,2,3,4,1,2,1,2,3,4,1,2,3,4,1,2,3,4,1,2,1,2,3,4,1,2,3,4,1,2,3,4,1,2),
+trt=c(1,12,14,6,5,8,2,7,10,11,13,4,9,3,5,7,1,9,8,4,11,13,6,12,10,2,3,14,7,10,11,14,9,1,6,12,13,3,4,5,2,8,6,4,10,1,3,5,8,14,11,13,9,12,7,2,11,8,3,12,1,7,4,6,2,9,14,10,13,5,13,1,2,11,4,14,7,3,5,6,12,9,8,10,12,11,5,4,10,2,1,9,14,8,3,7,13,6,4,14,8,7,13,12,10,1,3,5,2,11,9,6))
+plan32x4.plan$blk <- ceiling(plan32x4.plan$row/4)
+
+stag.vanes4 <- simulate.plan(plan32x4.plan,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+
+ggplot(stag.vanes4$aov, aes(Row, Col)) + geom_point(aes(colour = RepP),size = 8)
+ggplot(stag.vanes4$aov, aes(Row, Col)) + geom_point(aes(colour = ResMS),size = 8)
+ggplot(stag.vanes4$aov, aes(Row, Col)) + geom_point(aes(colour = TrtP),size = 8)
+
+hist(stag.vanes4$aov$TrtMS)
+hist(stag.vanes4$aov$TrtP)
+hist(stag.vanes4$aov$RepMS)
+hist(stag.vanes4$aov$RepP)
+hist(stag.vanes4$aov$ResMS)
+
+max(stag.vanes4$aov$Row)
+max(stag.vanes4$aov$Col)
+
+plan32x4sw <- superimpose.plan(plan32x4.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+
+#plan32x4sw$plan
+
+
+
+plan32x4nw <- superimpose.plan(plan32x4.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,498),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+#plan32x4nw$plan
+
+plan32x4ne <- superimpose.plan(plan32x4.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(224,498),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+#plan32x4ne$plan
+
+plan32x4se <- superimpose.plan(plan32x4.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(224,3),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+#plan32x4se$plan
+```
+
+
+

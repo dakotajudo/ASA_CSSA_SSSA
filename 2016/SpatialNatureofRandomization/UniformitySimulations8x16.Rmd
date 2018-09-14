@@ -1,0 +1,1849 @@
+---
+title: "Uniformity Simulations"
+author: "Peter Claussen"
+date: "May 18, 2016"
+output: html_document
+---
+
+
+Multiple Trial Simulations
+--------------------------
+
+```{r}
+currentwd <- getwd()
+setwd("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R")
+source("pair.distances.R")
+source("plot.distance.R")
+source("superimpose.plan.R")
+source("simulate.plan.R")
+source("trial.dimensions.R")
+source("extract.corners.R")
+setwd(currentwd)
+
+arm.plot.dim <- c(4,6)
+arm.row.buffer <- c(0.5,1)
+checks <- 97:100
+unreplicated <- 1:96
+set.seed(10000)
+
+sample.vgm <- NULL
+```
+
+```{r}
+library(ggplot2)
+library(agricolae)
+```
+
+Assume we have yield (or other agronomic assessment) data in spatial format, such as yield monitor data.
+For example, this data from the SDSU research statio near Beresford. This file has been edited from the original format and is comma-seperated.
+
+
+
+Simulation
+----------
+
+We will simulate an augmented experiment, using Federer as a reference. 
+We use approximation of Federer's estimates of checks as fixed, and draw unreplicated treatment effects from distribution scaled (Federer's grand mean compared to this fields grand mean).
+
+```{r}
+library(nlme)
+federerEffects <- c(-2.8125, 5.4375, -7.8125, 12.4375, -3.8125, -1.5625, -2.8125, -3.8125, 3.6042, -2.0625, 0.9375, 2.2708)
+#vEffects = c(c(-2.8125, 5.4375, -7.8125, 12.4375, -3.8125, -1.5625, -2.8125, -3.8125), rep(0,88), c(3.6042, -2.0625, 0.9375, 2.2708))
+federerEffects <- federerEffects*2.5
+controlEffects <- c(-3.5, 0, 1, 2.5)*2.5
+vEffects <- c(rnorm(96, 0, sd(federerEffects)), controlEffects)
+examplevEffects <- c(rnorm(96, 0, sd(federerEffects)), controlEffects)
+mean(examplevEffects)
+rcb16vEffects <- c(controlEffects,rep(0,12))
+mean(rcb16vEffects)
+```
+
+
+We will compare an augmented experiment with 4 checks in 8 reps and 96 unreplicated. This gives us 128 plots, which we can arrange as 8x16, 16x8 and 32x4. Additionally, we arrange the checks with 3 different staggers (0,1,2)
+
+
+### Block Size 16
+Stagger 0
+
+```{r}
+aug8x16.plan <- data.frame(
+row=c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+      2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+      3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,
+      4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+      5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
+      6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+      7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+      8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8),
+col=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)
+)
+
+aug8x16.plan$blk <- aug8x16.plan$row
+aug8x16.plan$rep <- aug8x16.plan$row
+
+aug8x16adj0nonran1.plan <- aug8x16.plan
+aug8x16adj0nonran1.plan$trt <- c(99, 1, 2, 3, 97, 4, 5, 6, 100, 7, 8, 9, 98, 10, 11, 12, 100, 13, 14, 15, 98, 16, 17, 18, 99, 19, 20, 21, 97, 22, 23, 24, 98, 25, 26, 27, 97, 28, 29, 30, 99, 31, 32, 33, 100, 34, 35, 36, 97, 37, 38, 39, 100, 40, 41, 42, 98, 43, 44, 45, 99, 46, 47, 48, 100, 49, 50, 51, 99, 52, 53, 54, 97, 55, 56, 57, 98, 58, 59, 60, 97, 61, 62, 63, 100, 64, 65, 66, 98, 67, 68, 69, 99, 70, 71, 72, 98, 73, 74, 75, 99, 76, 77, 78, 97, 79, 80, 81, 100, 82, 83, 84, 99, 85, 86, 87, 98, 88, 89, 90, 100, 91, 92, 93, 97, 94, 95, 96)
+
+aug8x16adj1nonran1.plan <- aug8x16.plan
+#aug8x16adj1nonran1.plan$trt <- c(99, 1, 2, 3, 97, 4, 5, 6, 100, 7, 8, 9, 98, 10, 11, 12, 24, 100, 13, 14, 15, 98, 16, 17, 18, 99, 19, 20, 21, 97, 22, 23, 35, 36, 98, 25, 26, 27, 97, 28, 29, 30, 99, 31, 32, 33, 100, 34, 46, 47, 48, 97, 37, 38, 39, 100, 40, 41, 42, 98, 43, 44, 45, 99, 98, 58, 59, 60, 100, 49, 50, 51, 99, 52, 53, 54, 97, 55, 56, 57, 69, 99, 70, 71, 72, 97, 61, 62, 63, 100, 64, 65, 66, 98, 67, 68, 80, 81, 100, 82, 83, 84, 98, 73, 74, 75, 99, 76, 77, 78, 97, 79, 91, 92, 93, 97, 94, 95, 96, 99, 85, 86, 87, 98, 88, 89, 90, 100)
+aug8x16adj1nonran1.plan$trt <- c(99, 1, 2, 3, 97, 4, 5, 6, 100, 7, 8, 9, 98, 10, 11, 12, 24, 100, 13, 14, 15, 98, 16, 17, 18, 99, 19, 20, 21, 97, 22, 23, 35, 36, 98, 25, 26, 27, 97, 28, 29, 30, 99, 31, 32, 33, 100, 34, 46, 47, 48, 97, 37, 38, 39, 100, 40, 41, 42, 98, 43, 44, 45, 99, 100, 58, 59, 60, 99, 49, 50, 51, 97, 52, 53, 54, 98, 55, 56, 57, 69, 97, 70, 71, 72, 100, 61, 62, 63, 98, 64, 65, 66, 99, 67, 68, 80, 81, 98, 82, 83, 84, 99, 73, 74, 75, 97, 76, 77, 78, 100, 79, 91, 92, 93, 99, 94, 95, 96, 98, 85, 86, 87, 100, 88, 89, 90, 97)
+aug8x16adj2nonran1.plan <- aug8x16.plan
+#aug8x16adj2nonran1.plan$trt <- c(99, 1, 2, 3, 97, 4, 5, 6, 100, 7, 8, 9, 98, 10, 11, 12, 23, 24, 100, 13, 14, 15, 98, 16, 17, 18, 99, 19, 20, 21, 97, 22, 100, 34, 35, 36, 98, 25, 26, 27, 97, 28, 29, 30, 99, 31, 32, 33, 44, 45, 99, 46, 47, 48, 97, 37, 38, 39, 100, 40, 41, 42, 98, 43, 97, 55, 56, 57, 98, 58, 59, 60, 100, 49, 50, 51, 99, 52, 53, 54, 65, 66, 98, 67, 68, 69, 99, 70, 71, 72, 97, 61, 62, 63, 100, 64, 99, 76, 77, 78, 97, 79, 80, 81, 100, 82, 83, 84, 98, 73, 74, 75, 86, 87, 98, 88, 89, 90, 100, 91, 92, 93, 97, 94, 95, 96, 99, 85)
+aug8x16adj2nonran1.plan$trt <- c(99, 1, 2, 3, 97, 4, 5, 6, 100, 7, 8, 9, 98, 10, 11, 12, 23, 24, 100, 13, 14, 15, 98, 16, 17, 18, 99, 19, 20, 21, 97, 22, 98, 34, 35, 36, 97, 25, 26, 27, 99, 28, 29, 30, 100, 31, 32, 33, 44, 45, 97, 46, 47, 48, 100, 37, 38, 39, 98, 40, 41, 42, 99, 43, 100, 55, 56, 57, 99, 58, 59, 60, 97, 49, 50, 51, 98, 52, 53, 54, 65, 66, 97, 67, 68, 69, 100, 70, 71, 72, 98, 61, 62, 63, 99, 64, 98, 76, 77, 78, 99, 79, 80, 81, 97, 82, 83, 84, 100, 73, 74, 75, 86, 87, 99, 88, 89, 90, 98, 91, 92, 93, 100, 94, 95, 96, 97, 85)
+
+aug16x8.plan <- data.frame(
+row=c(1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16),
+col=c(1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8)
+)
+
+aug16x8.plan$blk <- ceiling(aug16x8.plan$row/2)
+aug16x8.plan$rep <- aug16x8.plan$blk
+
+aug16x8adj0nonran1 <- aug16x8.plan
+aug16x8adj0nonran1$trt <- c(99, 1, 2, 3, 97, 4, 5, 6, 100, 7, 8, 9, 98, 10, 11, 12, 100, 13, 14, 15, 98, 16, 17, 18, 99, 19, 20, 21, 97, 22, 23, 24, 98, 25, 26, 27, 97, 28, 29, 30, 99, 31, 32, 33, 100, 34, 35, 36, 97, 37, 38, 39, 100, 40, 41, 42, 98, 43, 44, 45, 99, 46, 47, 48, 100, 49, 50, 51, 99, 52, 53, 54, 97, 55, 56, 57, 98, 58, 59, 60, 97, 61, 62, 63, 100, 64, 65, 66, 98, 67, 68, 69, 99, 70, 71, 72, 98, 73, 74, 75, 99, 76, 77, 78, 97, 79, 80, 81, 100, 82, 83, 84, 99, 85, 86, 87, 98, 88, 89, 90, 100, 91, 92, 93, 97, 94, 95, 96)
+  
+aug16x8adj1nonran1 <- aug16x8.plan
+aug16x8adj1nonran1$trt <- c(99, 1, 2, 3, 97, 4, 5, 6, 12, 100, 7, 8, 9, 98, 10, 11, 17, 18, 100, 13, 14, 15, 98, 16, 22, 23, 24, 99, 19, 20, 21, 97, 98, 28, 29, 30, 97, 25, 26, 27, 33, 99, 34, 35, 36, 100, 31, 32, 38, 39, 97, 40, 41, 42, 100, 37, 43, 44, 45, 98, 46, 47, 48, 99, 100, 49, 50, 51, 99, 52, 53, 54, 60, 97, 55, 56, 57, 98, 58, 59, 65, 66, 97, 61, 62, 63, 100, 64, 70, 71, 72, 98, 67, 68, 69, 99, 98, 76, 77, 78, 99, 73, 74, 75, 81, 97, 82, 83, 84, 100, 79, 80, 86, 87, 99, 88, 89, 90, 98, 85, 91, 92, 93, 100, 94, 95, 96, 97)
+
+aug16x8adj2nonran1 <- aug16x8.plan
+aug16x8adj2nonran1$trt <- c(99, 1, 2, 3, 97, 4, 5, 6, 11, 12, 100, 7, 8, 9, 98, 10, 100, 16, 17, 18, 98, 13, 14, 15, 20, 21, 99, 22, 23, 24, 97, 19, 98, 25, 26, 27, 97, 28, 29, 30, 35, 36, 99, 31, 32, 33, 100, 34, 97, 40, 41, 42, 100, 37, 38, 39, 44, 45, 98, 46, 47, 48, 99, 43, 100, 49, 50, 51, 99, 52, 53, 54, 59, 60, 97, 55, 56, 57, 98, 58, 97, 64, 65, 66, 100, 61, 62, 63, 68, 69, 98, 70, 71, 72, 99, 67, 98, 73, 74, 75, 99, 76, 77, 78, 83, 84, 97, 79, 80, 81, 100, 82, 99, 88, 89, 90, 98, 85, 86, 87, 92, 93, 100, 94, 95, 96, 97, 91)
+
+aug32x4.plan <- data.frame(
+row=c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7,8,8,8,8,9,9,9,9,10,10,10,10,11,11,11,11,12,12,12,12,13,13,13,13,14,14,14,14,15,15,15,15,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,22,22,22,22,23,23,23,23,24,24,24,24,25,25,25,25,26,26,26,26,27,27,27,27,28,28,28,28,29,29,29,29,30,30,30,30,31,31,31,31,32,32,32,32),
+col=c(1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4)
+)
+
+aug32x4.plan$blk <- ceiling(aug32x4.plan$row/4)
+aug32x4.plan$rep <- aug32x4.plan$blk
+
+aug32x4adj0nonran1 <- aug32x4.plan
+aug32x4adj0nonran1$trt <- c(99, 1, 2, 3, 97, 4, 5, 6, 100, 7, 8, 9, 98, 10, 11, 12, 100, 13, 14, 15, 98, 16, 17, 18, 99, 19, 20, 21, 97, 22, 23, 24, 98, 25, 26, 27, 97, 28, 29, 30, 99, 31, 32, 33, 100, 34, 35, 36, 97, 37, 38, 39, 100, 40, 41, 42, 98, 43, 44, 45, 99, 46, 47, 48, 100, 49, 50, 51, 99, 52, 53, 54, 97, 55, 56, 57, 98, 58, 59, 60, 97, 61, 62, 63, 100, 64, 65, 66, 98, 67, 68, 69, 99, 70, 71, 72, 98, 73, 74, 75, 99, 76, 77, 78, 97, 79, 80, 81, 100, 82, 83, 84, 99, 85, 86, 87, 98, 88, 89, 90, 100, 91, 92, 93, 97, 94, 95, 96)
+  
+aug32x4adj1nonran1 <- aug32x4.plan
+aug32x4adj1nonran1$trt <- c(99, 1, 2, 3, 6, 97, 4, 5, 8, 9, 100, 7, 10, 11, 12, 98, 100, 13, 14, 15, 18, 98, 16, 17, 20, 21, 99, 19, 22, 23, 24, 97, 98, 25, 26, 27, 30, 97, 28, 29, 32, 33, 99, 31, 34, 35, 36, 100, 97, 37, 38, 39, 42, 100, 40, 41, 44, 45, 98, 43, 46, 47, 48, 99, 100, 49, 50, 51, 54, 99, 52, 53, 56, 57, 97, 55, 58, 59, 60, 98, 97, 61, 62, 63, 66, 100, 64, 65, 68, 69, 98, 67, 70, 71, 72, 99, 98, 73, 74, 75, 78, 99, 76, 77, 80, 81, 97, 79, 82, 83, 84, 100, 99, 85, 86, 87, 90, 98, 88, 89, 92, 93, 100, 91, 94, 95, 96, 97)
+
+aug32x4adj2nonran1 <- aug32x4.plan
+aug32x4adj2nonran1$trt <- c(99, 1, 2, 3, 5, 6, 97, 4, 100, 7, 8, 9, 11, 12, 98, 10, 100, 13, 14, 15, 17, 18, 98, 16, 99, 19, 20, 21, 23, 24, 97, 22, 98, 25, 26, 27, 29, 30, 97, 28, 99, 31, 32, 33, 35, 36, 100, 34, 97, 37, 38, 39, 41, 42, 100, 40, 98, 43, 44, 45, 47, 48, 99, 46, 100, 49, 50, 51, 53, 54, 99, 52, 97, 55, 56, 57, 59, 60, 98, 58, 97, 61, 62, 63, 65, 66, 100, 64, 98, 67, 68, 69, 71, 72, 99, 70, 98, 73, 74, 75, 77, 78, 99, 76, 97, 79, 80, 81, 83, 84, 100, 82, 99, 85, 86, 87, 89, 90, 98, 88, 100, 91, 92, 93, 95, 96, 97, 94)
+```
+
+Now we overlay each plan onto the example field. This will impute yields for each plot.
+
+```{r}
+if(!file.exists("simulations.dat.Rda")) {
+  if(!file.exists("trimmed.dat.Rda")) {
+    raw.dat <- read.csv("./data/sdsu/Swest_Corn2013-Clean.csv", header = TRUE)
+
+    response <- "YldVolDry"
+    hist(raw.dat[,response],main=response)
+
+    minLon <- min(raw.dat$Longitude)
+    maxLon <- max(raw.dat$Longitude)
+    minLat <- min(raw.dat$Latitude)
+    maxLat <- max(raw.dat$Latitude)
+
+    northBorder <- maxLat - 0.06*(maxLat-minLat)
+    southBorder <- minLat + 0.09*(maxLat-minLat)
+    eastBorder <- maxLon - 0.02*(maxLon-minLon)
+    westBorder <- minLon + 0.02*(maxLon-minLon)
+
+    trimmed.dat <- subset(raw.dat,raw.dat$Latitude>=southBorder)
+    trimmed.dat <- subset(trimmed.dat,trimmed.dat$Latitude<=northBorder)
+    trimmed.dat <- subset(trimmed.dat,trimmed.dat$Longitude<=eastBorder)
+    trimmed.dat <- subset(trimmed.dat,trimmed.dat$Longitude>=westBorder)
+
+    ggplot(trimmed.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = YldVolDry),size = 1)
+
+    trimmed.dat$LonM <- trimmed.dat$Longitude - min(trimmed.dat$Longitude)
+    trimmed.dat$LatM <- trimmed.dat$Latitude - min(trimmed.dat$Latitude)
+    latMid <- (min(trimmed.dat$Latitude) + max(trimmed.dat$Latitude))/2
+    m_per_deg_lat = 111132.954 - 559.822 * cos( 2.0 * latMid ) + 1.175 * cos( 4.0 * latMid)
+    m_per_deg_lon = (3.14159265359/180 ) * 6367449 * cos ( latMid )
+    trimmed.dat$LonM <- trimmed.dat$LonM*m_per_deg_lon
+    trimmed.dat$LatM <- trimmed.dat$LatM*m_per_deg_lat
+    ggplot(trimmed.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 1)
+    save(trimmed.dat,file="trimmed.dat.Rda")
+  } else {
+    load(file="trimmed.dat.Rda")
+  }
+  if(is.null(sample.vgm)) {
+      library(gstat)
+  sample.var <- variogram(YldVolDry~1, 
+                        locations=~LonM+LatM, 
+                        data=trimmed.dat)
+  sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
+  }
+
+
+  plan.list <- list(
+    aug8x16adj0nonran1.plan=aug8x16adj0nonran1.plan,
+    aug8x16adj1nonran1.plan=aug8x16adj1nonran1.plan,
+    aug8x16adj2nonran1.plan=aug8x16adj2nonran1.plan,
+    aug16x8adj0nonran1=aug16x8adj0nonran1,
+    aug16x8adj1nonran1=aug16x8adj1nonran1,
+    aug16x8adj2nonran1=aug16x8adj2nonran1,
+    aug32x4adj0nonran1=aug32x4adj0nonran1,
+    aug32x4adj1nonran1=aug32x4adj1nonran1,
+    aug32x4adj2nonran1=aug32x4adj2nonran1
+  )
+  
+  block.list <- c(16,16,16,8,8,8,4,4,4)
+  #names(block.list) <- names(plan.list)
+  stagger.list <- c(0,1,2,0,1,2,0,1,2)
+  #names(stagger.list) <- names(stagger.list)
+
+  simulations.dat <- simulate.plans(plan.list,trimmed.dat,sample.vgm=sample.vgm,
+                                    plot.dim=arm.plot.dim, row.buffer=arm.row.buffer)
+  
+  simulations.dat$points$blocksize <- block.list[simulations.dat$points$plan]
+  simulations.dat$points$stagger <- stagger.list[simulations.dat$points$plan]
+  
+  simulations.dat$aov$blocksize <- block.list[simulations.dat$aov$plan]
+  simulations.dat$aov$stagger <- stagger.list[simulations.dat$aov$plan]
+  
+  simulations.dat$points$plan <- as.factor(names(plan.list)[simulations.dat$points$plan])
+  
+  save(simulations.dat,file="simulations.dat.Rda")
+} else {
+  
+  load(file="simulations.dat.Rda")
+} 
+  aug8x16adj0.dat <- subset(simulations.dat$points,simulations.dat$points$blocksize==16 & simulations.dat$points$stagger==0)
+  aug8x16adj1.dat <- subset(simulations.dat$points,simulations.dat$points$blocksize==16 & simulations.dat$points$stagger==1)
+  aug8x16adj2.dat <- subset(simulations.dat$points,simulations.dat$points$blocksize==16 & simulations.dat$points$stagger==2)
+  
+  aug16x8adj0.dat <- subset(simulations.dat$points,simulations.dat$points$blocksize==8 & simulations.dat$points$stagger==0)
+  aug16x8adj1.dat <- subset(simulations.dat$points,simulations.dat$points$blocksize==8 & simulations.dat$points$stagger==1)
+  aug16x8adj2.dat <- subset(simulations.dat$points,simulations.dat$points$blocksize==8 & simulations.dat$points$stagger==2)
+  
+  aug32x4adj0.dat <- subset(simulations.dat$points,simulations.dat$points$blocksize==4 & simulations.dat$points$stagger==0)
+  aug32x4adj1.dat <- subset(simulations.dat$points,simulations.dat$points$blocksize==4 & simulations.dat$points$stagger==1)
+  aug32x4adj2.dat <- subset(simulations.dat$points,simulations.dat$points$blocksize==4 & simulations.dat$points$stagger==2)
+```
+
+```{r}
+simulations.dat$points <- subset(simulations.dat$points,!is.na(simulations.dat$points$YldVolDry))
+```
+
+#Examine the trial maps.
+```{r}
+aug8x16adj0.dat$check <- as.factor(aug8x16adj0.dat$trt %in% checks)
+
+ggplot(aug8x16adj0.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(aug8x16adj0.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug8x16adj0.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+
+
+
+aug8x16adj1.dat$check <- as.factor(aug8x16adj1.dat$trt %in% checks)
+ggplot(aug8x16adj1.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug8x16adj1.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+
+
+
+aug8x16adj2.dat$check <- as.factor(aug8x16adj2.dat$trt %in% checks)
+ggplot(aug8x16adj2.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug8x16adj2.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+
+
+aug16x8adj0.dat$check <- as.factor(aug16x8adj0.dat$trt %in% checks)
+ggplot(aug16x8adj0.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(aug16x8adj0.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug16x8adj0.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+
+aug16x8adj1.dat$check <- as.factor(aug16x8adj1.dat$trt %in% checks)
+
+ggplot(aug16x8adj1.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug16x8adj1.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+
+aug16x8adj2.dat$check <- as.factor(aug16x8adj2.dat$trt %in% checks)
+
+ggplot(aug16x8adj2.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug16x8adj2.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+
+aug32x4adj0.dat$check <- as.factor(aug32x4adj0.dat$trt %in% checks)
+
+ggplot(aug32x4adj0.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(aug32x4adj0.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug32x4adj0.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+
+aug32x4adj1.dat$check <- as.factor(aug32x4adj1.dat$trt %in% checks)
+
+ggplot(aug32x4adj1.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug32x4adj1.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+
+aug32x4adj2.dat$check <- as.factor(aug32x4adj2.dat$trt %in% checks)
+
+ggplot(aug32x4adj2.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(aug32x4adj2.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+```
+
+### Compare Analysis
+
+Create a data set
+
+```{r}
+simulations.dat$points$blocksize <- as.factor(simulations.dat$points$blocksize)
+simulations.dat$points$stagger <- as.factor(simulations.dat$points$stagger)
+
+simulations.dat$points$number <- as.factor(simulations.dat$points$number)
+simulations.dat$points$blk <- as.factor(simulations.dat$points$blk)
+simulations.dat$points$experiment <- simulations.dat$points$number:simulations.dat$points$blocksize:simulations.dat$points$stagger
+
+simulations.dat$points$trtIdx <- as.numeric(as.character(simulations.dat$points$trt))
+checks.dat <- subset(simulations.dat$points,simulations.dat$points$trt %in% checks)
+
+simulations.dat$points$trt <- as.factor(simulations.dat$points$trt)
+```
+
+Define a function for single trial analysis. This make assumptions about that the data frame provided comes from simulations.dat
+
+
+```{r}
+single.analysis <- function(current, vEffects) {
+  
+  #block <- current$blk
+  #trt <- current$trt
+  #Yield <- current$SimYield
+  
+  #current.test <- DAU.test(block=block, trt=trt, y=Yield, method="lsd", group=TRUE)
+  #current.effects <- current.test$means$mean.adj-mean(current.test$means$mean.adj)
+    
+  #trtidx <- as.numeric(rownames(current.test$means))
+  #unrepmask <- !(trtidx %in% 97:100)
+  #deviations <- (current.effects - vEffects)
+  #unrep.deviations <- deviations[unrepmask]
+  #check.deviations <- deviations[(trtidx %in% 97:100)]
+    
+    means <- data.frame(
+  #    adjmeans = current.effects,
+  #    treatment = rownames(current.test$means),
+  #    refmeans=vEffects,
+  #    number=rep(current$number[1],length(current.effects)),
+       number=rep(current$number[1],3)
+  #    blocksize=rep(blksize,length(current.effects)),
+  #    stagger=rep(stagger,length(current.effects))
+    )
+
+    sim.lma <- lm(SimYield ~ trt + blk,data=current)
+    sim.lmb <- lm(SimYield ~ blk + trt,data=current)
+    
+    aova <- anova(sim.lma)
+    aovb <- anova(sim.lmb)
+    
+    lma <- lm(YldVolDry ~ trt + blk,data=current)
+    lmb <- lm(YldVolDry ~ blk + trt,data=current)
+    
+    base.aova <- anova(lma)
+    base.aovb <- anova(lmb)
+
+    base.trend <- lm(YldVolDry ~ trt + LonM + LatM + I(LonM^2) +  I(LatM^2) + I(LonM*LatM) +
+                       I(LonM^3) + I(LatM^3) + I(LonM*LonM*LatM) + I(LonM*LatM*LatM), data=current)
+    aug.trend <- lm(SimYield ~ trt + LonM + LatM + I(LonM^2) +  I(LatM^2) + I(LonM*LatM) +
+                       I(LonM^3) + I(LatM^3) + I(LonM*LonM*LatM) + I(LonM*LatM*LatM), data=current)
+
+    
+    base.tbl <- anova(base.trend)
+    aug.tbl <- anova(aug.trend)
+  
+    maxtrt <- length(levels(current$trt))
+    
+    base.coefs <- coef(base.trend)
+    trtBase <- sum(base.coefs[2:maxtrt])/(maxtrt-1)
+    base.coefs <- base.coefs[c((maxtrt+1):length(base.coefs),1)]
+    aug.coefs <- coef(aug.trend)
+    trtBase <- sum(aug.coefs[2:maxtrt])/(maxtrt-1)
+    aug.coefs <- aug.coefs[c((maxtrt+1):length(aug.coefs),1)]
+    
+    lat <- current$LatM
+    lon <- current$LonM
+    
+    lon2 <- lon*lon
+    lat2 <- lat*lat
+    lon3 <- lon*lon2
+    lat3 <- lat*lat2
+    lonlat <- lon*lat
+    
+   base.field <- lon*base.coefs[1] + lat*base.coefs[2] + 
+                 lon2*base.coefs[3] + lat2*base.coefs[4] + lonlat*base.coefs[5] +
+                 lon3*base.coefs[6] + lat3*base.coefs[7] + lon*lonlat*base.coefs[8] + lonlat*lat*base.coefs[9] + base.coefs[10]
+   aug.field <- lon*aug.coefs[1] + lat*aug.coefs[2] + 
+                 lon2*aug.coefs[3] + lat2*aug.coefs[4] + lonlat*aug.coefs[5] +
+                 lon3*aug.coefs[6] + lat3*aug.coefs[7] + lon*lonlat*aug.coefs[8] + lonlat*lat*aug.coefs[9]+ aug.coefs[10] 
+
+    base.diffs <- current$YldVolDry-base.field
+    aug.diffs <- current$YldVolDry-aug.field
+    
+    base.sums <- sum(base.diffs*base.diffs)
+    #base.mse <- sums/(length(base.diffs)-1)
+    
+    aug.sums <- sum(aug.diffs*aug.diffs)
+    #aug.mse <- aug.sums/(length(aug.diffs)-1)
+    
+    base.mse <- base.sums/(length(base.diffs)-1)
+    aug.mse <- aug.sums/(length(aug.diffs)-1)
+    
+    field.difs <- base.field - aug.field
+    field.sums <- sum(field.difs*field.difs)
+   
+    summary <- data.frame(
+  #    devmean=mean(unrep.deviations),
+  #    devsd=sd(unrep.deviations),
+  #    check.devmean=mean(check.deviations),
+  #    check.devsd=sd(check.deviations),
+    
+   # comparison.err1=current.test$SE.difference[1],
+  #  comparison.err2=current.test$SE.difference[2],
+  #  comparison.err3=current.test$SE.difference[3],
+  #  comparison.err4=current.test$SE.difference[4],
+    number=current$number[1],
+     field.mse=field.sums/(length(field.difs)-1),
+          
+      SimTrtMSI=aova[[1,3]],
+    SimTrtMSIII=aovb[[2,3]],
+    SimResMS=aova[[3,3]],
+    SimPI=aova[[1,5]],
+    SimPIII=aovb[[2,5]],
+    SimErrorDF=aova[[3,1]],
+    BaseTrtMSI=base.aova[[1,3]],
+    BaseTrtMSIII=base.aovb[[2,3]],
+    BaseResMS=base.aova[[3,3]],
+    BasePI=base.aova[[1,5]],
+    BasePIII=base.aovb[[2,5]],
+    BaseErrorDF=base.aova[[3,1]]
+    )
+    
+    if(dim(base.tbl)[1]>10) {
+      summary$SimTrendErrorMS <- aug.tbl[[11,3]]
+      summary$BaseTrendErrorMS <- base.tbl[[11,3]]
+      summary$SimTrendTrtMS <- aug.tbl[[1,3]]
+      summary$SimTrendP <- aug.tbl[[1,5]]
+      summary$BaseTrendTrtMS <- base.tbl[[1,3]]
+      summary$BaseTrendP <- base.tbl[[1,5]]
+    
+      summary$SimTrendErrorDF <- aug.tbl[[11,1]]
+      summary$BaseTrendErrorDF <- base.tbl[[11,1]]
+    } else {
+      summary$SimTrendErrorMS <- NA
+      summary$BaseTrendErrorMS <- NA
+      summary$SimTrendTrtMS <- NA
+      summary$SimTrendP <- NA
+      summary$BaseTrendTrtMS <- NA
+      summary$BaseTrendP <- NA
+      summary$SimTrendErrorDF <- NA
+      summary$BaseTrendErrorDF <- NA
+   }
+    
+   predicted <- data.frame(
+      YldTrend=base.trend$fitted.values,
+      AugTrend=aug.trend$fitted.values,
+      BaseField=base.field,
+      AugField=aug.field
+    )
+
+   return(list(predicted=predicted,
+               means=means,
+               summary=summary))
+    
+  }
+
+```
+
+
+```{r}
+commonvEffects <- c(rnorm(96, 0, sd(federerEffects)), controlEffects)
+
+if(! file.exists("compmeans.dat.Rda")) {
+  
+  library(agricolae)
+  for(i in 1:1) {
+    #vEffects <- rnorm(100, 0, sd(federerEffects))
+    simulations.dat$points$SimYield <- simulations.dat$points$YldVolDry + commonvEffects[simulations.dat$points$trtIdx]
+
+    compsim.dat <- NULL
+    compmeans.dat <- NULL
+
+    for (trial in levels(simulations.dat$points$experiment)) {
+      current.dat <- subset(simulations.dat$points, simulations.dat$points$experiment==trial)
+  
+      if(length(current.dat$number)>0) {
+    
+        Experiment <- as.character(trial)
+    
+        blocksize <- as.character(current.dat$blocksize[1])
+        stagger <- as.character(current.dat$stagger[1])
+    
+        current.analysis <- single.analysis(current.dat,vEffects)
+    
+        current.analysis$summary$Experiment <- Experiment
+        current.analysis$summary$blocksize <- blocksize
+        current.analysis$summary$stagger <- stagger
+
+        current.analysis$means$blocksize <- blocksize
+        current.analysis$means$stagger <- stagger
+        
+        simulations.dat$points$YldTrend[simulations.dat$points$experiment==trial] <- current.analysis$predicted$YldTrend
+        simulations.dat$points$AugTrend[simulations.dat$points$experiment==trial] <- current.analysis$predicted$AugTrend
+    
+        simulations.dat$points$BaseField[simulations.dat$points$experiment==trial] <- current.analysis$predicted$BaseField
+        simulations.dat$points$AugField[simulations.dat$points$experiment==trial] <- current.analysis$predicted$AugField
+    
+        if(is.null(compsim.dat)) {
+          compsim.dat <- current.analysis$summary
+        } else {
+          compsim.dat <- rbind(compsim.dat,current.analysis$summary)
+        }
+    
+        if(is.null(compmeans.dat)) {
+          compmeans.dat <- current.analysis$means
+        } else {
+          compmeans.dat <- rbind(compmeans.dat,current.analysis$means)
+        }
+      }
+    }
+  }
+  save(compmeans.dat,file="compmeans.dat.Rda")
+  save(compsim.dat,file="compsim.dat.Rda")
+} else {
+  load(file="compmeans.dat.Rda")
+  load(file="compsim.dat.Rda")
+}
+```
+
+```{r}
+compsim.dat$blocksize <- as.factor(compsim.dat$blocksize)
+compsim.dat$stagger <- as.factor(compsim.dat$stagger)
+
+compmeans.dat$blocksize <- as.factor(compmeans.dat$blocksize)
+compmeans.dat$stagger <- as.factor(compmeans.dat$stagger)
+
+compsim.dat$settings <- compsim.dat$blocksize:compsim.dat$stagger
+#compmeans.dat$meandif <- compmeans.dat$adjmeans - compmeans.dat$refmeans
+compmeans.dat$settings <- compmeans.dat$blocksize:compmeans.dat$stagger
+```
+
+
+ggplot(compsim.dat, aes(comparison.err4,color=stagger,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(compsim.dat, aes(comparison.err4,color=blocksize,linetype=blocksize)) + stat_density(geom="line",position="identity",size=1)
+
+
+ggplot(compsim.dat, aes(comparison.err1,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsim.dat, aes(comparison.err4,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+
+
+ggplot(compmeans.dat, aes(meandif,linetype=stagger,color=blocksize)) + stat_density(geom="line",position="identity",size=1)
+tapply(compmeans.dat$meandif,list(compmeans.dat$blocksize,compmeans.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(devmean,linetype=stagger,color=blocksize)) + stat_density(geom="line",position="identity",size=1)
+
+tapply(compsim.dat$devmean,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$devmean,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(devsd,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$devsd,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$devsd,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+tapply(compsim.dat$devsd,list(compsim.dat$blocksize,compsim.dat$stagger),length)
+
+#ggplot(compmeans.dat, aes(as.factor(refmeans),adjmeans)) + #geom_point(aes(color=meanspln),size=2) +
+#geom_boxplot(aes(fill = stagger)) 
+
+ggplot(compmeans.dat, aes(refmeans,adjmeans)) + geom_point(aes(color=stagger),size=1)
+ggplot(compmeans.dat, aes(refmeans,adjmeans)) + geom_point(aes(color=blocksize),size=1)
+
+
+```{r}
+ggplot(compsim.dat, aes(field.mse,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$field.mse,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$field.mse,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+```
+
+
+ggplot(compsim.dat, aes(base.mse,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$base.mse,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$base.mse,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(aug.mse,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$aug.mse,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$aug.mse,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+
+```{r}
+ggplot(compsim.dat, aes(SimTrtMSI,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$SimTrtMSI,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$SimTrtMSI,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(SimTrtMSIII,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$SimTrtMSIII,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$SimTrtMSIII,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+compsim.dat$SimTrtRatio <- compsim.dat$SimTrtMSI/compsim.dat$SimTrtMSIII
+ggplot(compsim.dat, aes(SimTrtRatio,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$SimTrtRatio,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$SimTrtRatio,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(SimResMS,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$SimResMS,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$SimResMS,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(log(SimPI),color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$SimPI,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$SimPI,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(log(SimPIII),color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(log(compsim.dat$SimPIII),list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(log(compsim.dat$SimPIII),list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+subset(compsim.dat,compsim.dat$SimPIII>0.05)
+subset(compsim.dat,compsim.dat$BasePIII<0.05)
+
+compsim.dat$TypeIIError <- compsim.dat$SimPIII>0.05
+compsim.dat$TypeIError <- compsim.dat$BasePIII<0.05
+
+counts <- tapply(compsim.dat$TypeIIError,list(compsim.dat$blocksize,compsim.dat$stagger),length)
+
+tapply(compsim.dat$TypeIIError,list(compsim.dat$blocksize,compsim.dat$stagger),sum)
+tapply(compsim.dat$TypeIIError,list(compsim.dat$blocksize,compsim.dat$stagger),sum)/counts
+tapply(compsim.dat$TypeIError,list(compsim.dat$blocksize,compsim.dat$stagger),sum)
+tapply(compsim.dat$TypeIError,list(compsim.dat$blocksize,compsim.dat$stagger),sum)/counts
+
+
+compsim.dat$SimPRatio <- compsim.dat$SimPI/compsim.dat$SimPIII
+ggplot(compsim.dat, aes(SimPRatio,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$SimPRatio,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$SimPRatio,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(SimTrtMSIII,SimTrtMSI)) + geom_point(aes(color=stagger),size=1)
+ggplot(compsim.dat, aes(SimTrtMSIII,SimTrtMSI)) + geom_point(aes(color=blocksize),size=1)
+
+ggplot(compsim.dat, aes(SimPIII,SimPI)) + geom_point(aes(color=stagger),size=1)
+ggplot(compsim.dat, aes(SimPIII,SimPI)) + geom_point(aes(color=blocksize),size=1)
+
+ggplot(compsim.dat, aes(BaseTrtMSI,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$BaseTrtMSI,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$BaseTrtMSI,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(BaseTrtMSIII,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$BaseTrtMSIII,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$BaseTrtMSIII,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(BaseTrtMSIII,BaseTrtMSI)) + geom_point(aes(color=stagger),size=1)
+ggplot(compsim.dat, aes(BaseTrtMSIII,BaseTrtMSI)) + geom_point(aes(color=blocksize),size=1)
+
+compsim.dat$BaseTrtRatio <- compsim.dat$BaseTrtMSI/compsim.dat$BaseTrtMSIII
+ggplot(compsim.dat, aes(BaseTrtRatio,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$BaseTrtRatio,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$BaseTrtRatio,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(BaseResMS,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$BaseResMS,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$BaseResMS,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(BasePI,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsim.dat, aes(log(BasePI),color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$BasePI,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$BasePI,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(BasePIII,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsim.dat, aes(log(BasePIII),color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$BasePIII,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$BasePIII,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+compsim.dat$BasePRatio <- compsim.dat$BasePI/compsim.dat$BasePIII
+ggplot(compsim.dat, aes(BasePRatio,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsim.dat$BasePRatio,list(compsim.dat$blocksize,compsim.dat$stagger),mean)
+tapply(compsim.dat$BasePRatio,list(compsim.dat$blocksize,compsim.dat$stagger),sd)
+
+ggplot(compsim.dat, aes(BasePI,BasePIII)) + geom_point(aes(color=stagger),size=1)
+ggplot(compsim.dat, aes(BasePI,BasePIII)) + geom_point(aes(color=blocksize),size=1)
+
+
+
+ggplot(compsim.dat, aes(SimTrendTrtMS,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsim.dat, aes(SimTrendErrorMS,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsim.dat, aes(log(SimTrendP),color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsim.dat, aes(BaseTrendTrtMS,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsim.dat, aes(BaseTrendErrorMS,color=blocksize,linetype=stagger)) + 
+  stat_density(geom="line",position="identity",size=1)
+ggplot(compsim.dat, aes(log(BaseTrendP),color=blocksize,linetype=stagger)) +  stat_density(geom="line",position="identity",size=1)
+```
+
+Treatment Dispersion
+--------------------
+
+Write a generic function to compare a list of plans.
+
+```{r}
+plan.list <- list(
+  aug8x16adj0nonran1.plan=aug8x16adj0nonran1.plan,
+  aug8x16adj1nonran1.plan=aug8x16adj1nonran1.plan,
+  aug8x16adj2nonran1.plan=aug8x16adj2nonran1.plan,
+
+  aug16x8adj0nonran1.plan=aug8x16adj0nonran1.plan,
+  aug16x8adj1nonran1.plan=aug8x16adj1nonran1.plan,
+  aug16x8adj2nonran1.plan=aug8x16adj2nonran1.plan,
+  
+  aug32x4adj0nonran1.plan=aug8x16adj0nonran1.plan,
+  aug32x4adj1nonran1.plan=aug8x16adj1nonran1.plan,
+  aug32x4adj2nonran1.plan=aug8x16adj2nonran1.plan
+)
+set1.settings <- data.frame(
+  adj = c(0,1,2,0,1,2,0,1,2),
+  nonran=c(rep(1,9)),
+  blksize = c(16,16,16,8,8,8,4,4,4)
+)
+rownames(set1.settings) <- names(plan.list)
+```
+
+```{r}
+compare.dispersions <- function(pln.list, settings=NULL, contrast.fn=NULL, subset.fn=NULL, plot.dim=c(1,1), row.buffer=c(0,0)) {
+  ret.pairs <- NULL
+  ret.contrast <- NULL
+  ret.table <- NULL
+  
+  plan.names <- names(pln.list)
+  
+    dist.means <- c()
+    dist.sd <- c()
+    dist.contrast <- c()
+    dist.plan <- c()
+    
+  for (idx in 1:length(pln.list)) {
+    current.plan <- pln.list[[idx]]
+    current.pairs <- pair.distances(current.plan, plot.dim=plot.dim, row.buffer=row.buffer)
+    rows <- dim(current.pairs)[1]
+    #assign contrasts if a function is given
+    if(!is.null(contrast.fn)) {
+      current.pairs$contrast.type <- "check"
+      for(row in 1:rows) {
+        current.pairs$contrast.type[row] <- contrast.fn(current.pairs$trt1[row], current.pairs$trt2[row])
+      }
+      current.pairs$contrast.type <- as.factor(current.pairs$contrast.type)
+    }
+    
+    #subset if a function is given
+    if(!is.null(subset.fn)) {
+      current.pairs <- subset(current.pairs,subset.fn(current.pairs))
+    }
+    
+    last.col <- dim(current.pairs)[2] + 1
+    rows <- dim(current.pairs)[1]
+    
+    current.pairs[,last.col] <- rep(plan.names[idx],rows)
+    pairs.names <- names(current.pairs)
+    pairs.names[last.col] <- "plan"
+    names(current.pairs) <- pairs.names
+    last.col <- last.col+1
+    if(!is.null(settings)) {
+      current.settings <- settings[plan.names[idx],]
+      settings.names <- names(settings)
+      for(sidx in 1:length(current.settings)) {
+        current.pairs[,last.col] <- rep(current.settings[sidx],rows)
+        pairs.names <- names(current.pairs)
+        pairs.names[last.col] <- settings.names[sidx]
+        names(current.pairs) <- pairs.names
+        last.col <- last.col+1
+      }
+    }
+    
+    #now compute tables for each type of contrast
+    contrast.types <- levels(current.pairs$contrast.type) 
+    
+    for(ct in contrast.types) {
+      current.subset <- subset(current.pairs,current.pairs$contrast.type==ct)
+      current.table <- make.pairs.table(current.subset)
+      current.mat <- make.pairs.matrices(current.table)
+      current.means <- apply(current.mat$mean,1,mean,na.rm=TRUE)
+      dist.means <- c(dist.means,current.means)
+      dist.sd <- c(dist.sd,apply(current.mat$mean,1,sd,na.rm=TRUE))
+      #dist.sd <- c(dist.sd,sd(apply(current.mat$mean,1,mean,na.rm=TRUE),na.rm=TRUE))
+      dist.contrast <- c(dist.contrast,rep(as.character(ct),length(current.means)))
+      dist.plan <- c(dist.plan,rep(plan.names[idx],length(current.means)))
+    }
+    
+
+    if(is.null(ret.pairs)) {
+      ret.pairs <- current.pairs
+    } else {
+      ret.pairs <- rbind(current.pairs,ret.pairs)
+    }
+  }
+  
+  return(list(pairs=ret.pairs,
+              summary=data.frame(
+                mean=dist.means,
+                sd = dist.sd,
+                contrast = dist.contrast,
+                plan = dist.plan)
+    ))
+}
+
+contrast.type <- function(trt1, trt2) {
+  t1 <- as.numeric(trt1)
+  t2 <- as.numeric(trt2)
+  if((t1 %in% checks) && (t2 %in% checks)) {
+    return("check")
+  } else if(!(t1 %in% checks) && !(t2 %in% checks)) {
+    return("unrep")
+  } else {
+    return("mixed")
+  }
+}
+
+subset.function <- function(frame) {
+  return(frame$rep1==frame$rep2)
+}
+
+contrast.fn <- contrast.type
+subset.fn <- subset.function
+
+pln.list <- plan.list
+settings <- set1.settings
+comp <- compare.dispersions(plan.list,set1.settings,
+                            contrast.fn=contrast.type,subset.fn=subset.function,
+                            plot.dim=arm.plot.dim,row.buffer=arm.row.buffer)
+
+all.pairs <- comp$pairs
+all.summary <- comp$summary
+all.summary$adjacency <- as.factor(set1.settings$adj[all.summary$plan])
+all.summary$blocksize <- as.factor(set1.settings$blksize[all.summary$plan])
+all.pairs$plan <- as.factor(all.pairs$plan)
+all.pairs$contrast.type <- as.factor(all.pairs$contrast.type)
+
+tapply(all.pairs$distance,list(all.pairs$plan,all.pairs$contrast.type),mean)
+tapply(all.pairs$distance,list(all.pairs$plan,all.pairs$contrast.type),sd)
+all.summary <- subset(all.summary,!is.na(all.summary$sd))
+tapply(all.summary$mean,list(all.summary$plan,all.summary$contrast),mean)
+tapply(all.summary$mean,list(all.summary$plan,all.summary$contrast),sd)
+
+ggplot(all.summary, aes(mean,color=adjacency,linetype=blocksize)) + stat_density(geom="line",position="identity")
+ggplot(subset(all.summary,all.summary$contrast=="mixed"), aes(mean,color=adjacency,linetype=blocksize)) + stat_density(geom="line",position="identity")
+```
+
+All plots
+
+```{r}
+comp <- compare.dispersions(plan.list,set1.settings,contrast.fn=contrast.type,
+                            plot.dim=arm.plot.dim,row.buffer=arm.row.buffer)
+
+all.pairs <- comp$pairs
+all.summary <- comp$summary
+all.summary$adjacency <- as.factor(set1.settings$adj[all.summary$plan])
+all.summary$blocksize <- as.factor(set1.settings$blksize[all.summary$plan])
+all.pairs$plan <- as.factor(all.pairs$plan)
+all.pairs$contrast.type <- as.factor(all.pairs$contrast.type)
+
+tapply(all.pairs$distance,list(all.pairs$plan,all.pairs$contrast.type),mean)
+tapply(all.pairs$distance,list(all.pairs$plan,all.pairs$contrast.type),sd)
+all.summary <- subset(all.summary,!is.na(all.summary$sd))
+tapply(all.summary$mean,list(all.summary$plan,all.summary$contrast),mean)
+tapply(all.summary$mean,list(all.summary$plan,all.summary$contrast),sd)
+
+ggplot(all.summary, aes(mean,color=adjacency,linetype=blocksize)) + stat_density(geom="line",position="identity")
+ggplot(subset(all.summary,all.summary$contrast=="mixed"), aes(mean,color=adjacency,linetype=blocksize)) + stat_density(geom="line",position="identity")
+```
+
+
+### Compare the different 8x16 plans
+
+```{r}
+aug8x16crd.plan <- aug8x16.plan
+aug8x16crd.plan$trt <- c(1, 99, 2, 3, 97, 5, 4, 100, 7, 98, 6, 9, 10, 11, 8, 12, 13, 15, 14, 100, 98, 16, 17, 18, 19, 99, 97, 21, 22, 20, 23, 24, 98, 26, 25, 27, 28, 29, 97, 30, 31, 32, 35, 33, 34, 99, 36, 100, 97, 37, 38, 100, 40, 98, 41, 42, 99, 39, 44, 45, 46, 43, 47, 48, 49, 50, 55, 51, 52, 53, 100, 54, 99, 56, 58, 57, 97, 98, 59, 60, 61, 62, 97, 63, 100, 64, 98, 66, 67, 65, 68, 69, 99, 70, 71, 72, 73, 74, 81, 75, 76, 77, 98, 78, 79, 80, 82, 99, 97, 100, 83, 84, 85, 87, 86, 99, 88, 90, 89, 98, 91, 96, 92, 93, 94, 100, 95, 97)
+
+aug8x16adj0nonran0.plan <- aug8x16.plan
+aug8x16adj0nonran0.plan$trt <- c(1, 2, 99, 3, 4, 5, 97, 6, 7, 8, 100, 9, 10, 11, 98, 12, 13, 14, 100, 15, 16, 17, 98, 18, 19, 20, 99, 21, 22, 23, 97, 24, 25, 26, 98, 27, 28, 29, 97, 30, 31, 32, 99, 33, 34, 35, 100, 36, 37, 38, 97, 39, 40, 41, 100, 42, 43, 44, 98, 45, 46, 47, 99, 48, 49, 50, 100, 51, 52, 53, 99, 54, 55, 56, 97, 57, 58, 59, 98, 60, 61, 62, 97, 63, 64, 65, 100, 66, 67, 68, 98, 69, 70, 71, 99, 72, 73, 74, 98, 75, 76, 77, 99, 78, 79, 80, 97, 81, 82, 83, 100, 84, 85, 86, 99, 87, 88, 89, 98, 90, 92, 91, 100, 93, 94, 95, 97, 96)
+
+aug8x16adj0nonran0b.plan <- aug8x16.plan
+aug8x16adj0nonran0b.plan$trt <- c(1, 2, 99, 3, 4, 5, 97, 6, 7, 8, 100, 9, 10, 11, 98, 12, 13, 100, 14, 15, 16, 98, 17, 18, 19, 99, 20, 21, 22, 97, 23, 24, 25, 26, 98, 27, 28, 29, 97, 30, 31, 32, 99, 33, 34, 35, 100, 36, 37, 97, 38, 39, 40, 100, 41, 42, 43, 98, 44, 45, 46, 99, 47, 48, 49, 50, 100, 51, 52, 53, 99, 54, 55, 56, 97, 57, 58, 59, 98, 60, 61, 97, 62, 63, 64, 100, 65, 66, 67, 98, 68, 69, 70, 99, 71, 72, 73, 74, 98, 75, 76, 77, 99, 78, 79, 80, 97, 81, 82, 83, 100, 84, 85, 99, 86, 87, 88, 98, 89, 90, 91, 100, 92, 93, 94, 97, 95, 96)
+```
+
+
+```{r}
+planb.list <- list(
+  aug8x16adj0nonran1.plan=aug8x16adj0nonran1.plan,
+  aug8x16crd.plan=aug8x16crd.plan,
+  aug8x16adj0nonran0.plan=aug8x16adj0nonran0.plan,
+  aug8x16adj0nonran0b.plan=aug8x16adj0nonran0b.plan
+)
+
+if(!file.exists("simulationsb.dat.Rda")) {
+  
+  load(file="trimmed.dat.Rda")
+  if(is.null(sample.vgm)) {
+    library(gstat)
+    sample.var <- variogram(YldVolDry~1, 
+                        locations=~LonM+LatM, 
+                        data=trimmed.dat)
+    sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
+  }
+
+  
+  arrangement.list <- c("left", "random", "centered", "jittered")
+
+  simulationsb.dat <- simulate.plans(planb.list,trimmed.dat,sample.vgm=sample.vgm,
+                                    plot.dim=arm.plot.dim, row.buffer=arm.row.buffer)
+  
+  simulationsb.dat$points$arrangement <- arrangement.list[simulationsb.dat$points$plan]
+  simulationsb.dat$aov$arrangement <- arrangement.list[simulationsb.dat$aov$plan]
+
+  simulationsb.dat$points$plan <- as.factor(names(planb.list)[simulationsb.dat$points$plan])
+
+  save(simulationsb.dat,file="simulationsb.dat.Rda")
+} else {
+  load(file="simulationsb.dat.Rda")
+}
+  
+aug8x16left.dat <- subset(simulationsb.dat$points,simulationsb.dat$points$arrangement=="left")
+  aug8x16crd.dat <- subset(simulationsb.dat$points,simulationsb.dat$points$arrangement=="random")
+  aug8x16left.dat <- subset(simulationsb.dat$points,simulationsb.dat$points$arrangement=="centered")
+  aug8x16jittered.dat <- subset(simulationsb.dat$points,simulationsb.dat$points$arrangement=="jittered")
+
+simulationsb.dat$points$arrangement <- as.factor(simulationsb.dat$points$arrangement)
+simulationsb.dat$points$number <- as.factor(simulationsb.dat$points$number)
+simulationsb.dat$points$blk <- as.factor(simulationsb.dat$points$blk)
+simulationsb.dat$points$experiment <- simulationsb.dat$points$number:simulationsb.dat$points$arrangement
+
+simulationsb.dat$points$trtIdx <- as.numeric(as.character(simulationsb.dat$points$trt))
+
+simulationsb.dat$points$trt <- as.factor(simulationsb.dat$points$trt)
+```
+
+```{r}
+simulationsb.dat$aov$TrtF <- simulationsb.dat$aov$TrtMS/simulationsb.dat$aov$RepMS
+ggplot(simulationsb.dat$aov, aes(log(TrtP),color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+```
+
+```{r}
+aug8x16left.dat$check <- as.factor(aug8x16left.dat$trt %in% checks)
+aug8x16crd.dat$check <- as.factor(aug8x16crd.dat$trt %in% checks)
+aug8x16left.dat$check <- as.factor(aug8x16left.dat$trt %in% checks)
+aug8x16jittered.dat$check <- as.factor(aug8x16jittered.dat$trt %in% checks)
+
+ggplot(aug8x16left.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+ggplot(aug8x16crd.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+ggplot(aug8x16left.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+ggplot(aug8x16jittered.dat, aes(LonM, LatM)) + geom_point(aes(colour = check),size=1)
+```
+
+
+```{r}
+if(! file.exists("compmeansb.dat.Rda")) {
+  
+  simulationsb.dat$points <- subset(simulationsb.dat$points,!is.na(simulationsb.dat$points$YldVolDry))
+
+  library(agricolae)
+  for(i in 1:1) {
+    vEffects <- c(rnorm(96, 0, sd(federerEffects)), controlEffects)
+
+    simulationsb.dat$points$SimYield <- simulationsb.dat$points$YldVolDry + vEffects[simulationsb.dat$points$trtIdx]
+
+    compsimb.dat <- NULL
+    compmeansb.dat <- NULL
+
+    for (trial in levels(simulationsb.dat$points$experiment)) {
+      current.dat <- subset(simulationsb.dat$points, simulationsb.dat$points$experiment==trial)
+  
+      if(length(current.dat$number)>0) {
+    
+        Experiment <- as.character(trial)
+    
+        arrangement <- as.character(current.dat$arrangement[1])
+
+        current.analysis <- single.analysis(current.dat,vEffects)
+    
+        current.analysis$summary$Experiment <- Experiment
+        current.analysis$summary$arrangement <- arrangement
+
+        current.analysis$means$Experiment <- Experiment
+        current.analysis$means$arrangement <- arrangement
+        
+        simulationsb.dat$points$YldTrend[simulationsb.dat$points$experiment==trial] <- current.analysis$predicted$YldTrend
+        simulationsb.dat$points$AugTrend[simulationsb.dat$points$experiment==trial] <- current.analysis$predicted$AugTrend
+    
+        simulationsb.dat$points$BaseField[simulationsb.dat$points$experiment==trial] <- current.analysis$predicted$BaseField
+        simulationsb.dat$points$AugField[simulationsb.dat$points$experiment==trial] <- current.analysis$predicted$AugField
+    
+        if(is.null(compsimb.dat)) {
+          compsimb.dat <- current.analysis$summary
+        } else {
+          compsimb.dat <- rbind(compsimb.dat,current.analysis$summary)
+        }
+    
+        if(is.null(compmeansb.dat)) {
+          compmeansb.dat <- current.analysis$means
+        } else {
+          compmeansb.dat <- rbind(compmeansb.dat,current.analysis$means)
+        }
+      }
+    }
+  }
+  save(compmeansb.dat,file="compmeansb.dat.Rda")
+  save(compsimb.dat,file="compsimb.dat.Rda")
+} else {
+  load(file="compmeansb.dat.Rda")
+  load(file="compsimb.dat.Rda")
+} 
+```
+
+```{r}
+compsimb.dat$Experiment <- as.factor(compsimb.dat$Experiment)
+compsimb.dat$arrangement <- as.factor(compsimb.dat$arrangement)
+
+compmeansb.dat$Experiment <- as.factor(compmeansb.dat$Experiment)
+compmeansb.dat$arrangement <- as.factor(compmeansb.dat$arrangement)
+
+#compmeansb.dat$meandif <- compmeansb.dat$adjmeans - compmeansb.dat$refmeans
+```
+
+```{r}
+
+
+set2.settings <- data.frame(
+  arrangement = c("left","random","centered","jittered")
+)
+rownames(set2.settings) <- names(planb.list)
+
+compb <- compare.dispersions(planb.list,settings=set2.settings,contrast.fn=contrast.type,
+                             plot.dim=arm.plot.dim,row.buffer=arm.row.buffer)
+allb.pairs <- compb$pairs
+allb.summary <- compb$summary
+
+allb.pairs$plan <- as.factor(allb.pairs$plan)
+allb.pairs$contrast.type <- as.factor(allb.pairs$contrast.type)
+
+tapply(allb.pairs$distance,list(allb.pairs$plan,allb.pairs$contrast.type),mean,na.rm=TRUE)
+tapply(allb.pairs$distance,list(allb.pairs$plan,allb.pairs$contrast.type),sd,na.rm=TRUE)
+
+ggplot(allb.summary, aes(mean,color=plan,linetype=plan)) + stat_density(geom="line",position="identity")
+ggplot(subset(allb.summary,allb.summary$contrast=="mixed"), aes(mean,color=plan,linetype=plan)) + stat_density(geom="line",position="identity")
+
+ggplot(subset(allb.summary,allb.summary$contrast=="check"), aes(mean,color=plan,linetype=plan)) + stat_density(geom="line",position="identity")
+
+allb.summary <- subset(allb.summary,!is.na(allb.summary$sd))
+tapply(allb.summary$mean,list(allb.summary$plan,allb.summary$contrast),mean,na.rm=TRUE)
+tapply(allb.summary$mean,list(allb.summary$plan,allb.summary$contrast),sd,na.rm=TRUE)
+
+ggplot(allb.summary, aes(mean,color=plan,linetype=plan)) + stat_density(geom="line",position="identity")
+ggplot(subset(allb.summary,allb.summary$contrast=="mixed"), aes(mean,color=plan,linetype=plan)) + stat_density(geom="line",position="identity")
+```
+
+
+
+ggplot(compsimb.dat, aes(comparison.err1,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsimb.dat, aes(comparison.err4,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+
+
+
+ggplot(compmeansb.dat, aes(meandif,linetype=arrangement,color=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compmeansb.dat$meandif,list(compmeansb.dat$arrangement),mean)
+tapply(compmeansb.dat$meandif,list(compmeansb.dat$arrangement),sd)
+tapply(compmeansb.dat$meandif,list(compmeansb.dat$arrangement),length)
+
+
+ggplot(compsimb.dat, aes(devmean,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+
+tapply(compsimb.dat$devmean,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$devmean,list(compsimb.dat$arrangement),sd)
+
+ggplot(compsimb.dat, aes(devsd,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$devsd,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$devsd,list(compsimb.dat$arrangement),sd)
+
+
+#ggplot(compmeans.dat, aes(as.factor(refmeans),adjmeans)) + #geom_point(aes(color=meanspln),size=2) +
+#geom_boxplot(aes(fill = stagger)) 
+
+
+ggplot(compmeansb.dat, aes(refmeans,adjmeans)) + geom_point(aes(color=arrangement),size=1)
+
+
+
+ggplot(compsimb.dat, aes(trend.base,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$trend.base,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$trend.base,list(compsimb.dat$arrangement),sd)
+
+ggplot(compsimb.dat, aes(trend.aug,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$trend.aug,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$trend.aug,list(compsimb.dat$arrangement),sd)
+
+
+ggplot(compsimb.dat, aes(trend.aug,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$trend.aug,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$trend.aug,list(compsimb.dat$arrangement),sd)
+
+```{r}
+ggplot(compsimb.dat, aes(SimTrtMSI,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$SimTrtMSI,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$SimTrtMSI,list(compsimb.dat$arrangement),sd)
+
+ggplot(compsimb.dat, aes(SimTrtMSIII,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$SimTrtMSIII,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$SimTrtMSIII,list(compsimb.dat$arrangement),sd)
+
+compsimb.dat$SimTrtRatio <- compsimb.dat$SimTrtMSI/compsimb.dat$SimTrtMSIII
+ggplot(compsimb.dat, aes(SimTrtRatio,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$SimTrtRatio,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$SimTrtRatio,list(compsimb.dat$arrangement),sd)
+
+ggplot(compsimb.dat, aes(SimResMS,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$SimResMS,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$SimResMS,list(compsimb.dat$arrangement),sd)
+
+ggplot(compsimb.dat, aes(log(SimPI),color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$SimPI,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$SimPI,list(compsimb.dat$arrangement),sd)
+
+ggplot(compsimb.dat, aes(log(SimPIII),color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$SimPIII,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$SimPIII,list(compsimb.dat$arrangement),sd)
+
+compsimb.dat$SimPRatio <- compsimb.dat$SimPI/compsimb.dat$SimPIII
+ggplot(compsimb.dat, aes(SimPRatio,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$SimPRatio,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$SimPRatio,list(compsimb.dat$arrangement),sd)
+
+ggplot(compsimb.dat, aes(SimPI,SimPIII)) + geom_point(aes(color=arrangement),size=1)
+ggplot(compsimb.dat, aes(SimPI,SimPIII)) + geom_point(aes(color=arrangement),size=1)
+
+ggplot(compsimb.dat, aes(BaseTrtMSI,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$BaseTrtMSI,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$BaseTrtMSI,list(compsimb.dat$arrangement),sd)
+
+ggplot(compsimb.dat, aes(BaseTrtMSIII,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$BaseTrtMSIII,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$BaseTrtMSIII,list(compsimb.dat$arrangement),sd)
+
+compsimb.dat$BaseTrtRatio <- compsimb.dat$BaseTrtMSI/compsimb.dat$BaseTrtMSIII
+ggplot(compsimb.dat, aes(BaseTrtRatio,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$BaseTrtRatio,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$BaseTrtRatio,list(compsimb.dat$arrangement),sd)
+
+ggplot(compsimb.dat, aes(BaseResMS,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$BaseResMS,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$BaseResMS,list(compsimb.dat$arrangement),sd)
+
+ggplot(compsimb.dat, aes(BasePI,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$BasePI,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$BasePI,list(compsimb.dat$arrangement),sd)
+
+ggplot(compsimb.dat, aes(BasePIII,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$BasePIII,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$BasePIII,list(compsimb.dat$arrangement),sd)
+
+compsimb.dat$BasePRatio <- compsimb.dat$BasePI/compsimb.dat$BasePIII
+ggplot(compsimb.dat, aes(BasePRatio,color=arrangement,linetype=arrangement)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimb.dat$BasePRatio,list(compsimb.dat$arrangement),mean)
+tapply(compsimb.dat$BasePRatio,list(compsimb.dat$arrangement),sd)
+
+ggplot(compsimb.dat, aes(BasePI,BasePIII)) + geom_point(aes(color=arrangement),size=1)
+ggplot(compsimb.dat, aes(BasePI,BasePIII)) + geom_point(aes(color=arrangement),size=1)
+
+```
+
+### Example data sets
+
+For each plan, find the four corner experiments
+
+```{r}
+aug8x16adj0.dat$trtIdx <- as.numeric(as.character(aug8x16adj0.dat$trt))
+aug8x16adj0.dat$SimYield <- aug8x16adj0.dat$YldVolDry + examplevEffects[aug8x16adj0.dat$trtIdx]
+aug8x16adj0.corners <- extract.corners(aug8x16adj0.dat)
+ggplot(rbind(aug8x16adj0.corners$se,
+             aug8x16adj0.corners$sw,
+             aug8x16adj0.corners$ne,
+             aug8x16adj0.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+#aug8x16adj0nonran1.corners
+```
+
+
+single.analysis(current=aug8x16adj0.corners$se,vEffects=vEffects)
+
+blk <- aug8x16adj0nonran1.corners$se$blk
+trt <- aug8x16adj0nonran1.corners$se$trt
+SimYield <- aug8x16adj0nonran1.corners$se$SimYield
+test <- DAU.test(blk,trt,SimYield,method="lsd", group=TRUE)
+test$means
+test$statistics
+test$groups
+test$SE.difference
+
+blk <- aug8x16adj0nonran1.corners$sw$blk
+trt <- aug8x16adj0nonran1.corners$sw$trt
+SimYield <- aug8x16adj0nonran1.corners$sw$SimYield
+test <- DAU.test(blk,trt,SimYield,method="lsd", group=TRUE)
+test$means
+test$statistics
+test$groups
+test$SE.difference
+
+blk <- aug8x16adj0nonran1.corners$ne$blk
+trt <- aug8x16adj0nonran1.corners$ne$trt
+SimYield <- aug8x16adj0nonran1.corners$ne$SimYield
+test <- DAU.test(blk,trt,SimYield,method="lsd", group=TRUE)
+test$means
+test$statistics
+test$groups
+test$SE.difference
+
+blk <- aug8x16adj0nonran1.corners$nw$blk
+trt <- aug8x16adj0nonran1.corners$nw$trt
+SimYield <- aug8x16adj0nonran1.corners$nw$SimYield
+test <- DAU.test(blk,trt,SimYield,method="lsd", group=TRUE)
+test$means
+test$statistics
+test$groups
+test$SE.difference
+
+
+```{r}
+aug8x16adj1.dat$trtIdx <- as.numeric(as.character(aug8x16adj1.dat$trt))
+aug8x16adj1.dat$SimYield <- aug8x16adj1.dat$YldVolDry + examplevEffects[aug8x16adj1.dat$trtIdx]
+aug8x16adj1.corners <- extract.corners(aug8x16adj1.dat)
+```
+
+```{r}
+ggplot(rbind(aug8x16adj1.corners$se,
+             aug8x16adj1.corners$sw,
+             aug8x16adj1.corners$ne,
+             aug8x16adj1.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = SimYield),size=1)
+#aug8x16adj1nonran1.corners
+```
+
+```{r}
+aug8x16adj2.dat$trtIdx <- as.numeric(as.character(aug8x16adj2.dat$trt))
+aug8x16adj2.dat$SimYield <- aug8x16adj2.dat$YldVolDry + examplevEffects[aug8x16adj2.dat$trtIdx]
+aug8x16adj2.corners <- extract.corners(aug8x16adj2.dat)
+```
+
+ggplot(rbind(aug8x16adj2.corners$se,
+             aug8x16adj2.corners$sw,
+             aug8x16adj2.corners$ne,
+             aug8x16adj2.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = SimYield),size=1)
+#aug8x16adj2nonran1.corners
+
+```{r}
+aug16x8adj0.dat$trtIdx <- as.numeric(as.character(aug16x8adj0.dat$trt))
+aug16x8adj0.dat$SimYield <- aug16x8adj0.dat$YldVolDry + examplevEffects[aug16x8adj0.dat$trtIdx]
+aug16x8adj0.corners <- extract.corners(aug16x8adj0.dat)
+```
+ggplot(rbind(aug16x8adj0.corners$se,
+             aug16x8adj0.corners$sw,
+             aug16x8adj0.corners$ne,
+             aug16x8adj0.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = SimYield),size=1)
+#aug16x8adj0nonran1.corners
+
+
+
+blk <- aug16x8adj0nonran1.corners$se$blk
+trt <- aug16x8adj0nonran1.corners$se$trt
+SimYield <- aug16x8adj0nonran1.corners$se$SimYield
+test <- DAU.test(blk,trt,SimYield,method="lsd", group=TRUE)
+test$means
+test$statistics
+test$groups
+test$SE.difference
+
+blk <- aug16x8adj0nonran1.corners$sw$blk
+trt <- aug16x8adj0nonran1.corners$sw$trt
+SimYield <- aug16x8adj0nonran1.corners$sw$SimYield
+test <- DAU.test(blk,trt,SimYield,method="lsd", group=TRUE)
+test$means
+test$statistics
+test$groups
+test$SE.difference
+
+
+blk <- aug16x8adj0nonran1.corners$ne$blk
+trt <- aug16x8adj0nonran1.corners$ne$trt
+SimYield <- aug16x8adj0nonran1.corners$ne$SimYield
+test <- DAU.test(blk,trt,SimYield,method="lsd", group=TRUE)
+test$means
+test$statistics
+test$groups
+test$SE.difference
+
+blk <- aug16x8adj0nonran1.corners$nw$blk
+trt <- aug16x8adj0nonran1.corners$nw$trt
+SimYield <- aug16x8adj0nonran1.corners$nw$SimYield
+test <- DAU.test(blk,trt,SimYield,method="lsd", group=TRUE)
+test$means
+test$statistics
+test$groups
+test$SE.difference
+
+```{r}
+aug16x8adj1.dat$trtIdx <- as.numeric(as.character(aug16x8adj1.dat$trt))
+aug16x8adj1.dat$SimYield <- aug16x8adj1.dat$YldVolDry + examplevEffects[aug16x8adj1.dat$trtIdx]
+aug16x8adj1nonran1.corners <- extract.corners(aug16x8adj1.dat)
+ggplot(rbind(aug16x8adj1nonran1.corners$se,
+             aug16x8adj1nonran1.corners$sw,
+             aug16x8adj1nonran1.corners$ne,
+             aug16x8adj1nonran1.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = SimYield),size=1)
+#aug16x8adj1nonran1.corners
+
+
+aug16x8adj2.dat$trtIdx <- as.numeric(as.character(aug16x8adj2.dat$trt))
+aug16x8adj2.dat$SimYield <- aug16x8adj2.dat$YldVolDry + examplevEffects[aug16x8adj2.dat$trtIdx]
+aug16x8adj2nonran1.corners <- extract.corners(aug16x8adj2.dat)
+ggplot(rbind(aug16x8adj2nonran1.corners$se,
+             aug16x8adj2nonran1.corners$sw,
+             aug16x8adj2nonran1.corners$ne,
+             aug16x8adj2nonran1.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = SimYield),size=1)
+#aug16x8adj2nonran1.corners
+
+
+aug32x4adj0.dat$trtIdx <- as.numeric(as.character(aug32x4adj0.dat$trt))
+aug32x4adj0.dat$SimYield <- aug32x4adj0.dat$YldVolDry + examplevEffects[aug32x4adj0.dat$trtIdx]
+aug32x4adj0nonran1.corners <- extract.corners(aug32x4adj0.dat)
+ggplot(rbind(aug32x4adj0nonran1.corners$se,
+             aug32x4adj0nonran1.corners$sw,
+             aug32x4adj0nonran1.corners$ne,
+             aug32x4adj0nonran1.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = SimYield),size=1)
+#aug32x4adj0nonran1.corners
+
+
+aug32x4adj1.dat$trtIdx <- as.numeric(as.character(aug32x4adj1.dat$trt))
+aug32x4adj1.dat$SimYield <- aug32x4adj1.dat$YldVolDry + examplevEffects[aug32x4adj1.dat$trtIdx]
+aug32x4adj1nonran1.corners <- extract.corners(aug32x4adj1.dat)
+ggplot(rbind(aug32x4adj1nonran1.corners$se,
+             aug32x4adj1nonran1.corners$sw,
+             aug32x4adj1nonran1.corners$ne,
+             aug32x4adj1nonran1.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = SimYield),size=1)
+#aug32x4adj1nonran1.corners
+
+
+aug32x4adj2.dat$trtIdx <- as.numeric(as.character(aug32x4adj2.dat$trt))
+aug32x4adj2.dat$SimYield <- aug32x4adj2.dat$YldVolDry + examplevEffects[aug32x4adj2.dat$trtIdx]
+aug32x4adj2nonran1.corners <- extract.corners(aug32x4adj2.dat)
+ggplot(rbind(aug32x4adj2nonran1.corners$se,
+             aug32x4adj2nonran1.corners$sw,
+             aug32x4adj2nonran1.corners$ne,
+             aug32x4adj2nonran1.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = SimYield),size=1)
+#aug32x4adj2nonran1.corners
+```
+
+
+```{r}
+aug8x16crd.dat$trtIdx <- as.numeric(as.character(aug8x16crd.dat$trt))
+aug8x16crd.dat$SimYield <- aug8x16crd.dat$YldVolDry + examplevEffects[aug8x16crd.dat$trtIdx]
+aug8x16crd.corners <- extract.corners(aug8x16crd.dat)
+ggplot(rbind(aug8x16crd.corners$se,
+             aug8x16crd.corners$sw,
+             aug8x16crd.corners$ne,
+             aug8x16crd.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = SimYield),size=1)
+#aug8x16crd.corners
+```
+
+
+blk <- aug8x16crd.corners$se$blk
+trt <- aug8x16crd.corners$se$trt
+SimYield <- aug8x16crd.corners$se$SimYield
+test <- DAU.test(blk,trt,SimYield,method="lsd", group=TRUE)
+test$means
+test$statistics
+test$groups
+test$SE.difference
+
+blk <- aug8x16crd.corners$sw$blk
+trt <- aug8x16crd.corners$sw$trt
+SimYield <- aug8x16crd.corners$sw$SimYield
+test <- DAU.test(blk,trt,SimYield,method="lsd", group=TRUE)
+test$means
+test$statistics
+test$groups
+test$SE.difference
+
+
+blk <- aug8x16crd.corners$ne$blk
+trt <- aug8x16crd.corners$ne$trt
+SimYield <- aug8x16crd.corners$ne$SimYield
+test <- DAU.test(blk,trt,SimYield,method="lsd", group=TRUE)
+test$means
+test$statistics
+test$groups
+test$SE.difference
+
+blk <- aug8x16crd.corners$nw$blk
+trt <- aug8x16crd.corners$nw$trt
+SimYield <- aug8x16crd.corners$nw$SimYield
+test <- DAU.test(blk,trt,SimYield,method="lsd", group=TRUE)
+test$means
+test$statistics
+test$groups
+test$SE.difference
+
+```{r}
+aug8x16left.dat$trtIdx <- as.numeric(as.character(aug8x16left.dat$trt))
+aug8x16left.dat$SimYield <- aug8x16left.dat$YldVolDry + examplevEffects[aug8x16left.dat$trtIdx]
+aug8x16left.corners <- extract.corners(aug8x16left.dat)
+ggplot(rbind(aug8x16left.corners$se,
+             aug8x16left.corners$sw,
+             aug8x16left.corners$ne,
+             aug8x16left.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+aug8x16left.corners
+
+
+aug8x16jittered.dat$trtIdx <- as.numeric(as.character(aug8x16jittered.dat$trt))
+aug8x16jittered.dat$SimYield <- aug8x16jittered.dat$YldVolDry + examplevEffects[aug8x16jittered.dat$trtIdx]
+aug8x16adj0nonran0b.corners <- extract.corners(aug8x16jittered.dat)
+ggplot(rbind(aug8x16adj0nonran0b.corners$se,
+             aug8x16adj0nonran0b.corners$sw,
+             aug8x16adj0nonran0b.corners$ne,
+             aug8x16adj0nonran0b.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+aug8x16adj0nonran0b.corners
+```
+
+
+### RCB
+Assign replicated treatments at unreplicated treatments
+```{r}
+needed <- 1:12
+rcb.treatments <- c(sample(needed),sample(needed),sample(needed),sample(needed),
+                    sample(needed),sample(needed),sample(needed),sample(needed))
+rcb.treatments <- c(rcb.treatments,97:100)
+```
+
+```{r}
+  simulationsrcb.dat <- subset(simulations.dat$points,!is.na(simulations.dat$points$YldVolDry))
+
+    simulationsrcb.dat$trt <- rcb.treatments[simulationsrcb.dat$trtIdx]
+  simulationsrcb.dat$trtIdx <- simulationsrcb.dat$trt
+  simulationsrcb.dat$trt <- as.factor(simulationsrcb.dat$trt)
+  
+if(! file.exists("compmeansrcb.dat.Rda")) {
+  
+  library(agricolae)
+  for(i in 1:1) {
+    #vEffects <- rnorm(100, 0, sd(federerEffects))
+    simulationsrcb.dat$SimYield <- simulationsrcb.dat$YldVolDry + commonvEffects[simulationsrcb.dat$trtIdx]
+
+    compsimrcb.dat <- NULL
+    compmeansrcb.dat <- NULL
+
+    for (trial in levels(simulationsrcb.dat$experiment)) {
+      current.dat <- subset(simulationsrcb.dat, simulationsrcb.dat$experiment==trial)
+  
+      if(length(current.dat$number)>0) {
+    
+        Experiment <- as.character(trial)
+    
+        blocksize <- as.character(current.dat$blocksize[1])
+        stagger <- as.character(current.dat$stagger[1])
+        
+        current.analysis <- single.analysis(current.dat,vEffects)
+    
+        current.analysis$summary$Experiment <- Experiment
+        current.analysis$summary$blocksize <- blocksize
+        current.analysis$summary$stagger <- stagger
+        
+        current.analysis$means$Experiment <- Experiment
+        current.analysis$means$blocksize <- blocksize
+        current.analysis$means$stagger <- stagger
+        
+        simulations.dat$points$YldTrend[simulationsrcb.dat$experiment==trial] <- current.analysis$predicted$YldTrend
+        simulations.dat$points$AugTrend[simulationsrcb.dat$experiment==trial] <- current.analysis$predicted$AugTrend
+    
+        simulations.dat$points$BaseField[simulationsrcb.dat$experiment==trial] <- current.analysis$predicted$BaseField
+        simulations.dat$points$AugField[simulationsrcb.dat$experiment==trial] <- current.analysis$predicted$AugField
+    
+        if(is.null(compsimrcb.dat)) {
+          compsimrcb.dat <- current.analysis$summary
+        } else {
+          compsimrcb.dat <- rbind(compsimrcb.dat,current.analysis$summary)
+        }
+    
+        if(is.null(compmeansrcb.dat)) {
+          compmeansrcb.dat <- current.analysis$means
+        } else {
+          compmeansrcb.dat <- rbind(compmeansrcb.dat,current.analysis$means)
+        }
+      }
+    }
+  }
+  save(compmeansrcb.dat,file="compmeansrcb.dat.Rda")
+  save(compsimrcb.dat,file="compsimrcb.dat.Rda")
+} else {
+  load(file="compmeansrcb.dat.Rda")
+  load(file="compsimrcb.dat.Rda")
+}
+```
+
+```{r}
+compsimrcb.dat$blocksize <- as.factor(compsimrcb.dat$blocksize)
+compsimrcb.dat$stagger <- as.factor(compsimrcb.dat$stagger)
+
+compmeansrcb.dat$blocksize <- as.factor(compmeansrcb.dat$blocksize)
+compmeansrcb.dat$stagger <- as.factor(compmeansrcb.dat$stagger)
+
+compsimrcb.dat$settings <- compsimrcb.dat$blocksize:compsimrcb.dat$stagger
+#compmeansrcb.dat$meandif <- compmeansrcb.dat$adjmeans - compmeansrcb.dat$refmeans
+compmeansrcb.dat$settings <- compmeansrcb.dat$blocksize:compmeansrcb.dat$stagger
+```
+
+
+```{r}
+ggplot(compsimrcb.dat, aes(field.mse,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$field.mse,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$field.mse,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+```
+
+```{r}
+ggplot(compsimrcb.dat, aes(SimTrtMSI,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$SimTrtMSI,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$SimTrtMSI,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+ggplot(compsimrcb.dat, aes(SimTrtMSIII,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$SimTrtMSIII,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$SimTrtMSIII,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+compsimrcb.dat$SimTrtRatio <- compsimrcb.dat$SimTrtMSI/compsimrcb.dat$SimTrtMSIII
+ggplot(compsimrcb.dat, aes(SimTrtRatio,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$SimTrtRatio,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$SimTrtRatio,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+ggplot(compsimrcb.dat, aes(SimResMS,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$SimResMS,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$SimResMS,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+ggplot(compsimrcb.dat, aes(log(SimPI),color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$SimPI,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$SimPI,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+ggplot(compsimrcb.dat, aes(log(SimPIII),color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(log(compsimrcb.dat$SimPIII),list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(log(compsimrcb.dat$SimPIII),list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+subset(compsimrcb.dat,compsimrcb.dat$SimPIII>0.05)
+subset(compsimrcb.dat,compsimrcb.dat$BasePIII<0.05)
+
+compsimrcb.dat$TypeIIError <- compsimrcb.dat$SimPIII>0.05
+compsimrcb.dat$TypeIError <- compsimrcb.dat$BasePIII<0.05
+
+counts <- tapply(compsimrcb.dat$TypeIIError,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),length)
+
+tapply(compsimrcb.dat$TypeIIError,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sum)
+tapply(compsimrcb.dat$TypeIIError,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sum)/counts
+tapply(compsimrcb.dat$TypeIError,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sum)
+tapply(compsimrcb.dat$TypeIError,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sum)/counts
+
+
+compsimrcb.dat$SimPRatio <- compsimrcb.dat$SimPI/compsimrcb.dat$SimPIII
+ggplot(compsimrcb.dat, aes(SimPRatio,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$SimPRatio,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$SimPRatio,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+ggplot(compsimrcb.dat, aes(SimTrtMSIII,SimTrtMSI)) + geom_point(aes(color=stagger),size=1)
+ggplot(compsimrcb.dat, aes(SimTrtMSIII,SimTrtMSI)) + geom_point(aes(color=blocksize),size=1)
+
+ggplot(compsimrcb.dat, aes(SimPIII,SimPI)) + geom_point(aes(color=stagger),size=1)
+ggplot(compsimrcb.dat, aes(SimPIII,SimPI)) + geom_point(aes(color=blocksize),size=1)
+
+ggplot(compsimrcb.dat, aes(BaseTrtMSI,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$BaseTrtMSI,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$BaseTrtMSI,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+ggplot(compsimrcb.dat, aes(BaseTrtMSIII,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$BaseTrtMSIII,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$BaseTrtMSIII,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+ggplot(compsimrcb.dat, aes(BaseTrtMSIII,BaseTrtMSI)) + geom_point(aes(color=stagger),size=1)
+ggplot(compsimrcb.dat, aes(BaseTrtMSIII,BaseTrtMSI)) + geom_point(aes(color=blocksize),size=1)
+
+compsimrcb.dat$BaseTrtRatio <- compsimrcb.dat$BaseTrtMSI/compsimrcb.dat$BaseTrtMSIII
+ggplot(compsimrcb.dat, aes(BaseTrtRatio,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$BaseTrtRatio,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$BaseTrtRatio,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+ggplot(compsimrcb.dat, aes(BaseResMS,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$BaseResMS,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$BaseResMS,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+ggplot(compsimrcb.dat, aes(BasePI,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsimrcb.dat, aes(log(BasePI),color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$BasePI,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$BasePI,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+ggplot(compsimrcb.dat, aes(BasePIII,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsimrcb.dat, aes(log(BasePIII),color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$BasePIII,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$BasePIII,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+compsimrcb.dat$BasePRatio <- compsimrcb.dat$BasePI/compsimrcb.dat$BasePIII
+ggplot(compsimrcb.dat, aes(BasePRatio,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+tapply(compsimrcb.dat$BasePRatio,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),mean)
+tapply(compsimrcb.dat$BasePRatio,list(compsimrcb.dat$blocksize,compsimrcb.dat$stagger),sd)
+
+ggplot(compsimrcb.dat, aes(BasePI,BasePIII)) + geom_point(aes(color=stagger),size=1)
+ggplot(compsimrcb.dat, aes(BasePI,BasePIII)) + geom_point(aes(color=blocksize),size=1)
+
+ggplot(compsimrcb.dat, aes(SimTrendTrtMS,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsimrcb.dat, aes(SimTrendErrorMS,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsimrcb.dat, aes(log(SimTrendP),color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsimrcb.dat, aes(BaseTrendTrtMS,color=blocksize,linetype=stagger)) + stat_density(geom="line",position="identity",size=1)
+ggplot(compsimrcb.dat, aes(BaseTrendErrorMS,color=blocksize,linetype=stagger)) + 
+  stat_density(geom="line",position="identity",size=1)
+ggplot(compsimrcb.dat, aes(log(BaseTrendP),color=blocksize,linetype=stagger)) +  stat_density(geom="line",position="identity",size=1)
+```
+
+```{r}
+simulations0rcb.dat <- subset(simulationsrcb.dat,simulationsrcb.dat$stagger==0)
+
+rcb8x16.dat <- subset(simulations0rcb.dat,simulations0rcb.dat$blocksize==16)
+rcb16x8.dat <- subset(simulations0rcb.dat,simulations0rcb.dat$blocksize==8)
+rcb32x4.dat <- subset(simulations0rcb.dat,simulations0rcb.dat$blocksize==4)
+
+rcb8x16.dat$trtIdx <- as.numeric(as.character(rcb8x16.dat$trt))
+rcb8x16.dat$SimYield <- rcb8x16.dat$YldVolDry + examplevEffects[rcb8x16.dat$trtIdx]
+rcb8x16.corners <- extract.corners(rcb8x16.dat)
+ggplot(rbind(rcb8x16.corners$se,
+             rcb8x16.corners$sw,
+             rcb8x16.corners$ne,
+             rcb8x16.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+rcb8x16.corners
+
+rcb16x8.dat$trtIdx <- as.numeric(as.character(rcb16x8.dat$trt))
+rcb16x8.dat$SimYield <- rcb16x8.dat$YldVolDry + examplevEffects[rcb16x8.dat$trtIdx]
+rcb16x8.corners <- extract.corners(rcb16x8.dat)
+ggplot(rbind(rcb16x8.corners$se,
+             rcb16x8.corners$sw,
+             rcb16x8.corners$ne,
+             rcb16x8.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+rcb16x8.corners
+
+rcb32x4.dat$trtIdx <- as.numeric(as.character(rcb32x4.dat$trt))
+rcb32x4.dat$SimYield <- rcb32x4.dat$YldVolDry + examplevEffects[rcb32x4.dat$trtIdx]
+rcb32x4.corners <- extract.corners(rcb32x4.dat)
+ggplot(rbind(rcb32x4.corners$se,
+             rcb32x4.corners$sw,
+             rcb32x4.corners$ne,
+             rcb32x4.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+rcb32x4.corners
+```
+
+```{r}
+vanEs8x16.plan <- aug8x16.plan
+vanEs8x16.plan$trt <- c(15, 12, 14, 9, 11, 10, 3, 13, 3, 14, 16, 10, 8, 7, 9, 6, 14, 6, 11, 8, 3, 13, 4, 15, 5, 9, 10, 15, 16, 12, 13, 11, 6, 8, 1, 5, 6, 3, 14, 1, 10, 15, 4, 13, 10, 14, 2, 9, 7, 4, 12, 14, 4, 8, 10, 12, 2, 7, 15, 16, 5, 1, 6, 10, 9, 11, 3, 11, 12, 6, 1, 3, 11, 3, 7, 4, 13, 5, 8, 2, 12, 13, 9, 7, 15, 9, 16, 14, 4, 2, 5, 6, 2, 11, 15, 8, 13, 10, 13, 1, 14, 2, 7, 5, 8, 16, 8, 3, 1, 4, 11, 16, 1, 1, 2, 12, 9, 16, 5, 7, 16, 5, 6, 2, 7, 15, 12, 4)
+vanEs8x16.plan$trt <- as.factor(vanEs8x16.plan$trt)
+#vanEs8x16.plan$blk <- as.factor(vanEs8x16.plan$row)
+vanEs8x16.plan$rep <- as.factor(vanEs8x16.plan$row)
+
+set.seed(100)
+needed <- 1:16
+rcb18x16.plan <- vanEs8x16.plan
+rcb18x16.plan$trt <- as.factor(c(sample(needed),sample(needed),sample(needed),sample(needed),
+                    sample(needed),sample(needed),sample(needed),sample(needed)))
+set.seed(200)
+rcb28x16.plan <- vanEs8x16.plan
+rcb28x16.plan$trt <- as.factor(c(sample(needed),sample(needed),sample(needed),sample(needed),
+                    sample(needed),sample(needed),sample(needed),sample(needed)))
+set.seed(300)
+rcb38x16.plan <- vanEs8x16.plan
+rcb38x16.plan$trt <- as.factor(c(sample(needed),sample(needed),sample(needed),sample(needed),
+                    sample(needed),sample(needed),sample(needed),sample(needed)))
+set.seed(400)
+rcb48x16.plan <- vanEs8x16.plan
+rcb48x16.plan$trt <- as.factor(c(sample(needed),sample(needed),sample(needed),sample(needed),
+                    sample(needed),sample(needed),sample(needed),sample(needed)))
+set.seed(500)
+rcb58x16.plan <- vanEs8x16.plan
+rcb58x16.plan$trt <- as.factor(c(sample(needed),sample(needed),sample(needed),sample(needed),
+                    sample(needed),sample(needed),sample(needed),sample(needed)))
+
+set.seed(600)
+rcb68x16.plan <- vanEs8x16.plan
+rcb68x16.plan$trt <- as.factor(c(sample(needed),sample(needed),sample(needed),sample(needed),
+                    sample(needed),sample(needed),sample(needed),sample(needed)))
+set.seed(700)
+rcb78x16.plan <- vanEs8x16.plan
+rcb78x16.plan$trt <- as.factor(c(sample(needed),sample(needed),sample(needed),sample(needed),
+                    sample(needed),sample(needed),sample(needed),sample(needed)))
+set.seed(800)
+rcb88x16.plan <- vanEs8x16.plan
+rcb88x16.plan$trt <- as.factor(c(sample(needed),sample(needed),sample(needed),sample(needed),
+                    sample(needed),sample(needed),sample(needed),sample(needed)))
+set.seed(900)
+rcb98x16.plan <- vanEs8x16.plan
+rcb98x16.plan$trt <- as.factor(c(sample(needed),sample(needed),sample(needed),sample(needed),
+                    sample(needed),sample(needed),sample(needed),sample(needed)))
+set.seed(1000)
+rcb108x16.plan <- vanEs8x16.plan
+rcb108x16.plan$trt <- as.factor(c(sample(needed),sample(needed),sample(needed),sample(needed),
+                    sample(needed),sample(needed),sample(needed),sample(needed)))
+
+
+vanEs16x8.plan <- aug16x8.plan
+vanEs16x8.plan$trt <- vanEs8x16.plan$trt
+#vanEs16x8.plan$blk <- as.factor(ceiling(vanEs16x8.plan$row/2))
+vanEs16x8.plan$rep <- as.factor(vanEs16x8.plan$blk)
+
+vanEs32x4.plan <- aug32x4.plan
+vanEs32x4.plan$trt <- vanEs8x16.plan$trt
+#vanEs32x4.plan$blk <- as.factor(ceiling(vanEs32x4.plan$row/4))
+vanEs32x4.plan$rep <- as.factor(vanEs32x4.plan$blk)
+
+path8x16.plan <- vanEs8x16.plan
+path8x16.plan$trt <- as.factor(c(rep(needed,8)))
+#path8x16.plan$blk <- as.factor(path8x16.plan$row)
+
+path16x8.plan <- vanEs16x8.plan
+path16x8.plan$trt <- path8x16.plan$trt
+
+path32x4.plan <- vanEs32x4.plan
+path32x4.plan$trt <- path8x16.plan$trt
+#path32x4.plan$blk <- as.factor(ceiling(path32x4.plan$row/4))
+path32x4.plan$rep <- as.factor(path32x4.plan$blk)
+```
+
+    vanEs16x8=vanEs16x8.plan,
+    vanEs32x4=vanEs32x4.plan,
+    
+```{r}
+  plan.list <- list(
+    vanEs8x16=vanEs8x16.plan,
+    rcb18x16=rcb18x16.plan,
+    rcb28x16=rcb28x16.plan,
+    rcb38x16=rcb38x16.plan,
+    rcb48x16=rcb48x16.plan,
+    rcb58x16=rcb58x16.plan,
+    rcb68x16=rcb68x16.plan,
+    rcb78x16=rcb78x16.plan,
+    rcb88x16=rcb88x16.plan,
+    rcb98x16=rcb98x16.plan,
+    rcb108x16=rcb108x16.plan
+    #path8x16=path8x16.plan,
+    #path16x8=path16x8.plan,
+    #path32x4=path32x4.plan
+    )
+
+if(!file.exists("usimulations.dat.Rda")) {
+  load(file="trimmed.dat.Rda")
+  if(is.null(sample.vgm)) {
+    library(gstat)
+    sample.var <- variogram(YldVolDry~1, 
+                        locations=~LonM+LatM, 
+                        data=trimmed.dat)
+    sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
+  }
+
+  usimulations.dat <- simulate.plans(plan.list,trimmed.dat,sample.vgm=sample.vgm,
+                                    plot.dim=arm.plot.dim, row.buffer=arm.row.buffer)
+  
+  usimulations.dat$points$plan <- as.factor(names(plan.list)[usimulations.dat$points$plan])
+  
+  usimulations.dat$aov$plan <- as.factor(names(plan.list)[usimulations.dat$aov$plan])
+  save(usimulations.dat,file="usimulations.dat.Rda")
+} else {
+  load(file="usimulations.dat.Rda")
+} 
+
+```
+
+
+```{r}
+usimulations.dat$points$trtIdx <- as.numeric(as.character(usimulations.dat$points$trt))
+usimulations.dat$points$SimYield <- usimulations.dat$points$YldVolDry + rcb16vEffects[usimulations.dat$points$trtIdx]
+
+  vanEs8x16.dat <- subset(usimulations.dat$points,usimulations.dat$points$plan=="vanEs8x16")
+  vanEs8x16.corners <- extract.corners(vanEs8x16.dat)
+  ggplot(rbind(vanEs8x16.corners$se,
+             vanEs8x16.corners$sw,
+             vanEs8x16.corners$ne,
+             vanEs8x16.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+vanEs8x16.corners
+
+```
+
+vanEs16x8.dat <- subset(usimulations.dat$points,usimulations.dat$points$plan=="vanEs16x8")
+  vanEs16x8.corners <- extract.corners(vanEs16x8.dat)
+  ggplot(rbind(vanEs16x8.corners$se,
+             vanEs16x8.corners$sw,
+             vanEs16x8.corners$ne,
+             vanEs16x8.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+vanEs16x8.corners
+
+
+vanEs32x4.dat <- subset(usimulations.dat$points,usimulations.dat$points$plan=="vanEs32x4")
+  vanEs32x4.corners <- extract.corners(vanEs32x4.dat)
+  ggplot(rbind(vanEs32x4.corners$se,
+             vanEs32x4.corners$sw,
+             vanEs32x4.corners$ne,
+             vanEs32x4.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+vanEs32x4.corners
+
+path8x16.dat <- subset(usimulations.dat$points,usimulations.dat$points$plan=="path8x16")
+  path8x16.corners <- extract.corners(path8x16.dat)
+  ggplot(rbind(path8x16.corners$se,
+             path8x16.corners$sw,
+             path8x16.corners$ne,
+             path8x16.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+path8x16.corners
+
+
+path16x8.dat <- subset(usimulations.dat$points,usimulations.dat$points$plan=="path16x8")
+  path16x8.corners <- extract.corners(path16x8.dat)
+  ggplot(rbind(path16x8.corners$se,
+             path16x8.corners$sw,
+             path16x8.corners$ne,
+             path16x8.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+path16x8.corners
+
+path32x4.dat <- subset(usimulations.dat$points,usimulations.dat$points$plan=="path32x4")
+  path32x4.corners <- extract.corners(path32x4.dat)
+  ggplot(rbind(path32x4.corners$se,
+             path32x4.corners$sw,
+             path32x4.corners$ne,
+             path32x4.corners$nw), 
+       aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+path32x4.corners
+
+  
+```{r}
+usimulations.dat$aov$TrtDF
+usimulations.dat$aov$RepDF
+usimulations.dat$aov$TrtP
+usimulations.dat$aov$RepP
+
+usimulations.dat$aov$TrtF <- usimulations.dat$aov$TrtMS/usimulations.dat$aov$RepMS
+ggplot(usimulations.dat$aov, aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+summary(aov(YldVolDry ~ trt + rep, data=vanEs8x16.corners$se))
+#summary(aov(YldVolDry ~ trt + rep, data=vanEs16x8.corners$se))
+#summary(aov(YldVolDry ~ trt + rep, data=vanEs32x4.corners$se))
+#summary(aov(YldVolDry ~ trt + rep, data=path8x16.corners$se))
+#summary(aov(YldVolDry ~ trt + rep, data=path16x8.corners$se))
+#summary(aov(YldVolDry ~ trt + rep, data=path32x4.corners$se))
+
+usimulations.dat$aov$TypeIError <- usimulations.dat$aov$TrtP<0.05
+usimulations.dat$aov$TypeIError
+
+counts <- tapply(usimulations.dat$aov$TypeIError,list(usimulations.dat$aov$plan),sum)
+trials <- tapply(usimulations.dat$aov$TypeIError,list(usimulations.dat$aov$plan),length)
+counts
+trials
+counts/trials
+```

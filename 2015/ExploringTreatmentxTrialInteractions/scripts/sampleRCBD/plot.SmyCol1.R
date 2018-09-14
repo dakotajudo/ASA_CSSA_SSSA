@@ -1,0 +1,13 @@
+source('c:/code/ARM/bin/ARMSTr.r')
+setwd('C:/Users/peter/AppData/Local/Temp/ARM/8656/')
+require(grDevices)
+means.vector <- read.delim('trialMeans.SmyCol1.tab',header=FALSE)
+means.matrix <- read.delim('trialTable.SmyCol1.tab',header=FALSE)
+means.vector <- means.vector[,1]
+bmp('TxTSmyCol1.bmp', width = 620, height = 500, units = 'px', pointsize = 10, bg = 'white')
+par(fig = c(0, 1, 0.4, 1), mar = (c(1, 7, 2, 1) + 0.1), ps = 10, cex.lab = 1.4, cex.main = 1.6, cex.axis = 1)
+plot.interaction.ARMST(means.matrix, means.vector, ylab='Treatment in Trial Mean \nTasselling',regression=TRUE, main='Treatment Stability and Trial Clusters for Grand Mean 1', show.legend=TRUE,legend.columns=2, legend.pos=c(.01,.98))
+par(fig=c(0,1,0,.4),mar=(c(4, 7, 0, 1) + 0.1), new=TRUE)
+plot.clusters.ARMST(means.matrix, means.vector, xlab='Trial Mean \nSampleRCBD', ylab='')
+dev.off()
+par(fig = c(0, 1, 0, 1))

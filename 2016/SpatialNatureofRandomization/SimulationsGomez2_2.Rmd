@@ -1,0 +1,1685 @@
+---
+title: "Uniformity Simulations"
+author: "Peter Claussen"
+date: "May 18, 2016"
+output: html_document
+---
+
+
+Multiple Trial Simulations
+--------------------------
+
+```{r}
+currentwd <- getwd()
+setwd("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R")
+path = "~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R"
+for (nm in list.files(path)) {
+   source(file.path(path, nm))
+}
+
+setwd(currentwd)
+
+arm.plot.dim <- c(4,6)
+arm.buffer.dim <- c(0.5,1)
+
+bestseed <- 1500
+
+#bestseed <- 2000
+#bestseed <- 1600
+#set.seed(10000)
+set.seed(bestseed)
+sample.vgm <- NULL
+
+swap.treatments <- function(source, destination) {
+  destination$trt <- source$trt
+  return(destination)
+}
+
+library(ggplot2)
+library(agricolae)
+library(nlme)
+```
+
+
+Simulation
+----------
+
+Assume we have yield (or other agronomic assessment) data in spatial format, such as yield monitor data.
+For example, this data from the SDSU research statio near Beresford. This file has been edited from the original format and is comma-seperated.
+
+
+```{r}
+if(!file.exists("trimmed.dat.Rda")) {
+    raw.dat <- read.csv("./data/sdsu/Swest_Corn2013-Clean.csv", header = TRUE)
+    response <- "YldVolDry"
+    hist(raw.dat[,response],main=response)
+
+    minLon <- min(raw.dat$Longitude)
+    maxLon <- max(raw.dat$Longitude)
+    minLat <- min(raw.dat$Latitude)
+    maxLat <- max(raw.dat$Latitude)
+
+    northBorder <- maxLat - 0.06*(maxLat-minLat)
+    southBorder <- minLat + 0.09*(maxLat-minLat)
+    eastBorder <- maxLon - 0.02*(maxLon-minLon)
+    westBorder <- minLon + 0.02*(maxLon-minLon)
+
+    trimmed.dat <- subset(raw.dat,raw.dat$Latitude>=southBorder)
+    trimmed.dat <- subset(trimmed.dat,trimmed.dat$Latitude<=northBorder)
+    trimmed.dat <- subset(trimmed.dat,trimmed.dat$Longitude<=eastBorder)
+    trimmed.dat <- subset(trimmed.dat,trimmed.dat$Longitude>=westBorder)
+
+    ggplot(trimmed.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = YldVolDry),size = 1)
+    ggplot(trimmed.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = YldVolDry),size = .5)
+#convert to meters. 
+#This will require an approximation, see http://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters
+
+    trimmed.dat$LonM <- trimmed.dat$Longitude - min(trimmed.dat$Longitude)
+    trimmed.dat$LatM <- trimmed.dat$Latitude - min(trimmed.dat$Latitude)
+    latMid <- (min(trimmed.dat$Latitude) + max(trimmed.dat$Latitude))/2
+    m_per_deg_lat = 111132.954 - 559.822 * cos( 2.0 * latMid ) + 1.175 * cos( 4.0 * latMid)
+    m_per_deg_lon = (3.14159265359/180 ) * 6367449 * cos ( latMid )
+    trimmed.dat$LonM <- trimmed.dat$LonM*m_per_deg_lon
+    trimmed.dat$LatM <- trimmed.dat$LatM*m_per_deg_lat
+    ggplot(trimmed.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 1)
+
+      library(gstat)
+  sample.var <- variogram(YldVolDry~1, 
+                        locations=~LonM+LatM, 
+                        data=trimmed.dat)
+  trimmed.vgm <- fit.variogram(sample.var, vgm("Exp"))
+  save(trimmed.dat,file="trimmed.dat.Rda")
+  save(trimmed.vgm,file="trimmed.vgm.Rda")
+} else {
+  load(file="trimmed.dat.Rda")
+  load(file="trimmed.vgm.Rda")
+} 
+```
+
+
+
+### Simulation
+
+
+
+Start with a naive RCB, with first block unrandomized. This trial was randomized in ARM with default setttings.
+
+```{r}
+rcb.plan <- data.frame(
+  row = c(1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4),
+  col = c(1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6), 
+  trt = c(1, 2, 3, 4, 5, 6, 3, 1, 4, 5, 6, 2, 4, 2, 1, 6, 3, 5, 1, 4, 3, 2, 5, 6),
+  plotno = 1:24
+)
+rcb.plan$trt <- as.factor(rcb.plan$trt)
+rcb.plan$blk <- as.factor(rcb.plan$row)
+rcb.plan$rep <- as.factor(rcb.plan$row)
+base.plan <- rcb.plan
+```
+
+Place this trial at the lower left corner of the field, set in 3 meters
+```{r}
+rcb.sw <- superimpose.plan(rcb.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,
+                           buffer.dim=arm.buffer.dim,sample.vgm=sample.vgm
+                           )
+rcb.sw$plan
+```
+
+This function returns the points in the original data
+```{r}
+ggplot(rcb.sw$trial, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 6)
+```
+
+And the yield estimated by kriging at the center points for each plot
+```{r}
+ggplot(rcb.sw$plan, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 4)
+```
+
+And a pooled plot
+```{r}
+ggplot(rcb.sw$pooled, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry,shape=Sample),size = 4)
+```
+
+Now we repeat this plan over the entire field.
+
+```{r}
+if(!file.exists("plots4x6.dat.Rda")) {
+plots4x6.dat <- overlay.field(rcb.plan,
+                              trimmed.dat,
+                              plot.dim=arm.plot.dim,
+                              buffer.dim=arm.buffer.dim,
+                              sample.vgm=sample.vgm)
+  save(plots4x6.dat,file="plots4x6.dat.Rda")
+} else {
+  load(file="plots4x6.dat.Rda")
+}
+ggplot(plots4x6.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(plots4x6.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+```
+
+We can do analysis of each plan along with overlaying plans by calling
+```{r}
+if(!file.exists("simulationsSingleRCB.dat.Rda")) {
+simulationsSingleRCB.dat <- simulate.plan(rcb.plan,
+                              trimmed.dat,
+                              plot.dim=arm.plot.dim,
+                              buffer.dim=arm.buffer.dim,
+                              sample.vgm=sample.vgm)
+  save(simulationsSingleRCB.dat,file="simulationsSingleRCB.dat.Rda")
+} else {
+  load(file="simulationsSingleRCB.dat.Rda")
+} 
+
+if(!file.exists("twostepRCB.dat.Rda")) {
+twostepRCB.dat <- simulate.plan(rcb.plan,
+                              plots=plots4x6.dat)
+  save(twostepRCB.dat,file="twostepRCB.dat.Rda")
+} else {
+  load(file="twostepRCB.dat.Rda")
+} 
+
+head(simulationsSingleRCB.dat$aov)
+head(twostepRCB.dat$aov)
+
+ggplot(simulationsSingleRCB.dat$plots, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(simulationsSingleRCB.dat$plots, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+```
+
+However, we break this into two steps because we may wish to manipulate plot values in such a way as to reuse the same plots for other plans. 
+Specifically, we have reduced variance by kriging. Later, when we want to compare trend analysis, we 
+want some local variance as well a trend variance.
+
+```{r}
+original.sd <- sd(rcb.sw$trial$YldVolDry)
+original.sd
+plot.sd <- sd(rcb.sw$plan$YldVolDry)
+plot.sd
+errors <- rnorm(length(rcb.sw$plan$YldVolDry), mean = 0, sd = original.sd-(plot.sd/2))
+
+
+comp.dat <- data.frame(
+  YldVolDry=c(rcb.sw$trial$YldVolDry,
+              rcb.sw$plan$YldVolDry,
+              rcb.sw$plan$YldVolDry+errors),
+  Source=c(rep("Original",length(rcb.sw$trial$YldVolDry)),
+           rep("Plots",length(rcb.sw$plan$YldVolDry)),
+           rep("Errors",length(rcb.sw$plan$YldVolDry)))
+)
+
+comp.dat$Source <- as.factor(comp.dat$Source)
+
+tapply(comp.dat$YldVolDry,list(comp.dat$Source),sd)
+
+ggplot(comp.dat, aes(YldVolDry,color=Source,linetype=Source)) + stat_density(geom="line",position="identity",size=1)
+ggplot(comp.dat, aes(YldVolDry, fill=Source)) + geom_histogram(bins=20,position="dodge")
+sd(rcb.sw$trial$YldVolDry)
+100*sd(rcb.sw$trial$YldVolDry)/mean(rcb.sw$trial$YldVolDry)
+sd(rcb.sw$plan$YldVolDry)
+100*sd(rcb.sw$plan$YldVolDry)/mean(rcb.sw$plan$YldVolDry)
+```
+
+
+So, apply this to the whole data set.
+```{r}
+original.sd <- sd(trimmed.dat$YldVolDry)
+original.sd
+plot.sd <- sd(plots4x6.dat$YldVolDry)
+plot.sd
+errors <- rnorm(length(plots4x6.dat$YldVolDry), mean = 0, sd = original.sd-(plot.sd/2))
+
+comp.dat <- data.frame(
+  YldVolDry=c(trimmed.dat$YldVolDry,
+              plots4x6.dat$YldVolDry,
+              plots4x6.dat$YldVolDry+errors),
+  Source=c(rep("Original",length(trimmed.dat$YldVolDry)),
+           rep("Plots",length(plots4x6.dat$YldVolDry)),
+           rep("Errors",length(plots4x6.dat$YldVolDry)))
+)
+comp.dat$Source <- as.factor(comp.dat$Source)
+
+tapply(comp.dat$YldVolDry,list(comp.dat$Source),sd)
+
+ggplot(comp.dat, aes(YldVolDry,color=Source,linetype=Source)) + stat_density(geom="line",position="identity",size=1)
+
+if(!file.exists("errorsRCB.dat.Rda")) {
+  errors.dat <- plots4x6.dat
+  errors.dat$YldVolDry <- plots4x6.dat$YldVolDry+errors
+  errorsRCB.dat <- simulate.plan(rcb.plan,
+                              plots=errors.dat)
+  save(errors.dat,file="errors.dat.Rda")
+  save(errorsRCB.dat,file="errorsRCB.dat.Rda")
+} else {
+  load(file="errors.dat.Rda")
+  load(file="errorsRCB.dat.Rda")
+} 
+
+```
+
+
+```{r}
+
+
+singleSD <- c()
+singleMeanDiff <- c()
+singleGrandMean <- c()
+singlePlanNo <- c()
+
+for(planno in 1:max(simulationsSingleRCB.dat$plots$number)) {
+  current.dat <- subset(simulationsSingleRCB.dat$plots,simulationsSingleRCB.dat$plots$number==planno)
+  singlePlanNo <- c(singlePlanNo,planno)
+  singleGrandMean <- c(singleGrandMean,mean(current.dat$YldVolDry))
+  singleSD <- c(singleSD,sd(current.dat$YldVolDry))
+  
+  means <- tapply(current.dat$YldVolDry,list(current.dat$trt),mean)
+  singleMeanDiff <- c(singleMeanDiff, max(means)-min(means))
+}
+uniformity.dat <- data.frame(
+  PlanNo=singlePlanNo,
+  Mean=singleGrandMean,
+  SD=singleSD,
+  MeanDiff=singleMeanDiff
+)
+uniformity.dat$CV <- 100*uniformity.dat$SD/uniformity.dat$Mean
+uniformity.dat$PerMeanDiff <- 100*uniformity.dat$MeanDiff/uniformity.dat$Mean
+
+ggplot(uniformity.dat, aes(Mean)) + stat_density(geom="line",position="identity",size=1)
+ggplot(simulationsSingleRCB.dat$aov, aes(GrandMean)) + stat_density(geom="line",position="identity",size=1)
+
+
+ggplot(uniformity.dat, aes(CV)) + stat_density(geom="line",position="identity",size=1)
+ggplot(simulationsSingleRCB.dat$aov, aes(CV)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(uniformity.dat, aes(PerMeanDiff)) + stat_density(geom="line",position="identity",size=1)
+ggplot(simulationsSingleRCB.dat$aov, aes(PerMeanDiff)) + stat_density(geom="line",position="identity",size=1)
+
+#ggplot(simulationsSingleRCB.dat$aov, aes(PostHocPower)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsSingleRCB.dat$aov, aes(PostHocReps)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsSingleRCB.dat$aov, aes(PostHocDiff)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsSingleRCB.dat$aov, aes(MeanSigTrtP)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(uniformity.dat, aes(CV, PerMeanDiff)) + geom_point(size=1)
+
+
+
+ggplot(uniformity.dat, aes(PerMeanDiff)) + stat_density(geom="line",position="identity",size=1)
+ggplot(uniformity.dat, aes(CV, PerMeanDiff)) + geom_point(size=1)
+median(uniformity.dat$Mean)
+median(uniformity.dat$CV)
+median(uniformity.dat$PerMeanDiff)
+```
+
+
+Next, one with treatment adjacency = 2. 
+```{r}
+adj2.plan <- rcb.plan
+adj2.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 3, 6, 5, 2, 1, 4, 2, 4, 1, 3, 5, 6, 3, 5, 6, 2, 1, 4))
+```
+
+And a plan with super valid rectangle (Bailey 2012)
+```{r}
+sv.plan <- rcb.plan
+sv.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 1, 6, 2, 3, 4, 5, 5, 2, 1, 6, 4, 3, 4, 1, 3, 6, 2, 5))
+```
+
+row-column from Bailey
+
+```{r}
+rc.plan <- rcb.plan
+rc.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 2, 3, 4, 5, 6, 1, 3, 4, 5, 6, 1, 2, 4, 5, 6, 1, 2, 3))
+```
+
+van Es
+
+```{r}
+spat.plan <- rcb.plan
+spat.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 2, 6, 5, 3, 4, 1, 3, 5, 1, 6, 2, 4, 5, 4, 2, 1, 6, 3))
+```
+
+And for comparison a pathological plan
+```{r}
+path.plan <- rcb.plan
+path.plan$trt = as.factor(c(rep(c(1, 2, 3, 4, 5, 6), 4)))
+```
+
+List plans
+```{r}
+plan.list <- list(
+    rcb.plan=rcb.plan,
+    adj2.plan=adj2.plan,
+    sv.plan=sv.plan,
+    rc.plan=rc.plan,
+    spat.plan=spat.plan,
+    path.plan=path.plan
+)
+```
+
+```{r,results="hide"}
+if(!file.exists("simulations.dat.Rda")) {
+simulations.dat <- simulate.plans(plan.list,trimmed.dat,sample.vgm=sample.vgm,
+                                    plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim)
+  save(simulations.dat,file="simulations.dat.Rda")
+} else {
+  
+  load(file="simulations.dat.Rda")
+} 
+```
+
+```{r}
+#simulations.dat$plots$plan <- as.factor(names(plan.list)[simulations.dat$plots$plan])
+#simulations.dat$aov$plan <- as.factor(names(plan.list)[simulations.dat$aov$plan])
+```
+
+Trials in the SouthWest corner:
+
+```{r}
+sim.corners <- extract.corners(simulations.dat$plots)
+ggplot(sim.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=6) + facet_wrap(~plan)
+ggplot(sim.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=6) + facet_wrap(~plan)
+```
+
+All trials
+
+```{r}
+ggplot(simulations.dat$plots, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=.2) + facet_wrap(~plan)
+```
+
+Perform analysis of variance and plot Treatment p(F):
+
+```{r}
+ggplot(simulations.dat$aov, aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(simulations.dat$aov, aes(RepP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(simulations.dat$aov, aes(TrtP, fill=plan)) + geom_histogram(bins=20,position="dodge")
+
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(RepP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(simulations.dat$aov, aes(ResMS, fill=plan)) + geom_histogram(bins=20,position="dodge")
+
+ggplot(simulations.dat$aov, aes(ResMS,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(ResMS,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(TrtP,fill=plan)) + geom_histogram(bins=20,position="dodge")
+
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(CV,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(PerMeanDiff,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(PostHocPower,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(PostHocReps,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(PostHocDiff,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(log(PostHocPower),color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+ggplot(subset(simulations.dat$aov,simulations.dat$aov$plan!="path.plan"), aes(log(PostHocReps),color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+
+head(simulations.dat$aov)
+```
+
+Count the number of trials with false positive (Type I) errors. Since there are no actual treatments in this simulation, we have not achieve p<0.05 in more than 5% of all trials.
+
+```{r}
+alpha = 0.05
+simulations.dat$aov$TypeIError <- simulations.dat$aov$TrtP<alpha
+#simulations.dat$aov$TypeIError
+
+counts <- tapply(simulations.dat$aov$TypeIError,list(simulations.dat$aov$plan),sum)
+trials <- tapply(simulations.dat$aov$TypeIError,list(simulations.dat$aov$plan),length)
+counts
+trials
+counts/trials
+
+SigTrtcounts <- tapply(simulations.dat$aov$SigTrt,list(simulations.dat$aov$plan),sum)
+SigTrttrials <- tapply(simulations.dat$aov$SigTrt,list(simulations.dat$aov$plan),length)
+SigTrtcounts
+SigTrttrials
+SigTrtcounts/(SigTrttrials*6)
+
+simulations.dat$aov$PlanNo <- as.factor(simulations.dat$aov$plan):as.factor(simulations.dat$aov$Number)
+simulations.dat$plots$PlanNo <- as.factor(simulations.dat$plots$plan):as.factor(simulations.dat$plots$number)
+TypeIError <- simulations.dat$aov$TypeIError
+names(TypeIError) <- simulations.dat$aov$PlanNo
+simulations.dat$plots$TypeIError <- TypeIError[as.character(simulations.dat$plots$PlanNo)]
+
+ggplot(simulations.dat$plots, aes(LonM, LatM)) + geom_point(aes(colour = TypeIError),size=.2) + facet_wrap(~plan)
+```
+
+### Multiple randomizations
+
+
+```{r}
+rcb1.plan <- rcb.plan
+rcb1.plan$trt <- as.factor(c(sample(1:6),sample(1:6),sample(1:6),sample(1:6)))
+rcb2.plan <- rcb.plan
+rcb2.plan$trt <- as.factor(c(sample(1:6),sample(1:6),sample(1:6),sample(1:6)))
+rcb3.plan <- rcb.plan
+rcb3.plan$trt <- as.factor(c(sample(1:6),sample(1:6),sample(1:6),sample(1:6)))
+rcb4.plan <- rcb.plan
+rcb4.plan$trt <- as.factor(c(sample(1:6),sample(1:6),sample(1:6),sample(1:6)))
+rcb5.plan <- rcb.plan
+rcb5.plan$trt <- as.factor(c(sample(1:6),sample(1:6),sample(1:6),sample(1:6)))
+rcb6.plan <- rcb.plan
+rcb6.plan$trt <- as.factor(c(sample(1:6),sample(1:6),sample(1:6),sample(1:6)))
+rcb7.plan <- rcb.plan
+rcb7.plan$trt <- as.factor(c(sample(1:6),sample(1:6),sample(1:6),sample(1:6)))
+rcb8.plan <- rcb.plan
+rcb8.plan$trt <- as.factor(c(sample(1:6),sample(1:6),sample(1:6),sample(1:6)))
+rcb9.plan <- rcb.plan
+rcb9.plan$trt <- as.factor(c(sample(1:6),sample(1:6),sample(1:6),sample(1:6)))
+rcb10.plan <- rcb.plan
+rcb10.plan$trt <- as.factor(c(sample(1:6),sample(1:6),sample(1:6),sample(1:6)))
+rcb11.plan <- rcb.plan
+rcb11.plan$trt <- as.factor(c(sample(1:6),sample(1:6),sample(1:6),sample(1:6)))
+rcb12.plan <- rcb.plan
+rcb12.plan$trt <- as.factor(c(sample(1:6),sample(1:6),sample(1:6),sample(1:6)))
+
+planRCB.list <- list(
+    rcb1.plan=rcb1.plan,
+    rcb2.plan=rcb2.plan,
+    rcb3.plan=rcb3.plan,
+rcb4.plan=rcb4.plan,
+rcb5.plan=rcb5.plan,
+rcb6.plan=rcb6.plan,
+rcb7.plan=rcb7.plan,
+rcb8.plan=rcb8.plan,
+rcb9.plan=rcb9.plan,
+rcb10.plan=rcb10.plan,
+rcb11.plan=rcb11.plan,
+rcb12.plan=rcb12.plan
+)
+```
+
+
+```{r,results="hide"}
+if(!file.exists("simulationsRCB.dat.Rda")) {
+simulationsRCB.dat <- simulate.plans(planRCB.list,trimmed.dat,sample.vgm=sample.vgm,
+                                    plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim)
+  save(simulationsRCB.dat,file="simulationsRCB.dat.Rda")
+} else {
+  
+  load(file="simulationsRCB.dat.Rda")
+} 
+```
+
+
+
+```{r}
+#simulationsRCB.dat$plots$plan <- as.factor(names(planRCB.list)[simulationsRCB.dat$plots$plan])
+
+#simulationsRCB.dat$aov$plan <- as.factor(names(planRCB.list)[simulationsRCB.dat$aov$plan])
+
+ggplot(simulationsRCB.dat$plots, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=.2) + facet_wrap(~plan)
+
+sim2.corners <- extract.corners(simulationsRCB.dat$plots)
+
+ggplot(sim2.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=8) + facet_wrap(~plan)
+ggplot(sim2.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=6) + facet_wrap(~plan)
+
+ggplot(simulationsRCB.dat$aov, aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+#ggplot(simulationsRCB.dat$aov, aes(PostHocPower,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsRCB.dat$aov, aes(PostHocReps,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsRCB.dat$aov, aes(PostHocDiff,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+#ggplot(simulationsRCB.dat$aov, aes(TrtP)) + stat_density(geom="line",position="identity",size=1)
+
+simulationsRCB.dat$aov$TypeIError <- simulationsRCB.dat$aov$TrtP<0.05
+
+sum(simulationsRCB.dat$aov$TypeIError)
+length(simulationsRCB.dat$aov$TypeIError)
+sum(simulationsRCB.dat$aov$TypeIError)/length(simulationsRCB.dat$aov$TypeIError)
+
+```
+
+```{r}
+planAdj.list <- list(
+  adj1.plan=adj2.plan,
+  adj2.plan=adj2.plan,
+  adj3.plan=adj2.plan,
+  adj4.plan=adj2.plan,
+  adj5.plan=adj2.plan,
+  adj6.plan=adj2.plan,
+  adj7.plan=adj2.plan,
+  adj8.plan=adj2.plan,
+  adj9.plan=adj2.plan,
+  adj10.plan=adj2.plan,
+  adj11.plan=adj2.plan,
+  adj12.plan=adj2.plan
+)
+planAdj.list$adj2.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 3, 5, 1, 6, 2, 4, 1, 2, 3, 4, 5, 6, 3, 5, 1, 6, 2, 4))
+planAdj.list$adj3.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 4, 5, 1, 6, 3, 2, 1, 2, 3, 5, 4, 6, 5, 4, 6, 2, 1, 3))
+planAdj.list$adj4.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 4, 5, 6, 1, 3, 2, 3, 1, 4, 2, 6, 5, 2, 6, 5, 3, 1, 4))
+planAdj.list$adj5.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 3, 4, 5, 6, 2, 1, 5, 1, 2, 4, 3, 6, 4, 3, 6, 5, 2, 1))
+planAdj.list$adj6.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 4, 5, 1, 6, 3, 2, 2, 6, 3, 4, 5, 1, 1, 4, 5, 6, 2, 3))
+planAdj.list$adj7.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 3, 4, 5, 6, 2, 1, 5, 6, 2, 1, 4, 3, 1, 4, 3, 6, 5, 2))
+planAdj.list$adj8.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 4, 6, 5, 1, 3, 2, 1, 2, 3, 6, 5, 4, 3, 5, 4, 2, 1, 6))
+planAdj.list$adj9.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 3, 4, 5, 6, 2, 1, 1, 6, 2, 4, 5, 3, 2, 3, 5, 6, 1, 4))
+planAdj.list$adj10.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 4, 5, 6, 2, 1, 3, 1, 2, 4, 3, 5, 6, 4, 3, 5, 6, 1, 2))
+planAdj.list$adj11.plan$trt = as.factor(c( 1, 2, 3, 4, 5, 6, 5, 4, 6, 1, 3, 2, 3, 1, 2, 4, 5, 6, 2, 5, 6, 1, 3, 4))
+planAdj.list$adj12.plan$trt = as.factor(c(1, 2, 3, 4, 5, 6, 3, 4, 5, 6, 2, 1, 2, 6, 3, 1, 4, 5, 1, 4, 5, 6, 3, 2))
+```
+
+```{r,results="hide"}
+if(!file.exists("simulationsAdj.dat.Rda")) {
+simulationsAdj.dat <- simulate.plans(planAdj.list,trimmed.dat,sample.vgm=sample.vgm,
+                                    plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim)
+  save(simulationsAdj.dat,file="simulationsAdj.dat.Rda")
+} else {
+  
+  load(file="simulationsAdj.dat.Rda")
+} 
+```
+
+```{r}
+#simulationsAdj.dat$plots$plan <- as.factor(names(planAdj.list)[simulationsAdj.dat$plots$plan])
+#simulationsAdj.dat$aov$plan <- as.factor(names(planAdj.list)[simulationsAdj.dat$aov$plan])
+
+adj.corners <- extract.corners(simulationsAdj.dat$plots)
+
+ggplot(adj.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=8) + facet_wrap(~plan)
+ggplot(adj.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=6) + facet_wrap(~plan)
+
+ggplot(simulationsAdj.dat$aov, aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsAdj.dat$aov, aes(TrtP)) + stat_density(geom="line",position="identity",size=1)
+
+simulationsAdj.dat$aov$TypeIError <- simulationsAdj.dat$aov$TrtP<0.05
+sum(simulationsAdj.dat$aov$TypeIError)
+length(simulationsAdj.dat$aov$TypeIError)
+sum(simulationsAdj.dat$aov$TypeIError)/length(simulationsAdj.dat$aov$TypeIError)
+```
+
+
+```{r}
+planRC.list <- list(
+  rc1.plan=rc.plan,
+  rc2.plan=permute.plan(rc.plan),
+  rc3.plan=permute.plan(rc.plan),
+  rc4.plan=permute.plan(rc.plan),
+  rc5.plan=permute.plan(rc.plan),
+  rc6.plan=permute.plan(rc.plan),
+  rc7.plan=permute.plan(rc.plan),
+  rc8.plan=permute.plan(rc.plan),
+  rc9.plan=permute.plan(rc.plan),
+  rc10.plan=permute.plan(rc.plan),
+  rc11.plan=permute.plan(rc.plan),
+  rc12.plan=permute.plan(rc.plan)
+)
+```
+
+```{r,results="hide"}
+if(!file.exists("simulationsRC.dat.Rda")) {
+simulationsRC.dat <- simulate.plans(plan.list=planRC.list,trimmed.dat,sample.vgm=sample.vgm,
+                                    plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim)
+  save(simulationsRC.dat,file="simulationsRC.dat.Rda")
+} else {
+  
+  load(file="simulationsRC.dat.Rda")
+} 
+```
+
+```{r}
+#simulationsRC.dat$plots$plan <- as.factor(names(planRC.list)[simulationsRC.dat$plots$plan])
+#simulationsRC.dat$aov$plan <- as.factor(names(planRC.list)[simulationsRC.dat$aov$plan])
+
+adj.corners <- extract.corners(simulationsRC.dat$plots)
+
+ggplot(adj.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=8) + facet_wrap(~plan)
+ggplot(adj.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=6) + facet_wrap(~plan)
+
+ggplot(simulationsRC.dat$aov, aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsRC.dat$aov, aes(TrtP)) + stat_density(geom="line",position="identity",size=1)
+
+simulationsRC.dat$aov$TypeIError <- simulationsRC.dat$aov$TrtP<0.05
+sum(simulationsRC.dat$aov$TypeIError)
+length(simulationsRC.dat$aov$TypeIError)
+sum(simulationsRC.dat$aov$TypeIError)/length(simulationsRC.dat$aov$TypeIError)
+
+```
+
+
+```{r}
+planSpat.list <- list(
+  spat1.plan=spat.plan,
+  spat2.plan=permute.plan(spat.plan,byCol=FALSE),
+  spat3.plan=permute.plan(spat.plan,byCol=FALSE),
+  spat4.plan=permute.plan(spat.plan,byCol=FALSE),
+  spat5.plan=permute.plan(spat.plan,byCol=FALSE),
+  spat6.plan=permute.plan(spat.plan,byCol=FALSE),
+  spat7.plan=permute.plan(spat.plan,byCol=FALSE),
+  spat8.plan=permute.plan(spat.plan,byCol=FALSE),
+  spat9.plan=permute.plan(spat.plan,byCol=FALSE),
+  spat10.plan=permute.plan(spat.plan,byCol=FALSE),
+  spat11.plan=permute.plan(spat.plan,byCol=FALSE),
+  spat12.plan=permute.plan(spat.plan,byCol=FALSE)
+)
+```
+
+```{r,results="hide"}
+if(!file.exists("simulationsSpat.dat.Rda")) {
+simulationsSpat.dat <- simulate.plans(planSpat.list,trimmed.dat,sample.vgm=sample.vgm,
+                                    plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim)
+  save(simulationsSpat.dat,file="simulationsSpat.dat.Rda")
+} else {
+  
+  load(file="simulationsSpat.dat.Rda")
+} 
+```
+
+```{r}
+#simulationsSpat.dat$plots$plan <- as.factor(names(planSpat.list)[simulationsSpat.dat$plots$plan])
+#simulationsSpat.dat$aov$plan <- as.factor(names(planSpat.list)[simulationsSpat.dat$aov$plan])
+
+adj.corners <- extract.corners(simulationsSpat.dat$plots)
+
+ggplot(adj.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=8) + facet_wrap(~plan)
+ggplot(adj.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=6) + facet_wrap(~plan)
+
+ggplot(simulationsSpat.dat$aov, aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsSpat.dat$aov, aes(TrtP)) + stat_density(geom="line",position="identity",size=1)
+
+simulationsSpat.dat$aov$TypeIError <- simulationsSpat.dat$aov$TrtP<alpha
+sum(simulationsSpat.dat$aov$TypeIError)
+length(simulationsSpat.dat$aov$TypeIError)
+sum(simulationsSpat.dat$aov$TypeIError)/length(simulationsSpat.dat$aov$TypeIError)
+```
+
+```{r}
+planSV.list <- list(
+  sv1.plan=sv.plan,
+  sv2.plan=permute.plan(sv.plan),
+  sv3.plan=permute.plan(sv.plan),
+  sv4.plan=permute.plan(sv.plan),
+  sv5.plan=permute.plan(sv.plan),
+  sv6.plan=permute.plan(sv.plan),
+  sv7.plan=permute.plan(sv.plan),
+  sv8.plan=permute.plan(sv.plan),
+  sv9.plan=permute.plan(sv.plan),
+  sv10.plan=permute.plan(sv.plan),
+  sv11.plan=permute.plan(sv.plan),
+  sv12.plan=permute.plan(sv.plan)
+)
+#names(planSV.list) <- paste("sv",1:12)
+```
+
+```{r,results="hide"}
+if(!file.exists("simulationsSV.dat.Rda")) {
+simulationsSV.dat <- simulate.plans(planSV.list,trimmed.dat,sample.vgm=sample.vgm,
+                                    plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim)
+  save(simulationsSV.dat,file="simulationsSV.dat.Rda")
+} else {
+  
+  load(file="simulationsSV.dat.Rda")
+} 
+```
+
+```{r}
+#simulationsSV.dat$plots$plan <- as.factor(names(planSV.list)[simulationsSV.dat$plots$plan])
+#simulationsSV.dat$aov$plan <- as.factor(names(planSV.list)[simulationsSV.dat$aov$plan])
+
+adj.corners <- extract.corners(simulationsSV.dat$plots)
+
+ggplot(adj.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=8) + facet_wrap(~plan)
+ggplot(adj.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=6) + facet_wrap(~plan)
+
+ggplot(simulationsSV.dat$aov, aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsSV.dat$aov, aes(TrtP)) + stat_density(geom="line",position="identity",size=1)
+
+simulationsSV.dat$aov$TypeIError <- simulationsSV.dat$aov$TrtP<alpha
+sum(simulationsSV.dat$aov$TypeIError)
+length(simulationsSV.dat$aov$TypeIError)
+sum(simulationsSV.dat$aov$TypeIError)/length(simulationsSV.dat$aov$TypeIError)
+
+
+```
+
+### Pooled
+```{r}
+simulationsSV.dat$aov$base <- "sv"
+simulationsRCB.dat$aov$base <- "rcb"
+simulationsAdj.dat$aov$base <- "adj"
+simulationsRC.dat$aov$base <- "rc"  
+simulationsSpat.dat$aov$base <- "spat"
+dim(simulationsSV.dat$aov)
+dim(simulationsRCB.dat$aov)
+dim(simulationsAdj.dat$aov)
+dim(simulationsRC.dat$aov)
+dim(simulationsSpat.dat$aov)
+
+simulationsPooled.dat <- rbind(
+  simulationsRCB.dat$aov,
+  simulationsAdj.dat$aov,
+  simulationsRC.dat$aov,
+  simulationsSpat.dat$aov,
+ simulationsSV.dat$aov
+)
+simulationsPooled.dat$base <- as.factor(simulationsPooled.dat$base)
+ggplot(simulationsPooled.dat, aes(TrtP,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+ggplot(simulationsPooled.dat, aes(ResMS,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+
+#ggplot(simulationsPooled.dat, aes(PostHocPower,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsPooled.dat, aes(PostHocReps,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulationsPooled.dat, aes(PostHocDiff,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+
+#TypeIIcounts <- tapply(simulationsPooled.dat$SigTrt,list(simulationsPooled.dat$base),sum)
+#TypeIItrials <- tapply(simulationsPooled.dat$SigTrt,list(simulationsPooled.dat$base),length)
+#TypeIIcounts
+#TypeIItrials
+#100*(TypeIIcounts)/(TypeIItrials*6)
+#100*(TypeIItrials*6-TypeIIcounts)/(TypeIItrials*6)
+```
+
+Do rep variances contribute to Type I error?
+
+```{r}
+simulations.dat$aov$TrtF <- simulations.dat$aov$TrtMS/simulations.dat$aov$RepMS
+simulations.dat$aov$RepF <- simulations.dat$aov$RepMS/simulations.dat$aov$ResMS
+#simulations.dat$aov$TrtDF
+#simulations.dat$aov$RepDF
+
+ggplot(simulations.dat$aov, aes(log(RepF),color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(simulations.dat$aov, aes(log(RepVar),color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+ggplot(simulations.dat$aov, aes(log(RepVar),color=plan,linetype=plan)) + geom_histogram(bins=20,position="dodge")
+
+ggplot(simulations.dat$aov, aes(TrtMS, RepMS)) + geom_point(aes(color=plan,shape=plan),size=3)
+ggplot(simulations.dat$aov, aes(log(RepVar), log(TrtP))) + geom_point(aes(color=plan,shape=plan),size=3)
+```
+
+### Trend analysis
+
+```{r}
+trend.analysis <- function(simulations) {
+  simulations$aov$PlanNo <- as.factor(simulations$aov$plan):as.factor(simulations$aov$Number)
+  simulations$plots$PlanNo <- as.factor(simulations$plots$plan):as.factor(simulations$plots$number)
+  simulations$aov$Experiment <- as.factor(simulations$aov$Source):simulations$aov$PlanNo
+  simulations$plots$Experiment <- as.factor(simulations$plots$Source):simulations$plots$PlanNo
+  
+  simulations$aov$TrtPTrend <- NA
+  simulations$aov$LonP <- NA
+  simulations$aov$LatP <- NA
+  simulations$aov$Lon2P <- NA
+  simulations$aov$Lat2P <- NA
+  simulations$aov$LonLatP <- NA
+  simulations$aov$TrendResMS <- NA
+  simulations$aov$TrendMS <- NA
+  simulations$aov$TrendF <- NA
+  simulations$aov$TrendP <- NA
+  simulations$aov$GrandMean <- NA
+
+  for(idx in 1:dim(simulations$aov)[1]) {
+    planno <- simulations$aov$PlanNo[idx]
+    current.dat <- subset(simulations$plots,simulations$plots$PlanNo==planno)
+    
+
+    trend.lm <- lm(YldVolDry ~ trt + LonM + LatM + I(LonM^2) + I(LatM^2) + I(LonM*LatM),data=current.dat)
+    tbl <- anova(trend.lm)
+    trt.lm <- lm(YldVolDry ~ trt,data=current.dat)
+    simulations$aov$TrtPTrend[idx] <- tbl[1,5]
+    simulations$aov$LonP[idx] <- tbl[2,5]
+    simulations$aov$LatP[idx] <- tbl[3,5]
+    simulations$aov$Lon2P[idx] <- tbl[4,5]
+    simulations$aov$Lat2P[idx] <- tbl[5,5]
+    simulations$aov$LonLatP[idx] <- tbl[6,5]
+    simulations$aov$TrendResMS[idx] <- tbl[7,3]
+    
+    model.tbl <- anova(trt.lm,trend.lm)
+    simulations$aov$TrendMS[idx] <- (model.tbl$RSS[1] - model.tbl$RSS[2])/model.tbl$Df[2]
+    simulations$aov$TrendF[idx] <- model.tbl$F[2]
+    simulations$aov$TrendP[idx] <- model.tbl[2,"Pr(>F)"]
+  }
+  simulations$aov$CV <- 100*sqrt(simulations$aov$ResMS)/simulations$aov$GrandMean
+
+  return(simulations$aov)
+}
+```
+
+
+```{r}
+if(!file.exists("trend.RCB.Rda")) {
+  trend.RCB <- trend.analysis(simulationsRCB.dat)
+  save(trend.RCB,file="trend.RCB.Rda")
+} else {
+  load(file="trend.RCB.Rda")
+}
+
+ggplot(trend.RCB, aes(log(TrtPTrend),color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+ggplot(trend.RCB, aes(log(TrendP),color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(trend.RCB, aes(TrtPTrend)) + stat_density(geom="line",position="identity",size=1)
+ggplot(trend.RCB, aes(log(TrtPTrend), log(TrtP))) + geom_point(aes(color=plan),size=1)
+```
+
+
+```{r}
+if(!file.exists("trend.Adj.Rda")) {
+  trend.Adj <- trend.analysis(simulationsAdj.dat)
+  save(trend.Adj,file="trend.Adj.Rda")
+} else {
+  load(file="trend.Adj.Rda")
+}
+
+ggplot(trend.Adj, aes(TrtPTrend,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+ggplot(trend.Adj, aes(log(TrendP),color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(trend.Adj, aes(TrtPTrend)) + stat_density(geom="line",position="identity",size=1)
+ggplot(trend.Adj, aes(log(TrtPTrend), log(TrtP))) + geom_point(aes(color=plan),size=1)
+ggplot(trend.Adj, aes(ResMS, TrendResMS)) + geom_point(aes(color=plan),size=1)
+subset(trend.Adj,trend.Adj$TrendResMS>100)
+lowTrend.dat <- subset(simulationsAdj.dat$plots,simulationsAdj.dat$plots$number==36)
+lowTrend.dat <- subset(lowTrend.dat,lowTrend.dat$plan=="adj1.plan")
+
+ggplot(lowTrend.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=8)
+
+summary(lm(YldVolDry ~ trt + LonM + LatM + I(LonM^2) + I(LatM^2) + I(LonM*LatM),data=lowTrend.dat))
+summary(aov(YldVolDry ~ trt + LonM + LatM + I(LonM^2) + I(LatM^2) + I(LonM*LatM),data=lowTrend.dat))
+ggplot(trend.Adj, aes(log(RepP), log(TrendP))) + geom_point(aes(color=plan),size=1)
+```
+
+```{r}
+#lowTrend.dat
+```
+
+
+
+```{r}
+if(!file.exists("trend.Spat.Rda")) {
+  trend.Spat <- trend.analysis(simulationsSpat.dat)
+  save(trend.Spat,file="trend.Spat.Rda")
+} else {
+  load(file="trend.Spat.Rda")
+}
+
+#ggplot(trend.Spat, aes(TrtPTrend,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(trend.Spat, aes(TrtPTrend)) + stat_density(geom="line",position="identity",size=1)
+```
+
+
+```{r}
+if(!file.exists("trend.RC.Rda")) {
+  trend.RC <- trend.analysis(simulationsRC.dat)
+  save(trend.RC,file="trend.RC.Rda")
+} else {
+  load(file="trend.RC.Rda")
+}
+
+#ggplot(trend.RC, aes(TrtPTrend,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(trend.RC, aes(TrtPTrend)) + stat_density(geom="line",position="identity",size=1)
+```
+
+
+```{r}
+if(!file.exists("trend.SV.Rda")) {
+  trend.SV <- trend.analysis(simulationsSV.dat)
+  save(trend.SV,file="trend.SV.Rda")
+} else {
+  load(file="trend.SV.Rda")
+}
+
+#ggplot(trend.SV, aes(TrtPTrend,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(trend.SV, aes(TrtPTrend)) + stat_density(geom="line",position="identity",size=1)
+```
+
+```{r}
+trend.SV$base <- "sv"
+trend.RCB$base <- "rcb"
+trend.Adj$base <- "adj"
+trend.RC$base <- "rc"  
+trend.Spat$base <- "spat"
+
+trendPooled.dat <- rbind(
+  trend.SV,
+  trend.RCB,
+  trend.Adj,
+  trend.RC,
+  trend.Spat
+)
+
+trendPooled.dat$base <- as.factor(trendPooled.dat$base)
+ggplot(trendPooled.dat, aes(TrtPTrend,color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+ggplot(trendPooled.dat, aes(log(TrtPTrend),color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+ggplot(trendPooled.dat, aes(log(TrendP),color=base,linetype=base)) + stat_density(geom="line",position="identity",size=1)
+
+```
+
+### Power analysis
+
+```{r}
+power.analysis <- function(simulations) {
+  simulations$aov$PlanNo <- as.factor(simulations$aov$plan):as.factor(simulations$aov$Number)
+  simulations$plots$PlanNo <- as.factor(simulations$plots$plan):as.factor(simulations$plots$number)
+  simulations$aov$Experiment <- as.factor(simulations$aov$Source):simulations$aov$PlanNo
+  simulations$plots$Experiment <- as.factor(simulations$plots$Source):simulations$plots$PlanNo
+  
+
+  simulations$aov$PostHocCalcPower <- NA
+  simulations$aov$PostHocCalcReps <- NA
+  simulations$aov$PostHocCalcEffectSize <- NA
+  simulations$aov$PostHocCalcDiff <- NA
+  
+  simulations$aov$PostHocEffectSize <- NA
+  simulations$aov$PostHocMeasuredEffect <- NA
+  simulations$aov$PostHocMeasuredPower <- NA  
+  
+  simulations$aov$SigTrt <- NA
+  simulations$aov$MeanSigTrtP <- NA
+  simulations$aov$NCP <- NA
+  
+  
+  #for each plan and source, iterate over the set of trials.
+  sources <- levels(as.factor(simulations$aov$Source))
+  plans <- levels(as.factor(simulations$aov$plan))
+  
+  for(source in sources) {
+    for(plan in plans) {
+      
+      aov.mask <- (simulations$aov$plan==plan & simulations$aov$Source==source)
+      
+      current.plots <- subset(simulations$plots,simulations$plots$Source==source)
+      current.plots <- current.plots[current.plots$plan==plan,]
+      #take the average over all possible plot values
+      GrandMean <- mean(current.plots$YldVolDry)
+      #GrandMean <- mean(simulations$aov$GrandMean[aov.mask])
+  
+      #start with a small effect size, and iterate over each trial
+      #increase effect size until we get >80% significant treatments
+      for(esize in 1:200) {
+        TotalSigTrt <- 0
+        TotalCount <- 0
+        for(num in 1:max(current.plots$number)) {
+          SigTrt <- 0
+          Count <- 0
+          current.dat <- subset(current.plots,current.plots$number==num)
+          aov.inner.mask <- aov.mask & simulations$aov$Number==num
+          #use the current trial CV
+          CV <- simulations$aov$CV[aov.inner.mask]
+          GrandMean <- simulations$aov$GrandMean[aov.inner.mask]
+         # RelDiff <- CV*(esize/2)
+          RelDiff <- GrandMean*(esize/100)
+          TrtPs <- c()
+          
+          for(trt in levels(current.dat$trt)) {
+             tmp.dat <- current.dat
+             tmp.dat$YldVolDry[tmp.dat$trt==trt] <- RelDiff + tmp.dat$YldVolDry[tmp.dat$trt==trt]
+             aov2.tbl <- summary(aov(YldVolDry ~ as.factor(trt)+as.factor(rep),data=tmp.dat))
+             TrtP = aov2.tbl[[1]][1,5]
+             TrtPs <- c(TrtPs,TrtP)
+             if(TrtP<0.05) {
+               TotalSigTrt <- TotalSigTrt+1
+               SigTrt <- SigTrt+1
+             }
+             Count = Count+1
+             TotalCount <- TotalCount+1
+          }
+          #save effect size for this loop
+          #simulations$aov$PostHocEffectSize[aov.inner.mask] <- esize/2
+          PerMeanDiff <- RelDiff/GrandMean
+          simulations$aov$PostHocEffectSize[aov.inner.mask] <- PerMeanDiff/CV
+          #relative difference for just this trial
+          simulations$aov$PostHocMeasuredEffect[aov.inner.mask] <- RelDiff
+          #number of treatments detected as significant for the given effect
+          simulations$aov$SigTrt[aov.inner.mask] <- SigTrt
+          simulations$aov$TrtCount[aov.inner.mask] <- Count
+          #average treatment p
+          simulations$aov$MeanSigTrtP[aov.inner.mask] <- mean(TrtPs)
+          
+        RepDF <- simulations$aov$RepDF[aov.inner.mask]
+        ResDF <- simulations$aov$ResDF[aov.inner.mask]
+        PerMeanDiff <- simulations$aov$PerMeanDiff[aov.inner.mask]
+
+        EffectSize <- PerMeanDiff/CV
+        NCP <- sqrt(ResDF+1)*EffectSize
+        
+        simulations$aov$PostHocCalcPower[aov.inner.mask] <- post.hoc(effect.size=EffectSize, reps=(RepDF+1), osl=0.05, error.df=ResDF)$power
+        simulations$aov$PostHocCalcReps[aov.inner.mask] <- a.priori(effect.size=EffectSize, osl=0.05, power=0.80, error.df=ResDF)$reps
+        PostHocEffectSize <- sensitivity(osl=0.05, reps=(RepDF+1), error.df=ResDF) 
+        simulations$aov$PostHocCalcEffectSize[aov.inner.mask] <- PostHocEffectSize$effect.size
+        simulations$aov$PostHocCalcDiff[aov.inner.mask] = PostHocEffectSize$effect.size * CV
+        
+        simulations$aov$NCP[aov.inner.mask] <- NCP
+        }
+        if(TotalSigTrt/TotalCount>0.80) {
+          break;
+        }
+      }
+      
+      simulations$aov$PostHocMeasuredPower[aov.inner.mask] <- TotalSigTrt/TotalCount
+        #we've now found an effect size
+        #compute posterior power
+
+      }
+    }
+  return(simulations$aov)
+}
+
+simulations.power <- power.analysis(simulations.dat)
+head(simulations.power)
+power.measures <- subset(simulations.power,!is.na(simulations.power$PostHocMeasuredPower))
+tapply(power.measures$PostHocMeasuredPower,list(power.measures$plan),mean)
+tapply(simulations.power$SigTrt,list(simulations.power$plan),mean)
+ggplot(simulations.power, aes(PostHocEffectSize,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+ggplot(simulations.power, aes(MeanSigTrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+ggplot(simulations.power, aes(plan, PostHocMeasuredEffect)) +geom_point(aes(colour = plan),size=1)# + facet_wrap(~plan)
+```
+
+
+### Swap Trial Orientation
+
+```{r}
+rcb.swap.plan <- rcb.plan
+rcb.swap.plan$col <- rcb.plan$row
+rcb.swap.plan$row <- rcb.plan$col
+rcb.swap.plan$blk <- as.factor(rcb.swap.plan$col)
+rcb.swap.plan$rep <- as.factor(rcb.swap.plan$col)
+
+planb.list <- list(
+  rcb.plan=swap.treatments(rcb.plan,rcb.swap.plan),
+  adj2.plan=swap.treatments(adj2.plan,rcb.swap.plan),
+  sv.plan=swap.treatments(sv.plan,rcb.swap.plan),
+  rc.plan=swap.treatments(rc.plan,rcb.swap.plan),
+  spat.plan=swap.treatments(spat.plan,rcb.swap.plan)
+)
+```
+
+
+```{r,results="hide"}
+if(!file.exists("simulationsswap.dat.Rda")) {
+simulationsswap.dat <- simulate.plans(planb.list,trimmed.dat,sample.vgm=sample.vgm,
+                                    plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim)
+  save(simulationsswap.dat,file="simulationsswap.dat.Rda")
+} else {
+  
+  load(file="simulationsswap.dat.Rda")
+} 
+```
+
+```{r}
+#simulationsswap.dat$plots$plan <- as.factor(names(planb.list)[simulationsswap.dat$plots$plan])
+#simulationsswap.dat$aov$plan <- as.factor(names(planb.list)[simulationsswap.dat$aov$plan])
+
+ggplot(simulationsswap.dat$aov, aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+
+simulationsswap.dat$aov$TrtF <- simulationsswap.dat$aov$TrtMS/simulationsswap.dat$aov$RepMS
+simulationsswap.dat$aov$RepF <- simulationsswap.dat$aov$RepMS/simulationsswap.dat$aov$ResMS
+
+ggplot(simulationsswap.dat$aov, aes(log(RepF), log(TrtP))) + geom_point(aes(color=plan,shape=plan),size=3)
+TypeIb.plans <- subset(simulationsswap.dat$aov,simulationsswap.dat$aov$TrtP<alpha)
+tapply(TypeIb.plans$TrtP,list(TypeIb.plans$Number),length)
+
+
+simulationsswap.dat$aov$PlanNo <- as.factor(simulationsswap.dat$aov$plan):as.factor(simulationsswap.dat$aov$Number)
+simulationsswap.dat$plots$PlanNo <- as.factor(simulationsswap.dat$plots$plan):as.factor(simulationsswap.dat$plots$number)
+TypeIError <- simulationsswap.dat$aov$TrtP<alpha
+names(TypeIError) <- simulationsswap.dat$aov$PlanNo
+simulationsswap.dat$plots$TypeIError <- TypeIError[as.character(simulationsswap.dat$plots$PlanNo)]
+
+ggplot(simulationsswap.dat$plots, aes(LonM, LatM)) + geom_point(aes(colour = TypeIError),size=.2) + facet_wrap(~plan)
+```
+
+```{r}
+planRCBswap.list <- list(
+    rcb1.plan=swap.treatments(rcb1.plan,rcb.swap.plan),
+    rcb2.plan=swap.treatments(rcb2.plan,rcb.swap.plan),
+    rcb3.plan=swap.treatments(rcb3.plan,rcb.swap.plan),
+rcb4.plan=swap.treatments(rcb4.plan,rcb.swap.plan),
+rcb5.plan=swap.treatments(rcb5.plan,rcb.swap.plan),
+rcb6.plan=swap.treatments(rcb6.plan,rcb.swap.plan),
+rcb7.plan=swap.treatments(rcb7.plan,rcb.swap.plan),
+rcb8.plan=swap.treatments(rcb8.plan,rcb.swap.plan),
+rcb9.plan=swap.treatments(rcb9.plan,rcb.swap.plan),
+rcb10.plan=swap.treatments(rcb10.plan,rcb.swap.plan),
+rcb11.plan=swap.treatments(rcb11.plan,rcb.swap.plan),
+rcb12.plan=swap.treatments(rcb12.plan,rcb.swap.plan)
+)
+```
+
+```{r,results="hide"}
+if(!file.exists("simulationsRCBswap.dat.Rda")) {
+simulationsRCBswap.dat <- simulate.plans(planRCBswap.list,trimmed.dat,sample.vgm=sample.vgm,
+                                    plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim)
+  save(simulationsRCBswap.dat,file="simulationsRCBswap.dat.Rda")
+} else {
+  
+  load(file="simulationsRCBswap.dat.Rda")
+} 
+```
+
+```{r}
+#simulationsRCBswap.dat$plots$plan <- as.factor(names(planRCBswap.list)[simulationsRCBswap.dat$plots$plan])
+  
+#simulationsRCBswap.dat$aov$plan <- as.factor(names(planRCBswap.list)[simulationsRCBswap.dat$aov$plan])
+
+sim2b.corners <- extract.corners(simulationsRCBswap.dat$plots)
+
+ggplot(sim2b.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=8) + facet_wrap(~plan)
+ggplot(sim2b.corners$se, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=6) + facet_wrap(~plan)
+
+ggplot(simulationsRCBswap.dat$aov, aes(TrtP,color=plan,linetype=plan)) + stat_density(geom="line",position="identity",size=1)
+```
+
+### PCA
+
+```{r}
+pca.aov <- subset(simulations.dat$aov,simulations.dat$aov$plan=="rcb.plan")
+
+alpha = 0.05
+choice.dat <- pca.aov
+TypeI.plans <- subset(choice.dat,choice.dat$TrtP<alpha)
+TypeI.counts <- tapply(TypeI.plans$TrtP,list(TypeI.plans$Number),length)
+#TypeI.counts
+
+TypeIRep.plans <- subset(choice.dat,choice.dat$RepP<alpha)
+TypeIRep.counts <- tapply(TypeIRep.plans$RepP,list(TypeIRep.plans$Number),length)
+#TypeIRep.counts
+
+
+Type0.plans <- subset(choice.dat,choice.dat$TrtP>(1-4*alpha))
+Type0.counts <- tapply(Type0.plans$TrtP,list(Type0.plans$Number),length)
+#Type0.counts
+
+
+
+
+Type0Rep.plans <- subset(choice.dat,choice.dat$RepP>(1-4*alpha))
+Type0Rep.counts <- tapply(Type0Rep.plans$RepP,list(Type0Rep.plans$Number),length)
+#Type0Rep.counts
+
+intersect(names(TypeI.counts), names(TypeIRep.counts))
+intersect(names(Type0.counts), names(TypeIRep.counts))
+intersect(names(TypeI.counts), names(Type0Rep.counts))
+intersect(names(Type0.counts), names(Type0Rep.counts))
+
+pca.dat <- subset(simulations.dat$plots,simulations.dat$plots$plan=="rcb.plan")
+
+parallelReps.dat <- subset(pca.dat,pca.dat$number==49)
+
+#path plans
+sigTrtSigRep.dat <- subset(pca.dat,pca.dat$number==4)
+nonTrtSigRep.dat <- subset(pca.dat,pca.dat$number==21)
+sigTrtNonRep.dat <- subset(pca.dat,pca.dat$number==52)
+nonTrtnonRep.dat <- subset(pca.dat,pca.dat$number==123) #at alpha=0.50
+
+#rc plans
+#sigTrtSigRep.dat <- subset(pca.dat,pca.dat$number==7)
+#nonTrtSigRep.dat <- subset(pca.dat,pca.dat$number==4)
+#sigTrtNonRep.dat <- subset(pca.dat,pca.dat$number==59)
+#nonTrtnonRep.dat <- subset(pca.dat,pca.dat$number==22) #120
+
+#adj2
+#sigTrtSigRep.dat <- subset(pca.dat,pca.dat$number==65)
+#nonTrtSigRep.dat <- subset(pca.dat,pca.dat$number==5)
+#sigTrtNonRep.dat <- subset(pca.dat,pca.dat$number==59) #not really
+#nonTrtnonRep.dat <- subset(pca.dat,pca.dat$number==22) #120
+
+#rcb
+#sigTrtSigRep.dat <- subset(pca.dat,pca.dat$number==27)
+#nonTrtSigRep.dat <- subset(pca.dat,pca.dat$number==19)
+#sigTrtNonRep.dat <- subset(pca.dat,pca.dat$number==172)
+#nonTrtnonRep.dat <- subset(pca.dat,pca.dat$number==28) 
+```
+
+```{r}
+ggplot(pca.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+```
+
+```{r}
+first.pca <- princomp(pca.dat[,c("LonM","LatM","YldVolDry")], cor = TRUE)
+#biplot(first.pca)
+```
+
+```{r}
+trend.pca <- function(current.dat) {
+  lat.pca <- princomp(current.dat[,c("LonM","LatM","YldVolDry")], cor = TRUE)
+  lat.labels <- rep("", nrow(current.dat))
+  lat.plot <- ggplot(current.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=8)
+  
+  rcb.aov <- aov(YldVolDry ~ trt + rep,data=current.dat)
+  
+  current.dat$trtNo <- as.numeric(current.dat$trt)
+  current.dat$repNo <- as.numeric(current.dat$rep)
+  rcb.pca <- princomp(current.dat[,c("trtNo","repNo","YldVolDry")], cor = TRUE)
+  rcb.labels <- rep("", nrow(current.dat))
+  
+  current.dat$trtEffect <- tapply(current.dat$YldVolDry,list(current.dat$trt),mean) - mean(current.dat$YldVolDry)
+  current.dat$repEffect <- tapply(current.dat$YldVolDry,list(current.dat$rep),mean) - mean(current.dat$YldVolDry)
+  
+  effect.pca <- princomp(current.dat[,c("trtEffect","repEffect","YldVolDry")], cor = TRUE)
+  effect.labels <- rep("", nrow(current.dat))
+  
+  return(list(
+    lat.pca=lat.pca,
+    lat.labels=lat.labels,
+    lat.plot=lat.plot,
+  rcb.aov=rcb.aov,
+  rcb.pca=rcb.pca,
+  rcb.labels=rcb.labels,
+  effect.pca=effect.pca,
+  effect.labels=effect.labels
+))
+}
+```
+
+```{r}
+sigTrtSigRep.pca <- trend.pca(sigTrtSigRep.dat)
+#biplot(sigTrtSigRep.pca$lat.pca,xlabs=sigTrtSigRep.pca$lat.labels)
+#biplot(sigTrtSigRep.pca$effect.pca,xlabs=sigTrtSigRep.pca$effect.labels)
+#sigTrtSigRep.pca$lat.plot
+summary(sigTrtSigRep.pca$rcb.aov)
+
+#biplot(sigTrtSigRep.pca$rcb.pca,xlabs=sigTrtSigRep.pca$rcb.labels)
+
+
+
+sigTrtNonRep.pca <- trend.pca(sigTrtNonRep.dat)
+#biplot(sigTrtNonRep.pca$lat.pca,xlabs=sigTrtNonRep.pca$lat.labels)
+#biplot(sigTrtNonRep.pca$effect.pca,xlabs=sigTrtNonRep.pca$effect.labels)
+#sigTrtNonRep.pca$lat.plot
+summary(sigTrtNonRep.pca$rcb.aov)
+
+#biplot(sigTrtNonRep.pca$rcb.pca,xlabs=sigTrtNonRep.pca$rcb.labels)
+
+
+
+nonTrtSigRep.pca <- trend.pca(nonTrtSigRep.dat)
+#biplot(nonTrtSigRep.pca$lat.pca,xlabs=nonTrtSigRep.pca$lat.labels)
+#biplot(nonTrtSigRep.pca$effect.pca,xlabs=nonTrtSigRep.pca$effect.labels)
+#nonTrtSigRep.pca$lat.plot
+summary(nonTrtSigRep.pca$rcb.aov)
+
+#biplot(nonTrtSigRep.pca$rcb.pca,xlabs=nonTrtSigRep.pca$rcb.labels)
+
+
+
+nonTrtnonRep.pca <- trend.pca(nonTrtnonRep.dat)
+#biplot(nonTrtnonRep.pca$lat.pca,xlabs=nonTrtnonRep.pca$lat.labels)
+#biplot(nonTrtnonRep.pca$effect.pca,xlabs=nonTrtnonRep.pca$effect.labels)
+#nonTrtnonRep.pca$lat.plot
+summary(nonTrtnonRep.pca$rcb.aov)
+
+#biplot(nonTrtnonRep.pca$rcb.pca,xlabs=nonTrtnonRep.pca$rcb.labels)
+
+```
+
+```{r}
+#sigTrtSigRep.dat
+#nonTrtSigRep.dat
+#sigTrtNonRep.dat
+#nonTrtnonRep.dat
+```
+
+### ATDC 
+
+
+
+```{r}
+compare.adtc(plan.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+compare.adtc(plan.list,multiple=TRUE,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+
+compare.adtc(planRCB.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+compare.adtc(planRCB.list,multiple=TRUE,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+
+compare.adtc(planSpat.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+compare.adtc(planSpat.list,multiple=TRUE,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+```
+
+
+### Large Simulations
+
+Repeat with a large number (100)
+```{r}
+numsims <- 300
+```
+
+```{r,echo=FALSE}
+generate.rcb.plans <- function(reps,treatments,count) {
+  row <- c()
+  trt <- c()
+  for (i in 1:reps) {
+    row <- c(row,rep(i,treatments))
+    trt <- c(trt,sample(1:treatments))
+  }
+  base.plan <- data.frame(
+      row = row,
+      col = rep(1:treatments,reps),
+      trt = trt,
+      plotno = 1:(reps*treatments)
+  )
+  base.plan$trt <- as.factor(base.plan$trt)
+  base.plan$blk <- as.factor(base.plan$row)
+  base.plan$rep <- as.factor(base.plan$row)
+
+  rcb.list <- vector("list", count)
+  cnt=1
+  hashes <- c()
+  
+  while (cnt <= count) {
+    current.plan <- rcb.plan
+    trt <- c()
+    for (i in 1:reps) {
+      trt <- c(trt,sample(1:treatments))
+    }
+    current.plan$trt <- as.factor(trt)
+    
+    hash.key <- plan.to.string(current.plan)
+    if(!(hash.key %in% hashes)) {
+      rcb.list[[cnt]] <- current.plan
+      hashes <- c(hashes,hash.key)
+      cnt <- cnt +1
+    }
+  }
+  
+  names(rcb.list) <- as.character(1:count)
+  return(rcb.list)
+}
+
+
+if(!file.exists("simulations100.dat.Rda")) {
+  rcb100.list <- generate.rcb.plans(4,6,300)
+  simulations100.dat <- simulate.plans(rcb100.list,trimmed.dat,sample.vgm=sample.vgm,
+                                    plot.dim=arm.plot.dim, buffer.dim=arm.buffer.dim)
+  
+  #so our columns will align with previous simulations
+  simulations100.dat$aov$TypeIError <- simulations100.dat$aov$TrtP<0.05
+  simulations100.dat$aov$base <- "rcb"
+  
+  sim100Within.adtc <- compare.adtc(rcb100.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  #simulations100.dat$aov$SDofMeansWithin <- sim.adtc$SDofMeans
+  #simulations100.dat$aov$MeanOfSDWithin <- sim.adtc$MeanOfSD
+  #simulations100.dat$aov$MinWithin <- sim.adtc$Min
+  #simulations100.dat$aov$MaxWithin <- sim.adtc$Max
+  
+  sim100Across.adtc <- compare.adtc(rcb100.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+  #simulations100.dat$aov$SDofMeansAcross <- sim.adtc$SDofMeans
+  #simulations100.dat$aov$MeanOfSDAcross <- sim.adtc$MeanOfSD
+  #simulations100.dat$aov$MinAcross <- sim.adtc$Min
+  #simulations100.dat$aov$MaxAcross <- sim.adtc$Max
+  
+  save(simulations100.dat,file="simulations100.dat.Rda")
+  save(sim100Within.adtc,file="sim100Within.adtc.Rda")
+  save(sim100Across.adtc,file="sim100Across.adtc.Rda")
+} else {
+  
+  load(file="simulations100.dat.Rda")
+  load(file="sim100Within.adtc.Rda")
+  load(file="sim100Across.adtc.Rda")
+}
+```
+
+```{r}
+#ggplot(simulations100.dat$aov, aes(SDofMeansWithin)) + geom_histogram()
+#ggplot(simulations100.dat$aov, aes(MeanOfSDWithin)) + geom_histogram()
+
+#ggplot(simulations100.dat$aov, aes(SDofMeansAcross)) + geom_histogram()
+#ggplot(simulations100.dat$aov, aes(MeanOfSDAcross)) + geom_histogram()
+
+ggplot(simulations100.dat$aov, aes(TrtP)) + stat_density(geom="line",position="identity",size=1)
+ggplot(simulations100.dat$aov, aes(TrtP, fill=plan)) + geom_histogram(bins=20,binwidth = 0.05)
+
+#ggplot(simulations100.dat$aov, aes(PostHocPower)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulations100.dat$aov, aes(PostHocPower, fill=plan)) + geom_histogram(bins=20)
+
+#ggplot(simulations100.dat$aov, aes(PostHocReps)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulations100.dat$aov, aes(PostHocReps, fill=plan)) + geom_histogram(bins=20)
+
+#ggplot(simulations100.dat$aov, aes(PostHocDiff)) + stat_density(geom="line",position="identity",size=1)
+#ggplot(simulations100.dat$aov, aes(PostHocDiff, fill=plan)) + geom_histogram(bins=20)
+
+
+simulations100.dat$aov$TypeIError <- simulations100.dat$aov$TrtP<alpha
+sum(simulations100.dat$aov$TypeIError)
+length(simulations100.dat$aov$TypeIError)
+100*sum(simulations100.dat$aov$TypeIError)/length(simulations100.dat$aov$TypeIError)
+
+simulations100.dat$aov$plan <- as.factor(simulations100.dat$aov$plan)
+
+ggplot(subset(simulations100.dat$plots,simulations100.dat$plots$plan==1), aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+```
+
+Combined plot
+```{r}
+
+  ##simulationsRCB.dat$aov,
+  simulationsRCBWithin.adtc <- compare.adtc(planRCB.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  simulationsRCBAcross.adtc <- compare.adtc(planRCB.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+
+  
+  #simulationsAdj.dat$aov,
+  simulationsAdjWithin.adtc <- compare.adtc(planAdj.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  simulationsAdjAcross.adtc <- compare.adtc(planAdj.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+
+  #simulationsRC.dat$aov,
+  simulationsRCWithin.adtc <- compare.adtc(planRC.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  simulationsRCAcross.adtc <- compare.adtc(planRC.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+
+  
+  ##simulationsSpat.dat$aov,
+  simulationsSpatWithin.adtc <- compare.adtc(planSpat.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  simulationsSpatAcross.adtc <- compare.adtc(planSpat.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+
+  #simulationsSV.dat$aov  
+  simulationsSVWithin.adtc <- compare.adtc(planSV.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+  simulationsSVAcross.adtc <- compare.adtc(planSV.list,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim,multiple=TRUE)
+  
+  head(simulationsRCB.dat$aov)
+  head(simulations100.dat$aov)
+  
+  
+  simulations100.dat$aov$plan <- as.character(simulations100.dat$aov$plan)
+  simulationsRCB.dat$aov$plan <- as.character(simulationsRCB.dat$aov$plan)
+  simulationsAdj.dat$aov$plan <- as.character(simulationsAdj.dat$aov$plan)
+  simulationsRC.dat$aov$plan <- as.character(simulationsRC.dat$aov$plan)
+  simulationsSpat.dat$aov$plan <- as.character(simulationsSpat.dat$aov$plan)
+  simulationsSV.dat$aov$plan <- as.character(simulationsSV.dat$aov$plan)
+  
+  adtcPooled.dat <- rbind(
+    simulationsRCB.dat$aov,
+    simulationsAdj.dat$aov,
+    simulationsRC.dat$aov,
+    simulationsSpat.dat$aov,
+    simulationsSV.dat$aov,
+    simulations100.dat$aov
+  )
+  
+  simulationsRCBWithin.adtc$base <- "rcb"
+    simulationsAdjWithin.adtc$base <- "adj"
+    simulationsRCWithin.adtc$base <- "rc"
+    simulationsSpatWithin.adtc$base <- "spat"
+    simulationsSVWithin.adtc$base <- "sv"
+    sim100Within.adtc$base <- "rcb"
+  
+  withinPooled.adtc  <- rbind(
+    simulationsRCBWithin.adtc,
+    simulationsAdjWithin.adtc,
+    simulationsRCWithin.adtc,
+    simulationsSpatWithin.adtc,
+    simulationsSVWithin.adtc,
+    sim100Within.adtc)
+  
+  withinPooled.adtc$base <- as.factor(withinPooled.adtc$base)
+  
+    simulationsRCBAcross.adtc$base <- "rcb"
+    simulationsAdjAcross.adtc$base <- "adj"
+    simulationsRCAcross.adtc$base <- "rc"
+    simulationsSpatAcross.adtc$base <- "spat"
+    simulationsSVAcross.adtc$base <- "sv"
+    sim100Across.adtc$base <- "rcb"
+    
+acrossPooled.adtc  <- rbind(
+    simulationsRCBAcross.adtc,
+    simulationsAdjAcross.adtc,
+    simulationsRCAcross.adtc,
+    simulationsSpatAcross.adtc,
+    simulationsSVAcross.adtc,
+    sim100Across.adtc)
+  
+acrossPooled.adtc$base <- as.factor(acrossPooled.adtc$base)
+
+adtcPooled.dat$plan <- as.factor(adtcPooled.dat$plan)
+  
+typeICounts <- tapply(adtcPooled.dat$TypeIError,list(adtcPooled.dat$plan),sum)
+#typeICounts
+typeITotal <- tapply(adtcPooled.dat$TypeIError,list(adtcPooled.dat$plan),length)
+#typeITotal
+typeIRates <- typeICounts/typeITotal
+
+hist(typeIRates)
+
+withinPooled.adtc$TypeIRates <- typeIRates[as.character(withinPooled.adtc$plan)]
+acrossPooled.adtc$TypeIRates <- typeIRates[as.character(acrossPooled.adtc$plan)]
+
+ggplot(withinPooled.adtc, aes(SDofMeans, TypeIRates)) + geom_point(aes(color=base),size=1)
+ggplot(withinPooled.adtc, aes(MeanOfSD, TypeIRates)) + geom_point(aes(color=base),size=1)
+
+ggplot(acrossPooled.adtc, aes(SDofMeans, TypeIRates)) + geom_point(aes(color=base),size=1)
+ggplot(acrossPooled.adtc, aes(MeanOfSD, TypeIRates)) + geom_point(aes(color=base),size=2)
+
+ggplot(withinPooled.adtc, aes(SDofMeans,fill=base)) + geom_histogram()
+ggplot(withinPooled.adtc, aes(MeanOfSD,fill=base)) + geom_histogram()
+
+ggplot(acrossPooled.adtc, aes(SDofMeans,fill=base)) + geom_histogram()
+ggplot(acrossPooled.adtc, aes(MeanOfSD,fill=base)) + geom_histogram()
+
+#ggplot(simulations100.dat$aov, aes(MeanOfSDWithin, typeIRates)) + geom_point(size=2)
+#ggplot(simulations100.dat$aov, aes(MeanOfSDAcross, typeIRates)) + geom_point(size=2)
+```
+
+
+
+
+rcb.plan
+rcb.distances <- pair.distances(rcb.plan,plot.dim=arm.plot.dim,buffer.dim=arm.buffer.dim)
+rcb.distances <-subset(rcb.distances,rcb.distances$rep1==rcb.distances$rep2)
+rcb.distances
+rcb.table <- make.pairs.table(rcb.distances)
+rcb.table
+rcb.matrices <- make.pairs.matrices(rcb.table)
+rcb.matrices
+apply(rcb.matrices$mean,1,mean,na.rm=TRUE)
+sd(apply(rcb.matrices$mean,1,mean,na.rm=TRUE))
+apply(rcb.matrices$mean,1,sd,na.rm=TRUE)
+mean(apply(rcb.matrices$sd,1,mean,na.rm=TRUE))
+apply(rcb.matrices$sd,1,mean,na.rm=TRUE)
+apply(rcb.matrices$mean,1,min,na.rm=TRUE)
+apply(rcb.matrices$mean,1,max,na.rm=TRUE)
+
+
+
+### Block size
+
+Using the trial from section 2.2, Gomez and Gomez.
+
+```{r}
+gomez2.2.dat <- data.frame(
+  Rep = c(1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 2, 2, 3, 3, 4, 4, 1, 1, 2, 2, 3, 3, 4, 4),
+  Blk = c(1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3), 
+  Col = c(1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8), 
+  Trt = c(6, 1, 6, 2, 3, 5, 4, 2, 4, 2, 5, 4, 4, 2, 3, 6, 3, 5, 1, 3, 6, 1, 5, 1),
+  Yield = c(5254, 5113, 4542, 5952, 5483, 4432, 4410, 4264, 5164, 5346, 4848, 4831, 4986, 4719, 4749, 4098, 5272, 4804, 5398, 5713, 4919, 5307, 4748, 4678)
+)
+```
+
+Estimate treatment effects for simulation
+
+```{r}
+gomez2.2.plan <- data.frame(
+row=gomez2.2.dat$Blk,
+col=gomez2.2.dat$Col,
+trt=gomez2.2.dat$Trt,
+rep=gomez2.2.dat$Rep,
+blk=gomez2.2.dat$Rep
+)
+gomez2.2.plan$trt <- as.factor(gomez2.2.plan$trt)
+gomez2.2.plan$blk <- as.factor(gomez2.2.plan$blk)
+gomez2.2.plan$rep <- as.factor(gomez2.2.plan$rep)
+Trt.means <- tapply(gomez2.2.dat$Yield,list(as.factor(gomez2.2.dat$Trt)),mean)
+grand.mean <- mean(gomez2.2.dat$Yield)
+percent.effect <- (Trt.means-grand.mean)/grand.mean
+```
+
+
+```{r}
+gomez2.2sw <- superimpose.plan(gomez2.2.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,
+                           buffer.dim=arm.buffer.dim,sample.vgm=sample.vgm
+                           )
+gomez2.2sw$plan
+```
+
+This function returns the points in the original data
+```{r}
+ggplot(gomez2.2sw$trial, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 6)
+```
+
+And the yield estimated by kriging at the center points for each plot
+```{r}
+ggplot(gomez2.2sw$plan, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 4)
+```
+
+And a pooled plot
+```{r}
+ggplot(gomez2.2sw$pooled, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry,shape=Sample),size = 4)
+```
+
+Now we repeat this plan over the entire field.
+
+```{r}
+if(!file.exists("simulationsRCBgomez.dat.Rda")) {
+gomez2.2.sim <- simulate.plan(gomez2.2.plan,
+                              trimmed.dat,
+                              plot.dim=arm.plot.dim,
+                              buffer.dim=arm.buffer.dim,
+                              sample.vgm=sample.vgm)
+  save(gomez2.2.sim,file="simulationsRCBgomez.dat.Rda")
+} else {
+  load(file="simulationsRCBgomez.dat.Rda")
+} 
+
+
+ggplot(gomez2.2.sim$plots, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(gomez2.2.sim$plots, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+```
+
+
+The simulation returns a standard RCB aov
+
+```{r}
+ggplot(gomez2.2.sim$aov, aes(TrtP)) + stat_density(geom="line",position="identity",size=1)
+```
+
+```{r}
+gomez2.2.sim$aov$TypeIError <- gomez2.2.sim$aov$TrtP<alpha
+
+sum(gomez2.2.sim$aov$TypeIError)
+length(gomez2.2.sim$aov$TypeIError)
+sum(gomez2.2.sim$aov$TypeIError)/length(gomez2.2.sim$aov$TypeIError)
+
+gomez2.2.sim$aov$TrtF <- gomez2.2.sim$aov$TrtMS/gomez2.2.sim$aov$ResMS
+ggplot(gomez2.2.sim$aov, aes(TrtF)) + stat_density(geom="line",position="identity",size=1)
+```
+
+
+
+```{r}
+ggplot(gomez2.2.sim$aov, aes(ResVar)) + stat_density(geom="line",position="identity",size=1)
+```
+
+
+```{r}
+ggplot(gomez2.2.sim$aov, aes(RepVar)) + stat_density(geom="line",position="identity",size=1)
+gomez2.2.sim$aov$RepF <- gomez2.2.sim$aov$RepMS/gomez2.2.sim$aov$ResMS
+subset(gomez2.2.sim$aov,gomez2.2.sim$aov$RepF<1)
+```
+
+Now compare this to CRD.
+
+Create a comparable arrangement, but blocks in rows and not split
+
+
+
+

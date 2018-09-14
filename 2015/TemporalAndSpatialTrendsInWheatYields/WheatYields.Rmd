@@ -1,0 +1,833 @@
+---
+title: "Changes in Wheat Yields"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(gridExtra)
+library(maps)
+```
+
+We start our analysis centered on the USDA NAS data set at http://quickstats.nass.usda.gov
+
+Program : SURVEY
+Sector : CROPS
+Group : FIELD CROPS
+Commodity : WHEAT
+Category : YIELD
+Data Item : WHEAT, WINTER - YIELD, MEASURED in BU / ACRE
+Domain : TOTAL
+Location : COUNTY
+State : KANSAS, NEBRASKA, NORTH DAKOTA, OKLAHOMA, SOUTH DAKOTA, TEXAS
+Period Type: ANNUAL
+Period: YEAR
+
+Note that there are data for insect damage, etc.
+
+all available years
+36000+ records
+
+Examine the raw data.
+
+```{r}
+county.yield.dat <- read.csv("./data/usda/69C9E26C-F285-325A-9443-6668747878F8.csv", header = TRUE)
+county.yield.plot <- ggplot(county.yield.dat, aes(Year,Value)) 
+county.yield.plot <- county.yield.plot + scale_colour_brewer(palette="Set1") 
+#county.yield.plot <- county.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+county.yield.plot <- county.yield.plot + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.6)
+county.yield.plot
+```
+
+We have a county labelled OTHER (COMBINED) COUNTIES
+
+```{r}
+levels(county.yield.dat$County)
+county.yield.dat <- subset(county.yield.dat, county.yield.dat$County != "OTHER (COMBINED) COUNTIES")
+```
+
+Note the number of missing years.
+
+Agricultural district, otherwise same as above
+```{r}
+district.yield.dat <- read.csv("./data/usda/D545A01D-F19A-3E58-AE85-E2D79BBBBCB5.csv", header = TRUE)
+district.yield.plot <- ggplot(district.yield.dat, aes(Year,Value)) 
+district.yield.plot <- district.yield.plot + scale_colour_brewer(palette="Set1") 
+#district.yield.plot <- district.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+district.yield.plot <- district.yield.plot + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.6)
+district.yield.plot
+```
+
+and states, but from 1910 onward. Note this includes for later values actual and forecast yields
+
+
+```{r}
+state.yield.dat <- read.csv("./data/usda/B1926239-B043-3DBC-B92F-C4BB7F081392.csv", header = TRUE)
+state.yield.plot <- ggplot(state.yield.dat, aes(Year,Value)) 
+state.yield.plot <- state.yield.plot + scale_colour_brewer(palette="Set1") 
+#state.yield.plot <- state.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+state.yield.plot <- state.yield.plot + geom_smooth(aes(group= State,color=State),weight=10,se = FALSE,method="loess",span = 0.6)
+state.yield.plot
+```
+
+Finally, all wheat, national level. This goes back to 1866-2010
+
+```{r}
+national.yield.dat <- read.csv("./data/usda/4C586F51-45F8-317B-A4AB-6792AB49A6A2.csv", header = TRUE)
+national.yield.plot <- ggplot(national.yield.dat, aes(Year,Value)) 
+national.yield.plot <- national.yield.plot + scale_colour_brewer(palette="Set1") 
+#national.yield.plot <- national.yield.plot + geom_point(aes(color=Ag.District),size=2,alpha = 0.3)
+national.yield.plot <- national.yield.plot + geom_smooth(weight=10,se = FALSE,method="loess",span = 0.6)
+national.yield.plot
+```
+
+
+Trial maps use lower case state names
+```{r}
+county.yield.dat$StateUpper <- county.yield.dat$State
+county.yield.dat$State <- tolower(as.character(county.yield.dat$State))
+county.yield.dat$State <- as.factor(county.yield.dat$State)
+county.yield.dat$CountyUpper <- county.yield.dat$County
+county.yield.dat$County <- tolower(as.character(county.yield.dat$County))
+county.yield.dat$County <- as.factor(county.yield.dat$County)
+```
+
+I've decided to compare early, mid and late century trends. I'll use functions to simplify this, so I might more easily shift ranges later. We'll use the most recent 30 years (2014-1984), the early period ends at 1944, and we'll skip 5 years on either side
+
+```{r}
+early.f <- function(year) {
+  return((year<1945)&(year>1923))
+}
+mid.f <- function(year) {
+  return((year<1980)&(year>1948))
+}
+late.f <- function(year) {
+  return((year<2020)&(year>1983))
+}
+county.early.dat <- subset(county.yield.dat,early.f(county.yield.dat$Year))
+county.mid.dat <- subset(county.yield.dat,mid.f(county.yield.dat$Year))
+county.late.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year))
+```
+
+
+
+
+```{r}
+grid.arrange(arrangeGrob(
+  ggplot(county.early.dat, aes(Year,Value)) + geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm"),
+  ggplot(county.mid.dat, aes(Year,Value)) + geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm"),
+  ggplot(county.late.dat, aes(Year,Value)) + geom_smooth(aes(group=State,color=State),weight=10,se = FALSE,method="lm"),
+   as.table=TRUE,
+   ncol=1))
+```
+
+
+For comparison, also downloaded spring wheat data. All data. 
+```{r}
+county.spring.dat <- read.csv("./data/usda/1F443E55-9EB0-3CF3-AFD0-E133A50C559C.csv", header = TRUE)
+county.spring.dat <- subset(county.spring.dat,county.spring.dat$State %in% levels(state.yield.dat$State))
+county.spring.plot <- ggplot(county.spring.dat, aes(Year,Value)) 
+county.spring.plot <- county.spring.plot + scale_colour_brewer(palette="Set1") 
+county.spring.plot <- county.spring.plot + geom_smooth(aes(group= State,color=State),se = FALSE)
+county.spring.plot
+```
+
+
+
+
+Bushels per acre, different cropping systems
+
+```{r}
+county.system.dat <- read.csv("./data/usda/9534B497-6FB0-31CC-9521-0ABD4EF91ED0.csv", header = TRUE)
+county.system.dat$ItemLevel <- as.factor(as.numeric(county.system.dat$Data.Item))
+#subset out spring wheat
+county.system.dat <- subset(county.system.dat,county.system.dat$ItemLevel %in% c(9,10))
+county.system.dat$ItemLevel <- "All"
+
+county.system.dat$ItemLevel[county.system.dat$Data.Item=="WHEAT, WINTER, NON-IRRIGATED - YIELD, MEASURED IN BU / ACRE"] <- "Non-I"
+#county.system.dat$ItemLevel[county.system.dat$Data.Item=="WHEAT, WINTER, NON-IRRIGATED, CONTINUOUS CROP - YIELD, MEASURED IN BU / ACRE"] <- "Cont."
+#county.system.dat$ItemLevel[county.system.dat$Data.Item=="WHEAT, WINTER, NON-IRRIGATED, FOLLOWING SUMMER FALLOW - YIELD, MEASURED IN BU / ACRE"] <- "Fallow"
+county.system.dat$ItemLevel <- as.factor(county.system.dat$ItemLevel)
+#levels(county.system.dat$ItemLevel)
+#levels(county.system.dat$Data.Item)
+county.system.plot <- ggplot(county.system.dat, aes(Year,Value)) 
+county.system.plot <- county.system.plot + geom_smooth(aes(group= ItemLevel,color=ItemLevel),se = FALSE)
+county.system.plot
+```
+
+
+
+
+### HWW RPN
+```{r}
+rpn.dat <- read.csv("./data/wwheat/Statistics.csv", header = TRUE)
+rpn.dat <- subset(rpn.dat,rpn.dat$Assessment=="GY")
+rpn.dat <- subset(rpn.dat,rpn.dat$Statistic=="Mean")
+rpn.dat$Value <- as.numeric(as.character(rpn.dat$Value))
+rpn.dat$Trial <- as.factor(rpn.dat$Trial)
+head(rpn.dat)
+
+#convert to bu/acre
+#Wheat/soybeans (60# bu)
+#1 kilogram/hectare (kg/ha) = .0149 (.015) 
+#bushels/acre
+#1 bushel/acre = 67.25 (67) kilograms/hectare
+rpn.dat$Value <- rpn.dat$Value * 0.0149
+
+state.abbr <- c("ND","SD","NE","KS","OK","TX")
+state.abbr.map <- c("north dakota","south dakota","nebraska","kansas","oklahoma","texas")
+names(state.abbr.map) <- state.abbr 
+
+
+#subset by state
+locations.dat <- read.csv("./data/wwheat/Locations.csv", header = TRUE)
+locations.dat <- subset(locations.dat, locations.dat$State %in% c("ND","SD","NE","KS","OK","TX"))
+locations.dat$State <- as.character(locations.dat$State)
+locations.dat$State <- state.abbr.map[locations.dat$State]
+
+# this lets us map location name to a county and state
+statecounty.map <- as.character(paste(locations.dat$State,locations.dat$County,sep=","))
+locations.dat$statecounty <- statecounty.map
+names(statecounty.map) <- as.character(locations.dat$Name)
+#statecounty.map <- as.character(locations.dat$Name)
+#names(statecounty.map) <- as.character(paste(locations.dat$State,locations.dat$County,sep=", "))
+```
+
+Now, generate an index
+```{r}
+county.yield.dat$statecounty <- as.character(paste(county.yield.dat$State,county.yield.dat$County,sep=","))
+yield.gap.dat <- subset(county.yield.dat,county.yield.dat$statecounty %in% statecounty.map)
+head(county.yield.dat)
+head(yield.gap.dat)
+```
+
+Map nursery yield means to county means
+```{r}
+rpn.dat$statecounty <- statecounty.map[as.character(rpn.dat$Location)]
+yield.gap.dat$statecountyyear <- paste(yield.gap.dat$statecounty,yield.gap.dat$Year)
+rpn.dat$statecountyyear <- paste(rpn.dat$statecounty,rpn.dat$Cycle)
+actual <- yield.gap.dat$Value
+names(actual) <- as.character(yield.gap.dat$statecountyyear)
+rpn.dat$Actual <- actual[rpn.dat$statecountyyear]
+
+rpn.dat$Actual <- as.numeric(as.character(rpn.dat$Actual))
+rpn.dat$Value <- as.numeric(as.character(rpn.dat$Value))
+rpn.dat <- subset(rpn.dat,!is.na(rpn.dat$Actual))
+
+rpn.dat$Year <- as.factor(rpn.dat$Cycle)
+
+rpn.dat$Location <- as.factor(rpn.dat$Location)
+
+yield.gap.plot <- ggplot(rpn.dat, aes(Value,Actual),xlab="Nursery Average",ylab="County Average")
+yield.gap.plot <- yield.gap.plot + geom_point(aes(color=Year)) + geom_smooth(aes(group= Year,color=Year),se = FALSE,method="lm")
+yield.gap.plot
+
+gap.frame <- data.frame(
+  Year =  c(rpn.dat$Cycle,rpn.dat$Cycle),
+  Source = c(rep("Nursery",length(rpn.dat$Value)),rep("County",length(rpn.dat$Value))),
+  Yield = c(rpn.dat$Value,rpn.dat$Actual)
+)
+gap.frame$Source <- as.factor(gap.frame$Source)
+yield.gap2.plot <- ggplot(gap.frame, aes(Year,Yield))
+#yield.gap2.plot <- yield.gap2.plot + geom_point(aes(color=Source)) + geom_smooth(aes(group=Source,color=Source),se = FALSE,method="lm")
+yield.gap2.plot <- yield.gap2.plot + geom_point(aes(color=Source)) + geom_smooth(aes(group=Source,color=Source),se = FALSE)
+yield.gap2.plot
+```
+
+Compute the gap
+```{r}
+nursery.counts <- tapply(rpn.dat$Value,list(rpn.dat$Location),length)
+rpn.dat$Gap <- rpn.dat$Value - rpn.dat$Actual
+rpn.dat$GapPercent <- 100*rpn.dat$Actual/rpn.dat$Value
+rpn.dat$Count <- nursery.counts[rpn.dat$Location]
+```
+
+Some of the nurseries are irrigated; remove those
+```{r}
+rpn.dat$Irrigated <- FALSE
+irrigated <- c("Bushland (Irr)","Goodwell","Goodwell (Irr)","Hugoton (Irr)","Imperial (Irr)")
+
+rpn.dat$Irrigated[rpn.dat$Location%in%irrigated] <- TRUE
+
+rpn.dat$Location <- as.factor(as.character(rpn.dat$Location))
+levels(rpn.dat$Location)
+
+rpndry.dat <- subset(rpn.dat, !rpn.dat$Irrigated)
+
+rpndry.dat$Location <- as.factor(as.character(rpndry.dat$Location))
+levels(rpndry.dat$Location)
+
+yield.gap3.plot <- ggplot(rpndry.dat, aes(Value,Actual),xlab="Nursery Average",ylab="County Average")
+yield.gap3.plot <- yield.gap3.plot + geom_point(aes(color=Year)) + geom_smooth(aes(group= Year,color=Year),se = FALSE,method="lm")
+yield.gap3.plot
+
+gap.frame <- data.frame(
+  Year =  c(rpndry.dat$Cycle,rpndry.dat$Cycle),
+  Source = c(rep("Nursery",length(rpndry.dat$Value)),rep("County",length(rpndry.dat$Value))),
+  Yield = c(rpndry.dat$Value,rpndry.dat$Actual)
+)
+gap.frame$Source <- as.factor(gap.frame$Source)
+yield.gap4.plot <- ggplot(gap.frame, aes(Year,Yield))
+#yield.gap2.plot <- yield.gap2.plot + geom_point(aes(color=Source)) + geom_smooth(aes(group=Source,color=Source),se = FALSE,method="lm")
+yield.gap4.plot <- yield.gap4.plot + geom_point(aes(color=Source)) + geom_smooth(aes(group=Source,color=Source),se = FALSE,method="lm")
+yield.gap4.plot
+
+yield.gap3a.plot <- ggplot(rpndry.dat, aes(Value,Actual),xlab="Nursery Average",ylab="County Average")
+yield.gap3a.plot <- yield.gap3a.plot + geom_point(aes(color=Trial)) + geom_smooth(aes(group= Trial,color=Trial),se = FALSE,method="lm")
+yield.gap3a.plot
+
+```
+
+Plot the actual gap by year
+
+```{r}
+rpndry.dat <- subset(rpndry.dat,rpndry.dat$Count>10)
+summary(lm(Gap ~ Location + Cycle, data=rpndry.dat))
+summary(lm(GapPercent ~ Location + Cycle, data=rpndry.dat))
+
+summary(lm(Gap ~ Trial + Cycle, data=rpndry.dat))
+summary(lm(GapPercent ~ Trial + Cycle, data=rpndry.dat))
+
+yield.gap5.plot <- ggplot(rpndry.dat, aes(Cycle,Gap),xlab="Year",ylab="Gap")
+yield.gap5.plot <- yield.gap5.plot + geom_point(aes(color=Location)) + geom_smooth(aes(group= Location,color=Location),se = FALSE,method="lm")
+yield.gap5.plot
+
+yield.gap6.plot <- ggplot(rpndry.dat, aes(Cycle,GapPercent),xlab="Year",ylab="Gap Percent")
+yield.gap6.plot <- yield.gap6.plot + geom_point(aes(color=Location)) + geom_smooth(aes(group= Location,color=Location),se = FALSE,method="lm")
+yield.gap6.plot
+
+yield.gap6b.plot <- ggplot(rpndry.dat, aes(Cycle,GapPercent),xlab="Year",ylab="Gap Percent")
+yield.gap6b.plot <- yield.gap6b.plot + geom_point(aes(color=Trial)) + geom_smooth(aes(group=Trial,color=Trial),se = FALSE,method="lm")
+yield.gap6b.plot
+
+gap.lm <- lm(Gap ~ 0 + Location + Location:Cycle, data=rpndry.dat)
+gapper.lm <- lm(GapPercent ~ 0 + Location + Location:Cycle, data=rpndry.dat)
+summary(gap.lm)
+summary(gapper.lm)
+```
+
+Get the coefficients so we can map regression estimates
+```{r}
+labels <- attr(gap.lm$terms, "term.labels")
+rpn.estimates <- gap.lm$coefficients[gap.lm$assign == 1]
+rpn.year.estimates <- gap.lm$coefficients[gap.lm$assign == 2]
+length(rpn.estimates)
+length(rpn.year.estimates)
+names(rpn.estimates) <- gap.lm$xlevels[[1]]
+names(rpn.year.estimates) <- gap.lm$xlevels[[1]]
+locations.dat$gapintercept <- rpn.estimates[as.character(locations.dat$Name)]
+locations.dat$gapslope <- rpn.year.estimates[as.character(locations.dat$Name)]
+```
+
+```{r}
+gapplot.dat <- subset(locations.dat, !is.na(locations.dat$gapslope))
+norm.slopes <- gapplot.dat$gapslope/max(abs(1.05*gapplot.dat$gapslope))
+pos.slopes <- norm.slopes
+neg.slopes <- -norm.slopes
+neg.slopes[neg.slopes<0] <- 0
+pos.slopes[pos.slopes<0] <- 0
+
+gapplot.dat$statecounty <- as.character(gapplot.dat$statecounty)
+
+map.colors <- colorRampPalette(c('lightblue','darkblue'))(100)[floor(pos.slopes*100)+1]
+neg.colors <- colorRampPalette(c('pink','red'))(100)[floor(neg.slopes*100)+1]
+map.colors[norm.slopes<0] <-neg.colors[norm.slopes<0] 
+map("county", regions = gapplot.dat$statecounty, col = map.colors, fill = TRUE, lty = 1, lwd= 1)
+#map("county", regions = counties.dat$statecounty, col = "black", fill = FALSE, lty = 1, lwd = 1, add=TRUE)
+```
+Now we actually analyze county yield data. Note we need to redo subset since we've since
+appended statecounty index
+```{r}
+county.early.dat <- subset(county.yield.dat,early.f(county.yield.dat$Year))
+county.mid.dat <- subset(county.yield.dat,mid.f(county.yield.dat$Year))
+county.late.dat <- subset(county.yield.dat,late.f(county.yield.dat$Year))
+
+
+late.counts <- tapply(county.late.dat$Value,list(county.late.dat$statecounty),length)
+county.late.dat$Count <- late.counts[county.late.dat$statecounty]
+county.late.dat <- subset(county.late.dat,county.late.dat$Count>9)
+
+late.lm <- lm(Value ~ Year,data=county.late.dat)
+```
+
+```{r}
+late.state.lm <- lm(Value ~ 0 + State + State:Year,data=county.late.dat)
+#summary(late.state.lm)
+
+late.county.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.late.dat)
+#summary(late.county.lm)
+```
+
+```{r}
+map.values <- function(values,regions,scale=NA) {
+  if(is.na(scale)) {
+    scale <- 1/max(abs(1.05*values))
+  }
+norm.slopes <- values*scale
+pos.slopes <- norm.slopes
+neg.slopes <- -norm.slopes
+neg.slopes[neg.slopes<0] <- 0
+pos.slopes[pos.slopes<0] <- 0
+
+
+map.colors <- colorRampPalette(c('lightblue','darkblue'))(100)[floor(pos.slopes*100)+1]
+neg.colors <- colorRampPalette(c('pink','red'))(100)[floor(neg.slopes*100)+1]
+map.colors[norm.slopes<0] <-neg.colors[norm.slopes<0] 
+map("county", regions = regions, col = map.colors, fill = TRUE, lty = 1, lwd= 1)
+#map("county", regions = county.late.dat$statecounty, col = "black", fill = FALSE, lty = 1, lwd = 1, add=TRUE)
+}
+
+extract.county.estimates <- function(fitted.model,term=1) {
+  labels <- attr(fitted.model$terms, "term.labels")
+  estimates <- fitted.model$coefficients[fitted.model$assign == term]
+  names(estimates) <- fitted.model$xlevels[[1]]
+  return(estimates)
+}
+```
+
+```{r}
+rpn.late.estimates <- extract.county.estimates(late.county.lm,term=1)
+rpn.late.year.estimates <- extract.county.estimates(late.county.lm,term=2)
+
+common.scale <- max(abs(1.05*rpn.late.year.estimates))
+#rpn.late.year.estimates <- late.county.lm$coefficients[late.county.lm$assign == 2]
+length(rpn.late.estimates)
+length(rpn.late.year.estimates)
+#names(rpn.late.year.estimates) <- late.county.lm$xlevels[[1]]
+county.late.dat$intercept <- rpn.late.estimates[as.character(county.late.dat$statecounty)]
+county.late.dat$slope <- rpn.late.year.estimates[as.character(county.late.dat$statecounty)]
+```
+
+
+
+A quick double check on the model, compare with individual lm
+```{r}
+summary(lm(Value ~ Year,data=subset(county.late.dat,county.late.dat$statecounty=="kansas,allen")))
+summary(lm(Value ~ Year,data=subset(county.late.dat,county.late.dat$statecounty=="kansas,anderson")))
+summary(lm(Value ~ Year,data=subset(county.late.dat,county.late.dat$statecounty=="kansas,atchison")))
+
+county.late.sum <- summary(late.county.lm)
+```
+Good.
+
+```{r}
+mid.counts <- tapply(county.mid.dat$Value,list(county.mid.dat$statecounty),length)
+county.mid.dat$Count <- mid.counts[county.mid.dat$statecounty]
+county.mid.dat <- subset(county.mid.dat,county.mid.dat$Count>9)
+mid.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.mid.dat)
+#summary(mid.lm)
+
+
+rpn.mid.estimates <- extract.county.estimates(mid.lm,term=1)
+rpn.mid.year.estimates <- extract.county.estimates(mid.lm,term=2)
+common.scale <- max(c(common.scale, max(abs(1.05*rpn.mid.year.estimates))))
+```
+
+```{r}
+early.counts <- tapply(county.early.dat$Value,list(county.early.dat$statecounty),length)
+county.early.dat$Count <- early.counts[county.early.dat$statecounty]
+county.early.dat <- subset(county.early.dat,county.early.dat$Count>9)
+early.lm <- lm(Value ~ 0 + statecounty + statecounty:Year,data=county.early.dat)
+rpn.early.estimates <- extract.county.estimates(early.lm,term=1)
+rpn.early.year.estimates <- extract.county.estimates(early.lm,term=2)
+common.scale <- max(c(common.scale, max(abs(1.05*rpn.early.year.estimates))))
+```
+
+
+```{r}
+map.values(rpn.late.year.estimates,names(rpn.late.year.estimates),1/common.scale)
+map.values(rpn.mid.year.estimates,names(rpn.mid.year.estimates),1/common.scale)
+map.values(rpn.early.year.estimates,names(rpn.early.year.estimates),1/common.scale)
+```
+
+
+### Weather 
+
+http://wonder.cdc.gov/EnvironmentalData.html
+List these options. 
+
+Daily Air Temperatures and Heat Index (1979-2011) from North America Land Data Assimilation System (NLDAS) 
+Data Request More information
+Fine Particulate Matter (PM2.5) (µg/m³) (2003-2011) 
+Data Request More information
+Land Surface Temperature (LST) (2003-2008) from Moderate Resolution Imaging Spectroradiometer (MODIS) 
+Data Request More information
+Daily Sunlight (KJ/m²) (1979-2011) from North America Land Data Assimilation System (NLDAS) 
+Data Request More information
+Daily Precipitation (mm) (1979-2011) from North America Land Data Assimilation System (NLDAS) 
+Data Request More information
+Number of Heat Wave Days in May-September (1981-2010) 
+Data Request More information
+
+
+I've downloaded climate data from \verb|http://wonder.cdc.gov/EnvironmentalData.html|. We need to process the files.
+
+```{r}
+  if(!file.exists("min.lm.Rda")) {
+  weather.dat <- read.csv("data/wonder/temp.csv", header = TRUE)
+  weather.dat$Year <- as.numeric(weather.dat$Year)
+  weather.dat$Year.Code <- as.numeric(weather.dat$Year.Code)
+  weather.dat$County.Code <- as.numeric(weather.dat$County.Code)
+  
+  weather.dat <- subset(weather.dat,weather.dat$Year>1983)
+  
+  weather.dat$Avg.Daily.Max.Air.Temperature..C. <- as.numeric(weather.dat$Avg.Daily.Max.Air.Temperature..C.)
+  weather.dat$Avg.Daily.Min.Air.Temperature..C. <- as.numeric(weather.dat$Avg.Daily.Min.Air.Temperature..C.)
+  weather.dat$Avg.Daily.Max.Heat.Index..C. <- as.numeric(weather.dat$Avg.Daily.Max.Heat.Index..C.)
+  weather.dat$County <- tolower(as.character(weather.dat$County))
+  weather.dat$State <- tolower(as.character(weather.dat$State))
+  weather.dat$statecounty <- paste(weather.dat$State,weather.dat$County,sep=",")
+
+  weather.dat$statecounty <- as.factor(weather.dat$statecounty)
+
+  min.lm <- lm(Avg.Daily.Max.Air.Temperature..C.~statecounty + statecounty:Year,data=weather.dat)
+  max.lm <- lm(Avg.Daily.Min.Air.Temperature..C.~statecounty + statecounty:Year,data=weather.dat)
+  heat.lm <- lm(Avg.Daily.Max.Heat.Index..C.~statecounty + statecounty:Year,data=weather.dat)
+  
+  precip.dat <- read.csv("data/wonder/precip.csv", header = TRUE)
+  precip.dat$County <- tolower(as.character(precip.dat$County))
+  precip.dat$State <- tolower(as.character(precip.dat$State))
+  precip.dat$statecounty <- paste(precip.dat$State,precip.dat$County,sep=",")
+  precip.lm <- lm(Avg.Daily.Precipitation..mm.~statecounty + statecounty:Year,data=precip.dat)
+
+  sunlight.dat <- read.csv("data/wonder/sunlight.csv", header = TRUE)
+  sunlight.dat$County <- tolower(as.character(sunlight.dat$County))
+  sunlight.dat$State <- tolower(as.character(sunlight.dat$State))
+  sunlight.dat$statecounty <- paste(sunlight.dat$State,sunlight.dat$County,sep=",")
+  sun.lm <- lm(Avg.Daily.Sunlight..KJ.m..~statecounty + statecounty:Year,data=sunlight.dat)
+  
+  save(min.lm, file="min.lm.Rda")
+  save(max.lm, file="max.lm.Rda")
+  save(heat.lm, file="heat.lm.Rda")
+  save(precip.lm, file="precip.lm.Rda")
+  save(sun.lm, file="sun.lm.Rda")
+   
+  } else {
+    load(file="min.lm.Rda")
+    load(file="max.lm.Rda")
+    load(file="heat.lm.Rda")
+    load(file="precip.lm.Rda")
+    load(file="sun.lm.Rda")
+   }
+
+```
+
+The data are limited, so we subset data to match our recent yield data.
+
+```{r}
+
+```
+
+Before we can use weather data, we need to process county names so we can copy this to our recent data set.
+
+This part took to long, so I manually edited files
+
+weather.dat$County <- as.character(weather.dat$County)
+for(i in 1:length(weather.dat$County)) {
+   current <- as.character(weather.dat$County[i])
+   tmp <- strsplit(current," County")
+   current <- tolower(tmp[[1]][1])
+   weather.dat$County[i] <- current
+}
+
+
+```{r}
+summary(aov(min.lm))
+min.estimates <- extract.county.estimates(min.lm,term=2)
+min.estimates[1:10]
+```
+
+map.values(min.estimates,names(min.estimates))
+
+summary(aov(max.lm))
+max.estimates <- extract.county.estimates(max.lm,term=2)
+max.estimates[1:10]
+map.values(max.estimates,names(max.estimates))
+
+summary(aov(heat.lm))
+heat.estimates <- extract.county.estimates(heat.lm,term=2)
+heat.estimates[1:10]
+map.values(heat.estimates,names(heat.estimates))
+
+summary(aov(precip.lm))
+precip.estimates <- extract.county.estimates(precip.lm,term=2)
+precip.estimates[1:10]
+map.values(precip.estimates,names(precip.estimates))
+
+
+summary(aov(sun.lm))
+sun.estimates <- extract.county.estimates(sun.lm,term=2)
+sun.estimates[1:10]
+map.values(sun.estimates,names(sun.estimates))
+
+
+Don't forget to map "Month Code.
+
+
+Fine particulate data and surface temperatures have different numbers of observations, we
+need to process these separately.
+
+```{r}
+if(!file.exists("fine.lm.Rda")) {
+fine.dat <- read.csv("data/wonder/fine.csv", header = TRUE)
+surface.dat <- read.csv("data/wonder/surface.csv", header = TRUE)
+
+fine.dat$County <- as.character(fine.dat$County)
+
+fine.dat$State <- tolower(as.character(fine.dat$State))
+
+surface.dat$County <- as.character(surface.dat$County)
+
+surface.dat$State <- tolower(as.character(surface.dat$State))
+
+fine.dat$statecounty <- paste(fine.dat$State,fine.dat$County,sep=",")
+surface.dat$statecounty <- paste(surface.dat$State,surface.dat$County,sep=",")
+
+fine.lm <- lm(Avg.Fine.Particulate.Matter~statecounty + statecounty:Year,data=fine.dat)
+day.lm <- lm(Avg.Day.Land.Surface.Temperature~statecounty + statecounty:Year,data=surface.dat)
+night.lm <- lm(Avg.Night.Land.Surface.Temperature~statecounty + statecounty:Year,data=surface.dat)
+
+  save(fine.lm, file="fine.lm.Rda")
+  save(day.lm, file="day.lm.Rda")
+  save(night.lm, file="night.lm.Rda")   
+  } else {
+    load(file="fine.lm.Rda")
+    load(file="day.lm.Rda")
+    load(file="night.lm.Rda")
+}
+```
+
+summary(aov(fine.lm))
+fine.estimates <- extract.county.estimates(fine.lm,term=2)
+fine.estimates[1:10]
+map.values(fine.estimates,names(fine.estimates))
+
+summary(aov(day.lm))
+day.estimates <- extract.county.estimates(day.lm,term=2)
+day.estimates[1:10]
+map.values(day.estimates,names(day.estimates))
+
+summary(aov(night.lm))
+night.estimates <- extract.county.estimates(night.lm,term=2)
+night.estimates[1:10]
+map.values(night.estimates,names(night.estimates))
+
+
+
+### Nutrients
+http://nugis.ipni.net/Applications/
+
+
+```{r}
+ipni.dat <- read.csv("data/ipni/county_data_20120106_4_18.csv", header = TRUE)
+ipni.dat$State <- tolower(as.character(ipni.dat$STATE_NAME))
+```
+
+We can use \verb|STATE_NAME|, \verb|GEO| to match to statecounty
+```{r}
+ipni.dat$County <- tolower(as.character(ipni.dat$GEO))
+ipni.dat$statecounty <- paste(ipni.dat$State,ipni.dat$County,sep=",")
+head(ipni.dat)
+ipni.dat <- subset(ipni.dat,ipni.dat$statecounty %in% names(min.estimates))
+```
+
+```{r}
+if(!file.exists("Farm_TonsN.lm.Rda")) {
+  Farm_TonsN.lm <- lm(Farm_TonsN~statecounty + statecounty:Year,data=ipni.dat)
+  Farm_TonsP.lm <- lm(Farm_TonsP ~ statecounty + statecounty:Year,data=ipni.dat)
+  Farm_TonsK.lm <- lm(Farm_TonsK ~ statecounty + statecounty:Year,data=ipni.dat)
+  Tons_N_Exc.lm <- lm(Tons_N_Exc ~ statecounty + statecounty:Year,data=ipni.dat)
+  Tons_P2O5_Exc.lm <- lm(Tons_P2O5_Exc ~ statecounty + statecounty:Year,data=ipni.dat)
+  Tons_K2O_Exc.lm <- lm(Tons_K2O_Exc ~ statecounty + statecounty:Year,data=ipni.dat)
+  Tons_N_Recovered.lm <- lm(Tons_N_Recovered ~ statecounty + statecounty:Year,data=ipni.dat)
+  Tons_P2O5_Recovered.lm <- lm(Tons_P2O5_Recovered ~ statecounty + statecounty:Year,data=ipni.dat)
+  Tons_K2O_Recovered.lm <- lm(Tons_K2O_Recovered ~ statecounty + statecounty:Year,data=ipni.dat)
+  Tons_N_Fixed_Legumes.lm <- lm(Tons_N_Fixed_Legumes ~ statecounty + statecounty:Year,data=ipni.dat)
+  Tons_N_Rem.lm <- lm(Tons_N_Rem ~ statecounty + statecounty:Year,data=ipni.dat)
+  Tons_P2O5_Rem.lm <- lm(Tons_P2O5_Rem ~ statecounty + statecounty:Year,data=ipni.dat)
+  Tons_K2O_Rem.lm <- lm(Tons_K2O_Rem ~ statecounty + statecounty:Year,data=ipni.dat)
+  BalanceN_Tons.lm <- lm(BalanceN_Tons ~ statecounty + statecounty:Year,data=ipni.dat)
+  BalanceP2O5_Tons.lm <- lm(BalanceP2O5_Tons ~ statecounty + statecounty:Year,data=ipni.dat)
+  BalanceK2O_Tons.lm <- lm(BalanceK2O_Tons ~ statecounty + statecounty:Year,data=ipni.dat)
+  RatioN.lm <- lm(RatioN ~ statecounty + statecounty:Year,data=ipni.dat)
+  RatioP2O5.lm <- lm(RatioP2O5 ~ statecounty + statecounty:Year,data=ipni.dat)
+  RatioK2O.lm <- lm(RatioK2O ~ statecounty + statecounty:Year,data=ipni.dat)
+  N_PPCA.lm <- lm(N_PPCA ~ statecounty + statecounty:Year,data=ipni.dat)
+  P2O5_PPCA.lm <- lm(P2O5_PPCA ~ statecounty + statecounty:Year,data=ipni.dat)
+  K2O_PPCA.lm <- lm(K2O_PPCA ~ statecounty + statecounty:Year,data=ipni.dat)
+  FarmNPPCA.lm <- lm(FarmNPPCA ~ statecounty + statecounty:Year,data=ipni.dat)
+  FarmPPPCA.lm <- lm(FarmPPPCA ~ statecounty + statecounty:Year,data=ipni.dat)
+  FarmKPPCA.lm <- lm(FarmKPPCA ~ statecounty + statecounty:Year,data=ipni.dat)
+  X21Crop_TotalPlantedAc.lm <- lm(X21Crop_TotalPlantedAc ~ statecounty + statecounty:Year,data=ipni.dat)
+  X21Crop_TotalHarvestAc.lm <- lm(X21Crop_TotalHarvestAc ~ statecounty + statecounty:Year,data=ipni.dat)
+  Total_Harvested_Cropland_Acres.lm <- lm(Total_Harvested_Cropland_Acres ~ statecounty + statecounty:Year,data=ipni.dat)
+  TotalCropland.lm <- lm(TotalCropland ~ statecounty + statecounty:Year,data=ipni.dat)
+  
+  save(Farm_TonsN.lm, file="Farm_TonsN.lm.Rda")
+  save(Farm_TonsP.lm, file="Farm_TonsP.lm.Rda")
+  save(Farm_TonsK.lm, file="Farm_TonsK.lm.Rda")
+  save(Tons_N_Exc.lm, file="Tons_N_Exc.lm.Rda")
+  save(Tons_P2O5_Exc.lm, file="Tons_P2O5_Exc.lm.Rda")
+  save(Tons_K2O_Exc.lm, file="Tons_K2O_Exc.lm.Rda")
+  save(Tons_N_Recovered.lm, file="Tons_N_Recovered.lm.Rda")
+  save(Tons_P2O5_Recovered.lm, file="Tons_P2O5_Recovered.lm.Rda")
+  save(Tons_K2O_Recovered.lm, file="Tons_K2O_Recovered.lm.Rda")
+  save(Tons_N_Fixed_Legumes.lm, file="Tons_N_Fixed_Legumes.lm.Rda")
+  save(Tons_N_Rem.lm, file="Tons_N_Rem.lm.Rda")
+  save(Tons_P2O5_Rem.lm, file="Tons_P2O5_Rem.lm.Rda")
+  save(Tons_K2O_Rem.lm, file="Tons_K2O_Rem.lm.Rda")
+  save(BalanceN_Tons.lm, file="BalanceN_Tons.lm.Rda")
+  save(BalanceP2O5_Tons.lm, file="BalanceP2O5_Tons.lm.Rda")
+  save(BalanceK2O_Tons.lm, file="BalanceK2O_Tons.lm.Rda")
+  save(RatioN.lm, file="RatioN.lm.Rda")
+  save(RatioP2O5.lm, file="RatioP2O5.lm.Rda")
+  save(RatioK2O.lm, file="RatioK2O.lm.Rda")
+  save(N_PPCA.lm, file="N_PPCA.lm.Rda")
+  save(P2O5_PPCA.lm, file="K2O_PPCA.lm.Rda")
+  save(K2O_PPCA.lm, file="K2O_PPCA.lm.Rda")
+  save(FarmNPPCA.lm, file="FarmNPPCA.lm.Rda")
+  save(FarmPPPCA.lm, file="FarmPPPCA.lm.Rda")
+  save(FarmKPPCA.lm, file="FarmKPPCA.lm.Rda")
+  save(X21Crop_TotalPlantedAc.lm, file="X21Crop_TotalPlantedAc.lm.Rda")
+  save(X21Crop_TotalHarvestAc.lm, file="X21Crop_TotalHarvestAc.lm.Rda")
+  save(Total_Harvested_Cropland_Acres.lm, file="Total_Harvested_Cropland_Acres.lm.Rda")
+  save(TotalCropland.lm, file="TotalCropland.lm.Rda")
+} else {
+    
+  load(file="Farm_TonsN.lm.Rda")
+    load(file="Farm_TonsP.lm.Rda")
+    load(file="Farm_TonsK.lm.Rda")
+    load(file="Tons_N_Exc.lm.Rda")
+    load(file="Tons_P2O5_Exc.lm.Rda")
+    load(file="Tons_K2O_Exc.lm.Rda")
+    load(file="Tons_N_Recovered.lm.Rda")
+    load(file="Tons_P2O5_Recovered.lm.Rda")
+    load(file="Tons_K2O_Recovered.lm.Rda")
+    load(file="Tons_N_Fixed_Legumes.lm.Rda")
+    load(file="Tons_N_Rem.lm.Rda")
+    load(file="Tons_P2O5_Rem.lm.Rda")
+    load(file="Tons_K2O_Rem.lm.Rda")
+    load(file="BalanceN_Tons.lm.Rda")
+    load(file="BalanceP2O5_Tons.lm.Rda")
+    load(file="BalanceK2O_Tons.lm.Rda")
+    load(file="RatioN.lm.Rda")
+    load(file="RatioP2O5.lm.Rda")
+    load(file="RatioK2O.lm.Rda")
+    load(file="N_PPCA.lm.Rda")
+    load(file="P2O5_PPCA.lm.Rda")
+    load(file="K2O_PPCA.lm.Rda")
+    load(file="FarmNPPCA.lm.Rda")
+    load(file="FarmPPPCA.lm.Rda")
+    load(file="FarmKPPCA.lm.Rda")
+    load(file="X21Crop_TotalPlantedAc.lm.Rda")
+    load(file="X21Crop_TotalHarvestAc.lm.Rda")
+    load(file="Total_Harvested_Cropland_Acres.lm.Rda")
+    load(file="TotalCropland.lm.Rda")
+    }
+ summary(aov(Farm_TonsN.lm))
+ summary(aov(Farm_TonsP.lm))
+ summary(aov(Farm_TonsK.lm))
+ summary(aov(Tons_N_Exc.lm))
+ summary(aov(Tons_P2O5_Exc.lm))
+ summary(aov(Tons_K2O_Exc.lm))
+ summary(aov(Tons_N_Recovered.lm))
+ summary(aov(Tons_P2O5_Recovered.lm))
+ summary(aov(Tons_K2O_Recovered.lm))
+ summary(aov(Tons_N_Fixed_Legumes.lm))
+ summary(aov(Tons_N_Rem.lm))
+ summary(aov(Tons_P2O5_Rem.lm))
+summary(aov(Tons_K2O_Rem.lm))
+summary(aov(BalanceN_Tons.lm))
+summary(aov(BalanceP2O5_Tons.lm))
+summary(aov(BalanceK2O_Tons.lm))
+summary(aov(RatioN.lm))
+summary(aov(RatioP2O5.lm))
+  summary(aov(RatioK2O.lm))
+ summary(aov(N_PPCA.lm))
+ summary(aov(P2O5_PPCA.lm))
+ summary(aov(K2O_PPCA.lm))
+ summary(aov(FarmNPPCA.lm))
+ summary(aov(FarmPPPCA.lm))
+ summary(aov(FarmKPPCA.lm))
+ summary(aov(X21Crop_TotalPlantedAc.lm))
+ summary(aov(X21Crop_TotalHarvestAc.lm))
+ summary(aov(Total_Harvested_Cropland_Acres.lm))
+ summary(aov(TotalCropland.lm))
+```
+
+
+
+
+
+
+Climate Data Online
+http://www.ncdc.noaa.gov/cdo-web/
+Submitted query by searching for SD
+1984-2014
+Monthly summary
+Summary is limited to 5000 location years, this is 27,712 Station Years, so must include multiple stations per county (66)
+
+
+
+
+
+Plant Available Water from USDA NASS? See Clay's paper in Global Food Security
+
+### Quickstats Lite
+Gives different options, more columns at one time.
+
+http://www.nass.usda.gov/Quick_Stats/Lite/
+
+
+
+
+
+
+
+
+
+Aquifer Data
+ USGS High Plains Water-Level Monitoring Study
+http://ne.water.usgs.gov/ogw/hpwlms/data.html
+County and state level data, downloaded as individual files
+
+HWW RPN
+http://www.ars.usda.gov/Main/docs.htm?docid=11932
+
+References
+
+ray.d-12-2012
+- yield unchanging, stagnating, collapsing, increasing.
+ray.d-2013
+cites yield increases in ND, SD, based on crop census reports 1989-2008
+
+
+clay.d-01-2014
+Show yield gaps w.r.t. corn in SD
+
+Wheat Yields
+graybosch.r-2014
+
+Wheat Yields in France
+brisson.n-10-2010
+
+Periods in yields
+thompson.l-01-1988
+
+Small yield gains in corn
+farfan.i-2013
+
+Europe
+moore.f-03-2015
+
+Open Data
+carolan.l-2015
+
+brklacich.m-1995
+CERES-wheat model in Canada
+
+
+
+
+
+

@@ -1,0 +1,1026 @@
+---
+title: "Uniformity Simulations"
+author: "Peter Claussen"
+date: "May 18, 2016"
+output: html_document
+---
+
+Preliminaries
+-------------
+
+Suppose we want to compare different spatial arrangements of plots in blocks for agricultural field trials. We propose to simulate uniformity trials on typical crop land using yield monitor data to predict variability in soil fertility.
+
+
+```{r}
+library(ggplot2)
+```
+
+Assume we have yield (or other agronomic assessment) data in spatial format, such as yield monitor data.
+For example, this data from the SDSU research statio near Beresford. This file has been edited from the original format and is comma-seperated.
+
+```{r}
+raw.dat <- read.csv("./data/sdsu/Swest_Corn2013-Clean.csv", header = TRUE)
+summary(raw.dat)
+```
+
+In this case, we'll work with bushels/acre, which is in the YldVolDry. If we want to code generically, this is a good time to define a response variable.
+
+```{r}
+response <- "YldVolDry"
+hist(raw.dat[,response],main=response)
+```
+
+We examine the raw data.
+
+```{r}
+ggplot(raw.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = YldVolDry),size = 1)
+```
+
+Note that the north and south ends have low-yielding spots, so we discard endrows and border rows to provide a uniform sample. This is done by eyeball.
+
+```{r}
+minLon <- min(raw.dat$Longitude)
+maxLon <- max(raw.dat$Longitude)
+minLat <- min(raw.dat$Latitude)
+maxLat <- max(raw.dat$Latitude)
+
+northBorder <- maxLat - 0.06*(maxLat-minLat)
+southBorder <- minLat + 0.09*(maxLat-minLat)
+eastBorder <- maxLon - 0.02*(maxLon-minLon)
+westBorder <- minLon + 0.02*(maxLon-minLon)
+```
+
+```{r}
+trimmed.dat <- subset(raw.dat,raw.dat$Latitude>=southBorder)
+trimmed.dat <- subset(trimmed.dat,trimmed.dat$Latitude<=northBorder)
+trimmed.dat <- subset(trimmed.dat,trimmed.dat$Longitude<=eastBorder)
+trimmed.dat <- subset(trimmed.dat,trimmed.dat$Longitude>=westBorder)
+
+ggplot(trimmed.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = YldVolDry),size = 1)
+```
+
+Now, let's map a trial into one corner of the field. We will find this easier if we convert to meters. 
+This will require an approximation, see http://stackoverflow.com/questions/639695/how-to-convert-latitude-or-longitude-to-meters
+
+```{r}
+trimmed.dat$LonM <- trimmed.dat$Longitude - min(trimmed.dat$Longitude)
+trimmed.dat$LatM <- trimmed.dat$Latitude - min(trimmed.dat$Latitude)
+latMid <- (min(trimmed.dat$Latitude) + max(trimmed.dat$Latitude))/2
+m_per_deg_lat = 111132.954 - 559.822 * cos( 2.0 * latMid ) + 1.175 * cos( 4.0 * latMid)
+m_per_deg_lon = (3.14159265359/180 ) * 6367449 * cos ( latMid )
+trimmed.dat$LonM <- trimmed.dat$LonM*m_per_deg_lon
+trimmed.dat$LatM <- trimmed.dat$LatM*m_per_deg_lat
+ggplot(trimmed.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 1)
+```
+
+So, let's have a trial with plot dimensions of 4(wide)x6(long) m with 1 m buffer in between rows and 0.5m buffer between plots
+```{r}
+arm.plot.dim <- c(4,6)
+arm.row.buffer <- c(0.5,1)
+```
+
+We'll start with Roy Scott's 1993 plan for augmented designs. 
+
+```{r}
+Scott.plan <- data.frame(
+  row=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3),
+  col=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+  trt=as.factor(c(1, 5, 7, 2, 6, 8, 3, 10, 4, 9, 11, 12, 3, 14, 13, 1, 16, 2, 15, 4, 1, 19, 1, 2, 21, 18, 3, 20, 4, 17))
+)
+```
+
+A utility function to compute trial dimensions, given plot size and buffer between rows.
+
+```{r}
+trial.dimensions <- function(plan,plot.dim,row.buffer) {
+  rows <- max(plan$row)-min(plan$row)+1
+  cols <-  max(plan$col)-min(plan$col)+1
+  plot.width <- plot.dim[1]*cols + (cols-1)*row.buffer[1]
+  plot.height <- plot.dim[2]*rows + (rows-1)*row.buffer[2]
+  return(c(plot.width,plot.height))
+}
+trial.dim <- trial.dimensions(Scott.plan,arm.plot.dim,arm.row.buffer)
+```
+
+Let's assume we'll place the trial in the southwest corner (at the origin). Place the trial 3 meters in and leave 3 meters around the trial by adding 3 meters to each side and subset our yield data. This gives us an estimate of fertility of our planned trial.
+
+```{r}
+trial.dat <- subset(trimmed.dat,trimmed.dat$LonM<(trial.dim[1]+6))
+trial.dat <- subset(trial.dat,trial.dat$LatM<(trial.dim[2]+6))
+ggplot(trial.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size = 6)
+```
+
+Find points at the center of plots for our trial. 
+```{r}
+Scott.plan$LonM <- 0
+Scott.plan$LatM <- 0
+start.point <- c(3,3)
+half.width <- arm.plot.dim[1]/2
+half.heigth <- arm.plot.dim[2]/2
+
+for(idx in 1:dim(Scott.plan)[1]) {
+  row <- Scott.plan$row[idx]
+  col <- Scott.plan$col[idx]
+  Scott.plan$LonM[idx] <- start.point[1] + half.width + (col-1)*arm.plot.dim[1] + (col-1)*arm.row.buffer[1]
+  Scott.plan$LatM[idx] <- start.point[2] + half.heigth + (row-1)*arm.plot.dim[2] + (row-1)*arm.row.buffer[2]
+}
+```
+
+Let's see what the points look like.
+
+```{r}
+ggplot(Scott.plan, aes(LonM, LatM)) + geom_point(aes(colour = trt), size = 3)
+```
+
+Next, estimate plot yield. First, we estimate spatial correlation for the entire field and fit a variogram
+```{r}
+library(gstat)
+sample.var <- variogram(YldVolDry~1, 
+                        locations=~LonM+LatM, 
+                        data=trimmed.dat)
+plot(sample.var)
+sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
+sample.vgm
+```
+
+Now we can estimate an expected plot yield by imputing yield at the center of each plot.
+```{r}
+sample.krig <- krige(id="YldVolDry", 
+                     formula=YldVolDry~1, 
+                     data = trial.dat, 
+                     newdata = Scott.plan, 
+                     model = sample.vgm,
+  locations=~LonM+LatM)
+Scott.plan$YldVolDry <- sample.krig$YldVolDry.pred
+```
+
+To visualize, we combine the estimated plot yields with the original yield map data.
+
+```{r}
+pooled.dat <- data.frame(
+  LonM = c(trial.dat$LonM,Scott.plan$LonM),
+  LatM = c(trial.dat$LatM,Scott.plan$LatM),
+  YldVolDry = c(trial.dat$YldVolDry,Scott.plan$YldVolDry),
+  Sample <- as.factor(c(rep("Original",length(trial.dat$YldVolDry)),
+              rep("Estimated",length(Scott.plan$YldVolDry))))
+)
+ggplot(pooled.dat, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry,shape=Sample),size = 4)
+```
+
+Next, simulate an augmented block design analysis.
+
+```{r}
+library(lme4)
+summary(aov(YldVolDry ~ trt + row, data=Scott.plan))
+gy.lmer <- lmer(YldVolDry ~ trt + (1 | row), data=Scott.plan)
+anova(gy.lmer)
+print(gy.lmer, corr=FALSE) 
+```
+
+Multiple Trial Simulations
+--------------------------
+
+Now that we've developed a method to superimpose a planned trial over a yield trial map, we can simulate a series of trials over that same area.
+
+We write a utility function to overlay a plan on a yield map. This will require a with `row` and `col` variables as above, a yield trial map and starting point. Plot dimensions can be assumed, and we may resuse a pre-computed variogram
+
+```{r}
+superimpose.plan <- function(plan,map.data,start.point,plot.dim=c(1,1),row.buffer=c(0,0),sample.vgm=NULL) {
+  
+  trial.dim <- trial.dimensions(plan,plot.dim,row.buffer)
+  
+  trial.dat <- subset(map.data,map.data$LonM<(start.point[1]+trial.dim[1]+3))
+  trial.dat <- subset(trial.dat,trial.dat$LatM<(start.point[2]+trial.dim[2]+3))
+
+  trial.dat <- subset(trial.dat,trial.dat$LonM>=(start.point[1]-3))
+  trial.dat <- subset(trial.dat,trial.dat$LatM>=(start.point[2]-3))
+  
+  plan$LonM <- 0
+  plan$LatM <- 0
+  
+  half.width <- plot.dim[1]/2
+  half.heigth <- plot.dim[2]/2
+  
+  for(idx in 1:dim(plan)[1]) {
+    row <- plan$row[idx]
+    col <- plan$col[idx]
+    plan$LonM[idx] <- start.point[1] + half.width + (col-1)*plot.dim[1] + (col-1)*row.buffer[1]
+    plan$LatM[idx] <- start.point[2] + half.heigth + (row-1)*plot.dim[2] + (row-1)*row.buffer[2]
+  }
+  if(is.null(sample.vgm)) {
+    sample.var <- variogram(YldVolDry~1, 
+                        locations=~LonM+LatM, 
+                        data=map.data)
+    sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
+  }
+    
+  sample.krig <- krige(id="YldVolDry", 
+                     formula=YldVolDry~1, 
+                     data = trial.dat, 
+                     newdata = plan, 
+                     model = sample.vgm,
+  locations=~LonM+LatM)
+  
+  plan$YldVolDry <- sample.krig$YldVolDry.pred
+  
+  return(list(
+    trial.dim=trial.dim,
+    plan=plan,
+    trial=trial.dat,
+    krig=sample.krig,
+    pooled = data.frame(
+      LonM = c(trial.dat$LonM,plan$LonM),
+      LatM = c(trial.dat$LatM,plan$LatM),
+      YldVolDry = c(trial.dat$YldVolDry,plan$YldVolDry),
+      Sample = as.factor(c(rep("Original",length(trial.dat$YldVolDry)),
+                            rep("Estimated",length(plan$YldVolDry))))
+    )
+  ))
+}
+```
+
+### Plans
+
+We'll start with a trial with 8 replicates and 16 plots per block. We'll compare block sizes of 16, 8 and 4 to see how splitting replicates into incomplete blocks affects the RCB ANOVA.
+
+```{r}
+plan8x16.plan <- data.frame(
+row=c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+      3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+      5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+      7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8),
+col=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)
+)
+plan16x8.plan <- data.frame(
+row=c(1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,
+      5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,
+      9,9,9,9,9,9,9,9,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,
+      13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,16,16,16,16,16,16,16,16),
+col=c(1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,
+      1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,
+      1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,
+      1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8)
+)
+plan32x4.plan <- data.frame(
+row=c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7,7,7,7,8,8,8,8,
+      9,9,9,9,10,10,10,10,11,11,11,11,12,12,12,12,13,13,13,13,14,14,14,14,15,15,15,15,16,16,16,16,
+      17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,22,22,22,22,23,23,23,23,24,24,24,24,
+      25,25,25,25,26,26,26,26,27,27,27,27,28,28,28,28,29,29,29,29,30,30,30,30,31,31,31,31,32,32,32,32),
+col=c(1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,
+      1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,
+      1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,
+      1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4)
+)
+```
+
+For simulation, I've randomized a 4x4, 4 replicate square lattice and doubled this to give us the required 8 blocks. We'll use the same treatment list for all simulations.
+
+```{r}
+plan8x16.plan$blk <- plan8x16.plan$row
+plan8x16.plan$trt <- as.factor(rep(c(13,12,14,7,16,2,3,6,10,5,1,11,4,9,8,15,12,11,4,16,14,1,9,2,13,6,15,10,5,7,8,3,15,11,2,7,4,14,3,10,8,16,1,13,9,12,6,5,16,5,14,15,10,2,12,8,7,4,1,6,3,9,11,13),2))
+
+plan16x8.plan$blk <- ceiling(plan16x8.plan$row/2)
+plan16x8.plan$trt <- plan8x16.plan$trt
+plan32x4.plan$blk <- ceiling(plan32x4.plan$row/4)
+plan32x4.plan$trt <- plan8x16.plan$trt
+```
+
+### Examples
+
+#### 8 x 16
+Place this plan in the SW corner.
+```{r}
+plan8x16sw <- superimpose.plan(plan8x16.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+ggplot(plan8x16sw$pooled, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry,shape=Sample),size = 6)
+plan8x16sw$trial.dim
+plan8x16sw.dat <- plan8x16.plan
+plan8x16sw.dat$YldVolDry <- plan8x16sw$krig$YldVolDry.pred
+```
+
+```{r}
+plan16x8sw <- superimpose.plan(plan16x8.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+ggplot(plan16x8sw$pooled, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry,shape=Sample),size = 4)
+plan16x8sw$trial.dim
+plan16x8sw.dat <- plan16x8.plan
+plan16x8sw.dat$YldVolDry <- plan16x8sw$krig$YldVolDry.pred
+```
+
+
+```{r}
+plan32x4sw <- superimpose.plan(plan32x4.plan,
+                           map.data=trimmed.dat,
+                           start.point=c(3,3),
+                           plot.dim=arm.plot.dim,
+                           row.buffer=arm.row.buffer,sample.vgm=sample.vgm
+                           )
+ggplot(plan32x4sw$pooled, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry,shape=Sample),size = 4)
+#plan32x4sw$plan
+plan32x4sw.dat <- plan32x4.plan
+plan32x4sw.dat$YldVolDry <- plan32x4sw$krig$YldVolDry.pred
+```
+
+### Simulation
+Now that we can overlay plans at specific points in a field, let's create a series of trials that cover the entire field. We'll compute a standard RCB analysis of variance for each, and consider the number of trials where block effects and treatment effects are significant. Note we assume the plan has columns LatM, LonM, YldVolDry, trt and blk. We'll need to compute blk from row.
+
+
+```{r}
+library(nlme)
+simulate.plan <- function(plan,field,plot.dim=c(1,1),
+                          row.buffer=c(0,0),
+                          sample.vgm=NULL,
+                          spacing=3,model="rcb") {
+  
+  trial.dim <- trial.dimensions(plan,plot.dim=plot.dim,row.buffer=row.buffer)
+
+  trial.width <- trial.dim[1]
+  trial.height <- trial.dim[2]
+
+  if(is.null(sample.vgm)) {
+    sample.var <- variogram(YldVolDry~1, 
+                        locations=~LonM+LatM, 
+                        data=map.data)
+    sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
+  }
+    
+  TrtMS <- c()
+  TrtDF <- c()
+  TrtP <- c()
+  RepMS <- c()
+  RepDF <- c()
+  RepP <- c()
+  RepVar <- c()
+  ResMS <- c()
+  ResP <- c()
+  ResDF <- c()
+  ResVar <- c()
+  Row <- c()
+  Col <- c()
+  Number <- c()
+  
+  rightBorder <- max(field$LonM) - (trial.width+2*spacing)
+  topBorder <- max(field$LatM) - (trial.height+2*spacing)
+
+  row=1
+  col=1
+  atColEnd=FALSE
+  atRowEnd=FALSE
+  plans <- NA
+  planNo <- 1
+  while(!atColEnd) {
+    currentRow <- 3+(row-1)*trial.height + (row-1)*2*spacing
+    if(currentRow < topBorder) {
+      while(!atRowEnd) {
+        currentCol <- 3+(col-1)*trial.width + (col-1)*2*spacing
+        if(currentCol<rightBorder) {
+          corner <- c(currentCol,currentRow)
+          #overlay and analyze
+          currentPlan <- superimpose.plan(plan,
+                           map.data=field,
+                           start.point=corner,
+                           plot.dim=plot.dim,
+                           row.buffer=row.buffer,
+                           sample.vgm=sample.vgm
+                           )
+          aov.tbl <- summary(aov(YldVolDry ~ as.factor(trt)+as.factor(blk),data=currentPlan$plan))
+          aov.mle <- aov.mle <- lme(YldVolDry ~ as.factor(trt), random = ~ 1| as.factor(blk), data=currentPlan$plan)
+
+          var.tbl <- VarCorr(aov.mle)
+          
+
+          #save points
+          currentPlan$plan$number <- planNo
+          Number <- c(Number,planNo)
+          
+          planNo <- planNo+1
+          plans <- rbind(plans,currentPlan$plan)
+          
+          TrtDF <- c(TrtDF,aov.tbl[[1]][1,1])
+          TrtMS <- c(TrtMS,aov.tbl[[1]][1,3])
+          TrtP <- c(TrtP,aov.tbl[[1]][1,5])
+          RepDF <- c(RepDF,aov.tbl[[1]][2,1])
+          RepMS <- c(RepMS,aov.tbl[[1]][2,3])
+          RepP <- c(RepP,aov.tbl[[1]][2,5])
+          RepVar <- c(RepVar,as.numeric(var.tbl[1]))
+          
+         
+          ResDF <- c(ResDF,aov.tbl[[1]][3,1])
+          ResMS <- c(ResMS,aov.tbl[[1]][3,3])
+          ResP <- c(ResP,aov.tbl[[1]][3,5])
+          ResVar <- c(ResVar,as.numeric(var.tbl[2]))
+          
+          Row <- c(Row,corner[1])
+          Col <- c(Col,corner[2])
+        
+          col=col+1  
+        } else {
+          atRowEnd=TRUE
+        }
+      }
+      col=1
+      row=row+1
+      atRowEnd=FALSE
+    } else {
+      atColEnd =TRUE
+    }
+  }
+  sim.dat <- data.frame(
+               TrtDF = TrtDF,
+               TrtMS = TrtMS,
+               TrtP = TrtP,
+               RepDF = RepDF,
+               RepMS = RepMS,
+               RepVar = RepVar,
+               RepP = RepP,
+               ResDF = ResDF,
+               ResMS = ResMS,
+               ResVar=ResVar,
+               Row = Row,
+               Col = Col,
+               Number=Number
+            )
+  return(list(aov=sim.dat,
+              points=plans))
+}
+```
+
+
+
+```{r}
+library(agridat)
+desplot(blk ~ col*row, data=plan8x16.plan, num=trt, main="8x16")
+desplot(blk ~ col*row, data=plan16x8.plan, num=trt, main="16x8")
+desplot(blk ~ col*row, data=plan32x4.plan, num=trt, main="32x4")
+
+desplot(YldVolDry ~ col*row, data=plan8x16sw.dat, num=trt, main="8x16 Yield")
+desplot(YldVolDry ~ col*row, data=plan16x8sw.dat, num=trt, main="16x8 Yield")
+desplot(YldVolDry ~ col*row, data=plan32x4sw.dat, num=trt, main="32x4 Yield")
+```
+
+### Simulate 8 x 16
+```{r}
+plan8x16.sim <- simulate.plan(plan8x16.plan,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+plan8x16.sim$points$number <- as.factor(plan8x16.sim$points$number)
+plan8x16.sim$aov$plan <- "8x16"
+
+ggplot(plan8x16.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(plan8x16.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = number),size=1)
+ggplot(plan8x16.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(plan8x16.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = blk),size=1)
+summary(aov(YldVolDry ~ number:as.factor(blk) + trt*number,data=plan8x16.sim$points))
+```
+
+### Simulate 16 x 8
+
+```{r}
+plan16x8.sim <- simulate.plan(plan16x8.plan,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+plan16x8.sim$points$number <- as.factor(plan16x8.sim$points$number)
+plan16x8.sim$aov$plan <- "16x8"
+ggplot(plan16x8.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(plan16x8.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = number),size=1)
+ggplot(plan16x8.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(plan16x8.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = blk),size=1)
+summary(aov(YldVolDry ~ number:as.factor(blk) + trt*number,data=plan8x16.sim$points))
+library(lme4)
+plan8x16.sim$points$row <- as.factor(plan8x16.sim$points$row)
+summary(lmer(YldVolDry ~ trt + (1 | number/blk) + (1| trt:number), data=plan8x16.sim$points))
+summary(lmer(YldVolDry ~ trt + (1 | number/blk/row) + (1| trt:number), data=plan8x16.sim$points))
+```
+
+### Simulate 32 x 4
+```{r}
+plan32x4.sim <- simulate.plan(plan32x4.plan,trimmed.dat,plot.dim=arm.plot.dim,row.buffer=arm.row.buffer,sample.vgm=sample.vgm)
+plan32x4.sim$points$number <- as.factor(plan32x4.sim$points$number)
+plan32x4.sim$aov$plan <- "32x4"
+ggplot(plan32x4.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = YldVolDry),size=1)
+ggplot(plan32x4.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = number),size=1)
+ggplot(plan32x4.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=1)
+ggplot(plan32x4.sim$points, aes(LonM, LatM)) + geom_point(aes(colour = blk),size=1)
+summary(aov(YldVolDry ~ number:as.factor(blk) + trt*number,data=plan32x4.sim$points))
+plan32x4.sim$points$row <- as.factor(plan32x4.sim$points$row)
+summary(lmer(YldVolDry ~ trt + (1 | number/blk) + (1| trt:number), data=plan32x4.sim$points))
+summary(lmer(YldVolDry ~ trt + (1 | number/blk/row) + (1| trt:number), data=plan32x4.sim$points))
+```
+
+
+Compare arrangements
+
+```{r}
+comp.sim <- rbind(plan8x16.sim$aov,plan16x8.sim$aov,plan32x4.sim$aov)
+comp.sim$plan <- as.factor(comp.sim$plan)
+ggplot(comp.sim, aes(TrtMS,color=plan,fill=plan)) + geom_histogram(position="dodge")
+ggplot(comp.sim, aes(TrtMS,color=plan,fill=plan)) + stat_density(geom="line",position="identity")
+ggplot(comp.sim, aes(TrtP,color=plan,fill=plan)) + stat_density(geom="line",position="identity")
+ggplot(comp.sim, aes(RepMS,color=plan,fill=plan)) + stat_density(geom="line",position="identity")
+ggplot(comp.sim, aes(RepP,color=plan,fill=plan)) + geom_histogram(position="dodge")
+comp.sim$RepF <- comp.sim$RepMS/comp.sim$ResMS
+ggplot(comp.sim, aes(RepF,color=plan,fill=plan)) + geom_histogram(position="dodge")
+ggplot(comp.sim, aes(ResMS,color=plan,fill=plan)) + stat_density(geom="line",position="identity")
+ggplot(comp.sim, aes(ResVar,color=plan,fill=plan)) + stat_density(geom="line",position="identity")
+ggplot(comp.sim, aes(RepVar,color=plan,fill=plan)) + stat_density(geom="line",position="identity")
+```
+
+
+
+
+### Trend Analysis
+```{r}
+source("../ASA_CSSA_SSSA/R/add.plot.centers.R")
+
+add.spatial.trends <- function(plan,plot.dim=c(1,1),row.buffer=c(0,0)) {
+  plan <- add.plot.centers(plan,plot.dim=plot.dim,row.buffer=row.buffer)
+  
+  yield.trend1 <- lm(YldVolDry ~ x + y, data = plan)
+  plan$trend1 <- predict(yield.trend1)
+
+  yield.trend2 <- lm(YldVolDry ~ x + y + I(x^2) +  I(y^2) + I(x*y), data=plan)
+  plan$trend2 <- predict(yield.trend2)
+  
+  yield.trend3 <- lm(YldVolDry ~ x + y + I(x^2) +  I(y^2) + I(x^3) +  I(y^3) + I(x*x*y) + I(x*y) + I(x*y*y), data = plan)
+  plan$trend3 <- predict(yield.trend3)
+  return(plan)
+}
+
+plan8x16sw.dat <- add.spatial.trends(plan8x16sw.dat, plot.dim=arm.plot.dim, row.buffer=arm.row.buffer)
+plan16x8sw.dat <- add.spatial.trends(plan16x8sw.dat, plot.dim=arm.plot.dim, row.buffer=arm.row.buffer)
+plan32x4sw.dat <- add.spatial.trends(plan32x4sw.dat, plot.dim=arm.plot.dim, row.buffer=arm.row.buffer)
+```
+
+#### Trend coefficients
+```{r}
+summary(lm(YldVolDry ~ trt + as.factor(blk),data=plan8x16sw.dat))
+summary(lm(YldVolDry ~ trt + trend1,data=plan8x16sw.dat))
+summary(lm(YldVolDry ~ trend1 + trt,data=plan8x16sw.dat))
+summary(lm(YldVolDry ~ trt + trend2,data=plan8x16sw.dat))
+summary(lm(YldVolDry ~ trt + trend3,data=plan8x16sw.dat))
+```
+
+#### RCB AOV
+```{r}
+anova(lm(YldVolDry ~ as.factor(blk) + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ trt + as.factor(blk),data=plan8x16sw.dat))
+```
+
+#### Linear Trend
+
+```{r}
+anova(lm(YldVolDry ~ trt + x + y,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ trt + y + x,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ x + y + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ trend1 + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ 1,data=plan8x16sw.dat),lm(YldVolDry ~ x + y,data=plan8x16sw.dat),lm(YldVolDry ~ x + y + trt,data=plan8x16sw.dat))
+```
+
+#### Quadratic Trend
+````{r}
+anova(lm(YldVolDry ~ trend2 + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ x + y + I(x^2) +  I(y^2) + I(x*y)+trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ 1,data=plan8x16sw.dat),lm(YldVolDry ~ x + y + I(x^2) +  I(y^2) + I(x*y),data=plan8x16sw.dat),lm(YldVolDry ~ x + y + I(x^2) +  I(y^2) + I(x*y) + trt,data=plan8x16sw.dat))
+```
+
+#### Cubic Trend
+````{r}
+anova(lm(YldVolDry ~ trend3 + trt,data=plan8x16sw.dat))
+
+anova(lm(YldVolDry ~ x + y + I(x^2) +  I(y^2) + I(x^3) +  I(y^3) + I(x*x*y) + I(x*y) + I(x*y*y) + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ 1,data=plan8x16sw.dat),lm(YldVolDry ~ x + y + I(x^2) +  I(y^2) + I(x^3) +  I(y^3) + I(x*x*y) + I(x*y) + I(x*y*y),data=plan8x16sw.dat),lm(YldVolDry ~ x + y + I(x^2) +  I(y^2) + I(x^3) +  I(y^3) + I(x*x*y) + I(x*y) + I(x*y*y) + trt,data=plan8x16sw.dat))
+```
+
+### 16 x 8
+```{r}
+anova(lm(YldVolDry ~ as.factor(blk) + trt,data=plan16x8sw.dat))
+anova(lm(YldVolDry ~ trend1 + trt,data=plan16x8sw.dat))
+anova(lm(YldVolDry ~ trend2 + trt,data=plan16x8sw.dat))
+anova(lm(YldVolDry ~ trend3 + trt,data=plan16x8sw.dat))
+anova(lm(YldVolDry ~ x + y + trt,data=plan16x8sw.dat))
+anova(lm(YldVolDry ~ x + y + I(x^2) +  I(y^2) + I(x*y)+trt,data=plan16x8sw.dat))
+anova(lm(YldVolDry ~ x + y + I(x^2) +  I(y^2) + I(x^3) +  I(y^3) + I(x*x*y) + I(x*y) + I(x*y*y) + trt,data=plan16x8sw.dat))
+
+
+anova(lm(YldVolDry ~ as.factor(blk) + trt,data=plan32x4sw.dat))
+anova(lm(YldVolDry ~ trend1 + trt,data=plan32x4sw.dat))
+anova(lm(YldVolDry ~ trend2 + trt,data=plan32x4sw.dat))
+anova(lm(YldVolDry ~ trend3 + trt,data=plan32x4sw.dat))
+anova(lm(YldVolDry ~ x + y + trt,data=plan32x4sw.dat))
+anova(lm(YldVolDry ~ x + y + I(x^2) +  I(y^2) + I(x*y)+trt,data=plan32x4sw.dat))
+anova(lm(YldVolDry ~ x + y + I(x^2) +  I(y^2) + I(x^3) +  I(y^3) + I(x*x*y) + I(x*y) + I(x*y*y) + trt,data=plan32x4sw.dat))
+```
+
+Nearest Neighbor
+```{r}
+add.neighbor.errors <- function(plan,plot.dim=c(2,4),row.buffer=c(1,1)) {
+
+#get treatment residuals
+trt.lm <- lm(YldVolDry ~ trt, data = plan)
+plan$trt.e <- resid(trt.lm)
+
+#compute a neighorhood residuals matrix
+queenCase = TRUE
+neighbors = 4
+if(queenCase) {
+  neighbors = 8
+}
+
+rows <- max(plan$row)
+cols <- max(plan$col)
+residualMatrix <- matrix(NA,nrow=rows,ncol=cols)
+for(idx in 1:dim(plan)[1]) {
+  residualMatrix[plan$row[idx],plan$col[idx]] <- plan$trt.e[idx]
+}
+
+plan$N <- NA
+plan$S <- NA
+plan$E <- NA
+plan$W <- NA
+
+plan$NE <- NA
+plan$SE <- NA
+plan$NW <- NA
+plan$SW <- NA
+
+#average neighbor residuals
+plan$Xrook <- NA
+plan$Xqueen <- NA
+
+#if we don't include 0, we have too few degrees of freedom
+
+for(idx in 1:dim(plan)[1]) {
+  row <- plan$row[idx]
+  col <- plan$col[idx]
+  sum.rook <- 0
+  cnt.rook <- 0
+  
+  sum.queen <- 0
+  cnt.queen <- 0
+  
+  #plot.dim is column width by row height
+  #normalize distance to plot dimensions
+  NSd <- (plot.dim[2]+row.buffer[2])/min(plot.dim)
+  EWd <- (plot.dim[1]+row.buffer[1])/min(plot.dim)
+  #S
+  if(row>1) {
+    plan$S[idx] <- residualMatrix[row-1,col]/NSd
+    sum.rook <- sum.rook + plan$S[idx]
+    cnt.rook <- cnt.rook + 1
+  } else {
+    plan$S[idx] <- 0
+  }
+  
+  #W
+  if(col>1) {
+    plan$W[idx] <- residualMatrix[row,col-1]/EWd
+    sum.rook <- sum.rook + plan$W[idx]
+    cnt.rook <- cnt.rook + 1
+  } else {
+    plan$W[idx] <- 0
+  }
+  
+  #N
+  if(row<rows) {
+    plan$N[idx] <- residualMatrix[row+1,col]/NSd
+    sum.rook <- sum.rook + plan$N[idx]
+    cnt.rook <- cnt.rook + 1
+  } else {
+    plan$N[idx] <- 0
+  }
+  
+  #E
+  if(col<cols) {
+    plan$E[idx] <- residualMatrix[row,col+1]/EWd
+    sum.rook <- sum.rook + plan$E[idx]
+    cnt.rook <- cnt.rook + 1
+  } else {
+    plan$E[idx] <- 0
+  }
+  
+  if(queenCase) {
+    diagD <- sqrt(NSd*NSd + EWd*EWd)
+    
+      if(row>1 && col>1) {
+         plan$SW[idx] <- residualMatrix[row-1,col-1]/diagD
+         sum.queen <- sum.queen + plan$SW[idx]
+         cnt.queen <- cnt.queen + 1
+      } else {
+        plan$SW[idx] <- 0
+      }
+      if(row>1 && col<cols) {
+         plan$SE[idx] <- residualMatrix[row-1,col+1]/diagD
+         sum.queen <- sum.queen + plan$SE[idx]
+         cnt.queen <- cnt.queen + 1
+      } else {
+        plan$SE[idx] <- 0
+      }
+      if(row<rows && col>1) {
+         plan$NW[idx] <- residualMatrix[row+1,col-1]/diagD
+         sum.queen <- sum.queen + plan$NW[idx]
+         cnt.queen <- cnt.queen + 1
+      } else {
+        plan$NW[idx] <- 0
+      }
+      if(row<rows && col<cols) {
+         plan$NE[idx] <- residualMatrix[row+1,col+1]/diagD
+         sum.queen <- sum.queen + plan$NE[idx]
+         cnt.queen <- cnt.queen + 1
+      } else {
+        plan$NE[idx] <- 0
+      }
+  }
+  plan$Xrook[idx] <- sum.rook/cnt.rook
+  plan$Xqueen[idx] <- (sum.rook+sum.queen)/(cnt.rook+cnt.queen)
+}
+return(plan)
+}
+```
+
+### Papadakis, uniform error
+
+```{r}
+plan8x16sw.dat <- add.neighbor.errors(plan8x16sw.dat,plot.dim=c(1,1),row.buffer=c(0,0))
+
+summary(lm(YldVolDry ~ Xrook + trt,data=plan8x16sw.dat))
+summary(lm(YldVolDry ~ Xqueen + trt,data=plan8x16sw.dat))
+summary(lm(YldVolDry ~ trt + N + E + W + S,data=plan8x16sw.dat))
+summary(lm(YldVolDry ~ trt + E + W + S + N,data=plan8x16sw.dat))
+
+anova(lm(YldVolDry ~ Xrook + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ Xqueen + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ N + E + W + S + trt,data=plan8x16sw.dat))
+
+
+anova(lm(YldVolDry ~ E + W + S + N + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ N + E + W + S + NE + SE + NW + SW + trt,data=plan8x16sw.dat))
+```
+
+### Papadakis, scaled error
+```{r}
+plan8x16sw.dat <- add.neighbor.errors(plan8x16sw.dat,plot.dim=arm.plot.dim,row.buffer=c(1,1))
+plan16x8sw.dat <- add.neighbor.errors(plan16x8sw.dat,plot.dim=arm.plot.dim,row.buffer=c(1,1))
+plan32x4sw.dat <- add.neighbor.errors(plan32x4sw.dat,plot.dim=arm.plot.dim,row.buffer=c(1,1))
+
+summary(lm(YldVolDry ~ Xrook + trt,data=plan8x16sw.dat))
+summary(lm(YldVolDry ~ Xqueen + trt,data=plan8x16sw.dat))
+summary(lm(YldVolDry ~ trt + N + E + W + S,data=plan8x16sw.dat))
+summary(lm(YldVolDry ~ trt + E + W + S + N,data=plan8x16sw.dat))
+
+anova(lm(YldVolDry ~ Xrook + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ Xqueen + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ N + E + W + S + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ N + E + W + S, data=plan8x16sw.dat), lm(YldVolDry ~ N + E + W + S + trt,data=plan8x16sw.dat))
+
+anova(lm(YldVolDry ~ E + W + S + N + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ N + E + W + S + NE + SE + NW + SW + trt,data=plan8x16sw.dat))
+anova(lm(YldVolDry ~ trt,data=plan8x16sw.dat), lm(YldVolDry ~ N + E + W + S + NE + SE + NW + SW + trt,data=plan8x16sw.dat))
+
+anova(lm(YldVolDry ~ Xrook + trt,data=plan16x8sw.dat))
+anova(lm(YldVolDry ~ Xqueen + trt,data=plan16x8sw.dat))
+anova(lm(YldVolDry ~ N + E + W + S + trt,data=plan16x8sw.dat))
+anova(lm(YldVolDry ~ N + E + W + S + NE + SE + NW + SW + trt,data=plan16x8sw.dat))
+
+anova(lm(YldVolDry ~ Xrook + trt,data=plan32x4sw.dat))
+anova(lm(YldVolDry ~ Xqueen + trt,data=plan32x4sw.dat))
+anova(lm(YldVolDry ~ N + E + W + S + trt,data=plan32x4sw.dat))
+anova(lm(YldVolDry ~ N + E + W + S + NE + SE + NW + SW + trt,data=plan32x4sw.dat))
+
+```
+
+
+Plans for ARM
+-------------
+
+```{r}
+#plan8x16sw$plan$blk <- ceiling(plan8x16sw$plan$row/1)
+#plan16x8sw$plan$blk <- ceiling(plan16x8sw$plan$row/2)
+#plan32x4sw$plan$blk <- ceiling(plan32x4sw$plan$row/4)
+#plan8x16sw.dat
+#plan16x8sw.dat
+#plan32x4sw.dat
+```
+
+```{r}
+ggplot(plan8x16sw.dat, aes(blk, YldVolDry)) + geom_point() + stat_smooth(method = "lm", formula = y ~  poly(x,3),se=FALSE)
+ggplot(plan16x8sw.dat, aes(blk, YldVolDry)) + geom_point() + stat_smooth(method = "lm", formula = y ~  poly(x,3),se=FALSE)
+ggplot(plan16x8sw.dat, aes(row, YldVolDry)) + geom_point() + stat_smooth(method = "lm", formula = y ~  poly(x,3),se=FALSE)
+ggplot(plan32x4sw.dat, aes(blk, YldVolDry)) + geom_point() + stat_smooth(method = "lm", formula = y ~  poly(x,3),se=FALSE)
+ggplot(plan32x4sw.dat, aes(blk, YldVolDry)) + geom_point() + stat_smooth(method = "lm", formula = y ~  poly(x,5),se=FALSE)
+ggplot(plan32x4sw.dat, aes(blk, YldVolDry)) + geom_point() + stat_smooth(method = "lm", formula = y ~  poly(x,7),se=FALSE)
+
+ggplot(plan8x16sw.dat, aes(x=blk, y=YldVolDry)) + geom_bar(aes(blk, YldVolDry), stat = "summary", fun.y = "mean") + stat_smooth(method = "lm", formula = y ~  poly(x,7),se=FALSE) + stat_smooth(method = "lm", formula = y ~  poly(x,3),se=FALSE,color="red")
+
+ggplot(plan32x4sw.dat, aes(x=blk, y=YldVolDry)) + geom_bar(aes(blk, YldVolDry), stat = "summary", fun.y = "mean") + stat_smooth(method = "lm", formula = y ~  poly(x,7),se=FALSE) + stat_smooth(method = "lm", formula = y ~  poly(x,3),se=FALSE,color="red")
+
+ggplot(plan32x4sw.dat, aes(row, YldVolDry)) + geom_point() + stat_smooth(method = "lm", formula = y ~  poly(x,3),se=FALSE)
+ggplot(plan32x4sw.dat, aes(row, YldVolDry)) + geom_point() + stat_smooth(method = "lm", formula = y ~  poly(x,7),se=FALSE)
+
+plan8x16sw.blk.lm <- lm(YldVolDry ~ blk + I(blk^2) + I(blk^3),data=plan8x16sw.dat)
+plan8x16sw.row.lm <- lm(YldVolDry ~ row + I(row^2) + I(row^3),data=plan8x16sw.dat)
+summary(plan8x16sw.blk.lm)
+anova(plan8x16sw.blk.lm)
+
+summary(plan8x16sw.row.lm)
+anova(plan8x16sw.row.lm)
+
+anova(plan8x16sw.row.lm,plan8x16sw.blk.lm)
+
+plan16x8sw.blk.lm <- lm(YldVolDry ~ blk + I(blk^2) + I(blk^3),data=plan16x8sw.dat)
+plan16x8sw.row.lm <- lm(YldVolDry ~ row + I(row^2) + I(row^3),data=plan16x8sw.dat)
+summary(plan16x8sw.blk.lm)
+anova(plan16x8sw.blk.lm)
+
+summary(plan16x8sw.row.lm)
+anova(plan16x8sw.row.lm)
+
+anova(plan16x8sw.row.lm,plan16x8sw.blk.lm)
+
+plan32x4sw.blk.lm <- lm(YldVolDry ~ blk + I(blk^2) + I(blk^3),data=plan32x4sw.dat)
+plan32x4sw.row.lm <- lm(YldVolDry ~ row + I(row^2) + I(row^3),data=plan32x4sw.dat)
+summary(plan32x4sw.blk.lm)
+anova(plan32x4sw.blk.lm)
+
+summary(plan32x4sw.row.lm)
+anova(plan32x4sw.row.lm)
+
+anova(plan32x4sw.row.lm,plan32x4sw.blk.lm)
+
+plan8x16sw.rcb.lm <- lm(YldVolDry ~ as.factor(blk),data=plan8x16sw.dat)
+summary(plan8x16sw.rcb.lm)
+anova(plan8x16sw.rcb.lm)
+
+
+plan16x8sw.rcb.lm <- lm(YldVolDry ~ as.factor(blk),data=plan16x8sw.dat)
+summary(plan16x8sw.rcb.lm)
+anova(plan16x8sw.rcb.lm)
+
+plan32x4sw.rcb.lm <- lm(YldVolDry ~ as.factor(blk),data=plan32x4sw.dat)
+summary(plan32x4sw.rcb.lm)
+anova(plan32x4sw.rcb.lm)
+```
+
+Spatial Analysis Simulations
+----------------------------
+
+```{r}
+exps <- max(plan8x16.sim$aov$Number)
+plan8x16.sim$aov$bestBIC <- 0
+plan8x16.sim$aov$bestModel <- 0
+
+plan8x16.sim$aov$rcbErr <- 0
+plan8x16.sim$aov$RookErr <- 0
+plan8x16.sim$aov$QueenErr <- 0
+plan8x16.sim$aov$NSEWErr <- 0
+plan8x16.sim$aov$NSEWNSEWErr <- 0
+
+plan8x16.sim$points$row <- as.numeric(plan8x16.sim$points$row)
+plan8x16.sim$points$col <- as.numeric(plan8x16.sim$points$col)
+
+for(plan in 1:exps) {
+  current.plan <- subset(plan8x16.sim$points,plan8x16.sim$points$number==plan)
+  rcb.lm <- lm(YldVolDry ~ as.factor(blk) + as.factor(trt), data=current.plan)
+  lin.lm <- lm(YldVolDry ~ row + col + as.factor(trt),data=current.plan)
+  quad.lm <- lm(YldVolDry ~ row + col + I(row^2) + I(col^2) + I(row*col) + as.factor(trt),data=current.plan)
+  cub.lm <- lm(YldVolDry ~ row + col + I(row^2) + I(col^2) + I(row*col) + I(row^3) +  I(col^3) + I(row*row*col) + I(row*col*col) + as.factor(trt),data=current.plan)
+  bics <- c(BIC(rcb.lm),BIC(lin.lm),BIC(quad.lm),BIC(cub.lm))
+  plan8x16.sim$aov$bestBIC[plan8x16.sim$aov$Number==plan] <- min(bics)
+  plan8x16.sim$aov$bestModel[plan8x16.sim$aov$Number==plan] <- which(bics==min(bics))-1
+  
+  current.plan <- add.neighbor.errors(current.plan,plot.dim=arm.plot.dim,row.buffer=c(1,1))
+  rook.lm <- lm(YldVolDry ~ Xrook + as.factor(trt), data=current.plan)
+  queen.lm <- lm(YldVolDry ~ Xqueen + as.factor(trt),data=current.plan)
+  NSEW.lm <- lm(YldVolDry ~ N + E + W + S + as.factor(trt),data=current.plan)
+  NSEWNSEW.lm <- lm(YldVolDry ~ N + E + W + S + NE + SE + NW + SW + as.factor(trt),data=current.plan)
+  
+  plan8x16.sim$aov$rcbErr[plan8x16.sim$aov$Number==plan] <- summary(rcb.lm)$sigma
+  
+  plan8x16.sim$aov$RookErr[plan8x16.sim$aov$Number==plan] <- summary(rook.lm)$sigma
+    plan8x16.sim$aov$QueenErr[plan8x16.sim$aov$Number==plan] <- summary(queen.lm)$sigma
+    plan8x16.sim$aov$NSEWErr[plan8x16.sim$aov$Number==plan] <- summary(NSEW.lm)$sigma
+    plan8x16.sim$aov$NSEWNSEWErr[plan8x16.sim$aov$Number==plan] <- summary(NSEWNSEW.lm)$sigma
+}
+plan8x16.sim$aov$bestModel <- as.factor(plan8x16.sim$aov$bestModel)
+tapply(plan8x16.sim$aov$bestBIC,list(plan8x16.sim$aov$bestModel),length)
+tapply(plan8x16.sim$aov$bestBIC,list(plan8x16.sim$aov$bestModel),mean)
+
+tapply(plan8x16.sim$aov$RookErr,list(plan8x16.sim$aov$bestModel),mean)
+tapply(plan8x16.sim$aov$QueenErr,list(plan8x16.sim$aov$bestModel),mean)
+tapply(plan8x16.sim$aov$NSEWErr,list(plan8x16.sim$aov$bestModel),mean)
+tapply(plan8x16.sim$aov$NSEWNSEWErr,list(plan8x16.sim$aov$bestModel),mean)
+
+```
+
+```{r}
+exps <- max(plan16x8.sim$aov$Number)
+plan16x8.sim$aov$bestBIC <- 0
+plan16x8.sim$aov$bestModel <- 0
+
+plan16x8.sim$aov$rcbErr <- 0
+plan16x8.sim$aov$RookErr <- 0
+plan16x8.sim$aov$QueenErr <- 0
+plan16x8.sim$aov$NSEWErr <- 0
+plan16x8.sim$aov$NSEWNSEWErr <- 0
+
+plan16x8.sim$points$row <- as.numeric(plan16x8.sim$points$row)
+plan16x8.sim$points$col <- as.numeric(plan16x8.sim$points$col)
+
+for(plan in 1:exps) {
+  current.plan <- subset(plan16x8.sim$points,plan16x8.sim$points$number==plan)
+  rcb.lm <- lm(YldVolDry ~ as.factor(blk) + as.factor(trt), data=current.plan)
+  lin.lm <- lm(YldVolDry ~ row + col + as.factor(trt),data=current.plan)
+  quad.lm <- lm(YldVolDry ~ row + col + I(row^2) + I(col^2) + I(row*col) + as.factor(trt),data=current.plan)
+  cub.lm <- lm(YldVolDry ~ row + col + I(row^2) + I(col^2) + I(row*col) + I(row^3) +  I(col^3) + I(row*row*col) + I(row*col*col) + as.factor(trt),data=current.plan)
+  bics <- c(BIC(rcb.lm),BIC(lin.lm),BIC(quad.lm),BIC(cub.lm))
+  plan16x8.sim$aov$bestBIC[plan16x8.sim$aov$Number==plan] <- min(bics)
+  plan16x8.sim$aov$bestModel[plan16x8.sim$aov$Number==plan] <- which(bics==min(bics))-1
+  
+    current.plan <- add.neighbor.errors(current.plan,plot.dim=arm.plot.dim,row.buffer=c(1,1))
+  rook.lm <- lm(YldVolDry ~ Xrook + as.factor(trt), data=current.plan)
+  queen.lm <- lm(YldVolDry ~ Xqueen + as.factor(trt),data=current.plan)
+  NSEW.lm <- lm(YldVolDry ~ N + E + W + S + as.factor(trt),data=current.plan)
+  NSEWNSEW.lm <- lm(YldVolDry ~ N + E + W + S + NE + SE + NW + SW + as.factor(trt),data=current.plan)
+  
+  plan16x8.sim$aov$rcbErr[plan16x8.sim$aov$Number==plan] <- summary(rcb.lm)$sigma
+  
+  plan16x8.sim$aov$RookErr[plan16x8.sim$aov$Number==plan] <- summary(rook.lm)$sigma
+    plan16x8.sim$aov$QueenErr[plan16x8.sim$aov$Number==plan] <- summary(queen.lm)$sigma
+    plan16x8.sim$aov$NSEWErr[plan16x8.sim$aov$Number==plan] <- summary(NSEW.lm)$sigma
+    plan16x8.sim$aov$NSEWNSEWErr[plan16x8.sim$aov$Number==plan] <- summary(NSEWNSEW.lm)$sigma
+}
+plan16x8.sim$aov$bestModel <- as.factor(plan16x8.sim$aov$bestModel)
+tapply(plan16x8.sim$aov$bestBIC,list(plan16x8.sim$aov$bestModel),length)
+tapply(plan16x8.sim$aov$bestBIC,list(plan16x8.sim$aov$bestModel),mean)
+
+tapply(plan16x8.sim$aov$RookErr,list(plan16x8.sim$aov$bestModel),mean)
+tapply(plan16x8.sim$aov$QueenErr,list(plan16x8.sim$aov$bestModel),mean)
+tapply(plan16x8.sim$aov$NSEWErr,list(plan16x8.sim$aov$bestModel),mean)
+tapply(plan16x8.sim$aov$NSEWNSEWErr,list(plan16x8.sim$aov$bestModel),mean)
+```
+
+```{r}
+exps <- max(plan32x4.sim$aov$Number)
+plan32x4.sim$aov$bestBIC <- 0
+plan32x4.sim$aov$bestModel <- 0
+
+plan32x4.sim$aov$rcbErr <- 0
+plan32x4.sim$aov$RookErr <- 0
+plan32x4.sim$aov$QueenErr <- 0
+plan32x4.sim$aov$NSEWErr <- 0
+plan32x4.sim$aov$NSEWNSEWErr <- 0
+
+plan32x4.sim$points$row <- as.numeric(plan32x4.sim$points$row)
+plan32x4.sim$points$col <- as.numeric(plan32x4.sim$points$col)
+
+for(plan in 1:exps) {
+  current.plan <- subset(plan32x4.sim$points,plan32x4.sim$points$number==plan)
+  rcb.lm <- lm(YldVolDry ~ as.factor(blk) + as.factor(trt), data=current.plan)
+  lin.lm <- lm(YldVolDry ~ row + col + as.factor(trt),data=current.plan)
+  quad.lm <- lm(YldVolDry ~ row + col + I(row^2) + I(col^2) + I(row*col) + as.factor(trt),data=current.plan)
+  cub.lm <- lm(YldVolDry ~ row + col + I(row^2) + I(col^2) + I(row*col) + I(row^3) +  I(col^3) + I(row*row*col) + I(row*col*col) + as.factor(trt),data=current.plan)
+  bics <- c(BIC(rcb.lm),BIC(lin.lm),BIC(quad.lm),BIC(cub.lm))
+  plan32x4.sim$aov$bestBIC[plan32x4.sim$aov$Number==plan] <- min(bics)
+  plan32x4.sim$aov$bestModel[plan32x4.sim$aov$Number==plan] <- which(bics==min(bics))-1
+  
+    current.plan <- add.neighbor.errors(current.plan,plot.dim=arm.plot.dim,row.buffer=c(1,1))
+  rook.lm <- lm(YldVolDry ~ Xrook + as.factor(trt), data=current.plan)
+  queen.lm <- lm(YldVolDry ~ Xqueen + as.factor(trt),data=current.plan)
+  NSEW.lm <- lm(YldVolDry ~ N + E + W + S + as.factor(trt),data=current.plan)
+  NSEWNSEW.lm <- lm(YldVolDry ~ N + E + W + S + NE + SE + NW + SW + as.factor(trt),data=current.plan)
+  
+  plan32x4.sim$aov$rcbErr[plan32x4.sim$aov$Number==plan] <- summary(rcb.lm)$sigma
+  
+  plan32x4.sim$aov$RookErr[plan32x4.sim$aov$Number==plan] <- summary(rook.lm)$sigma
+    plan32x4.sim$aov$QueenErr[plan32x4.sim$aov$Number==plan] <- summary(queen.lm)$sigma
+    plan32x4.sim$aov$NSEWErr[plan32x4.sim$aov$Number==plan] <- summary(NSEW.lm)$sigma
+    plan32x4.sim$aov$NSEWNSEWErr[plan32x4.sim$aov$Number==plan] <- summary(NSEWNSEW.lm)$sigma
+}
+
+plan32x4.sim$aov$bestModel <- as.factor(plan32x4.sim$aov$bestModel)
+tapply(plan32x4.sim$aov$bestBIC,list(plan32x4.sim$aov$bestModel),length)
+tapply(plan32x4.sim$aov$bestBIC,list(plan32x4.sim$aov$bestModel),mean)
+
+tapply(plan32x4.sim$aov$RookErr,list(plan32x4.sim$aov$bestModel),mean)
+tapply(plan32x4.sim$aov$QueenErr,list(plan32x4.sim$aov$bestModel),mean)
+tapply(plan32x4.sim$aov$NSEWErr,list(plan32x4.sim$aov$bestModel),mean)
+tapply(plan32x4.sim$aov$NSEWNSEWErr,list(plan32x4.sim$aov$bestModel),mean)
+```
+
+PCA Plots
+---------
+
+```{r}
+plan8x16sw.pca <- princomp(plan8x16sw.dat[,c("x","y","YldVolDry")], cor = TRUE)
+biplot(plan8x16sw.pca,cex=0.6)
+plan16x8sw.pca <- princomp(plan16x8sw.dat[,c("x","y","YldVolDry")], cor = TRUE)
+biplot(plan16x8sw.pca,cex=0.6)
+plan32x4sw.pca <- princomp(plan32x4sw.dat[,c("x","y","YldVolDry")], cor = TRUE)
+biplot(plan32x4sw.pca,cex=0.6)
+```
