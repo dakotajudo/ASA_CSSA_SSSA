@@ -1,4 +1,4 @@
-<TeXmacs|1.99.5>
+<TeXmacs|1.99.6>
 
 <style|generic>
 
@@ -34,6 +34,83 @@
   based on relative treatment performance. Other examples will be presented,
   and the use of geospatial mapping to supplement trial cluster analysis will
   be demonstrated.
+
+  <section|Statistical Model, Multiple Trials><label|MPSection:E18AF5ED-4250-4DA4-8DB9-48E093C3C3E7>
+
+  <\MPEquation|!ht>
+    <\equation>
+      y<rsub|i*j*k>=\<mu\>+\<alpha\><rsub|i>+\<beta\><rsub|j>+\<theta\><rsub|i*j>+\<rho\><rsub|j*k>+e<rsub|i*j*k>
+    </equation>
+
+    <label|MPEquationElement:FEB61892-2AA4-4B4E-A090-F8A291E792E5>
+  </MPEquation>
+
+  plot assessment is the sum of
+
+  <\itemize>
+    <item>grand mean
+
+    <item><em|i<rsup|th>> treatment
+
+    <item><em|j<rsup|th>> trial
+
+    <item><em|i<rsup|th>> treatment x trial interaction
+
+    <item><em|k<rsup|th>> block in <em|j<rsup|th>> trial
+
+    <item>experimental error
+  </itemize>
+
+  <section|Decomposition of Interaction><label|MPSection:C16879C8-07BF-4803-BC89-0EE616697BA1>
+
+  <\itemize>
+    <item>Simple additivity
+
+    <\itemize>
+      <item><math|\<theta\><rsub|11>=\<theta\><rsub|12>=\<ldots\>=\<theta\><rsub|m*n>=0>
+    </itemize>
+
+    <item>Proportional to product of main effects (Tukey 1949)
+
+    <\itemize>
+      <item><math|\<theta\><rsub|i*j>=\<lambda\>*\<alpha\><rsub|i>*\<beta\><rsub|j>+e<rsub|i*j>>
+
+      <item>In this case,
+
+      <item><math|e<rsub|i*j>> is a lack of fit random variable, while l is a
+      fixed effect that is determine by the specific combinations of
+      treatments and trials.
+
+      <item>This would suggest that, if were to repeat a series of
+      experiments with similar (perhaps identical) treatments and similar
+      environments, we would obtain a similar estimate of l.
+
+      <item>Otherwise, we might model l as a random variable that is unique
+      to a combination of treatments and trials.
+    </itemize>
+
+    <item>Proportional to one main (trial) effect (Mandel 1961)
+
+    <\itemize>
+      <item><math|\<theta\><rsub|i*j>=\<lambda\><rsub|i>*\<beta\><rsub|j>+e<rsub|i*j>>
+
+      <item>Since this is an effect associated with each treatment, this
+      should be fixed when treatment is fixed, and random when treatment is
+      random. If fixed, we should expect that repeated experiments produce
+      comparable values.
+    </itemize>
+
+    <item>Other decompositions cite (Milliken and Johnson 1989 (Cornelius et
+    al. 2001)
+  </itemize>
+
+  <section|Bibliography><label|MPSection:18A2900B-CF97-4856-8B2F-F5B0136AF97B>
+
+  Mandel, J., 1961. Non-additivity in the Two-Way Analysis of Variance.
+  <em|Journal of the American Statistical Association>, 56(296).
+
+  Tukey, J.W., 1949. One Degree of Freedom for Non-Additivity.
+  <em|Biometrics>, 5(3).
 
   <section|Assumptions>
 
@@ -9115,41 +9192,48 @@
 
 <\references>
   <\collection>
+    <associate|MPEquationElement:FEB61892-2AA4-4B4E-A090-F8A291E792E5|<tuple|1|?>>
+    <associate|MPSection:18A2900B-CF97-4856-8B2F-F5B0136AF97B|<tuple|4|?>>
+    <associate|MPSection:C16879C8-07BF-4803-BC89-0EE616697BA1|<tuple|3|?>>
+    <associate|MPSection:E18AF5ED-4250-4DA4-8DB9-48E093C3C3E7|<tuple|2|?>>
     <associate|auto-1|<tuple|1|?>>
-    <associate|auto-10|<tuple|6.1|?>>
-    <associate|auto-11|<tuple|6.2|?>>
-    <associate|auto-12|<tuple|1|?>>
-    <associate|auto-13|<tuple|2|?>>
-    <associate|auto-14|<tuple|7|?>>
-    <associate|auto-15|<tuple|8|?>>
-    <associate|auto-16|<tuple|8.1|?>>
-    <associate|auto-17|<tuple|3|?>>
-    <associate|auto-18|<tuple|8.2|?>>
-    <associate|auto-19|<tuple|8.3|?>>
+    <associate|auto-10|<tuple|7|?>>
+    <associate|auto-11|<tuple|8|?>>
+    <associate|auto-12|<tuple|9|?>>
+    <associate|auto-13|<tuple|9.1|?>>
+    <associate|auto-14|<tuple|9.2|?>>
+    <associate|auto-15|<tuple|1|?>>
+    <associate|auto-16|<tuple|2|?>>
+    <associate|auto-17|<tuple|10|?>>
+    <associate|auto-18|<tuple|11|?>>
+    <associate|auto-19|<tuple|11.1|?>>
     <associate|auto-2|<tuple|2|?>>
-    <associate|auto-20|<tuple|8.4|?>>
-    <associate|auto-21|<tuple|8.5|?>>
-    <associate|auto-22|<tuple|8.6|?>>
-    <associate|auto-23|<tuple|8.7|?>>
-    <associate|auto-24|<tuple|8.7.1|?>>
-    <associate|auto-25|<tuple|9|?>>
-    <associate|auto-26|<tuple|2|?>>
+    <associate|auto-20|<tuple|3|?>>
+    <associate|auto-21|<tuple|11.2|?>>
+    <associate|auto-22|<tuple|11.3|?>>
+    <associate|auto-23|<tuple|11.4|?>>
+    <associate|auto-24|<tuple|11.5|?>>
+    <associate|auto-25|<tuple|11.6|?>>
+    <associate|auto-26|<tuple|11.7|?>>
+    <associate|auto-27|<tuple|11.7.1|?>>
+    <associate|auto-28|<tuple|12|?>>
+    <associate|auto-29|<tuple|2|?>>
     <associate|auto-3|<tuple|3|?>>
-    <associate|auto-4|<tuple|3.1|?>>
-    <associate|auto-5|<tuple|1|?>>
-    <associate|auto-6|<tuple|3.2|?>>
-    <associate|auto-7|<tuple|4|?>>
-    <associate|auto-8|<tuple|5|?>>
-    <associate|auto-9|<tuple|6|?>>
+    <associate|auto-4|<tuple|4|?>>
+    <associate|auto-5|<tuple|5|?>>
+    <associate|auto-6|<tuple|6|?>>
+    <associate|auto-7|<tuple|6.1|?>>
+    <associate|auto-8|<tuple|1|?>>
+    <associate|auto-9|<tuple|6.2|?>>
   </collection>
 </references>
 
 <\auxiliary>
   <\collection>
     <\associate|table>
-      <tuple|normal||<pageref|auto-5>>
+      <tuple|normal|<surround|<hidden|<tuple>>||>|<pageref|auto-5>>
 
-      <tuple|normal||<pageref|auto-25>>
+      <tuple|normal|<surround|<hidden|<tuple>>||>|<pageref|auto-26>>
     </associate>
     <\associate|toc>
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|1<space|2spc>Abstract>
@@ -9172,77 +9256,81 @@
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-6>>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|4<space|2spc>Plotting
-      Results> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|4<space|2spc>Least
+      Square Means> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-7><vspace|0.5fn>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|5<space|2spc>Decomposing
-      Interaction> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|5<space|2spc>Plotting
+      Results> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-8><vspace|0.5fn>
 
-      <with|par-left|<quote|1tab>|5.1<space|2spc>Random Effect
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-9>>
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|6<space|2spc>Decomposing
+      Interaction> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-9><vspace|0.5fn>
 
-      <with|par-left|<quote|1tab>|5.2<space|2spc>Fixed Effect
+      <with|par-left|<quote|1tab>|6.1<space|2spc>Random Effect
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-10>>
 
-      <with|par-left|<quote|4tab>|Non additivity
+      <with|par-left|<quote|1tab>|6.2<space|2spc>Fixed Effect
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-11><vspace|0.15fn>>
+      <no-break><pageref|auto-11>>
 
-      <with|par-left|<quote|4tab>|Bilinear Model
+      <with|par-left|<quote|4tab>|Non additivity
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-12><vspace|0.15fn>>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|6<space|2spc>Model
-      Diagnostics> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-13><vspace|0.5fn>
-
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|7<space|2spc>Questions>
+      <with|par-left|<quote|4tab>|Bilinear Model
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-13><vspace|0.15fn>>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|7<space|2spc>Model
+      Diagnostics> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-14><vspace|0.5fn>
 
-      <with|par-left|<quote|1tab>|7.1<space|2spc>Stability/Regression
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|8<space|2spc>Questions>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-15>>
+      <no-break><pageref|auto-15><vspace|0.5fn>
+
+      <with|par-left|<quote|1tab>|8.1<space|2spc>Stability/Regression
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-16>>
 
       <with|par-left|<quote|4tab>|Eberhart and Russell
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-16><vspace|0.15fn>>
+      <no-break><pageref|auto-17><vspace|0.15fn>>
 
-      <with|par-left|<quote|1tab>|7.2<space|2spc>Decomposition of interaction
+      <with|par-left|<quote|1tab>|8.2<space|2spc>Decomposition of interaction
       by nonadditivity <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-17>>
-
-      <with|par-left|<quote|1tab>|7.3<space|2spc>Cluster Identification
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-18>>
 
-      <with|par-left|<quote|1tab>|7.4<space|2spc>Principal Components and
-      Biplots <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <with|par-left|<quote|1tab>|8.3<space|2spc>Cluster Identification
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-19>>
 
-      <with|par-left|<quote|1tab>|7.5<space|2spc>Significant Pairs/Outliers
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <with|par-left|<quote|1tab>|8.4<space|2spc>Principal Components and
+      Biplots <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-20>>
 
-      <with|par-left|<quote|1tab>|7.6<space|2spc>Alternative Regression
+      <with|par-left|<quote|1tab>|8.5<space|2spc>Significant Pairs/Outliers
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-21>>
 
-      <with|par-left|<quote|1tab>|7.7<space|2spc>Dendrogram Cross-over
+      <with|par-left|<quote|1tab>|8.6<space|2spc>Alternative Regression
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-22>>
 
-      <with|par-left|<quote|2tab>|7.7.1<space|2spc>Euclidean distance
+      <with|par-left|<quote|1tab>|8.7<space|2spc>Dendrogram Cross-over
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-23>>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|8<space|2spc>Types
+      <with|par-left|<quote|2tab>|8.7.1<space|2spc>Euclidean distance
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-24>>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|9<space|2spc>Types
       of interactions> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-24><vspace|0.5fn>
+      <no-break><pageref|auto-25><vspace|0.5fn>
     </associate>
   </collection>
 </auxiliary>
