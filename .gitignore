@@ -7,6 +7,6 @@
 *.toc
 *.rtf
 *.bmp
-
+*.Rhistory
 
 *.tex
