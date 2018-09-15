@@ -1,0 +1,206 @@
+---
+title: "Case Study 1, Part 3"
+author: "Peter Claussen"
+date: "10/3/2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(gstat)
+library(ape)
+library(ggplot2)
+
+library(rsm)
+library(ncf)
+
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+```
+
+Now we consider trend analysis. First, using the pooled data, what is an appropriate polynomial?
+
+# Load Data
+```{r, LoadData}
+load(file="Pooled.Rda")
+```
+
+```{r}
+Pooled.dat <- rbind(Corn2013.dat,Corn2015.dat,Soybean2014.dat,Soybean2016.dat)
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(Pooled.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Quantile),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Quantile", x="Longitude (m)", y="Latitude (m)", title = "Pooled Quantile Maps")
+```
+
+# Fit polynomial models
+
+```{r}
+Quantile5.lm <- lm(Quantile ~ poly(Easting, Northing, degree=5), data=Pooled.dat)
+Quantile6.lm <- lm(Quantile ~ poly(Easting, Northing, degree=6), data=Pooled.dat)
+Quantile7.lm <- lm(Quantile ~ poly(Easting, Northing, degree=7), data=Pooled.dat)
+Quantile8.lm <- lm(Quantile ~ poly(Easting, Northing, degree=8), data=Pooled.dat)
+Quantile9.lm <- lm(Quantile ~ poly(Easting, Northing, degree=9), data=Pooled.dat)
+```
+
+Here we see one limitation of trend analysis - it doesn't work well if we don't have a rectangular shape. The missing corner in our field tends to induce a bias in the models.
+
+```{r,fig.width=7,fig.height=8}
+par(mfrow=c(3,1))
+contour(Quantile5.lm, Northing ~ Easting, image = TRUE)
+contour(Quantile7.lm, Northing ~ Easting, image = TRUE)
+contour(Quantile9.lm, Northing ~ Easting, image = TRUE)
+par(mfrow=c(1,1))
+```
+
+```{r,fig.width=7,fig.height=8}
+par(mfrow=c(3,1))
+contour(Quantile6.lm, Northing ~ Easting, image = TRUE)
+contour(Quantile7.lm, Northing ~ Easting, image = TRUE)
+contour(Quantile8.lm, Northing ~ Easting, image = TRUE)
+par(mfrow=c(1,1))
+```
+
+# Extract residuals
+
+```{r,ExtractResiduals}
+Pooled.dat$Quantile5.resid <- Quantile5.lm$residuals
+Pooled.dat$Quantile6.resid <- Quantile6.lm$residuals
+Pooled.dat$Quantile7.resid <- Quantile7.lm$residuals
+Pooled.dat$Quantile8.resid <- Quantile8.lm$residuals
+Pooled.dat$Quantile9.resid <- Quantile9.lm$residuals
+```
+
+# Check for white noise
+
+The paired distance matrix is very large (1Gb) so we should save between analyses.
+```{r,ComputeI}
+if(!file.exists("Distance.Rda")) {
+  Distance.mat <- as.matrix(dist(cbind(Pooled.dat$Easting, Pooled.dat$Northing)))
+  Distance.mat <- 1/Distance.mat
+  diag(Distance.mat) <- 0
+  save(Distance.mat,file="Distance.Rda")
+} else {
+  load(file="Distance.Rda")
+}
+
+```
+
+```{r}
+if(!file.exists("TrendI.Rda")) {
+  Moran5 <- Moran.I(Pooled.dat$Quantile5.resid, Distance.mat)
+  Moran6 <- Moran.I(Pooled.dat$Quantile6.resid, Distance.mat)
+  Moran7 <-Moran.I(Pooled.dat$Quantile7.resid, Distance.mat)
+  Moran8 <-Moran.I(Pooled.dat$Quantile8.resid, Distance.mat)
+  Moran9 <-Moran.I(Pooled.dat$Quantile9.resid, Distance.mat)
+  save(Moran5, Moran6, Moran7, Moran8, Moran9, file="TrendI.Rda")
+} else {
+  load(file="TrendI.Rda")
+}
+print(Moran5)
+print(Moran6)
+print(Moran7)
+print(Moran8)
+print(Moran9)
+```
+
+# Plot $I$
+
+```{r}
+fit.dat <- data.frame(
+  Polynomial =  seq(5,9),
+  I = c(Moran5$observed,
+       Moran6$observed,
+       Moran7$observed,
+       Moran8$observed,
+       Moran9$observed
+)
+   )
+plot(I ~ Polynomial, data=fit.dat)
+lines(I ~ Polynomial, data=fit.dat)
+
+```
+
+We can also reasonably use nested AOV to compare. 
+
+```{r, ANOVA}
+anova(Quantile5.lm, Quantile6.lm,Quantile7.lm,Quantile8.lm, Quantile9.lm)
+```
+
+ANOVA suggests 8, since there is relatively little improvement at between 8 and 9 ($\Delta SS \sim 10$).
+
+We've fit a mean trend for four maps, but we also want to capture some of the year to year variability. To do this, we can extend our trend to include an interaction term:
+```{r}
+Pooled.dat$Crop <- "Corn"
+Pooled.dat$Crop[Pooled.dat$Year==2014] <- "Soybean"
+Pooled.dat$Crop[Pooled.dat$Year==2016] <- "Soybean"
+Pooled.dat$Crop <- as.factor(Pooled.dat$Crop)
+Pooled.dat$Year <- as.factor(Pooled.dat$Year)
+```
+
+```{r}
+Quantile7Interaction.lm <- lm(Quantile ~ poly(Easting, Northing, degree=7) + Crop:poly(Easting, Northing, degree=7)+ Crop:Year:poly(Easting, Northing, degree=7), data=Pooled.dat)
+summary(aov(Quantile7Interaction.lm))
+```
+
+Does this improve the residuals?
+```{r}
+Pooled.dat$Quantile7Interaction.resid <- Quantile7Interaction.lm$residuals
+if(!file.exists("Moran7InteractionI.dat")) {
+  Moran7InteractionI <-Moran.I(Pooled.dat$Quantile7Interaction.resid, Distance.mat)
+  save(Moran7InteractionI, file="Moran7InteractionI.dat")
+} else {
+  load(file="Moran7InteractionI.dat")
+}
+print(Moran7InteractionI)
+```
+
+```{r}
+#reclaim some memory
+Distance.mat <- NULL
+```
+
+
+### Surface Plots
+
+```{r,fig.width=7,fig.height=8}
+par(mfrow=c(3,1))
+image(Quantile7.lm, Northing ~ Easting)
+contour(Quantile7.lm, Northing ~ Easting, image = TRUE)
+persp(Quantile7.lm, Northing ~ Easting, zlab = "Quantile, Poly 7")
+```
+
+```{r,fig.width=7,fig.height=8}
+par(mfrow=c(3,1))
+image(Quantile7Interaction.lm, Northing ~ Easting)
+contour(Quantile7Interaction.lm, Northing ~ Easting, image = TRUE)
+persp(Quantile7Interaction.lm, Northing ~ Easting, zlab = "Quantile, Poly 7 Interaction")
+```
+
+
+
+### Residual Plots
+
+```{r}
+if(!file.exists("TrendsLISA.Rda")) {
+  Quantile7.resid.lisa <- lisa(Pooled.dat$Easting, Pooled.dat$Northing, Pooled.dat$Quantile7.resid, 
+                         neigh=30, resamp=10, quiet=TRUE)
+  Quantile7Interaction.resid.lisa <- lisa(Pooled.dat$Easting, Pooled.dat$Northing, Pooled.dat$Quantile7Interaction.resid, 
+                         neigh=30, resamp=10, quiet=TRUE)
+  save(fit.dat, Quantile7.resid.lisa, Quantile7Interaction.resid.lisa, file="TrendsLISA.Rda")
+} else {
+  load(file="TrendsLISA.Rda")
+}
+```
+
+```{r,Quantile7,fig.width=8,fig.height=4}
+plot.lisa(Quantile7.resid.lisa, negh.mean=FALSE)
+```
+
+```{r,Quantile7Interaction,fig.width=8,fig.height=4}
+plot.lisa(Quantile7Interaction.resid.lisa, negh.mean=FALSE)
+```
+

@@ -1,0 +1,45 @@
+---
+title: "Correlograms"
+author: "Peter Claussen"
+date: "9/5/2017"
+output: html_document
+---
+
+We started the discussion by using autoorrelation as a measure of independence. Let's revisit that.
+
+For univariate data, we typically assume the model
+$$
+y_i = \mu + e_i
+$$
+where $\mu$ is some constant and $e_i$ is a white noise process.
+
+
+
+# Example (Simulated) Data
+
+We'll keep using the same simulated data as before.
+
+
+```{r}
+set.seed(1000)
+alpha <- 0.8
+beta <- 0.8
+white.noise <- rnorm(200)
+random.walk <- rep(0,200)
+autoregressive <- rep(0,200)
+moving.average <- rep(0,200)
+moving.average[1] <- white.noise[1]
+for(i in 2:200) {
+  random.walk[i] <- random.walk[i-1]+white.noise[i]
+  autoregressive[i] <- alpha*autoregressive[i-1]+white.noise[i-1]
+  moving.average[i] <- beta*white.noise[i-1]+white.noise[i]
+}
+x <- 1:200
+coefs.walk <- coef(lm(random.walk ~ x + I(x^2) + I(x^3) + I(x^4) + I(x^5)))
+coefs.walk
+trend.error <- coefs.walk[1] + coefs.walk[2]*x + coefs.walk[3]*I(x^2)+ coefs.walk[4]*I(x^3) + coefs.walk[5]*I(x^4) + coefs.walk[6]*I(x^5) + white.noise
+```
+
+
+
+

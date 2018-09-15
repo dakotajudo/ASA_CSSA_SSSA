@@ -1,0 +1,285 @@
+---
+title: "Detecting Strips"
+author: "Peter Claussen"
+date: "9/5/2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Libraries
+
+```{r}
+library(ncf)
+library(ape)
+```
+
+# Data
+
+```{r}
+load(file="sample.dat.Rda")
+```
+
+Here we simulate a treatment that increases yield applied to two strips in the field, and we will use measure of spatial correlation to detect the effects of this treatment.
+
+Again, we start with sample data,
+
+```{r,fig.width=4,fig.height=6}
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+ggplot(sample.dat, aes(LonM, LatM)) + 
+  geom_point(aes(colour = Yield),size=3) + 
+  scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+Create two strips with increased yield.
+
+```{r}
+levels(sample.dat$PassNum)
+sample.dat$Treated <- sample.dat$PassNum %in% c(8,17)
+```
+
+```{r,fig.width=4,fig.height=6}
+ggplot(sample.dat, aes(LonM, LatM)) + 
+  geom_point(aes(colour = Treated),size=3) + 
+  scale_colour_manual(values=cbPalette) +
+  labs(colour = "Treated", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+```{r}
+sample.dat$YldPlus20 <- sample.dat$Yield
+sample.dat$YldPlus20[sample.dat$PassNum==8] <- 1.2*sample.dat$YldPlus20[sample.dat$PassNum==8]
+sample.dat$YldPlus20[sample.dat$PassNum==17] <- 0.8*sample.dat$YldPlus20[sample.dat$PassNum==17]
+plot(sample.dat$Yield,sample.dat$YldPlus20)
+```
+
+
+```{r,fig.width=4,fig.height=6}
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = YldPlus20),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Treated (20%) Yield Monitor Data")
+```
+
+Create distance matrix
+
+```{r}
+sample.dists <- as.matrix(dist(cbind(sample.dat$LonM, sample.dat$LatM)))
+sample.dists.inv <- 1/sample.dists
+diag(sample.dists.inv) <- 0
+```
+
+```{r}
+Moran.I(sample.dat$Yield, sample.dists.inv)
+Moran.I(sample.dat$YldPlus20, sample.dists.inv)
+```
+
+
+```{r}
+Yield.clg <- correlog(sample.dat$LonM, sample.dat$LatM, sample.dat$Yield, 
+                          increment=5, resamp=500, quiet=TRUE)
+plot(Yield.clg)
+Yield.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$Yield, neigh=10, resamp=500, quiet=TRUE)
+#Yield.lisa
+```
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(Yield.lisa, negh.mean=FALSE)
+```
+
+```{r}
+YldPlus20.clg <- correlog(sample.dat$LonM, sample.dat$LatM, sample.dat$YldPlus20, increment=5, resamp=500, quiet=TRUE)
+plot(YldPlus20.clg)
+YldPlus20.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YldPlus20, neigh=10, resamp=500, quiet=TRUE)
+```
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(YldPlus20.lisa, negh.mean=FALSE)
+```
+
+Take out the trend, and compute LISA for the residuals for both original and "treated" fields.
+
+```{r}
+YieldTrend.lm <- lm(Yield ~ poly(LonM, LatM, degree=11), data=sample.dat)
+sample.dat$YieldTrend.resid <- YieldTrend.lm$residuals
+Moran.I(sample.dat$YieldTrend.resid, sample.dists.inv)
+
+YldPlus20Trend.lm <- lm(YldPlus20 ~ poly(LonM, LatM, degree=11), data=sample.dat)
+sample.dat$YldPlus20Trend.resid <- YldPlus20Trend.lm$residuals
+
+Moran.I(sample.dat$YldPlus20Trend.resid, sample.dists.inv)
+```
+
+We'll try different neighborhood distances for the LISA plots.
+
+# Neighborhood = 40 
+
+```{r}
+
+YldPlus20Trend.resid.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YldPlus20Trend.resid,
+                              neigh=40, resamp=500, quiet=TRUE)
+```
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(YldPlus20Trend.resid.lisa, negh.mean=FALSE)
+```
+
+
+# Neighborhood = 20 
+
+```{r}
+YldPlus20Trend.resid.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YldPlus20Trend.resid,
+                              neigh=20, resamp=500, quiet=TRUE)
+```
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(YldPlus20Trend.resid.lisa, negh.mean=FALSE)
+```
+
+# Neighborhood = 10 
+
+```{r}
+YldPlus20Trend.resid.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YldPlus20Trend.resid,
+                              neigh=10, resamp=500, quiet=TRUE)
+```
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(YldPlus20Trend.resid.lisa, negh.mean=TRUE)
+```
+
+
+# Neighborhood = 5 
+
+```{r}
+YldPlus20Trend.resid.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YldPlus20Trend.resid,
+                              neigh=5, resamp=500, quiet=TRUE)
+```
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(YldPlus20Trend.resid.lisa, negh.mean=FALSE)
+```
+
+
+# Neighborhood = 2.5
+
+```{r}
+YldPlus20Trend.resid.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YldPlus20Trend.resid,
+                              neigh=2.5, resamp=500, quiet=TRUE)
+```
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(YldPlus20Trend.resid.lisa, negh.mean=FALSE)
+```
+
+
+By inspection, a neighborhood of 2.5 meters, less than a full swath width, gives the the most points with signficant local correlation, in the "treated" strips. Compare this with the original data:
+
+```{r}
+YieldTrend.resid.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YieldTrend.resid, 
+                          neigh=2.5, resamp=500, quiet=TRUE)
+```
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(YieldTrend.resid.lisa, negh.mean=FALSE)
+```
+
+
+# Effect Size
+
+We started with a very large treatment effect. We'll try smaller effects, from 5%-15% observed yield.
+
+## 5% Increase
+```{r}
+sample.dat$YldPlus05 <- sample.dat$Yield
+#sample.dat$YldPlus05[sample.dat$Treated] <- 1.05*sample.dat$Yield[sample.dat$Treated]
+sample.dat$YldPlus05[sample.dat$PassNum==8] <- 1.05*sample.dat$YldPlus05[sample.dat$PassNum==8]
+sample.dat$YldPlus05[sample.dat$PassNum==17] <- 0.95*sample.dat$YldPlus05[sample.dat$PassNum==17]
+```
+
+```{r,fig.width=4,fig.height=6}
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = YldPlus05),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Treated (5%) Yield Monitor Data")
+```
+
+## 10% Increase
+
+```{r}
+sample.dat$YldPlus10 <- sample.dat$Yield
+#sample.dat$YldPlus10[sample.dat$Treated] <- 1.10*sample.dat$YldPlus10[sample.dat$Treated]
+sample.dat$YldPlus10[sample.dat$PassNum==8] <- 1.10*sample.dat$YldPlus10[sample.dat$PassNum==8]
+sample.dat$YldPlus10[sample.dat$PassNum==17] <- 0.9*sample.dat$YldPlus10[sample.dat$PassNum==17]
+```
+
+```{r,fig.width=4,fig.height=6}
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = YldPlus10),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Treated (10%) Yield Monitor Data")
+```
+
+## 15% Increase
+
+```{r}
+sample.dat$YldPlus15 <- sample.dat$Yield
+#sample.dat$YldPlus15[sample.dat$Treated] <- 1.15*sample.dat$YldPlus15[sample.dat$Treated]
+sample.dat$YldPlus15[sample.dat$PassNum==8] <- 1.15*sample.dat$YldPlus15[sample.dat$PassNum==8]
+sample.dat$YldPlus15[sample.dat$PassNum==17] <- 0.85*sample.dat$YldPlus15[sample.dat$PassNum==17]
+```
+
+```{r,fig.width=4,fig.height=6}
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = YldPlus15),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Treated (15%) Yield Monitor Data")
+```
+
+## Detrend the different cases.
+
+```{r}
+YldPlus05Trend.lm <- lm(YldPlus05 ~ poly(LonM, LatM, degree=7), data=sample.dat)
+sample.dat$YldPlus05Trend.resid <- YldPlus05Trend.lm$residuals
+YldPlus10Trend.lm <- lm(YldPlus10 ~ poly(LonM, LatM, degree=7), data=sample.dat)
+sample.dat$YldPlus10Trend.resid <- YldPlus10Trend.lm$residuals
+YldPlus15Trend.lm <- lm(YldPlus15 ~ poly(LonM, LatM, degree=7), data=sample.dat)
+sample.dat$YldPlus15Trend.resid <- YldPlus15Trend.lm$residuals
+```
+
+## Residual LISA, 15% increase
+
+```{r}
+YldPlus15Trend.resid.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YldPlus15Trend.resid,
+                              neigh=2.5, resamp=500, quiet=TRUE)
+```
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(YldPlus15Trend.resid.lisa, negh.mean=FALSE)
+```
+
+
+## Residual LISA, 10% increase
+
+```{r}
+YldPlus10Trend.resid.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YldPlus10Trend.resid,
+                              neigh=2.5, resamp=500, quiet=TRUE)
+```
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(YldPlus10Trend.resid.lisa, negh.mean=FALSE)
+```
+
+
+## Residual LISA, 5% increase
+
+```{r}
+YldPlus05Trend.resid.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YldPlus05Trend.resid,
+                              neigh=2.5, resamp=500, quiet=TRUE)
+```
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(YldPlus05Trend.resid.lisa, negh.mean=FALSE)
+```
+
+We might plausibly detect a 15% increase, but at 10% increase, spatial correlations become lost in the background signal. However, we might have more luck after applying these methods to smoothed data.

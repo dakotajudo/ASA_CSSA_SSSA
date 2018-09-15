@@ -1,0 +1,9 @@
+---
+title: "Workshop notes"
+author: "Peter Claussen"
+date: "10/22/2017"
+output: html_document
+---
+
+Rajan Ghimire
+rghimire@nmsu.edu

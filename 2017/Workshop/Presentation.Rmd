@@ -1,0 +1,49 @@
+---
+title: "Presentation Graphs"
+author: "Peter Claussen"
+date: "9/5/2017"
+output:
+  html_document: default
+---
+
+
+```{r}
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+```
+
+# Data
+```{r}
+load(file="sample.dat.Rda")
+```
+
+```{r}
+sample.dat$row <- ceiling((sample.dat$LatM+0.1)/20)
+sample.dat$col <- ceiling((sample.dat$LonM+0.1)/20)
+sample.dat$cell <- as.factor(sample.dat$row):as.factor(sample.dat$col)
+sample.dat$Event = (sample.dat$row ==2 & sample.dat$col %in% c(2,3))
+```
+
+
+```{r}
+Event.dat <- sample.dat[sample.dat$Event,]
+head(Event.dat)
+```
+
+
+```{r}
+ggplot(Event.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield),size=4) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Grid Neighbors, Harvester Event")
+```
+
+We can examine the distance traveled to help determine what happened during harvest.
+
+```{r}
+ggplot(Event.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Distance),size=4) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Distance", x="Longitude (m)", y="Latitude (m)", title = "Grid Neighbors, Harvester Event")
+```
+

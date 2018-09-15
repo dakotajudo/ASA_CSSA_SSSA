@@ -1,0 +1,201 @@
+---
+title: "Cleaning"
+author: "Peter Claussen"
+date: "9/5/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+This is included to document how I've prepared a sample field.
+
+```{r}
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+```
+
+We start with a full field. The data were downloaded from http://myjohndeere.deere.com, imported into SMS Basic, http://www.agleader.com/products/sms-software/basic/, then exported to CSV. I've manually edited the header text to simplify column names.
+
+```{r}
+sample.dat <- read.csv("Stevens East-Corn.csv",header=TRUE,comment.char = "#")
+head(sample.dat)
+
+sample.dat$LonM <- sample.dat$Longitude - min(sample.dat$Longitude)
+sample.dat$LatM <- sample.dat$Latitude - min(sample.dat$Latitude)
+latMid <- (min(sample.dat$Latitude) + max(sample.dat$Latitude))/2
+m_per_deg_lat = 111132.954 - 559.822 * cos( 2.0 * latMid ) + 1.175 * cos( 4.0 * latMid)
+m_per_deg_lon = (3.14159265359/180 ) * 6367449 * cos ( latMid )
+sample.dat$LonM <- sample.dat$LonM*m_per_deg_lon
+sample.dat$LatM <- sample.dat$LatM*m_per_deg_lat
+```
+
+```{r,fig.width=4,fig.height=5}
+ggplot(sample.dat, aes(LonM,LatM)) + 
+geom_point(aes(colour = Yield),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+We have a large number of duplicated values at slightly different points - the harvester has multiple channels, but each are recording the same yield values. We remove duplicated yields by aggregating over the same sampling interval. I couldn't find a specific date-time field in the SMS import options, so I save the timestamp as `Desc`
+
+```{r}
+head(sample.dat)
+aggregate.dat <- aggregate(sample.dat[,-c(3:5,13)], by=list(sample.dat$Desc), FUN=mean, na.rm=TRUE)
+head(aggregate.dat)
+aggregate.dat$Product <- aggregate(sample.dat[,"Product"], by=list(sample.dat$Desc), FUN=function(x){x[1]})[,2]
+```
+
+Convert the time stamp to seconds.
+```{r}
+aggregate.dat$DateTime <- as.POSIXct(as.character(aggregate.dat[,1]), format = "%m/%d/%Y %I:%M:%S %p",tz = "")
+aggregate.dat$Seconds <- as.numeric(aggregate.dat$DateTime - aggregate.dat$DateTime[1])
+
+sample.dat <- aggregate.dat
+```
+
+
+```{r,fig.width=4,fig.height=5}
+ggplot(sample.dat, aes(LonM,LatM)) + 
+geom_point(aes(colour = Yield),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+Perform a simple check for outliers and remove excessively large yield estimates.
+
+```{r}
+library(MASS)
+truehist(sample.dat$Yield)
+```
+
+```{r}
+max.yield <- 300
+sum(sample.dat$Yield>max.yield)
+```
+
+Are the outliers randomly distributed?
+
+```{r,fig.width=4,fig.height=5}
+sample.dat$Outlier <- sample.dat$Yield>max.yield
+ggplot(sample.dat, aes(LonM,LatM)) + 
+geom_point(aes(colour = Outlier),size=1) + 
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+```{r,fig.width=4,fig.height=5}
+ggplot(sample.dat[sample.dat$Outlier,], aes(LonM,LatM)) + 
+geom_point(aes(colour = Outlier),size=1) + 
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+They're mostly scattered, so we can go ahead and drop them
+
+```{r,fig.width=4,fig.height=5}
+sample.dat <- subset(sample.dat,!sample.dat$Outlier)
+ggplot(sample.dat, aes(LonM,LatM)) + 
+geom_point(aes(colour = Yield),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+```{r}
+truehist(sample.dat$Yield)
+```
+
+Now trim 100 meters off top and bottom; this will remove endrows and give us a smaller set to work with
+
+```{r}
+sample.dat <- subset(sample.dat,sample.dat$LatM<=300)
+sample.dat <- subset(sample.dat,sample.dat$LatM>=100)
+```
+
+```{r,fig.width=4,fig.height=5}
+ggplot(sample.dat, aes(LonM,LatM)) + 
+geom_point(aes(colour = Yield),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+Count up passes.
+
+```{r}
+i <- 2
+rows <- dim(sample.dat)[1]
+PassNum <- 1
+sample.dat$PassNum<- 0
+while(i<=rows) {
+  currentTime <- sample.dat$Seconds[i]
+  previousTime <- sample.dat$Seconds[i-1]
+  if((currentTime-previousTime)>5) {
+    PassNum <- PassNum+1
+  }
+  sample.dat$PassNum[i] <- PassNum
+  i <- i+1
+}
+```
+
+
+```{r,fig.width=4,fig.height=5}
+ggplot(sample.dat, aes(LonM,LatM)) + 
+geom_point(aes(colour = PassNum),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+Take out the first 3 and last 3 passes; this will remove border rows. It's not exactly balanced, but it's close enough for our purposes.
+
+```{r}
+sample.dat <- subset(sample.dat,sample.dat$PassNum<(max(sample.dat$PassNum)-2))
+sample.dat <- subset(sample.dat,sample.dat$PassNum>3)
+sample.dat$Pass <- as.factor(sample.dat$PassNum)
+```
+
+```{r,fig.width=4,fig.height=5}
+ggplot(sample.dat, aes(LonM,LatM)) + 
+geom_point(aes(colour = Yield),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+```{r}
+sample.dat$LonM <- sample.dat$LonM - min(sample.dat$LonM)
+sample.dat$LatM <- sample.dat$LatM - min(sample.dat$LatM)
+```
+
+```{r,fig.width=4,fig.height=5}
+ggplot(sample.dat, aes(LonM,LatM)) + 
+geom_point(aes(colour = Pass),size=2) + 
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+
+```{r}
+truehist(sample.dat$Yield)
+```
+
+There might be four points that we could consider outliers; let's remove those as well.
+
+```{r}
+sample.dat <- subset(sample.dat,sample.dat$Yield<=240)
+sample.dat <- subset(sample.dat,sample.dat$Yield>=120)
+```
+
+```{r}
+truehist(sample.dat$Yield)
+```
+
+```{r,fig.width=4,fig.height=5}
+ggplot(sample.dat, aes(LonM,LatM)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+Save the data.
+
+```{r}
+head(sample.dat)
+save(sample.dat,file="sample.dat.Rda")
+write.csv(sample.dat,file="sample.csv")
+```
+

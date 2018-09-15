@@ -1,0 +1,557 @@
+---
+title: "Autocorrelation"
+author: "Peter Claussen"
+date: "9/5/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# Libraries
+
+```{r}
+library(MASS)
+library(moments)
+```
+
+# Data
+
+```{r}
+load(file="sample.dat.Rda")
+```
+
+Suppose we have a series of measurements, $y_1,...,y_n$ and we wish to know if the measurements are independent. A simple test is the sample lag-1 autocorrelation coefficient $r_1$, given by (http://www.itl.nist.gov/div898/strd/univ/certmethdef/michelso.html)
+
+$$
+r_1 = \frac{\Sigma _{i=2} ^n (y_{i}-\bar{y})(y_{i-1}-\bar{y})}{\Sigma _{i=1} ^n(y_i - \bar{y})^2}
+$$
+
+and 
+
+$$ {\bar{y}} = (\Sigma y_i)/n $$ 
+
+is the sample mean.
+
+(For reference, we also write sample variance as 
+$$\frac{{\Sigma _{i=1} ^n (y_i - \bar{y})^2}}{(n-1)}$$
+and two sample covariance as 
+$$\frac{{\Sigma _{i=1} ^ {n} (y_{i}-\bar{y})(x_i-\bar{x})}}{ \sqrt{\Sigma _{i=1} ^n (x_i - \bar{x})^2}\sqrt{\Sigma _{i=1} ^n (y_i - \bar{y})^2}}$$
+)
+
+# Example (Simulated) Data
+
+Before we start computing autocorrelation coefficients, we first consider the types of processes that create sequences of observations. 
+
+## White Noise
+
+A white noise process is the type of process commonly associated with experimental error. This is random process that produces values that are identically distributed and independent. We simulate a series of 200 observations, from a normal distribution with mean 0 and standard deviation 1 by
+
+```{r,fig.width=8,fig.height=4}
+#set.seed(1000)
+white.noise <- rnorm(200)
+plot(white.noise);lines(white.noise)
+```
+
+Effectively, this is statistical model with no effects, only the error term,
+
+$$
+Y_i = e_i
+$$
+
+
+We can compute $r_1$ by
+
+```{r}
+print(mean.white.noise <- mean(white.noise))
+print(ss.white.noise <- sum((white.noise-mean.white.noise)^2))
+print(n <- length(white.noise))
+ss.white.noise/(n-1)
+print(lag.white.noise <- sum((white.noise[2:n]-mean.white.noise) * (white.noise[1:(n-1)]-mean.white.noise)))
+print(r.white.noise <- lag.white.noise/ss.white.noise)
+```
+
+We'll compute this value again, so we can write a simple function.
+```{r}
+auto.correlation <- function(univariate) {
+  x.bar <- mean(univariate)
+  ss <- sum((univariate-x.bar)^2)
+  n <- length(univariate)
+  lag.ss <- sum((univariate[(2):n]-x.bar)*(univariate[1:(n-1)]-x.bar))
+  return(lag.ss/ss)
+}
+auto.correlation(white.noise)
+```
+$r_1$ for these data is very close to 0, which is what we expect for uncorrelated values.
+
+## Random Walk
+
+Suppose, in a given sequence of values, the next value in the sequence is created by adding a random value to the current value in the sequence. This type of sequence is commonly called a random (or drunkards) walk. We can write this mathematically as
+
+$$
+Y_i = Y_{i-1} + e_i
+$$
+In order to understand the relationship among the different types of autocorrelated models, we will generate these models using the same `white-noise` error, $e_1 , ... e_n$. We generate a random walk by
+
+```{r,fig.width=8,fig.height=4}
+white.noise <- rnorm(200)
+random.walk <- rep(0,200)
+for(i in 2:200) {
+  random.walk[i] <- random.walk[i-1]+white.noise[i]
+}
+plot(random.walk);lines(random.walk)
+```
+
+
+```{r}
+auto.correlation(random.walk)
+```
+
+Since values are created via summation, this sequence has a $r_1$ near 1. Note that a perfectly correlated sequence would have $r_1 = 1$; it would also not be calculable, since ${\Sigma _{i=1} ^n(y_i - \bar{y})^2}=0$
+
+```{r}
+auto.correlation(rep(1,100))
+```
+
+We can also note that a sequence of alternative values would produce an $r_1$ near $-1$.
+```{r}
+auto.correlation(rep(c(1,0),100))
+```
+
+## Autoregressive
+
+Now, suppose we have a random walk, but the next value is proportional to the current value and not simply additive. This is known as an autoregression model. We write this as
+
+$$
+Y_i = \alpha Y_{i-1} + e_i
+$$
+
+When $\alpha = 1$, then we have a random walk, and when $\alpha = 0$, we have a white-noise process. 
+
+We'll create a set of processes using different $\alpha$ to help visualize how this parameter affects the process.
+
+```{r}
+autoregressive.5 <- rep(0,200)
+autoregressive.9 <- rep(0,200)
+autoregressive.99 <- rep(0,200)
+autoregressive.101 <- rep(0,200)
+for(i in 2:200) {
+  autoregressive.5[i] <- 0.5*autoregressive.5[i-1]+white.noise[i]
+  autoregressive.9[i] <- 0.9*autoregressive.9[i-1]+white.noise[i]
+  autoregressive.99[i] <- 0.99*autoregressive.99[i-1]+white.noise[i]
+  autoregressive.101[i] <- 1.02*autoregressive.101[i-1]+white.noise[i]
+}
+```
+
+```{r,fig.width=8,fig.height=4}
+plot(autoregressive.5);lines(autoregressive.5)
+```
+
+```{r,fig.width=8,fig.height=4}
+plot(autoregressive.9);lines(autoregressive.9)
+```
+
+```{r,fig.width=8,fig.height=4}
+plot(autoregressive.99);lines(autoregressive.99)
+```
+
+```{r,fig.width=8,fig.height=4}
+plot(autoregressive.101);lines(autoregressive.101)
+```
+
+As we might expect, $r_1$ increases with $\alpha$
+
+```{r}
+auto.correlation(autoregressive.5)
+auto.correlation(autoregressive.9)
+auto.correlation(autoregressive.99)
+auto.correlation(autoregressive.101)
+```
+
+For further analysis, we use a modestly autoregressive sequence with $\alpha = 0.8$
+
+```{r,fig.width=8,fig.height=4}
+autoregressive <- rep(0,200)
+alpha <- 0.8
+for(i in 2:200) {
+  autoregressive[i] <- alpha*autoregressive[i-1]+white.noise[i]
+}
+plot(autoregressive);lines(autoregressive)
+```
+
+
+## Moving Average
+
+Now suppose we have a sequence that is not dependent on the preceding value in the sequence, but only on the preceding random variable generated in the sequence. Mathematicall, we write
+
+$$
+Y_i = \beta e_{i-1} + e_i
+$$
+
+We generate this process by
+
+
+```{r,fig.width=8,fig.height=4}
+moving.average <- rep(0,200)
+moving.average[1] <- white.noise[1]
+beta <- 0.8
+for(i in 2:200) {
+  moving.average[i] <- beta*white.noise[i-1]+white.noise[i]
+}
+plot(moving.average);lines(moving.average)
+```
+
+Again, we can compare different $\beta$ values.
+
+```{r}
+moving.average.5 <- rep(0,200)
+moving.average.9 <- rep(0,200)
+moving.average.99 <- rep(0,200)
+moving.average.101 <- rep(0,200)
+for(i in 2:200) {
+  moving.average.5[i] <- 0.5*white.noise[i-1]+white.noise[i]
+  moving.average.9[i] <- 0.9*white.noise[i-1]+white.noise[i]
+  moving.average.99[i] <- 0.99*white.noise[i-1]+white.noise[i]
+  moving.average.101[i] <- 1.02*white.noise[i-1]+white.noise[i]
+}
+```
+
+```{r,fig.width=8,fig.height=4}
+plot(moving.average.5);lines(moving.average.5)
+```
+```{r,fig.width=8,fig.height=4}
+plot(moving.average.9);lines(moving.average.9)
+```
+```{r,fig.width=8,fig.height=4}
+plot(moving.average.99);lines(moving.average.99)
+```
+```{r,fig.width=8,fig.height=4}
+plot(moving.average.101);lines(moving.average.101)
+```
+
+Unlike $\alpha$, $\beta$ is not captured by $r_1$.
+```{r}
+auto.correlation(moving.average.5)
+auto.correlation(moving.average.9)
+auto.correlation(moving.average.99)
+auto.correlation(moving.average.101)
+```
+
+
+## Trend plus Error
+
+Previous models have been correlated via a random process, in most cases with preceding values. We should also consider a fixed effects model, where values are determine by an independent variable. In this case, we let the independent variable be represented by the position in the sequence, so $x_i = i = 1, ..., n$. We could simulate this as a simple linear model, $y_i = \beta _0 + \beta _1 x_i + e_i$, but, instead, we'll approximate the random walk with a $5^{th}$ degree polynomial:
+
+```{r,fig.width=8,fig.height=4}
+x <- 1:200
+coefs.walk <- coef(lm(random.walk ~ x + I(x^2) + I(x^3) + I(x^4) + I(x^5)))
+coefs.walk
+trend.error <- coefs.walk[1] + coefs.walk[2]*x + coefs.walk[3]*I(x^2)+ coefs.walk[4]*I(x^3) + coefs.walk[5]*I(x^4) + coefs.walk[6]*I(x^5) + white.noise
+plot(trend.error);lines(trend.error)
+```
+
+
+```{r}
+auto.correlation(trend.error)
+```
+
+We'll reuse these same examples, so save for later,
+
+```{r}
+autocorrelation.dat <- data.frame(
+  white.noise = white.noise,
+  random.walk = random.walk,
+  autoregressive=autoregressive,
+  moving.average=moving.average,
+  trend.error=trend.error
+)
+autocorrelation.dat$index <- 1:dim(autocorrelation.dat)[1]
+save(autocorrelation.dat,file="autocorrelation.Rda")
+write.csv(autocorrelation.dat, file = "autocorrelation.csv")
+write.table(autocorrelation.dat, file = "autocorrelation.tab")
+```
+
+# Lag
+
+Before we continue, we should consider lag. So far, we've used lag-1 only models - our sequences have depending only on a single preceding value. We can generalize our models to include longer-range random correlations by
+
+Name                            | General formula
+--------------------------------|--------------------
+order-$k$ autocorrelation $r_k$ | $$ r_n = \frac{\Sigma _{i=1} ^{n-k} (y_{i}-\bar{y})(y_{i + k}-\bar{y})} {\Sigma _{i=1} ^ {n}(y_i - \bar{y})^2} $$
+order-$k$ autoregression        |  $$Y_i = \alpha_1 Y_{i-1} + ... + \alpha_k Y_{i-k} + e_i$$
+order-$k$ moving average        |  $$Y_i = \beta_1 e_{i-1} + ... + \beta_q e_{i-k}$$
+
+# Fitting Autocorrelated Data
+
+While there are many functions for fitting the various models, the most general method is to fit to ARMA - AutoRegressive Moving Average. This is a model of the form
+
+$$
+Y_i = \alpha_1 Y_{i-1} + ... + \alpha_p Y_{i-p} + e_i + \beta_1 e_{i-1} + ... + \beta_q e_{i-q}
+$$
+
+for AR models of order $p$ and MA models of order $q$. We use the R function `arima` and specify order of the models using the parameter list of the form `(p,d,q)`, where `d` is a differencing parameter we can ignore for now.
+
+So, consider fitting to our simulated sequences:
+
+```{r}
+arima(autoregressive,c(1,0,0))
+arima(autoregressive,c(0,0,1))
+arima(moving.average,c(1,0,0))
+arima(moving.average,c(0,0,1))
+```
+
+This seems to recover our simulated parameters well; we started with 
+
+$$ \alpha = 0.8 , \beta=0.8, \sigma^2 = 1 $$ 
+
+and estimated 
+
+$$ \hat{\alpha} = 0.7376, \hat{\beta}=0.0.7827 , \hat{\sigma}_{AR} ^2 = 0.8958,  \hat{\sigma}_{MA} ^2 = 0.9069 $$
+
+
+If we fit a first order AR MA model, we find this also finds reasonable parameters
+```{r}
+arima(autoregressive,c(1,0,1))
+arima(moving.average,c(1,0,1))
+```
+
+What we should also note from this is that the AIC values suggest that in each case, the smaller model (AR or MA only) is a better fit than the combined ARMA model for our simulated data.
+
+We also consider the other artificial series.
+
+```{r}
+arima(white.noise,c(1,0,1))
+```
+The white noise data set finds $\alpha$ and  $\beta$ at the extremes.
+
+```{r}
+arima(random.walk,c(1,0,1))
+```
+
+Remember, a random walk is equivalent to an AR model with $\alpha = 1$.
+
+Most interestling, we have an error fitting the trend with error modeling. We discuss this error more when we consider stationarity.
+```{r}
+#Error in arima(trend.error, c(1, 0, 1)) : non-stationary AR part from CSS
+#arima(trend.error,c(1,0,1))
+```
+
+# Autocorrelated Series from Yield Monitor Data
+
+Before we consider the strictly spatial components of yield monitor data, we should first consider the temporal component. Remember, as the combined is traveling in a straight line in space, it is also moving in time, and there is a temporal mixing process involved, as grain moves through the thresher. How much of yield monitor data can be described using only autocorrelation in a single direction?
+
+We'll use just single pass from a sample data set. We'll start with a short section.
+
+## Portion of a single pass
+
+```{r}
+sample.pass12.dat <- sample.dat[sample.dat$PassNum==12,]
+sample.pass13.dat <- sample.dat[sample.dat$PassNum==13,]
+sample.pass14.dat <- sample.dat[sample.dat$PassNum==14,]
+sample.pass15.dat <- sample.dat[sample.dat$PassNum==15,]
+head(sample.pass14.dat)
+```
+
+## ARMA model fit
+
+### Distance
+
+```{r,fig.width=8,fig.height=4}
+plot(Distance ~ Seconds, data=sample.pass12.dat)
+```
+
+```{r,fig.width=8,fig.height=4}
+plot(sample.pass15.dat$Distance)
+```
+
+```{r,fig.width=8,fig.height=4}
+plot(Distance ~ Seconds, data=sample.pass13.dat)
+```
+```{r,fig.width=8,fig.height=4}
+plot(Distance ~ Seconds, data=sample.pass14.dat)
+```
+
+```{r}
+arima(sample.pass12.dat$Distance, order = c(1,0,0))
+arima(sample.pass12.dat$Distance, order = c(0,0,1))
+arima(sample.pass12.dat$Distance, order = c(1,0,1))
+arima(sample.pass12.dat$Distance, order = c(2,0,2))
+arima(sample.pass12.dat$Distance, order = c(3,0,3))
+```
+
+```{r}
+arima(sample.pass14.dat$Distance, order = c(1,0,0))
+arima(sample.pass14.dat$Distance, order = c(0,0,1))
+arima(sample.pass14.dat$Distance, order = c(1,0,1))
+arima(sample.pass14.dat$Distance, order = c(2,0,2))
+arima(sample.pass14.dat$Distance, order = c(3,0,3))
+```
+
+```{r}
+arima(sample.pass15.dat$Distance, order = c(1,0,0))
+arima(sample.pass15.dat$Distance, order = c(0,0,1))
+arima(sample.pass15.dat$Distance, order = c(1,0,1))
+arima(sample.pass15.dat$Distance, order = c(2,0,2))
+arima(sample.pass15.dat$Distance, order = c(3,0,3))
+```
+
+Distance seems to be simply represented by a first order moving average process, AIC for c(0,0,1) smallest at -142.51.
+
+### Moisture
+
+```{r,fig.width=8,fig.height=4}
+plot(sample.pass14.dat$Moisture)
+```
+
+```{r}
+arima(sample.pass14.dat$Moisture, order = c(1,0,0))
+arima(sample.pass14.dat$Moisture, order = c(0,0,1))
+arima(sample.pass14.dat$Moisture, order = c(1,0,1))
+arima(sample.pass14.dat$Moisture, order = c(2,0,2))
+arima(sample.pass14.dat$Moisture, order = c(3,0,3))
+```
+
+### Yield
+We have raw yield measurements, and yield adjusted for moisture.
+ 
+```{r,fig.width=8,fig.height=4}
+plot(sample.pass12.dat$Yield)
+```
+
+```{r,fig.width=8,fig.height=4}
+plot(sample.pass13.dat$Yield)
+```
+
+```{r,fig.width=8,fig.height=4}
+plot(sample.pass14.dat$Yield)
+```
+
+```{r,fig.width=8,fig.height=4}
+plot(sample.pass14.dat$YldMassWet)
+```
+
+```{r,fig.width=8,fig.height=4}
+plot(Yield ~ YldMassWet,data=sample.pass14.dat)
+```
+
+### YldVolDry vs YldWet
+
+```{r}
+arima(sample.pass14.dat$Yield, order = c(1,0,0))
+arima(sample.pass14.dat$Yield, order = c(0,0,1))
+arima(sample.pass14.dat$Yield, order = c(1,0,1))
+```
+
+```{r}
+arima(sample.pass14.dat$YldMassWet, order = c(1,0,0))
+arima(sample.pass14.dat$YldMassWet, order = c(0,0,1))
+arima(sample.pass14.dat$YldMassWet, order = c(1,0,1))
+```
+
+```{r}
+arima(sample.pass14.dat$Yield, order = c(2,0,2))
+arima(sample.pass14.dat$YldMassWet, order = c(2,0,2))
+```
+
+```{r}
+arima(sample.pass14.dat$Yield, order = c(3,0,3))
+arima(sample.pass14.dat$YldMassWet, order = c(3,0,3))
+```
+
+```{r,fig.width=8,fig.height=4}
+plot(sample.pass14.dat$Heading)
+```
+
+```{r}
+arima(sample.pass14.dat$Heading, order = c(1,0,0))
+arima(sample.pass14.dat$Heading, order = c(0,0,1))
+arima(sample.pass14.dat$Heading, order = c(1,0,1))
+arima(sample.pass14.dat$Heading, order = c(2,0,2))
+arima(sample.pass14.dat$Heading, order = c(3,0,3))
+```
+
+### xreg 
+What is the effect of the parameter `xreg`?
+
+```{r}
+mean(sample.pass14.dat$Seconds[2:length(sample.pass14.dat$Seconds)]-sample.pass14.dat$Seconds[1:(length(sample.pass14.dat$Seconds)-1)])
+mean(sample.pass14.dat$Seconds[2:length(sample.pass13.dat$Seconds)]-sample.pass14.dat$Seconds[1:(length(sample.pass14.dat$Seconds)-1)])
+mean(sample.pass14.dat$Seconds[2:length(sample.pass14.dat$Seconds)]-sample.pass14.dat$Seconds[1:(length(sample.pass14.dat$Seconds)-1)])
+
+arima(sample.pass13.dat$Yield, order = c(1,0,1))
+arima(sample.pass13.dat$Yield, order = c(1,0,1),xreg=sample.pass13.dat$Seconds)
+arima(sample.pass14.dat$Yield, order = c(1,0,1))
+arima(sample.pass14.dat$Yield, order = c(1,0,1),xreg=sample.pass14.dat$Seconds)
+
+arima(sample.pass15.dat$Yield, order = c(1,0,1))
+arima(sample.pass15.dat$Yield, order = c(1,0,1),xreg=sample.pass15.dat$Seconds)
+```
+
+# Assumptions, Normal I.I.D.
+
+These types of autocorrelation will frequently cause data to fail the standard assumptions of the analysis of variance - that errors are normally, independently and identically distributed. We can test for assumptions of normality in R by
+
+### White Noise
+
+```{r}
+jarque.test(white.noise)
+anscombe.test(white.noise)
+agostino.test(white.noise)
+truehist(white.noise)
+```
+
+### Random Walk
+
+```{r}
+jarque.test(random.walk)
+anscombe.test(random.walk)
+agostino.test(random.walk)
+truehist(random.walk)
+```
+
+### Autoregressive
+
+```{r}
+jarque.test(autoregressive)
+anscombe.test(autoregressive)
+agostino.test(autoregressive)
+truehist(autoregressive)
+```
+
+### Moving Average
+
+```{r}
+jarque.test(moving.average)
+anscombe.test(moving.average)
+agostino.test(moving.average)
+truehist(moving.average)
+```
+
+
+### Yield
+
+```{r}
+jarque.test(sample.pass14.dat$Yield)
+anscombe.test(sample.pass14.dat$Yield)
+agostino.test(sample.pass14.dat$Yield)
+truehist(sample.pass14.dat$Yield)
+```
+
+### Moisture
+
+```{r}
+jarque.test(sample.pass14.dat$Moisture)
+anscombe.test(sample.pass14.dat$Moisture)
+agostino.test(sample.pass14.dat$Moisture)
+truehist(sample.pass14.dat$Moisture)
+```
+
+### Distance
+
+```{r}
+jarque.test(sample.pass14.dat$Distance)
+anscombe.test(sample.pass14.dat$Distance)
+agostino.test(sample.pass14.dat$Distance)
+truehist(sample.pass14.dat$Distance)
+```
+
+

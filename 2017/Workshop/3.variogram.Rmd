@@ -1,0 +1,320 @@
+---
+title: "Spatial Variogram"
+author: "Peter Claussen"
+date: "9/5/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# Libraries
+
+### gstat : Spatial and Spatio-Temporal Geostatistical Modelling, Prediction and Simulation
+
+```{r}
+library(gstat)
+```
+
+### geoR : Analysis of Geostatistical Data
+
+```{r}
+library(geoR)
+```
+
+Note : on my system (Mac OS) I've had problems with the geoR dependencies, specifically `tcltk`. You might need to install an XWindows system (XQuartz https://www.xquartz.org) or `tcltk` (http://cran.us.r-project.org/bin/macosx/tools/ ) directly. This is a Unix-based GUI that `geoR` uses for interactive analysis.
+
+If you're running a Windows version you should't have a problem running this package.
+
+### ggplot2 : A system for 'declaratively' creating graphics, based on "The Grammar of Graphics"
+
+```{r}
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+```
+
+# Data
+
+```{r}
+load(file="sample.dat.Rda")
+```
+
+To extend our concept of autocorrelation to two dimensions, we introduce a new notation,
+
+ Variable | Univariate Equivalent | Comments
+---------|-----------------------|----------------
+${\bf u}$ | $i$                   | set of spatial coordinates
+$z({\bf u})$ | $y_i$                | variable of interest, measured at a set of coordinates
+${\bf h}$  | $k$                 | lag vector representing a spatial distance
+$z({\bf u}+{\bf h})$  | $y_{i+k}$   | lagged variable
+$N({\bf h})$  | $n$                 | number of pairs $z_i , z_j$ seperated by lag $\bf{h}$
+
+
+We also update the formula for correlation, covariance and autoregression,
+
+Covariance
+$$
+C({\bf h}) = \frac{1}{N({\bf h})} \Sigma _{i=1} ^{N({\bf h})} z({\bf u}) z({\bf u}+{\bf h}) - m_0 m_i
+$$
+Correlation
+
+$$
+\rho ({\bf h}) = \frac{C({\bf h})}{\sqrt{ \sigma^2_0 \sigma^2 _{\bf h}}}
+$$
+
+Semivariance
+$$
+\gamma({\bf h}) = \frac{1}{N({\bf h})} \Sigma _{i=1} ^{N({\bf h})} [z({\bf u}) -z({\bf u}+{\bf h})]^2
+$$
+
+with
+$$
+m_0 = \frac{1}{N({\bf h})} \Sigma _{i=1} ^{N({\bf h})} z({\bf u})
+$$
+
+$$
+m_i = \frac{1}{N({\bf h})} \Sigma _{i=1} ^{N({\bf h})} z({\bf u} +{\bf h)}
+$$
+$$
+\sigma ^2 _0 = \frac{1}{N({\bf h})} \Sigma _{i=1} ^{N({\bf h})} [z({\bf u}) - m_0]^2
+$$
+$$
+\sigma ^2 _i = \frac{1}{N({\bf h})} \Sigma _{i=1} ^{N({\bf h})} [ z({\bf u}+{\bf h})) - m_i]^2
+$$
+A couple points to note. We think of $z({\bf u} +{\bf h})$ as a ring of points around a specific point $z({\bf u}$, but in most cases there will never be points at an exact distance $h$, so we usually use lag classes of $h \pm \delta$. Also note that we use $N({\bf h})$ to compute $\sigma^2$, instead of $N({\bf h})-1$.
+
+I won't go into the implementation of semivariogram computations; it's more complicated and not worth our time at this point. Instead, we'll look at some sample data and use different R packages to produce variograms.
+
+
+# Semivariograms plots from Yield Monitor Data
+
+```{r,fig.width=8,fig.height=6}
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+# gstat
+
+The first library we consider is `gstat`. This has a simple interface to define spatial coordinates from the data.
+
+
+```{r}
+Yield.var <- variogram(Yield~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat)
+plot(Yield.var)
+```
+
+Once we've computed semivariance over lag distance, we want to fit a model and extract parameters. Most variogram models include three parameters - nugget, sill and range.
+
+## Components of a Variogram
+### nugget
+The nugget represents the degree of correlation between two points, arbitrarily close together. If we could measure spatial values perfectly, the nugget would be 0 (two points in the same space being perfectly correlated). However, there will almost always be some inherent measurement error, and the nugget is an indication of that error. It also indicates how fine or coarse we can make our measurments in space.
+
+### sill
+The sill is the maximum possible variance at points far apart, and represent the degree of variance when points are completely uncorrelated. We must be careful when measuring the sill; in part because as we measure larger lag classes, we have fewer points for computing variance.
+
+### range
+The range is the distance at which points are effectively uncorrelated. This can be thought of the neighborhood for each point.
+
+
+## Variogram Models
+There are several formula that can be used to estimate nugget, sill and range from a variogram. The most common are
+
+### Nugget
+
+$$ g (h) = \left\{ \begin{array}{ll}
+     0 & h = 0\\
+     c & otherwise
+   \end{array} \right.
+$$
+### Spherical
+
+$$ g (h) = \left\{ \begin{array}{ll}
+     c \times \left[ 1.5 \left( \frac{h}{a} \right) - 0.5 \left( \frac{h}{a}
+     \right)^3 \right] &   h \leqslant a\\
+     c & otherwise
+   \end{array} \right. 
+$$
+### Exponential
+
+$$
+g (h) = c \times \left[ 1 - \exp \left( \frac{- 3 h}{a} \right) \right]
+$$
+### Gaussian
+
+$$
+g (h) = c \times \left[ 1 - \exp \left( \frac{- 3 h^2}{a^2} \right) \right]
+$$
+### Power
+
+$$
+g (h) = c \times h^{\omega}, 0 < \omega < 2
+$$
+
+
+For semivariance calculated using `variogram`, we use the `fit.variogram` function. I don't know if there's any good method to automatically select starting parameters, so we need to specify parameters (for sill, range and nugget). I get these by inspection, and it frequently takes more than one try to get convergence, using different parameters each time. Parameters for `vgm` are given by:
+```
+vgm(psill = NA, model, range = NA, nugget, add.to, anis, kappa = 0.5, ..., covtable,
+	Err = 0)
+```
+
+By inspection of the plot, we might guess a a nugget of 50, a sill of 200, and a range of 40m, so 
+```{r}
+print(Yield.vgm <- fit.variogram(Yield.var, vgm(200,"Sph",40,50)))
+```
+
+We visualize the model by
+```{r}
+plot(Yield.var, model=Yield.vgm)
+```
+
+Similarly, for the other variables
+
+```{r}
+Distance.var <- variogram(Distance~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat)
+print(Distance.vgm <- fit.variogram(Distance.var, vgm(0.06,"Sph",20,.02)))
+plot(Distance.var, model=Distance.vgm)
+```
+
+```{r}
+Moisture.var <- variogram(Moisture~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat)
+print(Moisture.vgm <- fit.variogram(Moisture.var, vgm(0.25,"Sph",20,0.1)))
+plot(Moisture.var, model=Moisture.vgm)
+```
+
+It's worth noting that a variogram can be influence by how points are collected into lag groups. To examine a point-by-point correlation, we can produce a variogram cloud
+
+```{r}
+Yield.cloud.var <- variogram(Yield~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat[1:1000,],
+                       cloud=T)
+plot(Yield.cloud.var,model=Yield.vgm)
+```
+
+## geoR
+
+`geoR` requires geodata classes. Otherwise, the process is similar. However, specifying a geodata object can be cumbersome, and fitting variograms is less intuitive.
+
+```{r}
+metric.col <- c(which(names(sample.dat)=="LatM"), which(names(sample.dat)=="LonM"))
+coords.col <- c(which(names(sample.dat)=="Latitude"), which(names(sample.dat)=="Longitude"))
+data.col = c(which(names(sample.dat)=="Yield"),which(names(sample.dat)=="Distance"),which(names(sample.dat)=="Moisture"))
+sample.gdat <- as.geodata(sample.dat, coords.col = metric.col, data.col = data.col)
+str(sample.gdat)
+```
+
+```{r}
+Yield.gvar <- variog(sample.gdat,data=sample.gdat$data[,1])
+plot(Yield.gvar)
+```
+
+variofit seems to work better if we give it a range of initial values, so we create a grid of values:
+```{r}
+init.cov <- expand.grid(seq(10,200,l=10), seq(0,40,l=5))
+```
+
+```{r}
+print(Yield.fit <- variofit(Yield.gvar, cov.model="sph", 
+                       ini.cov.pars=init.cov,
+                       fix.nugget=FALSE, nugget=50))
+```
+
+It also takes an extra step to add the fitted variogram.
+
+```{r}
+plot(Yield.gvar)
+lines(Yield.fit)
+```
+
+This function does produce a barplot for the variogram cloud. It does become noisy with the full data set, so we will illustrate with a subset.
+
+```{r}
+subsample.gdat <- as.geodata(sample.dat[1:1000,], coords.col = metric.col, data.col = data.col)
+Yield.cloud.gvar <- variog(subsample.gdat,data=subsample.gdat$data[,1],bin.cloud=TRUE)
+plot(Yield.cloud.gvar,bin.cloud=TRUE)
+```
+
+Sometimes it's easier to work with a one-shot data frame:
+
+```{r}
+Moisture.idx = which(names(sample.dat)=="Moisture")
+Moisture.gdat <- as.geodata(sample.dat, coords.col = metric.col, data.col = Moisture.idx)
+Moisture.gvar <- variog(Moisture.gdat)
+plot(Moisture.gvar)
+```
+
+
+# Isotropy
+
+Isotropy implies that spatial correlation depends only on distance and not on direction. One way to determine if a set of spatial data a anisotropic is to compute variograms at different angles. 
+
+We can do this manually from `gstat` by
+
+```{r}
+Yield.ani.vgm <- variogram(Yield~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat, alpha=c(0,45,90,135))
+plot(Yield.ani.vgm)
+```
+
+or we can use the `vario4` function from `geoR`:
+
+```{r,fig.width=8,fig.height=6}
+Yield.idx = which(names(sample.dat)=="Yield")
+Yield.gdat <- as.geodata(sample.dat, coords.col = metric.col, data.col = Yield.idx)
+Yield.var4 <- variog4(Yield.gdat,max.dist=200)
+plot(Yield.var4, omnidirectional=TRUE)
+```
+
+
+We can see if this holds true for other variables as well.
+
+```{r}
+Distance.ani.vgm <- variogram(Distance~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat, alpha=c(0,45,90,135))
+plot(Distance.ani.vgm)
+```
+
+```{r}
+Distance.idx = which(names(sample.dat)=="Distance")
+Distance.gdat <- as.geodata(sample.dat, coords.col = metric.col, data.col = Distance.idx)
+Distance.var4 <- variog4(Distance.gdat,max.dist=200)
+plot(Distance.var4)
+```
+
+```{r,fig.width=4,fig.height=6}
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Distance),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[5]) +
+labs(colour = "Distance", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+
+```{r}
+Moisture.ani.vgm <- variogram(Moisture~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat, alpha=c(0,45,90,135))
+plot(Moisture.ani.vgm)
+```
+
+```{r}
+Moisture.var4 <- variog4(Moisture.gdat,max.dist=200)
+plot(Moisture.var4)
+```
+
+
+```{r,fig.width=4,fig.height=6}
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Moisture),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[5]) +
+labs(colour = "Moisture", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+

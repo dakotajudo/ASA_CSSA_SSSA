@@ -1,0 +1,175 @@
+\documentclass{report}
+\usepackage{amsmath}
+\usepackage[]{algorithm2e}
+
+\begin{document}
+
+\title{Kriging}
+\author{Peter Claussen}\maketitle
+
+
+
+### automap : Automatic interpolation package
+
+<<>>=
+library(automap)
+@
+
+<<>>=
+library(gstat)
+library(geoR)
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000")
+@
+
+# Data
+<<>>=
+load(file="sample.dat.Rda")
+global.cols <- c(which(names(sample.dat)=="Latitude"), which(names(sample.dat)=="Longitude"))
+metric.cols <- c(which(names(sample.dat)=="LatM"), which(names(sample.dat)=="LonM"))
+yield.col <- which(names(sample.dat)=="Yield")
+@
+
+<<>>=
+initwd <- getwd() 
+setwd("./working")
+@
+
+
+<<YieldMonitorData,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+@
+
+<<>>=
+colPoints <- floor(max(sample.dat$LonM)/10)
+rowPoints <- floor(max(sample.dat$LatM)/10)
+sample4.grd <- expand.grid(LatM=((1:rowPoints)*10)-5,
+                          LonM=((1:colPoints)*10)-5)
+head(sample4.grd)
+@
+
+Superimpose these points over our yield data,
+
+<<SamplePoints,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_point(aes(LonM, LatM),data=sample4.grd, size=1) + 
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+@
+
+<<>>=
+Yield.var <- variogram(Yield~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat)
+print(Yield.vgm <- fit.variogram(Yield.var, vgm(250, "Sph", 80, 100)))
+@
+
+Now use the `krig` function to project the yield data onto our sample grid.
+<<>>=
+Yield.krig <- krige(id="Yield", 
+                     formula=Yield~1, 
+                     data = sample.dat, 
+                     newdata = sample4.grd, 
+                     model = Yield.vgm,
+                     maxdist = 100,
+  locations=~LatM + LonM)
+@
+
+We can extract the predicted values, and plot the results
+<<>>=
+str(Yield.krig)
+sample4.grd$Yield.krig <- Yield.krig$Yield.pred
+@
+
+
+<<KrigData,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample4.grd, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield.krig),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Kriged Yield Monitor Data")
+@
+
+# geoR
+
+There are a wide range of options for kriging in R. We explore a couple others before we move on. The next is `geoR`. As befor, we convert to geodata and fit to a variogram.
+
+<<>>=
+Yield.idx = which(names(sample.dat)=="Yield")
+metric.col <- c(which(names(sample.dat)=="LatM"), which(names(sample.dat)=="LonM"))
+Yield.gdat <- as.geodata(sample.dat, coords.col = metric.col, data.col = Yield.idx)
+Yield.gvar <- variog(Yield.gdat)
+@
+
+<<>>=
+init.cov <- expand.grid(seq(10,200,l=10), seq(0,40,l=5))
+Yield.gfit <- variofit(Yield.gvar, cov.model="sph", 
+                       ini.cov.pars=init.cov,
+                       fix.nugget=FALSE, nugget=50)
+Yield.gfit
+@
+
+<<>>=
+geoR.krig <- krige.conv(Yield.gdat, locations=sample4.grd, krige=krige.control(obj.model=Yield.gfit))
+str(geoR.krig)
+sample4.grd$gYield.krig <- geoR.krig$predict
+@
+
+
+<<KrigGeoR,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample4.grd, aes(LonM, LatM)) + 
+geom_point(aes(colour = gYield.krig),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+@
+
+
+We can compare the two methods,
+<<KrigvsKrig,fig=TRUE,width=6,height=4>>=
+plot(sample4.grd$Yield.krig,sample4.grd$gYield.krig)
+@
+
+
+par(mfrow=c(1,3))
+image(geoR.krig)
+contour(geoR.krig)
+persp(geoR.krig)
+
+
+<<AutokrigYield,fig=TRUE,width=6,height=4>>=
+coordinates(sample.dat) = ~ LonM+LatM
+
+# Ordinary kriging, no new_data object
+Yield.autokrig = autoKrige(Yield~1, sample.dat)
+str(Yield.autokrig)
+plot(Yield.autokrig)
+@
+
+
+coordinates(sample4.grd) = ~ LonM+LatM
+Yield.ukrig = autoKrige(Yield~poly(LatM + LonM, 7), input_data=sample.dat, new_data=sample4.grd)
+#with this, predictors are required for new locations.
+#Yield.ukrig = autoKrige(Yield~poly(LatM + LonM, 7), input_data=sample.dat)
+plot(Yield.ukrig)
+
+Yield.blockkrig = autoKrige(Yield~1, sample.dat, block = c(20,20))
+plot(Yield.blockkrig)
+
+
+
+Yield.blockkrig = autoKrige(Yield~1, sample.dat, block = c(40,40))
+plot(Yield.blockkrig)
+
+Yield.blockkrig = autoKrige(Yield~1, sample.dat, block = c(80,80))
+plot(Yield.blockkrig)
+
+<<>>=
+setwd(initwd)
+@
+\end{document}
+
+
+

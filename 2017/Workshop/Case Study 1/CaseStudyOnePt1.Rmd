@@ -1,0 +1,434 @@
+---
+title: "Case Study 1, Part 1"
+author: "Peter Claussen"
+date: "10/3/2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(MASS)
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+```
+
+We wish to combine four yield maps from a single field.
+
+# Processing
+
+The first step is to load each file and process
+
+```{r}
+Corn2013.dat <- read.csv("Corn 2013.csv",header=TRUE,comment.char = "#")
+Soybean2014.dat <- read.csv("Soybeans 2014.csv",header=TRUE,comment.char = "#")
+Corn2015.dat <- read.csv("Corn 2015.csv",header=TRUE,comment.char = "#")
+Soybean2016.dat <- read.csv("Soybeans 2016.csv",header=TRUE,comment.char = "#")
+```
+
+We write a function to standardize each file.
+
+```{r}
+metric_from_gps <- function(longitude, latitude, origin=c(0,0)) {
+  if(origin[1]==0) {
+    origin <- c(min(longitude),min(latitude))
+  }
+  mid_latitude <- (origin[2] + max(latitude))/2
+  
+  easting <- longitude - origin[1]
+  northing <- latitude - origin[2]
+  
+  m_per_deg_lat = 111132.954 - 559.822 * cos(2.0 * mid_latitude) + 1.175 * cos(4.0 * mid_latitude)
+  m_per_deg_lon = (3.14159265359/180 ) * 6367449 * cos(mid_latitude)
+  easting <- easting*m_per_deg_lon
+  northing <- northing*m_per_deg_lat
+  
+  return(list(northing=northing,
+              easting=easting,
+              origin=origin,
+              m_per_deg_lon=m_per_deg_lon,
+              m_per_deg_lat=m_per_deg_lat))
+}
+
+standardize.field <- function(field.dat,origin=c(0,0)) {
+  
+  #we will aggregate those values which can be averaged.
+  col.names = names(field.dat)
+  drop.columns = c(
+    which(col.names=="Field"),
+    which(col.names=="Dataset"),
+    which(col.names=="Product"),
+    which(col.names=="Desc")
+  )
+  aggregate.dat <- aggregate(field.dat[,-drop.columns], 
+                             by=list(field.dat$Desc), 
+                             FUN=mean, na.rm=TRUE)
+  aggregate.dat$Product <- aggregate(field.dat[,"Product"], 
+                                     by=list(field.dat$Desc), FUN=function(x){x[1]})[,2]
+  aggregate.dat$DateTime <- as.POSIXct(as.character(aggregate.dat[,1]), 
+                                       format = "%m/%d/%Y %I:%M:%S %p",tz = "")
+  aggregate.dat$Seconds <- aggregate.dat$DateTime - aggregate.dat$DateTime[1]
+  aggregate.dat <- aggregate.dat[,-1]
+  
+  #remove all non-trivial values
+  aggregate.dat <- subset(aggregate.dat,aggregate.dat$Yield!=0)
+  
+  meters <- metric_from_gps(aggregate.dat$Longitude,
+                            aggregate.dat$Latitude,
+                            origin)
+  #convert longitude and latitude to meters
+  aggregate.dat$Easting <- meters$easting
+  aggregate.dat$Northing <- meters$northing
+  
+  aggregate.dat$Rank <- rank(aggregate.dat$Yield)
+  aggregate.dat$Quantile <- aggregate.dat$Rank/length(aggregate.dat$Rank)
+  aggregate.dat$Percent <- 100*aggregate.dat$Yield/median(aggregate.dat$Yield)
+  return(aggregate.dat)
+}
+```
+
+We will anchor each field to the same origin, so 
+```{r}
+origin <- c(
+  min(Corn2013.dat$Longitude, Soybean2014.dat$Longitude, Corn2015.dat$Longitude, Soybean2016.dat$Longitude),
+  min(Corn2013.dat$Latitude, Soybean2014.dat$Latitude, Corn2015.dat$Latitude, Soybean2016.dat$Latitude)
+)
+corner <- c(
+  max(Corn2013.dat$Longitude, Soybean2014.dat$Longitude, Corn2015.dat$Longitude, Soybean2016.dat$Longitude),
+  max(Corn2013.dat$Latitude, Soybean2014.dat$Latitude, Corn2015.dat$Latitude, Soybean2016.dat$Latitude)
+)
+origin
+corner
+```
+
+We'll ultimately want to create a 20x20m grid, so we'll do local correlation at that distance
+```{r}
+grid.size=20
+```
+
+
+# Corn, 2013
+
+```{r}
+Corn2013.dat <- standardize.field(Corn2013.dat,origin)
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(Corn2013.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Corn 2013")
+```
+
+```{r,fig.width=8,fig.height=4}
+par(mfrow=c(1,3))
+plot(Corn2013.dat$Quantile,Corn2013.dat$Yield,xlim=c(0,.05))
+plot(Corn2013.dat$Quantile,Corn2013.dat$Yield)
+plot(Corn2013.dat$Quantile,Corn2013.dat$Yield,xlim=c(0.98,1))
+par(mfrow=c(1,1))
+```
+
+```{r}
+truehist(Corn2013.dat$Yield)
+truehist(Corn2013.dat$Percent)
+```
+
+We've removed 0, but are there any other duplicates at the minimum rank?
+
+```{r}
+min(Corn2013.dat$Rank)
+sum(Corn2013.dat$Rank==min(Corn2013.dat$Rank))
+```
+
+# Soybeans, 2014
+
+```{r}
+Soybean2014.dat <- standardize.field(Soybean2014.dat,origin)
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(Soybean2014.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Corn 2013")
+```
+
+
+```{r,fig.width=9,fig.height=4}
+par(mfrow=c(1,3))
+plot(Soybean2014.dat$Quantile,Soybean2014.dat$Yield,xlim=c(0,.05))
+plot(Soybean2014.dat$Quantile,Soybean2014.dat$Yield)
+plot(Soybean2014.dat$Quantile,Soybean2014.dat$Yield,xlim=c(0.98,1))
+par(mfrow=c(1,1))
+```
+
+
+# Corn, 2015
+
+```{r}
+Corn2015.dat <- standardize.field(Corn2015.dat,origin)
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(Corn2015.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Corn 2013")
+```
+
+```{r,fig.width=9,fig.height=4}
+par(mfrow=c(1,3))
+plot(Corn2015.dat$Quantile,Corn2015.dat$Yield,xlim=c(0,.02))
+plot(Corn2015.dat$Quantile,Corn2015.dat$Yield)
+plot(Corn2015.dat$Quantile,Corn2015.dat$Yield,xlim=c(0.98,1))
+par(mfrow=c(1,1))
+```
+# Soybeans, 2016
+
+
+```{r}
+Soybean2016.dat <- standardize.field(Soybean2016.dat,origin)
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(Soybean2016.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Corn 2013")
+```
+
+```{r,fig.width=9,fig.height=4}
+par(mfrow=c(1,3))
+plot(Soybean2016.dat$Quantile,Soybean2016.dat$Yield,xlim=c(0,.05))
+plot(Soybean2016.dat$Quantile,Soybean2016.dat$Yield)
+plot(Soybean2016.dat$Quantile,Soybean2016.dat$Yield,xlim=c(0.98,1))
+par(mfrow=c(1,1))
+```
+
+# Spatial Statitics, Uncleaned data
+
+```{r}
+summary.spatial <- function(field.dat) {
+  #Create Distance Neighbors
+  pooled.dists <- as.matrix(dist(cbind(field.dat$Easting, field.dat$Northing)))
+  pooled.dists <- 1/pooled.dists
+  diag(pooled.dists) <- 0
+  #use ape to compute Moran I, it's faster
+  require(ape)
+  MoranIYield <- Moran.I(field.dat$Yield, pooled.dists)
+  MoranIPercent <- Moran.I(field.dat$Percent, pooled.dists)
+  MoranIQuantile <- Moran.I(field.dat$Quantile, pooled.dists)
+  
+  # for simplicity, correlogram instead of variogram
+  require(ncf)
+  CorrelogYield <- correlog(field.dat$Easting, field.dat$Northing, field.dat$Yield, 
+                          increment=3, resamp=0, quiet=TRUE)
+  CorrelogPercent <- correlog(field.dat$Easting, field.dat$Northing, field.dat$Percent, 
+                          increment=3, resamp=0, quiet=TRUE)
+  CorrelogQuantile <- correlog(field.dat$Easting, field.dat$Northing,      field.dat$Quantile, 
+                          increment=3, resamp=0, quiet=TRUE)
+
+   return(list(MoranIYield=MoranIYield,
+               MoranIPercent=MoranIPercent,
+               MoranIQuantile=MoranIQuantile,
+               CorrelogYield=CorrelogYield,
+               CorrelogPercent=CorrelogPercent,
+               CorrelogQuantile=CorrelogQuantile))
+}
+#override correlog plot to make it easier to modify
+plot.correlog <- function (x, main="Correlogram",ylab = "correlation",xlab = "distance (mean-of-class)",...) 
+{
+    obj <- x
+    plot(obj$mean.of.class, obj$correlation, ylab = ylab, 
+        xlab = xlab,...)
+    lines(obj$mean.of.class, obj$correlation)
+    if (!is.null(obj$p)) {
+        points(obj$mean.of.class[obj$p < 0.025], obj$correlation[obj$p < 
+            0.025], pch = 21, bg = "black")
+    }
+    title(main)
+}
+```
+
+### What spatial variable should we use?
+```{r,Corn2013Summary}
+Corn2013.summary <- summary.spatial(Corn2013.dat)
+Corn2013.summary$MoranIYield
+Corn2013.summary$MoranIPercent
+Corn2013.summary$MoranIQuantile
+```
+
+There is no difference in $I$ between `Yield` and `Percent`, which should be expected. There is a reduction in $I$ with `Quantile`, which may not be a good thing - remember, an $I$ near 0 implies no spatial correlation, and that our data is generated by white noise.
+
+### What is the range of correlation, and does it change with measure?
+
+```{r}
+par(mfrow=c(1,2))
+plot(Corn2013.summary$CorrelogPercent,main='Percent',xlim=c(0,100),ylim=c(-0.1,1))
+plot(Corn2013.summary$CorrelogQuantile,main='Quantile',xlim=c(0,100),ylim=c(-0.1,1))
+par(mfrow=c(1,1))
+```
+
+
+
+### Is spatial correlation similar for each year?
+```{r,MoranByYear}
+Soybean2014.summary <- summary.spatial(Soybean2014.dat)
+Soybean2014.summary$MoranIPercent
+Soybean2014.summary$MoranIQuantile
+
+Corn2015.summary <- summary.spatial(Corn2015.dat)
+Corn2015.summary$MoranIPercent
+Corn2015.summary$MoranIQuantile
+
+Soybean2016.summary <- summary.spatial(Soybean2016.dat)
+Soybean2016.summary$MoranIPercent
+Soybean2016.summary$MoranIQuantile
+```
+
+Soybean 2016 was a problem year, with a lot of *Kochia*. This may have introduced some noise to the yield pattern ($I=0.039$, versus, $\{ 0.172, 0.091, 0.112 \}$) for the other three years. However, using` Quantile` would reduce the range of $I$ ($\{0.105-0.151\}$ versus $\{0.039-0.172\}$). It also worth noting that 2013 was planted with two varieties split between the north and south halves. This field showed the largest $I$ at $0.172$ for `Percent` but not for `Quantile`. Estimated dry yield averages for the two varieties for 2013 were 149.66 bu/ac vs 145.94 bu/ac, while moisture averaged at 14.31% vs 16.15%.	
+
+### Other spatial estimates
+
+`spdep` is a very comprehensive package, but I hesitate to use it for some analysis because it can be quite slow (I think there is a tradeoff between flexibility in the data structures and computational speed). We'll compare different measures for Soybean 2016 to see if they're worth the extra computing time.
+
+```{r,DistanceToListw}
+pooled.dists <- as.matrix(dist(cbind(Soybean2016.dat$Easting, Soybean2016.dat$Northing)))
+pooled.dists <- 1/pooled.dists
+diag(pooled.dists) <- 0
+library(spdep)
+pooled.dists.listw <-mat2listw(pooled.dists)
+```
+
+```{r,ListwToNeighbors}
+neighborhood30 <- dnearneigh(cbind(Soybean2016.dat$Easting, Soybean2016.dat$Northing), 0, grid.size)
+neighborhood30.listw <- nb2listw(neighborhood30, style="B")
+```
+
+```{r,spdepTests}
+moran.test(Soybean2016.dat$Yield,pooled.dists.listw,alternative = "two.sided")
+moran.test(Soybean2016.dat$Quantile,pooled.dists.listw,alternative = "two.sided")
+
+geary.test(Soybean2016.dat$Yield,pooled.dists.listw,alternative = "two.sided")
+geary.test(Soybean2016.dat$Quantile,pooled.dists.listw,alternative = "two.sided")
+
+globalG.test(Soybean2016.dat$Yield,neighborhood30.listw, alternative = "two.sided")
+globalG.test(Soybean2016.dat$Quantile,neighborhood30.listw, alternative = "two.sided")
+```
+
+
+### Correlograms, Percent
+```{r,CorrelogramsPercent}
+head(Corn2013.summary$CorrelogPercent$p)
+par(mfrow=c(2,2))
+plot(Corn2013.summary$CorrelogPercent,main='2013',xlim=c(0,100),ylim=c(-0.1,1))
+plot(Soybean2014.summary$CorrelogPercent,main='2014',xlim=c(0,100),ylim=c(-0.1,1))
+plot(Corn2015.summary$CorrelogPercent,main='2015',xlim=c(0,100),ylim=c(-0.1,1))
+plot(Soybean2016.summary$CorrelogPercent,main='2016',xlim=c(0,100),ylim=c(-0.1,1))
+par(mfrow=c(1,1))
+```
+
+### Correlograms, Quantiles
+```{r,CorrelogramsQuantiles}
+par(mfrow=c(2,2))
+plot(Corn2013.summary$CorrelogQuantile,main='2013',xlim=c(0,100),ylim=c(-0.1,1))
+plot(Soybean2014.summary$CorrelogQuantile,main='2014',xlim=c(0,100),ylim=c(-0.1,1))
+plot(Corn2015.summary$CorrelogQuantile,main='2015',xlim=c(0,100),ylim=c(-0.1,1))
+plot(Soybean2016.summary$CorrelogQuantile,main='2016',xlim=c(0,100),ylim=c(-0.1,1))
+par(mfrow=c(1,1))
+```
+
+
+# LISA Plots
+
+The 2016 field seems to be the most problematic, so we compare LISA plots for `Percent` and `Quantile`.
+
+
+
+```{r,Soybean2016P30,fig.width=8,fig.height=4}
+Soybean2016P30.lisa <- lisa(Soybean2016.dat$Easting, Soybean2016.dat$Northing, Soybean2016.dat$Percent, 
+                         neigh=grid.size, resamp=500, quiet=TRUE)
+plot.lisa(Soybean2016P30.lisa, negh.mean=FALSE)
+```
+
+```{r,Soybean2016Q30,fig.width=8,fig.height=4}
+Soybean2016Q30.lisa <- lisa(Soybean2016.dat$Easting, Soybean2016.dat$Northing, Soybean2016.dat$Quantile, 
+                         neigh=grid.size, resamp=500, quiet=TRUE)
+plot.lisa(Soybean2016Q30.lisa, negh.mean=FALSE)
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(Soybean2016.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Quantile),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield (quantile)", x="Longitude (m)", y="Latitude (m)", title = "Soybean 2016")
+```
+
+```{r}
+pass.dat <- subset(Soybean2016.dat,Soybean2016.dat$Northing<55)
+pass.dat <- subset(pass.dat,pass.dat$Northing>45)
+pass.dat <- subset(pass.dat,pass.dat$Easting>55)
+pass.dat <- subset(pass.dat,pass.dat$Easting<420)
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(pass.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Quantile),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Quantile", x="Longitude (m)", y="Latitude (m)", title = "Pooled Yield Maps")
+```
+
+```{r}
+plot(pass.dat$Yield)
+plot(pass.dat$Quantile)
+
+```
+
+```{r}
+acf(pass.dat$Yield)
+acf(pass.dat$Quantile)
+```
+
+What is the best fitting autoregressive model, along a single pass?
+
+```{r}
+library(forecast)
+
+auto.arima(pass.dat$Yield,stepwise=FALSE,approximation=FALSE)
+mean(pass.dat$Yield)
+
+auto.arima(pass.dat$Quantile,stepwise=FALSE,approximation=FALSE)
+mean(pass.dat$Quantile)
+```
+
+
+
+
+```{r}
+Corn2013.dat$Year <- 2013
+Corn2015.dat$Year <- 2015
+Soybean2014.dat$Year <- 2014
+Soybean2016.dat$Year <- 2016
+```
+
+```{r}
+Pooled.dat <- rbind(Corn2013.dat,Corn2015.dat,Soybean2014.dat,Soybean2016.dat)
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(Pooled.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Quantile),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Quantile", x="Longitude (m)", y="Latitude (m)", title = "Pooled Yield Maps")
+```
+
+```{r}
+save(Corn2013.dat, Corn2015.dat, Soybean2014.dat ,Soybean2016.dat,file="Pooled.Rda")
+save(Corn2013.summary, Soybean2014.summary, Corn2015.summary, Soybean2016.summary,file="Summaries.Rda")
+#Soybean2016P10.lisa,
+#     Soybean2016Q10.lisa, 
+save(Soybean2016P30.lisa,
+     Soybean2016Q30.lisa,file="LISA.Rda")
+```
+
+

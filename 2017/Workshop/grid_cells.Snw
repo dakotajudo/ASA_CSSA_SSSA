@@ -1,0 +1,510 @@
+\documentclass{report}
+\usepackage{amsmath}
+\usepackage[]{algorithm2e}
+
+\begin{document}
+
+\title{Grid Cells}
+\author{Peter Claussen}\maketitle
+
+<<echo=false>>=
+library(MASS)
+library(moments)
+library(ggplot2)
+library(gridExtra)
+library(ape)
+library(ncf)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442", "#CC79A7","#000000")
+@
+
+<<>>=
+load(file="autocorrelation.Rda")
+load(file="sample.dat.Rda")
+@
+
+<<>>=
+lisa.neighbor = 60
+@
+
+<<>>=
+initwd <- getwd() 
+setwd("./working")
+@
+
+
+
+<<YieldMonitorData,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+@
+
+We'll divide the field  into 20 m quadrats. I add 0.1 to push min(LatM) and min(LonM) into a grid cell, instead of being on the border (Row 0 or Column 0). This will keep max less than the boundary.
+
+## Cell Indexes
+
+<<>>=
+sample.dat$row <- ceiling((sample.dat$LatM+0.1)/20)
+sample.dat$col <- ceiling((sample.dat$LonM+0.1)/20)
+sample.dat$cell <- as.factor(sample.dat$row):as.factor(sample.dat$col)
+@
+
+## Cell Borders
+
+<<>>=
+rowPoints <- c(0,20*(1:ceiling(max(sample.dat$LatM+0.1)/20)))
+colPoints <- c(0,20*(1:ceiling(max(sample.dat$LonM+0.1)/20)))
+@
+
+<<CellGridOverData,fig=TRUE,width=6,height=4.5>>=
+library(ggplot2)
+ggplot(sample.dat, aes(LonM, LatM)) + 
+  geom_point(aes(colour = Yield),size=2) + 
+  scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_vline(xintercept = colPoints,color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints,color = cbPalette[6]) +
+  labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Cell Grid over Data")
+@
+
+
+## Sample Grid
+
+We will need a set of fixed points for interpolation. Since we have a 20x20m grid, we place points at 10m intervals, and offset by 5m from the origin.
+
+<<>>=
+columns <- floor(max(sample.dat$LonM)/10)
+rows <- ceiling(max(sample.dat$LatM)/10)
+sample4.grd <- expand.grid(LatM=((1:rows)*10)-5,
+                          LonM=((1:columns)*10)-5)
+sample4.grd$row <- ceiling((sample4.grd$LatM-5+0.1)/20)
+sample4.grd$col <- ceiling((sample4.grd$LonM-5+0.1)/20)
+sample4.grd$cell <- as.factor(sample4.grd$row):as.factor(sample4.grd$col)
+@
+
+
+<<UniformGrid,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample.dat, aes(LonM, LatM)) + 
+  geom_point(aes(colour = Yield),size=1) + 
+  scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_point(aes(LonM, LatM),data=sample4.grd, size=1) + 
+  labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Uniform Grid, 10x10")
+@
+
+<<UniformGridAndCells,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample.dat, aes(LonM, LatM)) + 
+  scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_point(aes(LonM, LatM),data=sample4.grd, size=1) + 
+  geom_vline(xintercept = colPoints,color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints,color = cbPalette[6]) +
+  labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Uniform Grid and Grid Cells")
+@
+
+
+# Kriging
+
+### Variogram
+We use a variogram from earlier,
+
+<<>>=
+library(gstat)
+Yield.var <- variogram(Yield~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat)
+print(Yield.vgm <- fit.variogram(Yield.var, vgm(200,"Sph",40,50)))
+plot(Yield.var, model=Yield.vgm)
+
+Yield.krig <- krige(id="Yield", 
+                     formula=Yield~1, 
+                     data = sample.dat, 
+                     newdata = sample4.grd, 
+                     model = Yield.vgm,
+                     maxdist = 100,
+  locations=~LatM + LonM)
+sample4.grd$Yield.krig <- Yield.krig$Yield.pred
+@
+
+### Plot the kriged estimates
+
+<<KrigedValues,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample.dat, aes(LonM, LatM)) + 
+  geom_point(aes(colour = Yield),size=1) + 
+  scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_point(aes(LonM, LatM,color=Yield.krig), data=sample4.grd,size=2) + 
+  labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Yield and Kriged Yield")
+@
+
+<<KrigedValuesAndCells,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample4.grd, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield.krig),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_vline(xintercept = colPoints,color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints,color = cbPalette[6]) +
+  labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Kriged Yield and Grid Cells")
+@
+
+# Trend Surface Analysis
+
+We use an 9th degree polynomial to fit our data.
+
+<<>>=
+Yield11.lm <-lm(Yield ~poly(LonM, LatM, degree=11), data=sample.dat)
+sample4.grd$Yield.trend <- predict(Yield11.lm,sample4.grd)
+@
+
+<<TrendYieldAndCells,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample4.grd, aes(LonM, LatM)) + 
+  geom_point(aes(colour = Yield.trend),size=3) + 
+  scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_vline(xintercept = colPoints,color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints,color = cbPalette[6]) +
+  labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Trend Yield and Grid Cells")
+@
+
+### Compare Estimates
+
+A simple plot to compare the two methods.
+
+<<>>=
+plot(Yield.krig ~ Yield.trend,data=sample4.grd)
+@
+
+<<>>=
+sample.dists <- as.matrix(dist(cbind(sample4.grd$LonM, sample4.grd$LatM)))
+sample.dists <- 1/sample.dists
+diag(sample.dists) <- 0
+
+Moran.I(sample4.grd$Yield.krig, sample.dists)
+Moran.I(sample4.grd$Yield.trend, sample.dists)
+@
+
+<<TrendEstimateLISAPlot,fig=TRUE,width=4.5,height=4.5>>=
+TrendEstimate.lisa <- lisa(sample4.grd$LonM, sample4.grd$LatM, sample4.grd$Yield.trend, 
+                         neigh=lisa.neighbor, resamp=500, quiet=TRUE)
+plot.lisa(TrendEstimate.lisa, negh.mean=FALSE)
+@
+
+<<KrigEstimateLISAPlot,fig=TRUE,width=4.5,height=4.5>>=
+KrigEstimate.lisa <- lisa(sample4.grd$LonM, sample4.grd$LatM, sample4.grd$Yield.krig, 
+                         neigh=lisa.neighbor, resamp=500, quiet=TRUE)
+plot.lisa(KrigEstimate.lisa, negh.mean=FALSE)
+@
+
+
+<<>>=
+KrigMeans = tapply(sample4.grd$Yield.krig,list(sample4.grd$cell),mean,na.rm=TRUE)
+TrendMeans = tapply(sample4.grd$Yield.trend,list(sample4.grd$cell),mean,na.rm=TRUE)
+Grid.dat <- data.frame(
+   Cell = levels(sample4.grd$cell),
+   KrigMeans = as.vector(KrigMeans),
+   TrendMeans = as.vector(TrendMeans),
+   LonM = as.vector(tapply(sample4.grd$LonM,list(sample4.grd$cell),mean,na.rm=TRUE)),
+   LatM = as.vector(tapply(sample4.grd$LatM,list(sample4.grd$cell),mean,na.rm=TRUE))
+)
+@
+
+
+<<>>=
+CellCount = tapply(sample.dat$Yield,list(sample.dat$cell),length)
+CellMeans = tapply(sample.dat$Yield,list(sample.dat$cell),mean,na.rm=TRUE)
+Grid.dat$CellMeans <- as.vector(CellMeans[as.character(Grid.dat$Cell)])
+Grid.dat$CellCount <- as.vector(CellCount[as.character(Grid.dat$Cell)])
+@
+
+
+<<>>=
+plot(KrigMeans~CellMeans,data=Grid.dat,col="blue")
+points(TrendMeans~CellMeans,data=Grid.dat,col="red")
+@
+
+
+<<>>=
+grid.dists <- as.matrix(dist(cbind(Grid.dat$LonM, Grid.dat$LatM)))
+grid.dists <- 1/grid.dists
+diag(grid.dists) <- 0
+Moran.I(Grid.dat$CellMeans, grid.dists)
+Moran.I(Grid.dat$KrigMeans, grid.dists)
+Moran.I(Grid.dat$TrendMeans, grid.dists)
+@
+
+## Local spatial correlation.
+
+We also compute local spatial measures. We use a neighborhood of 60 - this gives us 3 grid widths.
+
+<<CellMeans,fig=TRUE,width=6,height=4.5>>=
+ggplot(Grid.dat, aes(LonM, LatM)) + 
+  geom_point(aes(colour = CellMeans),size=6) + 
+  scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_vline(xintercept = colPoints,color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints,color = cbPalette[6]) +
+  labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Cell Means")
+@
+
+<<TrendMeans,fig=TRUE,width=6,height=4.5>>=
+ggplot(Grid.dat, aes(LonM, LatM)) + 
+  geom_point(aes(colour = TrendMeans),size=6) + 
+  scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_vline(xintercept = colPoints,color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints,color = cbPalette[6]) +
+  labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Trend Means")
+@
+
+<<KrigMeans,fig=TRUE,width=6,height=4.5>>=
+ggplot(Grid.dat, aes(LonM, LatM)) + 
+  geom_point(aes(colour = CellMeans),size=6) + 
+  scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_vline(xintercept = colPoints,color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints,color = cbPalette[6]) +
+  labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Krig Means")
+@
+
+<<CellMeansLISAPlot,fig=TRUE,width=4.5,height=4.5>>=
+CellMeans.lisa <- lisa(Grid.dat$LonM, Grid.dat$LatM, Grid.dat$CellMeans, 
+                         neigh=lisa.neighbor, resamp=500, quiet=TRUE)
+plot.lisa(CellMeans.lisa, negh.mean=FALSE)
+@
+<<TrendMeansLISAPlot,fig=TRUE,width=4.5,height=4.5>>=
+TrendMeans.lisa <- lisa(Grid.dat$LonM, Grid.dat$LatM, Grid.dat$TrendMeans, 
+                         neigh=lisa.neighbor, resamp=500, quiet=TRUE)
+plot.lisa(TrendMeans.lisa, negh.mean=FALSE)
+@
+
+<<KrigMeansLISAPlot,fig=TRUE,width=4.5,height=4.5>>=
+KrigMeans.lisa <- lisa(Grid.dat$LonM, Grid.dat$LatM, Grid.dat$KrigMeans, 
+                         neigh=lisa.neighbor, resamp=500, quiet=TRUE)
+plot.lisa(KrigMeans.lisa, negh.mean=FALSE)
+@
+
+# Residuals
+
+We also consider the spatial correlation among residuals. We compute a variance (residual squared) since we expect the sum of differences to be 0 for the cell means method. We should also note that the cell means method computes a minimum variance estimate for the mean yield of each grid cell. Both kriging and trend surface modeling with increase the variance of grid means, relative to the observations within each grid, but that's to be expected, since both methods include information from outside the grid. 
+
+## Global spatial correlation.
+
+<<>>=
+sample.dat$KrigVar <- as.vector(sample.dat$Yield - KrigMeans[as.character(sample.dat$cell)])^2
+sample.dat$TrendVar <- as.vector(sample.dat$Yield - TrendMeans[as.character(sample.dat$cell)])^2
+sample.dat$CellVar <- as.vector(sample.dat$Yield - CellMeans[as.character(sample.dat$cell)])^2
+@
+
+<<>>=
+truehist(sample.dat$KrigVar)
+truehist(sample.dat$TrendVar)
+truehist(sample.dat$CellVar)
+@
+
+Mean absolute deviation is also valid measure of difference from a central tendency. 
+
+<<>>=
+sample.dat$KrigMAD <- as.vector(abs(sample.dat$Yield - KrigMeans[as.character(sample.dat$cell)]))
+sample.dat$TrendMAD <- as.vector(abs(sample.dat$Yield - TrendMeans[as.character(sample.dat$cell)]))
+sample.dat$CellMAD <- as.vector(abs(sample.dat$Yield - CellMeans[as.character(sample.dat$cell)]))
+@
+
+<<>>=
+truehist(sample.dat$CellMAD)
+truehist(sample.dat$TrendMAD)
+truehist(sample.dat$KrigMAD)
+@
+
+
+<<>>=
+Grid.dat$CellVar <- as.vector(tapply(sample.dat$CellVar,list(sample.dat$cell),mean,na.rm=TRUE)[as.character(Grid.dat$Cell)])
+Grid.dat$TrendVar <- as.vector(tapply(sample.dat$TrendVar,list(sample.dat$cell),mean,na.rm=TRUE)[as.character(Grid.dat$Cell)])
+Grid.dat$KrigVar <- as.vector(tapply(sample.dat$KrigVar,list(sample.dat$cell),mean,na.rm=TRUE)[as.character(Grid.dat$Cell)])
+
+Grid.dat$CellMAD <- as.vector(tapply(sample.dat$CellMAD,list(sample.dat$cell),mean,na.rm=TRUE)[as.character(Grid.dat$Cell)])
+Grid.dat$TrendMAD <- as.vector(tapply(sample.dat$TrendMAD,list(sample.dat$cell),mean,na.rm=TRUE)[as.character(Grid.dat$Cell)])
+Grid.dat$KrigMAD <- as.vector(tapply(sample.dat$KrigMAD,list(sample.dat$cell),mean,na.rm=TRUE)[as.character(Grid.dat$Cell)])
+@
+
+<<>>=
+truehist(Grid.dat$CellVar)
+truehist(Grid.dat$TrendVar)
+truehist(Grid.dat$KrigVar)
+@
+
+<<>>=
+truehist(Grid.dat$CellMAD)
+truehist(Grid.dat$TrendMAD)
+truehist(Grid.dat$KrigMAD)
+@
+
+<<>>=
+Moran.I(Grid.dat$CellVar, grid.dists)
+Moran.I(Grid.dat$TrendVar, grid.dists)
+Moran.I(Grid.dat$KrigVar, grid.dists)
+@
+
+## Local spatial correlation.
+
+<<TrendMADLISAPlot,fig=TRUE,width=4.5,height=4.5>>=
+CellMAD.lisa <- lisa(Grid.dat$LonM, Grid.dat$LatM, Grid.dat$CellMAD, 
+                         neigh=lisa.neighbor, resamp=500, quiet=TRUE)
+plot.lisa(CellMAD.lisa, negh.mean=FALSE)
+@
+
+<<TrendMADLISAPlot,fig=TRUE,width=4.5,height=4.5>>=
+TrendMAD.lisa <- lisa(Grid.dat$LonM, Grid.dat$LatM, Grid.dat$TrendMAD, 
+                         neigh=lisa.neighbor, resamp=500, quiet=TRUE)
+plot.lisa(TrendMAD.lisa, negh.mean=FALSE)
+@
+
+<<KrigMADLISAPlot,fig=TRUE,width=4.5,height=4.5>>=
+KrigMAD.lisa <- lisa(Grid.dat$LonM, Grid.dat$LatM, Grid.dat$KrigMAD, 
+                         neigh=lisa.neighbor, resamp=500, quiet=TRUE)
+plot.lisa(KrigMAD.lisa, negh.mean=FALSE)
+@
+
+<<CellMeanAD,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = CellMAD),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[5]) +
+  geom_vline(xintercept = colPoints,color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints,color = cbPalette[6]) +
+labs(colour = "Deviation", x="Longitude (m)", y="Latitude (m)", title = "Cell Mean AD")
+@
+
+<<TrendAD,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = TrendMAD),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[5]) +
+  geom_vline(xintercept = colPoints,color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints,color = cbPalette[6]) +
+labs(colour = "Deviation", x="Longitude (m)", y="Latitude (m)", title = "Trend AD")
+@
+
+<<KrigAD,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = KrigMAD),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[5]) +
+  geom_vline(xintercept = colPoints,color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints,color = cbPalette[6]) +
+labs(colour = "Deviation", x="Longitude (m)", y="Latitude (m)", title = "Krig AD")
+@
+
+<<>>=
+sample.dists <- as.matrix(dist(cbind(sample.dat$LonM, sample.dat$LatM)))
+sample.dists <- 1/sample.dists
+diag(sample.dists) <- 0
+Moran.I(sample.dat$CellVar, sample.dists,na.rm=TRUE)
+Moran.I(sample.dat$TrendVar, sample.dists,na.rm=TRUE)
+Moran.I(sample.dat$KrigVar, sample.dists,na.rm=TRUE)
+@
+
+
+
+
+
+
+# Details of a Harvester Event
+
+It looks like there was an event that affect harvest that might not be entirely due to spatial variation. We'll take a closer look in this region to consider how different methods of creating cell estimates handle this event.
+
+<<>>=
+sample.dat$Event = (sample.dat$row %in% c(2:4) & sample.dat$col %in% c(4:6))
+@
+
+<<LocationEvent,fig=TRUE,width=6,height=4.5>>=
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Event),size=2) + 
+scale_colour_manual(values=cbPalette) +
+  geom_vline(xintercept = colPoints,color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints,color = cbPalette[6]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Grid Neighbors, Harvester Event")
+@
+
+<<HarvesterEvent,fig=TRUE,width=6,height=4.5>>=
+Event.dat <- sample.dat[sample.dat$Event,]
+ggplot(Event.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield),size=4) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_vline(xintercept = colPoints[4:7],color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints[2:5],color = cbPalette[6]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Grid Neighbors, Harvester Event")
+@
+
+We can examine the distance traveled to help determine what happened during harvest.
+
+<<DistanceEvent,fig=TRUE,width=6,height=4.5>>=
+ggplot(Event.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Distance),size=4) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[5]) +
+  geom_vline(xintercept = colPoints[4:7],color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints[2:5],color = cbPalette[6]) +
+labs(colour = "Distance", x="Longitude (m)", y="Latitude (m)", title = "Grid Neighbors, Harvester Event")
+@
+
+<<>>=
+sample4.grd$Event <- as.character(sample4.grd$cell) %in% as.character(Event.dat$cell)
+Grid.dat$Event <- as.character(Grid.dat$Cell) %in% as.character(Event.dat$cell)
+SampleEvent.dat <- sample4.grd[sample4.grd$Event,]
+GridEvent.dat <- Grid.dat[Grid.dat$Event,]
+@
+
+<<HarvesterEventKrigEstimates,fig=TRUE,width=6,height=4.5>>=
+ggplot(Event.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield),size=3) + 
+geom_point(aes(colour = Yield.krig),size=8,data=SampleEvent.dat) +
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_vline(xintercept = colPoints[4:7],color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints[2:5],color = cbPalette[6]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Krig Estimates, Harvester Event")
+@
+
+<<HarvesterEventTrendEstimates,fig=TRUE,width=6,height=4.5>>=
+ggplot(Event.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield),size=3) + 
+geom_point(aes(colour = Yield.trend),size=8,data=SampleEvent.dat) +
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_vline(xintercept = colPoints[4:7],color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints[2:5],color = cbPalette[6]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Yield Estimates, Harvester Event")
+@
+
+<<HarvesterEventKrigMeans,fig=TRUE,width=6,height=4.5>>=
+ggplot(Event.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield),size=1) + 
+geom_point(aes(colour = Yield.krig),size=4,data=SampleEvent.dat) +
+geom_point(aes(colour = KrigMeans),size=8,data=GridEvent.dat) +
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_vline(xintercept = colPoints[4:7],color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints[2:5],color = cbPalette[6]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Krig Means, Harvester Event")
+@
+
+<<HarvesterEventTrendMeans,fig=TRUE,width=6,height=4.5>>=
+ggplot(Event.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield),size=1) + 
+geom_point(aes(colour = Yield.trend),size=4,data=SampleEvent.dat) +
+geom_point(aes(colour = KrigMeans),size=8,data=GridEvent.dat) +
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_vline(xintercept = colPoints[4:7],color = cbPalette[8]) +
+  geom_hline(yintercept = rowPoints[2:5],color = cbPalette[6]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Trend Means, Harvester Event")
+@
+
+
+<<>>=
+truehist(Event.dat$Yield)
+truehist(Event.dat$Distance)
+@
+
+
+<<>>=
+setwd(initwd)
+@
+
+\end{document}
+
+CellMAD.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$CellMAD, 
+                         neigh=50, resamp=500, quiet=TRUE)
+plot.lisa(CellMAD.lisa, negh.mean=FALSE)
+
+TrendMAD.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$TrendMAD, 
+                         neigh=50, resamp=500, quiet=TRUE)
+plot.lisa(TrendMAD.lisa, negh.mean=FALSE)
+
+KrigMAD.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$KrigMAD, 
+                         neigh=50, resamp=500, quiet=TRUE)
+plot.lisa(KrigMAD.lisa, negh.mean=FALSE)

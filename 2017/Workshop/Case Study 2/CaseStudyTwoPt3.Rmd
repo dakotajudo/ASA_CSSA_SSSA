@@ -1,0 +1,205 @@
+---
+title: "Case Study 2, Part 3"
+author: "Peter Claussen"
+date: "10/3/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r}
+library(ggplot2)
+library(rsm)
+library(ncf)
+library(ape)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+```
+
+```{r}
+load(file="Strips.Rda")
+```
+
+
+# North 80
+
+
+```{r,fig.width=5,fig.height=8, EastQuarterProduct}
+ggplot(North80.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Product),size=2) + 
+scale_colour_manual(values=cbPalette) +
+labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "North 80")
+```
+
+
+We repeat the process from Part 2
+
+## Trend Surface
+
+```{r}
+Yield7.lm <- lm(Yield ~ poly(Easting, Northing, degree=7), data=North80.dat)
+Yield9.lm <- lm(Yield ~ poly(Easting, Northing, degree=9), data=North80.dat)
+Yield11.lm <- lm(Yield ~ poly(Easting, Northing, degree=11), data=North80.dat)
+Yield13.lm <- lm(Yield ~ poly(Easting, Northing, degree=13), data=North80.dat)
+```
+
+```{r}
+anova(Yield7.lm, Yield9.lm, Yield11.lm, Yield13.lm)
+AIC(Yield7.lm)
+AIC(Yield9.lm)
+AIC(Yield11.lm)
+AIC(Yield13.lm)
+```
+
+
+```{r,fig.width=10,fig.height=8}
+par(mfrow=c(1,4))
+contour(Yield7.lm, Northing ~ Easting, image = TRUE,main="Poly 7")
+contour(Yield9.lm, Northing ~ Easting, image = TRUE,main="Poly 9")
+contour(Yield11.lm, Northing ~ Easting, image = TRUE,main="Poly 11")
+contour(Yield13.lm, Northing ~ Easting, image = TRUE,main="Poly 13")
+par(mfrow=c(1,1))
+```
+
+I'm concerned that Poly 11 might be overfitting in the upper left corner, so we'll choose Poly 9 (note - we could continue with diagnostics of Local I to check that assertion).
+
+```{r,ExtractResiduals}
+North80.dat$Yield9.resid <- Yield9.lm$residuals
+North80.dat$Yield11.resid <- Yield11.lm$residuals
+North80.dat$Yield13.resid <- Yield13.lm$residuals
+```
+
+# Check for white noise
+
+```{r,ComputeDistance}
+Distance.mat <- as.matrix(dist(cbind(North80.dat$Easting, North80.dat$Northing)))
+Distance.mat <- 1/Distance.mat
+diag(Distance.mat) <- 0
+```
+
+```{r,ComputeI}
+print(MoranYield <-Moran.I(North80.dat$Yield, Distance.mat))
+print(Moran9Resid <-Moran.I(North80.dat$Yield9.resid, Distance.mat))
+print(Moran11Resid <-Moran.I(North80.dat$Yield11.resid, Distance.mat))
+print(Moran13Resid <-Moran.I(North80.dat$Yield13.resid, Distance.mat))
+```
+
+
+
+# Local Correlation 
+
+Resampling can take a very long time, so I'll use a flag to control whether we resample or simply plot local measures. Resampling is needed for p-values; I'm not concerned about p-values for the points in the correlogram.
+
+```{r}
+resample = 100
+```
+
+## Correlation in Yield
+```{r,YieldCorrelog}
+Yield.clg <- correlog(North80.dat$Easting, North80.dat$Northing, North80.dat$Yield, 
+                          increment=5, resamp=0, quiet=TRUE)
+plot(Yield.clg)
+```
+
+```{r,YieldLISA, fig.width=5,fig.height=8}
+Yield.lisa <- lisa(North80.dat$Easting, North80.dat$Northing, North80.dat$Yield, 
+                         neigh=5, resamp=resample, quiet=TRUE)
+plot.lisa(Yield.lisa, negh.mean=FALSE)
+```
+
+## Correlation in Yield Residuals
+
+```{r,Yield9ResidualsCorrelog}
+Yield9.resid.clg <- correlog(North80.dat$Easting, North80.dat$Northing, North80.dat$Yield9.resid, 
+                          increment=5, resamp=0, quiet=TRUE)
+plot(Yield9.resid.clg)
+```
+
+```{r,Yield9ResidualsLISA, fig.width=5,fig.height=8}
+Yield9.resid.lisa <- lisa(North80.dat$Easting, North80.dat$Northing, North80.dat$Yield9.resid, 
+                         neigh=5, resamp=resample, quiet=TRUE)
+plot.lisa(Yield9.resid.lisa, negh.mean=FALSE)
+```
+
+## Correlation in Quantiles
+
+```{r,QuantilesCorrelog}
+Quantile.clg <- correlog(North80.dat$Easting, North80.dat$Northing, North80.dat$Quantile, 
+                          increment=5, resamp=0, quiet=TRUE)
+plot(Quantile.clg)
+```
+
+```{r,QuantileResidualsLISA, fig.width=5,fig.height=8}
+Quantile.lisa <- lisa(North80.dat$Easting, North80.dat$Northing, North80.dat$Quantile, 
+                         neigh=5, resamp=resample, quiet=TRUE)
+plot.lisa(Quantile.lisa, negh.mean=FALSE)
+```
+
+Variety G was planted in the first 8 passes from the left (west), then variety I. These where the two lowest yielding varieties, based on the trend adjusted yields. Unadjusted yield places variety G in the middle.
+
+Variety F was planted in the rightmost 8 passes and is the lowest yielding variety based on unadjusted yields. In the adjusted yields, F ranges from mid-rank to the highest ranking variety (Poly 13). The large separation between F and G in the Poly 13 model suggests to me that this model over-fits the data. 
+
+One of the reasons I choose the Poly 9 model is that it produces the least separation among varieties. This is more plausible to me, since all varieties should be consider elite for the region. Perhaps I'm being too conservative in choosing a spatial model, but I'd like to look for stronger evidence that my spatial model is correct, before choosing a less conservative mean separation.
+
+Variety A is identified as the highest yielding variety in the Poly 9 model. This is the second variety from the right, between C and E (adjacent to F), with C just along the 100m line.
+# Trend + Variety AOV
+
+Does including variety (`Product`) in the model improve spatial correlation?
+
+
+```{r}
+YieldVariety7.lm <- lm(Yield ~ poly(Easting, Northing, degree=7) + Product, data=North80.dat)
+summary(aov(YieldVariety7.lm))
+YieldVariety9.lm <- lm(Yield ~ poly(Easting, Northing, degree=9) + Product, data=North80.dat)
+summary(aov(YieldVariety9.lm))
+YieldVariety11.lm <- lm(Yield ~ poly(Easting, Northing, degree=11) + Product, data=North80.dat)
+summary(aov(YieldVariety11.lm))
+YieldVariety13.lm <- lm(Yield ~ poly(Easting, Northing, degree=13) + Product, data=North80.dat)
+summary(aov(YieldVariety13.lm))
+anova(YieldVariety7.lm,YieldVariety9.lm,YieldVariety11.lm,YieldVariety13.lm)
+```
+
+```{r}
+North80.dat$YieldVariety9.resid <- YieldVariety9.lm$residuals
+print(Moran9Variety <- Moran.I(North80.dat$YieldVariety9.resid, Distance.mat))
+```
+
+```{r,fig.width=8,fig.height=8}
+par(mfrow=c(1,2))
+contour(Yield9.lm, Northing ~ Easting, image = TRUE,main="Poly 9")
+contour(YieldVariety9.lm, Northing ~ Easting, image = TRUE,main="Poly 9 + Product")
+par(mfrow=c(1,1))
+```
+
+```{r}
+North80.dat$YieldVariety9.resid <- YieldVariety9.lm$residuals
+print(Moran9Variety <-Moran.I(North80.dat$YieldVariety9.resid, Distance.mat))
+```
+
+```{r,YieldVariety9ResidualsCorrelog}
+YieldVariety9.resid.clg <- correlog(North80.dat$Easting, North80.dat$Northing, North80.dat$YieldVariety9.resid, 
+                          increment=5, resamp=0, quiet=TRUE)
+plot(YieldVariety9.resid.clg)
+```
+
+```{r,YieldVariety9ResidualsLISA, fig.width=6,fig.height=8}
+YieldVariety9.resid.lisa <- lisa(North80.dat$Easting, North80.dat$Northing, North80.dat$YieldVariety9.resid, 
+                         neigh=10, resamp=resample, quiet=TRUE)
+plot.lisa(YieldVariety9.resid.lisa, negh.mean=FALSE)
+```
+
+# Trend AOV
+
+```{r}
+library(lsmeans)
+Yield.lm <- lm(Yield ~ Product, data=North80.dat)
+lsmeans(Yield.lm, cld ~ Product)
+lsmeans(YieldVariety7.lm, cld ~ Product)
+lsmeans(YieldVariety9.lm, cld ~ Product)
+lsmeans(YieldVariety11.lm, cld ~ Product)
+lsmeans(YieldVariety13.lm, cld ~ Product)
+```
+
+
+
+
+

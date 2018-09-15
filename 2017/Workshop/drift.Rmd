@@ -1,0 +1,134 @@
+---
+title: "Signal Drift"
+author: "Peter Claussen"
+date: "9/5/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+Let's consider a full field,
+
+```{r}
+load(file="~/Work/git/statistics/design_documents/yield_monitor_data/trimmed.Rda")
+```
+
+We'll look at just a portion of the field,
+```{r}
+min.lat <- min(trimmed.dat$Latitude)
+max.lat <- max(trimmed.dat$Latitude)
+lat.rng <- max.lat-min.lat
+mid.lat <- (max.lat+min.lat)/2
+trimmed.dat$Sample <- trimmed.dat$Latitude<(mid.lat + (lat.rng/40)) & 
+                      trimmed.dat$Latitude>(mid.lat - (lat.rng/40))
+sample.dat <- subset(trimmed.dat,trimmed.dat$Sample)
+```
+
+
+```{r,fig.width=9,fig.height=3}
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+ggplot(sample.dat, aes(Longitude, Latitude)) + 
+geom_point(aes(colour = YldVolDry),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[5]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+```{r}
+sample.dat$LonM <- sample.dat$Longitude - min(sample.dat$Longitude)
+sample.dat$LatM <- sample.dat$Latitude - min(sample.dat$Latitude)
+latMid <- (min(sample.dat$Latitude) + max(sample.dat$Latitude))/2
+m_per_deg_lat = 111132.954 - 559.822 * cos( 2.0 * latMid ) + 1.175 * cos( 4.0 * latMid)
+m_per_deg_lon = (3.14159265359/180 ) * 6367449 * cos ( latMid )
+sample.dat$LonM <- sample.dat$LonM*m_per_deg_lon
+sample.dat$LatM <- sample.dat$LatM*m_per_deg_lat
+```
+
+Get the means by pass
+```{r}
+sample.dat$PassNum <- as.factor(sample.dat$PassNum)
+pass.data <- data.frame(
+  PassNum = as.integer(levels(sample.dat$PassNum)),
+  Longitude = tapply(sample.dat$Longitude,list(sample.dat$PassNum),mean),
+  ID = tapply(sample.dat$ID,list(sample.dat$PassNum),mean),
+  Elevation = tapply(sample.dat$Elevation,list(sample.dat$PassNum),mean),
+  CropFlwV = tapply(sample.dat$CropFlwV,list(sample.dat$PassNum),mean),
+  Distance = tapply(sample.dat$Distance,list(sample.dat$PassNum),mean),
+  Moisture = tapply(sample.dat$Moisture,list(sample.dat$PassNum),mean),
+  YldVolDry = tapply(sample.dat$YldVolDry,list(sample.dat$PassNum),mean)
+)
+```
+
+
+```{r}
+plot(PassNum ~ Longitude, data=pass.data)
+```
+
+### Elevation
+
+```{r}
+plot(Elevation ~ PassNum, data= pass.data)
+```
+
+```{r}
+PassOrderElevation <- pass.data$Elevation[order(pass.data$PassNum)]
+plot(PassOrderElevation)
+```
+
+```{r}
+plot(Elevation ~ Longitude, data=pass.data)
+```
+
+```{r}
+LonOrderElevation <- pass.data$Elevation[order(pass.data$Longitude)]
+plot(LonOrderElevation)
+```
+
+
+```{r}
+arima(PassOrderElevation, order = c(1,0,0))
+arima(LonOrderElevation, order = c(1,0,0))
+arima(PassOrderElevation, order = c(0,0,1))
+arima(LonOrderElevation, order = c(0,0,1))
+arima(PassOrderElevation, order = c(1,0,1))
+arima(LonOrderElevation, order = c(1,0,1))
+arima(PassOrderElevation, order = c(2,0,2))
+arima(LonOrderElevation, order = c(2,0,2))
+```
+
+### Distance
+
+```{r}
+PassOrderDistance <- pass.data$Distance[order(pass.data$PassNum)]
+plot(PassOrderDistance)
+
+LonOrderDistance <- pass.data$Distance[order(pass.data$Longitude)]
+plot(LonOrderDistance)
+```
+
+### Moisture
+```{r}
+PassOrderMoisture <- pass.data$Moisture[order(pass.data$PassNum)]
+plot(PassOrderMoisture)
+
+LonOrderMoisture <- pass.data$Moisture[order(pass.data$Longitude)]
+plot(LonOrderMoisture)
+```
+
+### Crop Flow
+```{r}
+PassOrderCropFlw <- pass.data$CropFlw[order(pass.data$PassNum)]
+plot(PassOrderCropFlw)
+
+LonOrderCropFlw <- pass.data$CropFlw[order(pass.data$Longitude)]
+plot(LonOrderCropFlw)
+```
+
+### Yield
+```{r}
+PassOrderYldVolDry <- pass.data$YldVolDry[order(pass.data$PassNum)]
+plot(PassOrderYldVolDry)
+
+LonOrderYldVolDry <- pass.data$YldVolDry[order(pass.data$Longitude)]
+plot(LonOrderYldVolDry)
+```

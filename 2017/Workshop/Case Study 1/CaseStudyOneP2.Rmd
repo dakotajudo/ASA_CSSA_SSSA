@@ -1,0 +1,104 @@
+---
+title: "Case Study 1, Part 2"
+author: "Peter Claussen"
+date: "10/3/2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(gstat)
+#library(geoR)
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+```
+
+Now we examine the spatial correlation structure and determine if the fields must be analyzed independently or if they can be pooled into a single unit. I don't want to drop any data points, so I'll be continuing with `Quantile`
+
+```{r}
+load(file="Pooled.Rda")
+```
+
+```{r}
+Pooled.dat <- rbind(Corn2013.dat,Corn2015.dat,Soybean2014.dat,Soybean2016.dat)
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(Pooled.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Quantile),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Quantile", x="Longitude (m)", y="Latitude (m)", title = "Pooled Yield Maps")
+```
+
+# Variograms
+
+## Individual Maps
+```{r}
+Corn2013.var <- variogram(Quantile~1, 
+                        locations=~Easting+Northing, 
+                        data=Corn2013.dat)
+Corn2015.var <- variogram(Quantile~1, 
+                        locations=~Easting+Northing, 
+                        data=Corn2015.dat)
+Soybean2014.var <- variogram(Quantile~1, 
+                        locations=~Easting+Northing, 
+                        data=Soybean2014.dat)
+Soybean2016.var <- variogram(Quantile~1, 
+                        locations=~Easting+Northing, 
+                        data=Soybean2016.dat)
+par(mfrow=c(2,2))
+plot(Corn2013.var,main="2013")
+plot(Corn2015.var,main="2015")
+plot(Soybean2014.var,main="2014")
+plot(Soybean2016.var,main="2016")
+par(mfrow=c(1,1))
+```
+
+The variograms look quite similar, but we'll check by fitting a spherical model to each.
+
+```{r}
+print(Corn2013.vgm <- fit.variogram(Corn2013.var, vgm(.8,"Sph",50,.2)))
+plot(Corn2013.var,model=Corn2013.vgm,main="Corn 2013")
+print(Corn2015.vgm <- fit.variogram(Corn2015.var, vgm(.8,"Sph",50,.2)))
+plot(Corn2015.var,model=Corn2015.vgm,main="Corn 2015")
+print(Soybean2014.vgm <- fit.variogram(Soybean2014.var, vgm(.8,"Sph",50,.2)))
+plot(Soybean2014.var,model=Soybean2014.vgm,main="Soybean 2014")
+print(Soybean2016.vgm <- fit.variogram(Soybean2016.var, vgm(.8,"Sph",50,.2)))
+plot(Soybean2016.var,model=Soybean2016.vgm,main="Soybean 2016")
+```
+
+Now check for anisotropy
+```{r}
+Corn2013.ani.var <- variogram(Quantile~1, 
+                        locations=~Easting+Northing, 
+                        data=Corn2013.dat, alpha=c(0,45,90,135))
+Corn2015.ani.var <- variogram(Quantile~1, 
+                        locations=~Easting+Northing, 
+                        data=Corn2015.dat, alpha=c(0,45,90,135))
+Soybean2014.ani.var <- variogram(Quantile~1, 
+                        locations=~Easting+Northing, 
+                        data=Soybean2014.dat, alpha=c(0,45,90,135))
+Soybean2016.ani.var <- variogram(Quantile~1, 
+                        locations=~Easting+Northing, 
+                        data=Soybean2016.dat, alpha=c(0,45,90,135))
+plot(Corn2013.ani.var,main="2013")
+plot(Corn2015.ani.var,main="2015")
+plot(Soybean2014.ani.var,main="2014")
+plot(Soybean2016.ani.var,main="2016")
+```
+
+## Pooled Maps
+There might be some aligment issues, suggested by the high correlation over short distance at 45, as seen in Sobyean 2014 and 2016; perhaps this is a crop related issue. However, I don't think (this is a personal judgement) that they are so great as to prevent us from combining these data. So, we produce a variogram for the pooled map:
+
+```{r}
+Pooled.var <- variogram(Quantile~1, 
+                        locations=~Easting+Northing, 
+                        data=Pooled.dat)
+print(Pooled.vgm <- fit.variogram(Pooled.var, vgm(.8,"Sph",50,.2)))
+plot(Pooled.var,model=Pooled.vgm,main="Pooled Quantile Variogram")
+```
+
+```{r}
+save(Pooled.var,Pooled.vgm,file="Variograms.Rda")
+```

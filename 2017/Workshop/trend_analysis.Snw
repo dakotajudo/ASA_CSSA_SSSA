@@ -1,0 +1,357 @@
+\documentclass{report}
+\usepackage{amsmath}
+\usepackage[]{algorithm2e}
+
+\begin{document}
+
+\title{Trend Analysis"}
+\author{Peter Claussen}\maketitle
+
+<<>>=
+library(rsm)
+@
+
+<<>>=
+library(ape)
+library(ncf)
+library(ggplot2)
+library(gridExtra)
+library(gstat)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+@
+
+# Data
+<<>>=
+load(file="autocorrelation.Rda")
+attach(autocorrelation.dat)
+
+load(file="sample.dat.Rda")
+@
+<<>>=
+initwd <- getwd() 
+setwd("./working")
+@
+
+> arima(trend.error,c(1,0,1))
+Error in arima(trend.error, c(1, 0, 1)) : non-stationary AR part from CSS
+
+
+We generated a non-stationary mean by approximating a random walk with a polynomial. Adding white noise to this fit was not enough to convert this series back to a random walk, and this series fails the assumption of non-stationarity.
+
+However, we can detrend this series.
+
+<<>>=
+x <- 1:length(trend.error)
+detrend <- lm(trend.error ~ 1 + x + I(x^2) + I(x^3) + I(x^4) + I(x^5))
+@
+
+<<PoynomialFits,fig=TRUE,echo=false,width=10,height=6>>=
+grid.arrange(
+  arrangeGrob(
+    ggplot(autocorrelation.dat, aes(x, trend.error)) + geom_point(colour = cbPalette[1],size = 1) +
+      labs(x="Index",y="Trend + Error",title=expression(y == mu + x)) + 
+      stat_smooth(method = "lm", formula = y ~ poly(x,1), se=FALSE, size = 1, color=cbPalette[2]), 
+    ggplot(autocorrelation.dat, aes(x, trend.error)) + geom_point(colour = cbPalette[1],size = 1) +
+      labs(x="Index",y="Trend + Error",title=expression(y == mu + x + x^2)) + 
+      stat_smooth(method = "lm", formula = y ~ poly(x,2), se=FALSE, size = 1, color=cbPalette[2]), 
+    ggplot(autocorrelation.dat, aes(x, trend.error)) + geom_point(colour = cbPalette[1],size = 1) +
+      labs(x="Index",y="Trend + Error",title=expression(y == mu + x + x^2 + x^3)) + 
+      stat_smooth(method = "lm", formula = y ~ poly(x,3), se=FALSE, size = 1, color=cbPalette[2]), 
+    ggplot(autocorrelation.dat, aes(x, trend.error)) + geom_point(colour = cbPalette[1],size = 1) + 
+      labs(x="Index",y="Trend + Error",title=expression(y == mu + x + x^2 + x^3 + x^4)) + 
+      stat_smooth(method = "lm", formula = y ~ poly(x,4), se=FALSE, size = 1, color=cbPalette[2]),
+    ggplot(autocorrelation.dat, aes(x, trend.error)) + geom_point(colour = cbPalette[1],size = 1) + 
+      labs(x="Index",y="Trend + Error",title=expression(y == mu + x + x^2 + x^3 + x^4 + x^5)) + 
+      stat_smooth(method = "lm", formula = y ~ poly(x,5), se=FALSE, size = 1, color=cbPalette[2]),
+    ggplot(autocorrelation.dat, aes(x, trend.error)) + geom_point(colour = cbPalette[1],size = 1) + 
+      labs(x="Index",y="Trend + Error",title=expression(y == mu + x + x^2 + x^3 + x^4 + x^5 + x^6)) + 
+      stat_smooth(method = "lm", formula = y ~ poly(x,6), se=FALSE, size = 1, color=cbPalette[2]),
+    ncol=2
+))
+@
+
+<<PoynomialRandomFits,fig=TRUE,echo=false,width=10,height=6>>=
+grid.arrange(
+  arrangeGrob(
+    ggplot(autocorrelation.dat, aes(x, random.walk)) + geom_point(colour = cbPalette[1],size = 1) +
+      labs(x="Index",y="Trend + Error",title=expression(y == mu + x)) + 
+      stat_smooth(method = "lm", formula = y ~ poly(x,1), se=FALSE, size = 1, color=cbPalette[2]), 
+    ggplot(autocorrelation.dat, aes(x, random.walk)) + geom_point(colour = cbPalette[1],size = 1) +
+      labs(x="Index",y="Trend + Error",title=expression(y == mu + x + x^2)) + 
+      stat_smooth(method = "lm", formula = y ~ poly(x,2), se=FALSE, size = 1, color=cbPalette[2]), 
+    ggplot(autocorrelation.dat, aes(x, random.walk)) + geom_point(colour = cbPalette[1],size = 1) +
+      labs(x="Index",y="Trend + Error",title=expression(y == mu + x + x^2 + x^3)) + 
+      stat_smooth(method = "lm", formula = y ~ poly(x,3), se=FALSE, size = 1, color=cbPalette[2]), 
+    ggplot(autocorrelation.dat, aes(x, random.walk)) + geom_point(colour = cbPalette[1],size = 1) + 
+      labs(x="Index",y="Trend + Error",title=expression(y == mu + x + x^2 + x^3 + x^4)) + 
+      stat_smooth(method = "lm", formula = y ~ poly(x,4), se=FALSE, size = 1, color=cbPalette[2]),
+    ggplot(autocorrelation.dat, aes(x, random.walk)) + geom_point(colour = cbPalette[1],size = 1) + 
+      labs(x="Index",y="Trend + Error",title=expression(y == mu + x + x^2 + x^3 + x^4 + x^5)) + 
+      stat_smooth(method = "lm", formula = y ~ poly(x,5), se=FALSE, size = 1, color=cbPalette[2]),
+    ggplot(autocorrelation.dat, aes(x, random.walk)) + geom_point(colour = cbPalette[1],size = 1) + 
+      labs(x="Index",y="Trend + Error",title=expression(y == mu + x + x^2 + x^3 + x^4 + x^5 + x^6)) + 
+      stat_smooth(method = "lm", formula = y ~ poly(x,6), se=FALSE, size = 1, color=cbPalette[2]),
+    ncol=2
+))
+@
+      
+
+and see if there is correlation among the residuals. Since we added white noise to a
+polynomial, the residuals from a polynomial fit should themselves be white noise.
+
+<<>>=
+plot(detrend$residuals)
+arima(detrend$residuals,c(1,0,0))
+arima(detrend$residuals,c(0,0,1))
+arima(detrend$residuals,c(1,0,1))
+@
+
+Now, consider the case if we don't know the correct order of polynomial to fit to a series. We might try
+<<>>=
+x <- 1:length(trend.error)
+arima(lm(trend.error ~ poly(x,1))$residuals,c(1,0,0))
+arima(lm(trend.error ~ poly(x,2))$residuals,c(1,0,0))
+arima(lm(trend.error ~ poly(x,3))$residuals,c(1,0,0))
+arima(lm(trend.error ~ poly(x,4))$residuals,c(1,0,0))
+arima(lm(trend.error ~ poly(x,5))$residuals,c(1,0,0))
+arima(lm(trend.error ~ poly(x,6))$residuals,c(1,0,0))
+arima(lm(trend.error ~ poly(x,7))$residuals,c(1,0,0))
+@
+
+
+
+We have minimal improvement in AR fit to the residuals after a 5th degree polynomial; this criteria allows us to recover the process the generated our data.
+
+Compare this with the original (random walk)
+<<>>=
+arima(lm(random.walk ~ poly(x,1))$residuals,c(1,0,0))
+arima(lm(random.walk ~ poly(x,2))$residuals,c(1,0,0))
+arima(lm(random.walk ~ poly(x,3))$residuals,c(1,0,0))
+arima(lm(random.walk ~ poly(x,4))$residuals,c(1,0,0))
+arima(lm(random.walk ~ poly(x,5))$residuals,c(1,0,0))
+arima(lm(random.walk ~ poly(x,6))$residuals,c(1,0,0))
+arima(lm(random.walk ~ poly(x,7))$residuals,c(1,0,0))
+@
+
+# Trend Surface - Yield Data in Two Dimensions.
+
+We can extend the polynomial model to two dimensions. Again, we use sample data.
+
+
+We can fit two dimensional polynomials using `lm`.  We start with a simple, one-degree model and increase order.
+
+
+<<>>=
+Yield1.lm <- lm(Yield ~ poly(LonM, LatM, degree=1), data=sample.dat)
+@
+
+The response surface library `rsm` has some useful plots to help us visualize the trend surface
+
+<<Yield1,fig=TRUE,echo=false,width=10,height=6>>=
+par(mfrow=c(1,3))
+image(Yield1.lm, LatM ~ LonM)
+contour(Yield1.lm,LatM ~ LonM, image = TRUE)
+persp(Yield1.lm, LatM ~ LonM, zlab = "Yield, Poly 1")
+@
+
+<<>>=
+Yield3.lm <- lm(Yield ~ poly(LonM, LatM, degree=3), data=sample.dat)
+@
+
+<<Yield3,fig=TRUE,echo=false,width=10,height=6>>=
+par(mfrow=c(1,3))
+image(Yield3.lm, LatM ~ LonM)
+contour(Yield3.lm, LatM ~ LonM,image = TRUE)
+persp(Yield3.lm, LatM ~ LonM, zlab = "Yield, Poly 3")
+@
+
+
+<<>>=
+Yield5.lm <- lm(Yield ~ poly(LonM, LatM, degree=5), data=sample.dat)
+@
+
+
+<<Yield5,fig=TRUE,echo=false,width=10,height=6>>=
+par(mfrow=c(1,3))
+image(Yield5.lm, LatM ~ LonM)
+contour(Yield5.lm, LatM ~ LonM,image = TRUE)
+persp(Yield5.lm, LatM ~ LonM, zlab = "Yield, Poly 5")
+@
+
+
+<<>>=
+Yield7.lm <- lm(Yield ~ poly(LonM, LatM, degree=7), data=sample.dat)
+@
+
+<<Yield7,fig=TRUE,echo=false,width=10,height=6>>=
+par(mfrow=c(1,3))
+image(Yield7.lm, LatM ~ LonM)
+contour(Yield7.lm, LatM ~ LonM,image = TRUE)
+persp(Yield7.lm, LatM ~ LonM, zlab = "Yield, Poly 7")
+@
+
+<<>>=
+Yield9.lm <- lm(Yield ~ poly(LonM, LatM, degree=9), data=sample.dat)
+@
+
+<<Yield9,fig=TRUE,echo=false,width=10,height=6>>=
+par(mfrow=c(1,3))
+image(Yield9.lm, LatM ~ LonM)
+contour(Yield9.lm, LatM ~ LonM)
+persp(Yield9.lm, LatM ~ LonM, zlab = "Yield, Poly 9")
+@
+
+<<>>=
+Yield11.lm <- lm(Yield ~ poly(LonM, LatM, degree=11), data=sample.dat)
+@
+
+<<Yield11,fig=TRUE,echo=false,width=10,height=6>>=
+par(mfrow=c(1,3))
+image(Yield11.lm, LatM ~ LonM)
+contour(Yield11.lm, LatM ~ LonM,image = TRUE)
+persp(Yield11.lm, LatM ~ LonM, zlab = "Yield, Poly 11")
+@
+
+<<>>=
+Yield13.lm <- lm(Yield ~ poly(LonM, LatM, degree=13), data=sample.dat)
+@
+
+<<Yield13,fig=TRUE,echo=false,width=10,height=6>>=
+par(mfrow=c(1,3))
+image(Yield13.lm, LatM ~ LonM)
+contour(Yield13.lm, LatM ~ LonM,image = TRUE)
+persp(Yield13.lm, LatM ~ LonM, zlab = "Yield, Poly 13")
+@
+
+<<>>=
+Yield15.lm <- lm(Yield ~ poly(LonM, LatM, degree=15), data=sample.dat)
+@
+
+<<Yield15,fig=TRUE,echo=false,width=10,height=6>>=
+par(mfrow=c(1,3))
+image(Yield15.lm, LatM ~ LonM)
+contour(Yield15.lm, LatM ~ LonM,image = TRUE)
+persp(Yield15.lm, LatM ~ LonM, zlab = "Yield, Poly 15")
+@
+
+To compare models, we extract residuals.
+
+<<>>=
+sample.dat$Yield1.resid <- Yield1.lm$residuals
+sample.dat$Yield3.resid <- Yield3.lm$residuals
+sample.dat$Yield5.resid <- Yield5.lm$residuals
+sample.dat$Yield7.resid <- Yield7.lm$residuals
+sample.dat$Yield9.resid <- Yield9.lm$residuals
+sample.dat$Yield11.resid <- Yield11.lm$residuals
+sample.dat$Yield13.resid <- Yield13.lm$residuals
+sample.dat$Yield15.resid <- Yield15.lm$residuals
+@
+
+
+<<>>=
+Yield1.var <- variogram(Yield1.resid~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat)
+
+Yield7.var <- variogram(Yield7.resid~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat)
+
+Yield13.var <- variogram(Yield13.resid~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat)
+print(Yield1.vgm <- fit.variogram(Yield1.var, vgm(200,"Sph",40,50)))
+print(Yield7.vgm <- fit.variogram(Yield7.var, vgm(200,"Sph",40,50)))
+print(Yield13.vgm <- fit.variogram(Yield13.var, vgm(200,"Sph",40,50)))
+@
+
+<<Yield1Variogram,fig=TRUE,width=5,height=4>>=
+plot(Yield1.var, model=Yield1.vgm,main="Yield = poly(Lat,Lon,1)")
+@
+
+<<Yield7Variogram,fig=TRUE,width=5,height=4>>=
+plot(Yield7.var, model=Yield7.vgm,main="Yield = poly(Lat,Lon,7)")
+@
+
+
+<<Yield13Variogram,fig=TRUE,width=5,height=4>>=
+plot(Yield13.var, model=Yield13.vgm,main="Yield = poly(Lat,Lon,13)")
+@
+
+Next, we compute global measures of spatial correlation among the residuals. 
+
+<<>>=
+sample.dists <- as.matrix(dist(cbind(sample.dat$LonM, sample.dat$LatM)))
+
+sample.dists.inv <- 1/sample.dists
+diag(sample.dists.inv) <- 0
+
+Moran.I(sample.dat$Yield1.resid, sample.dists.inv)
+Moran.I(sample.dat$Yield3.resid, sample.dists.inv)
+Moran.I(sample.dat$Yield5.resid, sample.dists.inv)
+Moran.I(sample.dat$Yield7.resid, sample.dists.inv)
+Moran.I(sample.dat$Yield9.resid, sample.dists.inv)
+Moran.I(sample.dat$Yield11.resid, sample.dists.inv)
+Moran.I(sample.dat$Yield13.resid, sample.dists.inv)
+Moran.I(sample.dat$Yield15.resid, sample.dists.inv)
+@
+
+Can we improve the fit by adding higher order polynomials? We can plot $I$ by $x^n$
+
+<<>>=
+fit.dat <- data.frame(
+  Polynomial =  seq(1,15,2),
+  I = c(Moran.I(sample.dat$Yield1.resid, sample.dists.inv)$observed,
+       Moran.I(sample.dat$Yield3.resid, sample.dists.inv)$observed,
+       Moran.I(sample.dat$Yield5.resid, sample.dists.inv)$observed,
+       Moran.I(sample.dat$Yield7.resid, sample.dists.inv)$observed,
+       Moran.I(sample.dat$Yield9.resid, sample.dists.inv)$observed,
+       Moran.I(sample.dat$Yield11.resid, sample.dists.inv)$observed,
+       Moran.I(sample.dat$Yield13.resid, sample.dists.inv)$observed,
+       Moran.I(sample.dat$Yield15.resid, sample.dists.inv)$observed)
+   )
+plot(I ~Polynomial, data=fit.dat)
+lines(I ~Polynomial, data=fit.dat)
+@
+
+<<MoranIFit,fig=TRUE,width=5,height=3>>=
+ggplot(fit.dat,aes(x=Polynomial,y=I)) + 
+  geom_point(color=cbPalette[2]) + geom_smooth(method=lm,formula = y ~ I(log(x)),color=cbPalette[1],se=FALSE) +
+  labs(x="Polynomial Degree", y="Moran I")
+@
+
+
+To check the quality of the fit, we can examine LISA plots.
+
+<<>>=
+Yield1.resid.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$Yield1.resid,
+                              neigh=10, resamp=500, quiet=TRUE)
+@
+
+<<Yield1LISA,fig=TRUE,width=6,height=6>>=
+plot.lisa(Yield1.resid.lisa, negh.mean=FALSE)
+@
+
+<<>>=
+Yield7.resid.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$Yield7.resid,
+                              neigh=10, resamp=500, quiet=TRUE)
+@
+
+<<Yield7LISA,fig=TRUE,width=6,height=6>>=
+plot.lisa(Yield7.resid.lisa, negh.mean=FALSE)
+@
+
+<<>>=
+Yield13.resid.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$Yield13.resid,
+                               neigh=10, resamp=500, quiet=TRUE)
+@
+
+<<Yield13LISA,fig=TRUE,width=6,height=6>>=
+plot.lisa(Yield13.resid.lisa, negh.mean=FALSE)
+@
+
+<<>>=
+setwd(initwd)
+@
+
+\end{document}

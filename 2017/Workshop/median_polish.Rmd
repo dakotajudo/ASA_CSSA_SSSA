@@ -1,0 +1,10 @@
+---
+title: "Median Polish"
+author: "Peter Claussen"
+date: "9/5/2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+See roel.a-2004 for use.

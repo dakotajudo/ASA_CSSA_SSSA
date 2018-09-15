@@ -1,0 +1,20 @@
+---
+title: "Misc"
+author: "Peter Claussen"
+date: "9/5/2017"
+output:
+  html_document: default
+---
+
+Let's consider a full field,
+
+```{r}
+raw.dat <- read.csv("80-geo+referenced+annual+crop+yields+raw+data.csv",header=TRUE,comment.char = "#")
+processed.dat <- read.csv("185-geo+referenced+annual+crop+yields+processed.csv",header=TRUE,comment.char = "#")
+```
+
+```{r}
+summary(raw.dat)
+summary(processed.dat)
+```
+

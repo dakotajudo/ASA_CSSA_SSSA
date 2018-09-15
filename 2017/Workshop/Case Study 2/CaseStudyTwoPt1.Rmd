@@ -1,0 +1,196 @@
+---
+title: "Case Study 2, Part 1"
+author: "Peter Claussen"
+date: "10/3/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r}
+library(MASS)
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+```
+
+We have two examples of corn fields planted with multiple varieties. Can we detect differences among varieties?
+
+# Processing
+
+The first step is to load each file and process
+
+```{r}
+EastQuarter.dat <- read.csv("East Quarter.csv",header=TRUE,comment.char = "#")
+head(EastQuarter.dat)
+North80.dat <- read.csv("North 80.csv",header=TRUE,comment.char = "#")
+head(North80.dat)
+```
+
+We write a function to standardize each file.
+
+```{r}
+metric_from_gps <- function(longitude, latitude, origin=c(0,0)) {
+  if(origin[1]==0) {
+    origin <- c(min(longitude),min(latitude))
+  }
+  mid_latitude <- (origin[2] + max(latitude))/2
+  
+  easting <- longitude - origin[1]
+  northing <- latitude - origin[2]
+  
+  m_per_deg_lat = 111132.954 - 559.822 * cos(2.0 * mid_latitude) + 1.175 * cos(4.0 * mid_latitude)
+  m_per_deg_lon = (3.14159265359/180 ) * 6367449 * cos(mid_latitude)
+  easting <- easting*m_per_deg_lon
+  northing <- northing*m_per_deg_lat
+  
+  return(list(northing=northing,
+              easting=easting,
+              origin=origin,
+              m_per_deg_lon=m_per_deg_lon,
+              m_per_deg_lat=m_per_deg_lat))
+}
+
+
+standardize.field <- function(field.dat,origin=c(0,0)) {
+  
+  #we will aggregate those values which can be averaged.
+  col.names = names(field.dat)
+  drop.columns = c(
+    which(col.names=="Field"),
+    which(col.names=="Dataset"),
+    which(col.names=="Product"),
+    which(col.names=="Desc")
+  )
+  #convert date-time to seconds
+  field.dat$DateTime <- as.POSIXct(as.character(field.dat[,1]), 
+                                       format = "%m/%d/%Y %I:%M:%S %p",tz = "")
+  field.dat$Seconds <- field.dat$DateTime - field.dat$DateTime[1]
+  aggregate.dat <- field.dat[,-1]
+  
+  #remove trivial values
+  field.dat <- subset(field.dat,field.dat$Yield!=0)
+  
+  meters <- metric_from_gps(field.dat$Longitude,
+                            field.dat$Latitude,
+                            origin)
+  #convert longitude and latitude to meters
+  field.dat$Easting <- meters$easting
+  field.dat$Northing <- meters$northing
+  
+  #compute a quantile
+  field.dat$Rank <- rank(field.dat$Yield)
+  field.dat$Quantile <- field.dat$Rank/length(field.dat$Rank)
+  field.dat$Percent <- 100*field.dat$Yield/median(field.dat$Yield)
+  return(field.dat)
+}
+```
+
+# East Quarter
+
+I've already inspected the data to determine which part of the field has strips. We'll truncate to something reasonably square and balanced with regard to variety placement.
+
+```{r, ProcessEastQuarter}
+EastQuarter.dat$Yield <- EastQuarter.dat$YldVolDry
+EastQuarter.dat <- standardize.field(EastQuarter.dat)
+EastQuarter.dat$Product <- as.factor(EastQuarter.dat$Product)
+```
+
+```{r, SubsetEastQuarter}
+EastQuarter.dat <- subset(EastQuarter.dat,EastQuarter.dat$Easting>=180)
+EastQuarter.dat$Easting <- EastQuarter.dat$Easting - min(EastQuarter.dat$Easting)
+EastQuarter.dat <- subset(EastQuarter.dat,EastQuarter.dat$Easting<=400)
+
+EastQuarter.dat <- subset(EastQuarter.dat,EastQuarter.dat$Northing>=435)
+EastQuarter.dat$Northing <- EastQuarter.dat$Northing - min(EastQuarter.dat$Northing)
+EastQuarter.dat <- subset(EastQuarter.dat,EastQuarter.dat$Northing<=145)
+
+EastQuarter.dat$Product <- as.factor(as.character(EastQuarter.dat$Product))
+```
+
+```{r,fig.width=8,fig.height=4, EastQuarterProduct}
+ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Product),size=2) + 
+scale_colour_manual(values=cbPalette) +
+labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+```
+
+```{r,EastQuarterHistogram}
+truehist(EastQuarter.dat$Yield)
+```
+
+```{r,fig.width=8,fig.height=4, EastQuarterYield}
+ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+```
+
+```{r,fig.width=8,fig.height=4, EastQuarterQuantile}
+ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Quantile),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Quantile", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+```
+
+# North
+
+```{r,ProcessNorthQuarter}
+North80.dat$Yield <- North80.dat$YldVolDry
+North80.dat <- standardize.field(North80.dat)
+
+North80.dat <- subset(North80.dat,North80.dat$Northing>=25)
+North80.dat$Northing <- North80.dat$Northing - min(North80.dat$Northing)
+North80.dat <- subset(North80.dat,North80.dat$Northing<=300)
+
+North80.dat <- subset(North80.dat,North80.dat$Easting>=740)
+North80.dat <- subset(North80.dat,North80.dat$Easting<=920)
+
+North80.dat$Easting <- North80.dat$Easting - min(North80.dat$Easting)
+
+North80.dat$Product <- as.factor(as.character(North80.dat$Product))
+```
+
+```{r,fig.width=6,fig.height=8}
+ggplot(North80.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Product),size=2) + 
+scale_colour_manual(values=cbPalette) +
+labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "North 80")
+```
+
+```{r,fig.width=6,fig.height=8}
+ggplot(North80.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "North 80")
+```
+
+
+```{r}
+truehist(North80.dat$Yield)
+```
+
+```{r,fig.width=6,fig.height=8}
+ggplot(North80.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Quantile),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Quantile", x="Longitude (m)", y="Latitude (m)", title = "North 80")
+```
+
+
+```{r}
+summary(aov(lm(Yield ~ Product,data=EastQuarter.dat)))
+summary(aov(lm(Quantile ~ Product,data=EastQuarter.dat)))
+tapply(EastQuarter.dat$Yield,list(EastQuarter.dat$Product),mean)
+tapply(EastQuarter.dat$Quantile,list(EastQuarter.dat$Product),mean)
+```
+
+```{r}
+summary(aov(lm(Yield ~ Product,data=North80.dat)))
+summary(aov(lm(Quantile ~ Product,data=North80.dat)))
+tapply(North80.dat$Yield,list(North80.dat$Product),mean)
+tapply(North80.dat$Quantile,list(North80.dat$Product),mean)
+```
+
+```{r}
+save(EastQuarter.dat,North80.dat,file="Strips.Rda")
+```

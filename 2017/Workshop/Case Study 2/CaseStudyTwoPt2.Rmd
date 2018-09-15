@@ -1,0 +1,194 @@
+---
+title: "Case Study 2, Part 2"
+author: "Peter Claussen"
+date: "10/3/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r}
+library(ggplot2)
+library(rsm)
+library(ncf)
+library(ape)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+```
+
+
+
+# East Quarter
+
+```{r}
+load(file="Strips.Rda")
+```
+
+
+```{r,fig.width=8,fig.height=4, EastQuarterProduct}
+ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Product),size=2) + 
+scale_colour_manual(values=cbPalette) +
+labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+```
+
+We'll want to look at measures of spatial correlation, but first let's try to determine a trend model for each. We aren't too interested in kriging, since we won't be trying to map yields to a uniform set of points.
+
+## Trend Surface
+
+```{r}
+Yield5.lm <- lm(Yield ~ poly(Easting, Northing, degree=5), data=EastQuarter.dat)
+Yield7.lm <- lm(Yield ~ poly(Easting, Northing, degree=7), data=EastQuarter.dat)
+Yield9.lm <- lm(Yield ~ poly(Easting, Northing, degree=9), data=EastQuarter.dat)
+Yield11.lm <- lm(Yield ~ poly(Easting, Northing, degree=11), data=EastQuarter.dat)
+```
+
+
+```{r,fig.width=8,fig.height=12}
+par(mfrow=c(4,1))
+contour(Yield5.lm, Northing ~ Easting, image = TRUE,main="Poly 5")
+contour(Yield7.lm, Northing ~ Easting, image = TRUE,main="Poly 7")
+contour(Yield9.lm, Northing ~ Easting, image = TRUE,main="Poly 9")
+contour(Yield11.lm, Northing ~ Easting, image = TRUE,main="Poly 11")
+par(mfrow=c(1,1))
+```
+
+I'm concerned that Poly 11 might be overfitting in the lower left corner, so we'll choose Poly 9 (note - we could continue with diagnostics of Local I to check that assertion).
+
+```{r,ExtractResiduals}
+EastQuarter.dat$Yield9.resid <- Yield9.lm$residuals
+```
+
+# Check for white noise
+
+```{r,ComputeDistance}
+Distance.mat <- as.matrix(dist(cbind(EastQuarter.dat$Easting, EastQuarter.dat$Northing)))
+Distance.mat <- 1/Distance.mat
+diag(Distance.mat) <- 0
+```
+
+```{r,ComputeI}
+print(Moran9Yield <-Moran.I(EastQuarter.dat$Yield, Distance.mat))
+print(Moran9Resid <-Moran.I(EastQuarter.dat$Yield9.resid, Distance.mat))
+```
+
+
+
+# Local Correlation 
+
+Resampling can take a very long time, so I'll use a flag to control whether we resample or simply plot local measures. Resampling is needed for p-values; I'm not concerned about p-values for the points in the correlogram.
+
+```{r}
+resample = 100
+```
+
+## Correlation in Yield
+```{r,Yield9Correlog}
+Yield.clg <- correlog(EastQuarter.dat$Easting, EastQuarter.dat$Northing, EastQuarter.dat$Yield, 
+                          increment=5, resamp=0, quiet=TRUE)
+plot(Yield.clg)
+```
+
+```{r,Yield9LISA, fig.width=8,fig.height=5}
+Yield9.lisa <- lisa(EastQuarter.dat$Easting, EastQuarter.dat$Northing, EastQuarter.dat$Yield, 
+                         neigh=10, resamp=resample, quiet=TRUE)
+plot.lisa(Yield9.lisa, negh.mean=FALSE)
+```
+
+## Correlation in Yield Residuals
+
+```{r,Yield9ResidualsCorrelog}
+Yield9.resid.clg <- correlog(EastQuarter.dat$Easting, EastQuarter.dat$Northing, EastQuarter.dat$Yield9.resid, 
+                          increment=5, resamp=0, quiet=TRUE)
+plot(Yield9.resid.clg)
+```
+
+```{r,Yield9ResidualsLISA, fig.width=8,fig.height=5}
+Yield9.resid.lisa <- lisa(EastQuarter.dat$Easting, EastQuarter.dat$Northing, EastQuarter.dat$Yield9.resid, 
+                         neigh=10, resamp=resample, quiet=TRUE)
+plot.lisa(Yield9.resid.lisa, negh.mean=FALSE)
+```
+
+```{r,fig.width=8,fig.height=5}
+contour(Yield9.lm, Northing ~ Easting, image = TRUE,main="Poly 9")
+```
+
+## Correlation in Quantiles
+
+```{r}
+Quantile9.lm <- lm(Quantile ~ poly(Easting, Northing, degree=9), data=EastQuarter.dat)
+EastQuarter.dat$Quantile9.resid <- Quantile9.lm$residuals
+```
+
+```{r,QuantilesCorrelog}
+Quantile.clg <- correlog(EastQuarter.dat$Easting, EastQuarter.dat$Northing, EastQuarter.dat$Quantile, 
+                          increment=5, resamp=0, quiet=TRUE)
+plot(Quantile.clg)
+```
+
+```{r,QuantilesResidualsCorrelog}
+Quantile.resid.clg <- correlog(EastQuarter.dat$Easting, EastQuarter.dat$Northing, EastQuarter.dat$Quantile9.resid, 
+                          increment=5, resamp=0, quiet=TRUE)
+plot(Quantile.resid.clg)
+```
+
+```{r,QuantileLISA, fig.width=8,fig.height=5}
+Quantile.lisa <- lisa(EastQuarter.dat$Easting, EastQuarter.dat$Northing, EastQuarter.dat$Quantile9, 
+                         neigh=10, resamp=resample, quiet=TRUE)
+plot.lisa(Quantile.lisa, negh.mean=FALSE)
+```
+
+```{r,QuantileResidualsLISA, fig.width=8,fig.height=5}
+Quantile.resid.lisa <- lisa(EastQuarter.dat$Easting, EastQuarter.dat$Northing, EastQuarter.dat$Quantile9.resid, 
+                         neigh=10, resamp=resample, quiet=TRUE)
+plot.lisa(Quantile.resid.lisa, negh.mean=FALSE)
+```
+
+# Trend + Variety AOV
+
+Does including variety (`Product`) in the model improve spatial correlation?
+
+```{r}
+YieldVariety5.lm <- lm(Yield ~ poly(Easting, Northing, degree=5) + Product, data=EastQuarter.dat)
+summary(aov(YieldVariety5.lm))
+YieldVariety9.lm <- lm(Yield ~ poly(Easting, Northing, degree=9) + Product, data=EastQuarter.dat)
+summary(aov(YieldVariety9.lm))
+YieldVariety11.lm <- lm(Yield ~ poly(Easting, Northing, degree=11) + Product, data=EastQuarter.dat)
+summary(aov(YieldVariety11.lm))
+```
+
+```{r,fig.width=8,fig.height=8}
+par(mfrow=c(2,1))
+contour(Yield9.lm, Northing ~ Easting, image = TRUE,main="Poly 9")
+contour(YieldVariety9.lm, Northing ~ Easting, image = TRUE,main="Poly 9 + Product")
+par(mfrow=c(1,1))
+```
+
+```{r}
+EastQuarter.dat$YieldVariety9.resid <- YieldVariety9.lm$residuals
+print(Moran9Variety <-Moran.I(EastQuarter.dat$YieldVariety9.resid, Distance.mat))
+```
+
+```{r,YieldVariety9ResidualsCorrelog}
+YieldVariety9.resid.clg <- correlog(EastQuarter.dat$Easting, EastQuarter.dat$Northing, EastQuarter.dat$YieldVariety9.resid, 
+                          increment=5, resamp=0, quiet=TRUE)
+plot(YieldVariety9.resid.clg)
+```
+
+```{r,YieldVariety9ResidualsLISA, fig.width=8,fig.height=5}
+YieldVariety9.resid.lisa <- lisa(EastQuarter.dat$Easting, EastQuarter.dat$Northing, EastQuarter.dat$YieldVariety9.resid, 
+                         neigh=10, resamp=resample, quiet=TRUE)
+plot.lisa(YieldVariety9.resid.lisa, negh.mean=FALSE)
+```
+
+```{r}
+library(lsmeans)
+Yield.lm <- lm(Yield ~ Product, data=EastQuarter.dat)
+lsmeans(Yield.lm, cld ~ Product)
+lsmeans(YieldVariety5.lm, cld ~ Product)
+lsmeans(YieldVariety9.lm, cld ~ Product)
+lsmeans(YieldVariety11.lm, cld ~ Product)
+```
+
+
+
+

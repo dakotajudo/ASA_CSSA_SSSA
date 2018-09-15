@@ -1,0 +1,432 @@
+\documentclass{report}
+\usepackage{amsmath}
+\usepackage[]{algorithm2e}
+
+\begin{document}
+
+\title{Plots}
+\author{Peter Claussen}\maketitle
+
+<<echo=false>>=
+library(MASS)
+library(moments)
+library(ggplot2)
+library(gridExtra)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442", "#CC79A7","#000000")
+@
+
+<<>>=
+load(file="autocorrelation.Rda")
+load(file="sample.dat.Rda")
+sample.dat$Seconds <- as.numeric(sample.dat$DateTime - sample.dat$DateTime[1],units = "secs")
+sample.dat$Seconds <- sample.dat$Seconds -  min(sample.dat$Seconds)+1
+
+attach(autocorrelation.dat)
+@
+
+<<>>=
+initwd <- getwd() 
+setwd("./working")
+@
+
+
+<<WhiteNoise,fig=TRUE,width=8,height=3>>=
+ggplot(autocorrelation.dat, aes(index, white.noise)) + 
+  geom_point(color=cbPalette[2],size = 2) + 
+  geom_line(color=cbPalette[1]) +
+  labs(x="Index", y=expression(y[i]))
+@
+
+   
+<<RandomWalk,fig=TRUE,width=8,height=3>>=
+ggplot(autocorrelation.dat, aes(index, random.walk)) + 
+  geom_point(color=cbPalette[2],size = 2) + 
+  geom_line(color=cbPalette[1]) +
+  labs(x="Index", y=expression(y[i]))
+@
+
+<<Autoregressive,fig=TRUE,width=8,height=3>>=
+ggplot(autocorrelation.dat, aes(index, autoregressive)) + 
+  geom_point(color=cbPalette[2],size = 2) + 
+  geom_line(color=cbPalette[1]) +
+  labs(x="Index", y=expression(y[i]))
+@
+
+<<>>=
+autocorrelation.dat$autoregressive.5 <- rep(0,200)
+autocorrelation.dat$autoregressive.9 <- rep(0,200)
+autocorrelation.dat$autoregressive.99 <- rep(0,200)
+autocorrelation.dat$autoregressive.101 <- rep(0,200)
+autocorrelation.dat$autoregressive.102 <- rep(0,200)
+for(i in 2:200) {
+  autocorrelation.dat$autoregressive.5[i] <- 0.5*autocorrelation.dat$autoregressive.5[i-1]+white.noise[i]
+  autocorrelation.dat$autoregressive.99[i] <- 0.99*autocorrelation.dat$autoregressive.99[i-1]+white.noise[i]
+  autocorrelation.dat$autoregressive.101[i] <- 1.01*autocorrelation.dat$autoregressive.101[i-1]+white.noise[i]
+  autocorrelation.dat$autoregressive.102[i] <- 1.02*autocorrelation.dat$autoregressive.102[i-1]+white.noise[i]
+}
+@
+
+<<AutoregressiveComp,fig=TRUE,width=8,height=5>>=
+grid.arrange(
+  arrangeGrob(
+    ggplot(autocorrelation.dat, aes(index, autoregressive.5)) + 
+      geom_point(color=cbPalette[2],size = 1) + 
+      geom_line(color=cbPalette[1]) +
+      labs(x="Index", y=expression(y[i] == mu + 0.5 * y[i-1] + e[i]))
+,
+ggplot(autocorrelation.dat, aes(index, autoregressive.99)) + 
+  geom_point(color=cbPalette[2],size = 1) + 
+  geom_line(color=cbPalette[1]) +
+  labs(x="Index", y=expression(y[i] == mu + 0.99 * y[i-1] + e[i]))
+,
+ggplot(autocorrelation.dat, aes(index, autoregressive.101)) + 
+  geom_point(color=cbPalette[2],size = 1) + 
+  geom_line(color=cbPalette[1]) +
+  labs(x="Index", y=expression(y[i] == mu + 1.01 * y[i-1] + e[i])),
+  ggplot(autocorrelation.dat, aes(index, autoregressive.102)) + 
+    geom_point(color=cbPalette[2],size = 1) + 
+    geom_line(color=cbPalette[1]) +
+    labs(x="Index", y=expression(y[i] == mu + 1.02 * y[i-1] + e[i])),
+ncol=2
+      ))
+@
+
+<<MovingAverage,fig=TRUE,width=8,height=3>>=
+ggplot(autocorrelation.dat, aes(index, moving.average)) + 
+  geom_point(color=cbPalette[2],size = 2) + 
+  geom_line(color=cbPalette[1]) +
+  labs(x="Index", y=expression(y[i]))
+@
+
+
+<<>>=
+autocorrelation.dat$moving.average.plus8 <- rep(0,200)
+autocorrelation.dat$moving.average.minus8 <- rep(0,200)
+autocorrelation.dat$moving.average.minus2 <- rep(0,200)
+autocorrelation.dat$moving.average.plus2 <- rep(0,200)
+
+for(i in 2:200) {
+  autocorrelation.dat$moving.average.plus8[i] <- 0.8*white.noise[i-1]+white.noise[i]
+  autocorrelation.dat$moving.average.minus8[i] <- (-0.8)*white.noise[i-1]+white.noise[i]
+  autocorrelation.dat$moving.average.minus2[i] <- (-0.2)*white.noise[i-1]+white.noise[i]
+  autocorrelation.dat$moving.average.plus2[i] <- 0.2*white.noise[i-1]+white.noise[i]
+}
+@
+
+<<MovingAverageComp,fig=TRUE,width=8,height=5>>=
+grid.arrange(
+  arrangeGrob(
+    ggplot(autocorrelation.dat[1:100,], aes(index, moving.average.plus2)) + 
+      geom_point(color=cbPalette[2],size = 1) + 
+      geom_line(color=cbPalette[1]) +
+      labs(x="Index", y=expression(y[i] == mu + 0.2 * e[i-1] + e[i])),
+      
+     ggplot(autocorrelation.dat[1:100,], aes(index, moving.average.plus8)) + 
+       geom_point(color=cbPalette[2],size = 1) + 
+       geom_line(color=cbPalette[1]) +
+       labs(x="Index", y=expression(y[i] == mu + 0.8 * e[i-1] + e[i])),
+        
+     ggplot(autocorrelation.dat[1:100,], aes(index, moving.average.minus2)) + 
+       geom_point(color=cbPalette[2],size = 1) + 
+       geom_line(color=cbPalette[1]) +
+       labs(x="Index", y=expression(y[i] == mu + (-0.2) * e[i-1] + e[i])),
+    
+     ggplot(autocorrelation.dat[1:100,], aes(index, moving.average.minus8)) + 
+       geom_point(color=cbPalette[2],size = 1) + 
+      geom_line(color=cbPalette[1]) +
+      labs(x="Index", y=expression(y[i] == mu + (-0.8) * e[i-1] + e[i])),
+ncol=2
+      ))
+@
+
+
+<<Trend,fig=TRUE,width=8,height=3>>=
+ggplot(autocorrelation.dat, aes(index, trend.error)) + 
+  geom_point(color=cbPalette[2],size = 2) + 
+  geom_line(color=cbPalette[1]) +
+  labs(x="Index", y=expression(y[i]))
+@
+
+
+
+
+
+
+
+<<>>=
+arima(autoregressive,c(1,0,0))
+arima(autoregressive,c(1,0,0), xreg=0:199)
+arima(moving.average,c(0,0,1))
+@
+
+This seems to recover our simulated parameters well; we started with 
+
+$$ \alpha = 0.8 , \beta=0.8, \sigma^2 = 1 $$ 
+
+and estimated 
+
+$$ \hat{\alpha} = 0.7376, \hat{\beta}=0.0.7827 , \hat{\sigma}_{AR} ^2 = 0.8958,  \hat{\sigma}_{MA} ^2 = 0.9069 $$
+
+
+If we fit a first order AR MA model, we find this also finds reasonable parameters
+<<>>=
+arima(autoregressive,c(1,0,1))
+arima(moving.average,c(1,0,1))
+@
+
+What we should also note from this is that the AIC values suggest that in each case, the smaller model (AR or MA only) is a better fit than the combined ARMA model for our simulated data.
+
+We also consider the other artificial series.
+
+<<>>=
+arima(white.noise,c(1,0,1))
+@
+The white noise data set finds $\alpha$ and  $\beta$ at the extremes.
+
+<<>>=
+arima(random.walk,c(1,0,1))
+@
+
+
+<<>>=
+arima(autoregressive,c(2,0,2))
+arima(moving.average,c(2,0,2))
+arima(white.noise,c(2,0,2))
+arima(random.walk,c(2,0,2))
+@
+
+Remember, a random walk is equivalent to an AR model with $\alpha = 1$.
+
+Most interestling, we have an error fitting the trend with error modeling. We discuss this error more when we consider stationarity.
+<<>>=
+#Error in arima(trend.error, c(1, 0, 1)) : non-stationary AR part from CSS
+#arima(trend.error,c(1,0,1))
+@
+
+# Autocorrelated Series from Yield Monitor Data
+
+Before we consider the strictly spatial components of yield monitor data, we should first consider the temporal component. Remember, as the combined is traveling in a straight line in space, it is also moving in time, and there is a temporal mixing process involved, as grain moves through the thresher. How much of yield monitor data can be described using only autocorrelation in a single direction?
+
+We'll use just single pass from a sample data set. We'll start with a short section.
+
+## Portion of a single pass
+
+<<>>=
+sample.pass13.dat <- sample.dat[sample.dat$PassNum==13,]
+sample.pass14.dat <- sample.dat[sample.dat$PassNum==14,]
+sample.pass15.dat <- sample.dat[sample.dat$PassNum==15,]
+head(sample.pass14.dat)
+sample.dropped.dat <- sample.pass15.dat
+@
+
+## ARMA model fit
+
+### Distance
+
+<<Distance,fig=TRUE,width=8,height=3>>=
+plot(sample.dropped.dat$Distance)
+@
+
+<<Distance13,fig=TRUE,width=8,height=3>>=
+plot(Distance ~ Seconds, data=sample.pass13.dat)
+@
+<<Distance14,fig=TRUE,width=8,height=3>>=
+plot(Distance ~ Seconds, data=sample.pass14.dat)
+@
+
+<<Distance,fig=TRUE,width=8,height=3>>=
+ggplot(sample.dropped.dat, aes(Seconds, Distance)) + 
+  geom_point(color=cbPalette[2],size = 2) + 
+  geom_line(color=cbPalette[1]) +
+  labs(colour = "Distance", x="Seconds", y="feet")
+@
+
+
+<<>>=
+arima(sample.dropped.dat$Distance, order = c(1,0,0))
+arima(sample.dropped.dat$Distance, order = c(0,0,1))
+arima(sample.dropped.dat$Distance, order = c(1,0,1))
+arima(sample.dropped.dat$Distance, order = c(2,0,2))
+arima(sample.dropped.dat$Distance, order = c(3,0,3))
+@
+
+Distance seems to be simply represented by a first order moving average process, AIC for c(0,0,1) smallest at -142.51.
+
+### Moisture
+
+<<Moisture,fig=TRUE,width=8,height=3>>=
+ggplot(sample.dropped.dat, aes(Seconds, Moisture)) + 
+  geom_point(color=cbPalette[2],size = 2) + 
+  geom_line(color=cbPalette[1]) +
+  labs(colour = "Moisture", x="Seconds", y="percent")
+@
+
+
+<<>>=
+arima(sample.dropped.dat$Moisture, order = c(1,0,0))
+arima(sample.dropped.dat$Moisture, order = c(0,0,1))
+arima(sample.dropped.dat$Moisture, order = c(1,0,1))
+arima(sample.dropped.dat$Moisture, order = c(2,0,2))
+arima(sample.dropped.dat$Moisture, order = c(3,0,3))
+@
+
+### Yield
+We have raw yield measurements, and yield adjusted for moisture.
+ 
+<<Yield,fig=TRUE,width=8,height=3>>=
+ggplot(sample.dropped.dat, aes(Seconds, Yield)) + 
+  geom_point(color=cbPalette[2],size = 2) + 
+  geom_line(color=cbPalette[1]) +
+  labs(colour = "Yield", x="Seconds", y="bu/acre")
+@
+
+<<YldMassWet,fig=TRUE,width=8,height=3>>=
+plot(sample.dropped.dat$YldMassWet)
+@
+
+<<YieldvsYldMassWet,fig=TRUE,width=8,height=3>>=
+plot(Yield ~ YldMassWet,data=sample.dropped.dat)
+@
+
+### YldVolDry vs YldWet
+
+<<>>=
+arima(sample.dropped.dat$Yield, order = c(1,0,0))
+arima(sample.dropped.dat$Yield, order = c(0,0,1))
+arima(sample.dropped.dat$Yield, order = c(1,0,1))
+@
+
+<<>>=
+arima(sample.dropped.dat$YldMassWet, order = c(1,0,0))
+arima(sample.dropped.dat$YldMassWet, order = c(0,0,1))
+arima(sample.dropped.dat$YldMassWet, order = c(1,0,1))
+@
+
+<<>>=
+arima(sample.dropped.dat$Yield, order = c(2,0,2))
+arima(sample.dropped.dat$YldMassWet, order = c(2,0,2))
+@
+
+<<>>=
+arima(sample.dropped.dat$Yield, order = c(3,0,3))
+arima(sample.dropped.dat$YldMassWet, order = c(3,0,3))
+@
+
+<<Heading,fig=TRUE,width=8,height=3>>=
+plot(sample.dropped.dat$Heading)
+@
+
+<<Heading,fig=TRUE,width=8,height=3>>=
+ggplot(sample.dropped.dat, aes(Seconds, Heading)) + 
+  geom_point(color=cbPalette[2],size = 2) + 
+  geom_line(color=cbPalette[1]) +
+  labs(colour = "Heading", x="Seconds", y="Degrees")
+@
+
+<<>>=
+arima(sample.dropped.dat$Heading, order = c(1,0,0))
+arima(sample.dropped.dat$Heading, order = c(0,0,1))
+arima(sample.dropped.dat$Heading, order = c(1,0,1))
+arima(sample.dropped.dat$Heading, order = c(2,0,2))
+arima(sample.dropped.dat$Heading, order = c(3,0,3))
+@
+
+ Assumptions, Normal I.I.D.
+
+These types of autocorrelation will frequently cause data to fail the standard assumptions of the analysis of variance - that errors are normally, independently and identically distributed. We can test for assumptions of normality in R by
+
+ White Noise
+
+<<>>=
+jarque.test(white.noise)
+anscombe.test(white.noise)
+agostino.test(white.noise)
+@
+
+Random Walk
+
+<<>>=
+jarque.test(random.walk)
+anscombe.test(random.walk)
+agostino.test(random.walk)
+
+@
+
+Autoregressive
+
+<<>>=
+jarque.test(autoregressive)
+anscombe.test(autoregressive)
+agostino.test(autoregressive)
+
+@
+
+Moving Average
+
+<<>>=
+jarque.test(moving.average)
+anscombe.test(moving.average)
+agostino.test(moving.average)
+
+@
+
+<<MonitorHistograms,fig=TRUE,width=8,height=8>>=
+par(mfrow=c(2,2))
+truehist(white.noise)
+truehist(random.walk)
+truehist(autoregressive)
+truehist(moving.average)
+par(mfrow=c(1,1))
+@
+
+Yield
+
+<<>>=
+jarque.test(sample.pass14.dat$Yield)
+anscombe.test(sample.pass14.dat$Yield)
+agostino.test(sample.pass14.dat$Yield)
+@
+
+Moisture
+
+<<>>=
+jarque.test(sample.pass14.dat$Moisture)
+anscombe.test(sample.pass14.dat$Moisture)
+agostino.test(sample.pass14.dat$Moisture)
+
+@
+
+Distance
+
+<<>>=
+jarque.test(sample.pass14.dat$Distance)
+anscombe.test(sample.pass14.dat$Distance)
+agostino.test(sample.pass14.dat$Distance)
+
+@
+
+
+<<MonitorHistograms,fig=TRUE,width=6,height=8>>=
+par(mfrow=c(2,2))
+truehist(sample.pass14.dat$Yield)
+truehist(sample.pass14.dat$Moisture)
+truehist(sample.pass14.dat$Distance)
+par(mfrow=c(1,1))
+@
+
+
+<<>>=
+arima(sample.pass13.dat$Yield, order = c(1,0,1))
+arima(sample.pass13.dat$Yield, order = c(1,0,1),xreg=sample.pass13.dat$Seconds)
+arima(sample.pass14.dat$Yield, order = c(1,0,1))
+arima(sample.pass14.dat$Yield, order = c(1,0,1),xreg=sample.pass14.dat$Seconds)
+
+arima(sample.dat$Yield, order = c(1,0,1))
+arima(sample.dat$Yield, order = c(1,0,1),xreg=sample.dat$Seconds)
+@
+
+<<>>=
+setwd(initwd)
+@
+
+\end{document}

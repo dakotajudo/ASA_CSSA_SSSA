@@ -1,0 +1,433 @@
+---
+title: "Spatial Correlation"
+author: "Peter Claussen"
+date: "9/5/2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Libraries
+
+### ape : Analyses of Phylogenetics and Evolution
+```{r}
+library(ape)
+```
+
+### ncf : Spatial Nonparametric Covariance Functions
+```{r}
+library(ncf)
+```
+
+### spdep : Spatial Dependence: Weighting Schemes, Statistics and Models
+```{r}
+library(spdep)
+```
+
+# Data
+
+```{r}
+load(file="sample.dat.Rda")
+```
+
+
+In this section, we extend the concept of autocorrelation to two dimensions, but using pointwise covariance (instead of lag classes). The produces single a measure of spatial correlation across a region.
+
+# Moran I
+
+We start with the most common statistic for spatial autocorrelation Moran's I, given by
+
+$$
+I = \frac{N}{\Sigma _{i}\Sigma _{j}w_{ij}} \frac{\Sigma _{i}\Sigma _{j}w_{ij}(y_i-\bar{y})(y_j-\bar{y})}{\Sigma _{i}(y_i-\bar{y})^2}
+$$
+
+where $w$ is a neighbor weight matrix such that $w_{ii}=0$.
+
+( Alternate notations - note that $N/{\Sigma _{i}(y_i-\bar{y})^2}$  is equivalent to the $1/S_i^2$ )
+
+The expected value of Moran's I, under no spatial correlation, is $E(I) = \frac{-1}{N-1}$. If data are perfectly dispersed (i.e. checkerboard), then I = -1, while a balanced arrangement (large values to one side, small values to the other) approaches 1.
+
+## Neighbors
+
+There are many ways to compute a neighbor matrix, largely depending on the nature of the spatial data. Data that are generated from areal maps, forming grids or lattices, use rules such as "rook" or "queen" neighbors. We'll consider those when we move to grid cell yield maps. 
+For now, our neighbor weights can be compute more simply. Since our points are randomly selected, we can use the inverse of the distance between points; thus, pairs of points that are closer in space will have larger $w_{ij}$ values. We don't need to be concerned about the dimensions, since the coefficient $1/\Sigma _{i}\Sigma _{j}w_{ij}$ normalizes $w$.
+
+Using our subset data from before, we'll first create a simulated data set with a clear spatial gradient from north to south.
+
+```{r}
+YieldOrdered <- sample.dat$Yield[order(sample.dat$Yield)]
+LatRank <- rank(sample.dat$Latitude)
+sample.dat$YieldOrdered <- YieldOrdered[LatRank]
+```
+
+```{r,fig.width=4,fig.height=6}
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+
+ggplot(sample.dat, aes(Longitude, Latitude)) + 
+geom_point(aes(colour = YieldOrdered),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[5]) +
+labs(colour = "Ordered Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+
+For contrast, we create a checkerboard pattern,
+
+```{r}
+mean.yld <- mean(sample.dat$Yield)
+sd.yld <- sd(sample.dat$Yield)
+
+is.even <- function(x) {x %% 2 == 0}
+
+for(i in 1:length(sample.dat$Yield)) {
+  if(is.even(i)) {
+    sample.dat$YieldChecked[i] <- mean.yld + sd.yld
+  } else {
+    sample.dat$YieldChecked[i] <- mean.yld - sd.yld
+  }
+}
+```
+
+```{r,fig.width=4,fig.height=6}
+ggplot(sample.dat, aes(Longitude, Latitude)) + 
+geom_point(aes(colour = YieldChecked),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[5]) +
+labs(colour = "Ordered Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+We'll flip alternate points in the ordered gradient to produce a disordered pattern,
+```{r}
+length(YieldOrdered)
+mid <- floor(length(YieldOrdered)/2)
+evens <- (1:mid)*2
+odds <- rev(evens)+1
+idx <- c()
+for(i in 1:mid) {
+  idx <- c(idx,evens[i],odds[i])
+}
+skips <- c(1,idx)
+length(skips)
+head(skips)
+tail(skips)
+
+YieldDisordered <- YieldOrdered[skips]
+sample.dat$YieldDisordered <- YieldDisordered[LatRank]
+```
+
+
+```{r,fig.width=4,fig.height=6}
+ggplot(sample.dat, aes(Longitude, Latitude)) + 
+geom_point(aes(colour = YieldDisordered),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[5]) +
+labs(colour = "Ordered Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+And a completely random pattern,
+```{r,fig.width=4,fig.height=6}
+sample.dat$YieldWhiteNoise <- sample(sample.dat$Yield)
+ggplot(sample.dat, aes(Longitude, Latitude)) + 
+geom_point(aes(colour = YieldWhiteNoise),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[5]) +
+labs(colour = "White Noise Yield", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+We create distance matrix using the `dist` function, then invert the distance to define our weight matrix $w$. 
+
+```{r}
+sample.gps.dists <- as.matrix(dist(cbind(sample.dat$Longitude, sample.dat$Latitude)))
+sample.gps.dists.inv <- 1/sample.gps.dists
+diag(sample.gps.dists.inv) <- 0
+
+sample.gps.dists.inv[1:5, 1:5]
+```
+
+There are many implementations of Moran's I in R; for simplicity, we'll use the one from `ape`
+
+### Ordered
+
+```{r}
+Moran.I(sample.dat$YieldOrdered, sample.gps.dists.inv)
+```
+As we might expect, $I$ for the ordered yields is relatively large. To get a larger value, realisticly, we might consider a field, split in two, and planted with two very different varieties.
+
+### Checked
+
+```{r}
+Moran.I(sample.dat$YieldChecked, sample.gps.dists.inv)
+```
+
+The checked example illustrates what is implied by a Moran's I value more negative than expected.
+
+### White Noise
+
+```{r}
+Moran.I(sample.dat$YieldWhiteNoise, sample.gps.dists.inv)
+```
+
+### Disordered and Original
+```{r}
+Moran.I(sample.dat$YieldDisordered, sample.gps.dists.inv)
+Moran.I(sample.dat$Yield, sample.gps.dists.inv)
+```
+
+Remember that Moran's I is a global measure of correlation; the large homogeneity in the center of the field masks the checkerboard pattern at the ends. Also note that the actual yield data shows somewhat more homogeneity than this example, but not nearly as much as the uniform trend.
+
+
+## Cartesian coordinates.
+
+Our discussion of local measures of spatial correlation will be easier if we can discuss 'local' in metric terms, instead of GPS coordinates. 
+
+```{r}
+sample.metric.dists <- as.matrix(dist(cbind(sample.dat$LonM, sample.dat$LatM)))
+sample.metric.dists.inv <- 1/sample.metric.dists
+diag(sample.metric.dists.inv) <- 0
+sample.metric.dists.inv[1:5, 1:5]
+```
+
+Does this affect estimates?
+
+```{r}
+Moran.I(sample.dat$Yield, sample.metric.dists.inv)
+```
+
+Yes, there is a difference, about 0.1%. `dist` computes, by default, a Euclidean distance, $\sqrt{\Sigma (x_i - y_i)^2}$ , which doesn't account for curvature found in longitude and latitude. It's small enough that we can continue to work with metric units. This will make correlagrams and neighborhoods easier to interpret.
+
+
+# Local Measures
+
+We can rewrite our formula for Moran's I, by
+
+$$
+I_i = \frac{N (y_i-\bar{y})}{\Sigma _{i}(y_i-\bar{y})^2} \Sigma _{j}w_{ij}(y_j-\bar{y})
+$$
+
+where $I_i$ is a local measure of correlation, and 
+
+$$
+I = \Sigma _{i} \frac{I_i}{N}
+$$
+
+This is the approach used in computing the Local Indicator of Spatial Association (Anselin, 1995), sometimes simply referred to as Local Moran's I. To compute a LISA statistic, we should have a measure of neighborhood. To determine a range, we can compute a correlogram (not a variogram yet) based on Moran's I, using `correlog`.
+
+`resamp` will give us a p-value for each point. We don't need this to determine a range.
+
+
+
+```{r}
+Yield.3.clg <- correlog(sample.dat$LonM, sample.dat$LatM, sample.dat$Yield, 
+                          increment=3, resamp=0, quiet=TRUE)
+plot(Yield.3.clg)
+```
+
+```{r}
+Yield.10.clg <- correlog(sample.dat$LonM, sample.dat$LatM, sample.dat$Yield, 
+                          increment=10, resamp=0, quiet=TRUE)
+plot(Yield.10.clg)
+```
+
+
+The `lisa` function requires a explicit value for neighbor distance. By examining the correlogram, we consider 60 meters (correlation approaches 0 at this range). 
+
+One word of caution about correlograms (and variograms). There are typically very few points at large distances, so we have little to work with when estimating correlation. It's usually best to ignore the rightmost portion of a correlogram, unless the plots are specifically truncated.
+
+```{r}
+Yield.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$Yield, 
+                       neigh=60, resamp=500, quiet=TRUE)
+```
+
+
+The returned values are `correlation` - Moran's I, and `mean.of.class`, the average of the distances within each distance class. We can visualize these by plotting the results.
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(Yield.lisa, negh.mean=FALSE)
+```
+
+The LISA plot denotes positive deviations from the mean with circles and negative deviations as squares; points with significant local correlation are filled.
+
+Let's recompute LISA, but with a smaller (6 m) neighborhood.
+
+```{r}
+Yield.6.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$Yield, 
+                          neigh=6, resamp=500, quiet=TRUE)
+```
+
+```{r,fig.width=4,fig.height=6}
+plot.lisa(Yield.6.lisa, negh.mean=FALSE)
+```
+
+With a smaller neighborhood, we see fewer points identified as significantly correlated.
+
+## Simulated Yield Patterns
+
+For comparison, our simulated data:
+
+### Ordered
+
+```{r}
+YieldOrdered.clg <- correlog(sample.dat$LonM, sample.dat$LatM, sample.dat$YieldOrdered,
+                                 increment=3, resamp=0, quiet=TRUE)
+plot(YieldOrdered.clg)
+```
+
+```{r,fig.width=4,fig.height=6}
+YieldOrdered.10.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YieldOrdered,
+                                 neigh=10, resamp=500, quiet=TRUE)
+plot.lisa(YieldOrdered.10.lisa, negh.mean=FALSE)
+```
+
+### Checked
+
+```{r}
+YieldChecked.clg <- correlog(sample.dat$LonM, sample.dat$LatM, sample.dat$YieldChecked,
+                                 increment=3, resamp=0, quiet=TRUE)
+plot(YieldChecked.clg)
+```
+
+```{r,fig.width=4,fig.height=6}
+YieldChecked.10.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YieldChecked,
+                                 neigh=10, resamp=500, quiet=TRUE)
+plot.lisa(YieldChecked.10.lisa, negh.mean=FALSE)
+```
+
+### White Noise
+
+```{r}
+YieldWhiteNoise.clg <- correlog(sample.dat$LonM, sample.dat$LatM, sample.dat$YieldWhiteNoise,
+                                 increment=3, resamp=0, quiet=TRUE)
+plot(YieldWhiteNoise.clg)
+```
+
+```{r,fig.width=4,fig.height=6}
+YieldWhiteNoise.10.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YieldWhiteNoise,
+                                 neigh=10, resamp=500, quiet=TRUE)
+plot.lisa(YieldWhiteNoise.10.lisa, negh.mean=FALSE)
+```
+
+### Disordered
+
+```{r}
+YieldDisordered.clg <- correlog(sample.dat$LonM, sample.dat$LatM, sample.dat$YieldDisordered, 
+                                    increment=3, resamp=0, quiet=TRUE)
+plot(YieldDisordered.clg)
+```
+
+```{r,fig.width=4,fig.height=6}
+YieldDisordered.10.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$YieldDisordered, 
+                                    neigh=10, resamp=500, quiet=TRUE)
+plot.lisa(YieldDisordered.10.lisa, negh.mean=FALSE)
+```
+
+# Other Observations
+
+For comparison, we compute global and local measures of spatial correlation for other monitor variables. 
+
+## Distance
+
+```{r}
+Moran.I(sample.dat$Distance, sample.metric.dists.inv)
+Distance.metric.clg <- correlog(sample.dat$LonM, sample.dat$LatM, sample.dat$Distance,
+                                increment=3, resamp=0, quiet=TRUE)
+plot(Distance.metric.clg)
+```
+
+```{r,fig.width=4,fig.height=6}
+Distance.10.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$Distance, 
+                         neigh=10, resamp=500, quiet=TRUE)
+plot.lisa(Distance.10.lisa, negh.mean=FALSE)
+```
+
+## Moisture
+
+```{r}
+Moran.I(sample.dat$Moisture, sample.metric.dists.inv)
+Moisture.metric.clg <- correlog(sample.dat$LonM, sample.dat$LatM, sample.dat$Moisture,
+                                increment=3, resamp=0, quiet=TRUE)
+plot(Moisture.metric.clg)
+```
+
+```{r,fig.width=4,fig.height=6}
+Moisture.10.lisa <- lisa(sample.dat$LonM, sample.dat$LatM, sample.dat$Moisture, 
+                         neigh=10, resamp=500, quiet=TRUE)
+plot.lisa(Moisture.10.lisa, negh.mean=FALSE)
+```
+
+# Other Measures of Spatial Correlation
+
+## Geary's C
+
+$$
+C = \frac{N-1}{\Sigma _{i}2\Sigma _{j}w_{ij}} \frac{\Sigma _{i}\Sigma _{j}w_{ij}(y_i-y_j)^2}{\Sigma _{i}(y_i-\bar{y})^2}
+$$
+Geary's Contiguity Ratio lies between 0 and somewhat larger than 1; values $>1$ suggest positive spatial correlation, values $<1$ suggest negative spatial correlation. In general, $C$ is more senstive to local correlation, while $I$ is a better measure of global correlation.
+
+## Getis-Ord G.
+
+$$
+G = \frac{\Sigma _{i}\Sigma _{j} w_{ij} \times y_i\times y_j}{\Sigma _{i} \Sigma _{j} y_i\times y_j}
+$$
+
+Getic-Ord G is typically interpret to represent clustering; unusually high or low values grouped together.
+
+
+### spdep
+
+The `spdep` library includes functions for many measures of spatial correlation, including $I$, $C$ and $G$. We can use the set of neighbor weights, as before, but we need to convert
+
+```{r}
+sample.metric.dists.inv.listw <-mat2listw(sample.metric.dists.inv)
+```
+
+The global G test will complain if we use continuous weights; we can create a set of neighborhood weights by
+```{r}
+neighborhood30 <- dnearneigh(cbind(sample.dat$LonM, sample.dat$LatM), 0, 30)
+neighborhood30.listw <- nb2listw(neighborhood30, style="B")
+```
+
+One thing to note that these tests default to `alternative="greater"`, unlike `Moran.I`, which defaults to `alternative = "two.sided"`
+
+### Ordered 
+
+```{r}
+moran.test(sample.dat$YieldOrdered,sample.metric.dists.inv.listw,alternative = "two.sided")
+geary.test(sample.dat$YieldOrdered,sample.metric.dists.inv.listw,alternative = "two.sided")
+globalG.test(sample.dat$YieldOrdered,neighborhood30.listw,alternative = "two.sided")
+```
+
+### Checkerboard 
+
+```{r}
+moran.test(sample.dat$YieldChecked,sample.metric.dists.inv.listw,alternative = "two.sided")
+geary.test(sample.dat$YieldChecked,sample.metric.dists.inv.listw,alternative = "two.sided")
+globalG.test(sample.dat$YieldChecked,neighborhood30.listw,alternative = "two.sided")
+```
+
+### Disordered 
+
+```{r}
+moran.test(sample.dat$YieldDisordered,sample.metric.dists.inv.listw,alternative = "two.sided")
+geary.test(sample.dat$YieldDisordered,sample.metric.dists.inv.listw,alternative = "two.sided")
+globalG.test(sample.dat$YieldDisordered,neighborhood30.listw,alternative = "two.sided")
+```
+
+### White Noise 
+
+```{r}
+moran.test(sample.dat$YieldWhiteNoise,sample.metric.dists.inv.listw,alternative = "two.sided")
+geary.test(sample.dat$YieldWhiteNoise,sample.metric.dists.inv.listw,alternative = "two.sided")
+globalG.test(sample.dat$YieldWhiteNoise,neighborhood30.listw,alternative = "two.sided")
+```
+
+
+### Yield 
+
+```{r}
+moran.test(sample.dat$Yield, sample.metric.dists.inv.listw,alternative = "two.sided")
+geary.test(sample.dat$Yield, sample.metric.dists.inv.listw,alternative = "two.sided")
+globalG.test(sample.dat$Yield, sample.metric.dists.inv.listw,alternative = "two.sided")
+globalG.test(sample.dat$Yield, neighborhood30.listw,alternative = "two.sided")
+```
+
+
+
+
+

@@ -1,0 +1,261 @@
+
+---
+title: "Kriging"
+author: "Peter Claussen"
+date: "9/5/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+### Libraries
+
+### automap : Automatic interpolation package
+
+```{r}
+library(automap)
+```
+
+```{r}
+library(gstat)
+library(geoR)
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000")
+```
+
+# Data
+```{r}
+load(file="sample.dat.Rda")
+global.cols <- c(which(names(sample.dat)=="Latitude"), which(names(sample.dat)=="Longitude"))
+metric.cols <- c(which(names(sample.dat)=="LatM"), which(names(sample.dat)=="LonM"))
+yield.col <- which(names(sample.dat)=="Yield")
+```
+
+# Introduction
+
+Suppose we have a collection of spatial data, sampled repeatedly and at random over the same space at different times - for example, yield maps for the same field from different harvest seasons. The random nature of sampling for each year means that it is very unlikely that we've measured yield at the same exact point in space for more than one year. How do we combine these data?
+
+One method is to define a grid of fixed points, sufficiently spaced to suit our needs, but no more closely spaced than our original data, and for simplicity usually evenly spaced. We will almost certainly not have observed an actual yield at each of these (unobserved) locations, so we use observations at random locations to impute values at our fixed points.
+
+Kriging is a form of interpolation, specifically in the ordinary case, a linear interpolation. We write a linear interpolator of the form
+
+$$
+\hat{Y}(x) = \Sigma _{i=1} ^n \theta_i Y(x_{i})
+$$
+
+We typically use the contrainst 
+$$\Sigma _{i=1} ^n \theta_i = 1$$
+Why? Suppose we let $\theta _i = 1/n$ for all $i$. Then
+
+$$
+\hat{Y}(x) = \Sigma _{i=1} ^n (\frac{1}{n}) Y(x_{i}) =  \frac{\Sigma _{i=1} ^n Y(x_{i})}{n}
+$$
+
+which is our usual estimate of the mean of $Y$ when $Y_i$ are uncorrelated. Since we expect the values to be uncorrelated, all values carry equal weight, and that weight is ditributed over all observations.
+
+(Note here the difference between spatial interpolation and trend analysis. Using trend analysis, we use observations to estimate parameters the product an unobserved $Y$ based on position $(lat, lon)$ in space. With the interpolation methods here, we impute $Y$ as a function of it's neighboring observations - in this way interpolation can be said to "honor the data". Once we've estimated $\beta_1,...,\beta_n$ from the data, we tend to ignore the individual $Y_i$).
+
+With spatial data, we don't assume that observations are uncorrelated. The simplest assumption for spatial data is that points are correlated by their distances -  points near to each other are more alike than points that are distant from each other. This leads a simple interpolator, the inverse distance weight interpolator.
+
+Suppose we wish to provide a value at point $Y'$. Denote the distance from $Y'$ to each $Y_i$ as $d(Y', Y_i)$. Then let
+$$
+\theta_i = \frac{d(Y', Y_i)^{-p}}{\Sigma  _{j=1} ^n d(Y', Y_j)^{-p}}
+$$
+
+for some $p \ge 1$. Obviously, if $p=1$ then
+
+$$
+\Sigma  _{i=1} ^n \theta_i = \Sigma  _{i=1} ^n  \frac{d(Y', Y_i)^{-p}}{\Sigma  _{j=1} ^n d(Y', Y_j)^{-p}} = \frac{\Sigma  _{i=1} ^n d(Y', Y_i)^{-p}}{\Sigma  _{i=1} ^n d(Y', Y_i)^{-p}} = 1
+$$
+
+Note that this form assumes that correlation between points is perfectly correlated with distance - the weight is only dependent on actual distance. We have seen from the variograms, though, that observations are not perfectly correlated in space. (If they were, there would be no nugget in the  variogram - points at arbitrarily closed distances would be arbitrarily close to equal).
+
+Instead, we use information from the variogram to compute weights. This process is termed Kriging, after the South African mining engineer D.G. Krige.
+
+(Typically, this process assumes that $Y$ is second-order stationary, and less often stated explicitly that $Y$ are isotropic).
+
+We determine from our variagram three parameters,
+
+$\bar{\gamma} _0$, $\bar{\gamma} _{\infty}$ and $\bar{\gamma}_{h}$ 
+
+the value of the (fitted) variogram at distance $h$. Then we let
+
+$$
+\bar{C}(h) =  \bar{\gamma} _\infty - \bar{\gamma} _0 - \bar{\gamma}_{h}
+$$
+
+From this, we use the kriging equations 
+$$
+\Sigma _{j=1} ^n \theta _j \bar{C_{i j}}+ \psi = \bar{C_i '}
+$$
+
+where $C_{ij}=\gamma(h_{ij})$ is the value of the variogram at lag $h_{ij}$ between points $Y_i$ and $Y_j$ and $C_{i'}=\gamma(h_{i'})$ is the value of the variogram at lag $h_{i'}$.
+
+That's a lot of summing over a lot of points, so in practice we limit the number of points to a neighborhood around our fixed points of interest. 
+
+
+#Kriging in R
+
+```{r,fig.width=6,fig.height=4}
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+
+Kriging is used to interpolate values - to estimate values at unobserved locations. We'll create a uniformly spaced set of points to estimate. For simplicity, we'll choose points at 10 meter intervals, starting 5 meters from the origin.
+
+```{r}
+colPoints <- floor(max(sample.dat$LonM)/10)
+rowPoints <- floor(max(sample.dat$LatM)/10)
+sample4.grd <- expand.grid(LatM=((1:rowPoints)*10)-5,
+                          LonM=((1:colPoints)*10)-5)
+head(sample4.grd)
+```
+
+Superimpose these points over our yield data,
+
+```{r,fig.width=6,fig.height=4}
+ggplot(sample.dat, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield),size=1) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+  geom_point(aes(LonM, LatM),data=sample4.grd, size=1) + 
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+
+# gstat
+
+We need a variogram, so start with a spherical model from earlier,
+
+```{r}
+Yield.var <- variogram(Yield~1, 
+                        locations=~LonM+LatM, 
+                        data=sample.dat)
+print(Yield.vgm <- fit.variogram(Yield.var, vgm(250, "Sph", 80, 100)))
+plot(Yield.var, model=Yield.vgm)
+```
+
+Now use the `krig` function to project the yield data onto our sample grid.
+```{r}
+Yield.krig <- krige(id="Yield", 
+                     formula=Yield~1, 
+                     data = sample.dat, 
+                     newdata = sample4.grd, 
+                     model = Yield.vgm,
+                     maxdist = 100,
+  locations=~LatM + LonM)
+```
+
+We can extract the predicted values, and plot the results
+```{r}
+str(Yield.krig)
+sample4.grd$Yield.krig <- Yield.krig$Yield.pred
+```
+
+
+```{r,fig.width=6,fig.height=4}
+ggplot(sample4.grd, aes(LonM, LatM)) + 
+geom_point(aes(colour = Yield.krig),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Kriged Yield Monitor Data")
+```
+
+# geoR
+
+There are a wide range of options for kriging in R. We explore a couple others before we move on. The next is `geoR`. As befor, we convert to geodata and fit to a variogram.
+
+```{r}
+Yield.idx = which(names(sample.dat)=="Yield")
+metric.col <- c(which(names(sample.dat)=="LatM"), which(names(sample.dat)=="LonM"))
+Yield.gdat <- as.geodata(sample.dat, coords.col = metric.col, data.col = Yield.idx)
+Yield.gvar <- variog(Yield.gdat)
+```
+
+```{r}
+init.cov <- expand.grid(seq(10,200,l=10), seq(0,40,l=5))
+Yield.gfit <- variofit(Yield.gvar, cov.model="sph", 
+                       ini.cov.pars=init.cov,
+                       fix.nugget=FALSE, nugget=50)
+Yield.gfit
+```
+
+```{r}
+geoR.krig <- krige.conv(Yield.gdat, locations=sample4.grd, krige=krige.control(obj.model=Yield.gfit))
+str(geoR.krig)
+sample4.grd$gYield.krig <- geoR.krig$predict
+```
+
+
+```{r,fig.width=6,fig.height=4}
+ggplot(sample4.grd, aes(LonM, LatM)) + 
+geom_point(aes(colour = gYield.krig),size=3) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", title = "Sample Yield Monitor Data")
+```
+
+
+We can compare the two methods,
+```{r}
+plot(sample4.grd$Yield.krig,sample4.grd$gYield.krig)
+```
+
+I can get this to work if I run just `geoR` code in R, but not from within this typeset document; I'm not sure what's causing the conflict.
+
+```
+par(mfrow=c(1,3))
+image(geoR.krig)
+contour(geoR.krig)
+persp(geoR.krig)
+``` 
+
+# automap
+
+Automap produces interesting graphics. Note that `gstat` and `geoR` can be used to similarly produce graphics, the advantage of autoKrig is to simplify fitting.
+
+### autoKrig
+```{r}
+coordinates(sample.dat) = ~ LonM+LatM
+
+# Ordinary kriging, no new_data object
+Yield.autokrig = autoKrige(Yield~1, sample.dat)
+str(Yield.autokrig)
+plot(Yield.autokrig)
+```
+
+# Variations on kriging
+
+### Universal kriging
+
+Universal kriging assumes an underlying deterministic model. For example, we might include a polynomial surface trend by
+
+```{r,fig.width=6,fig.height=8}
+coordinates(sample4.grd) = ~ LonM+LatM
+Yield.ukrig = autoKrige(Yield~poly(LatM + LonM, 7), input_data=sample.dat, new_data=sample4.grd)
+#with this, predictors are required for new locations.
+#Yield.ukrig = autoKrige(Yield~poly(LatM + LonM, 7), input_data=sample.dat)
+plot(Yield.ukrig)
+```
+
+
+### Block kriging  
+
+```{r,fig.width=6,fig.height=8}
+Yield.blockkrig = autoKrige(Yield~1, sample.dat, block = c(20,20))
+plot(Yield.blockkrig)
+```
+
+```{r,fig.width=6,fig.height=8}
+Yield.blockkrig = autoKrige(Yield~1, sample.dat, block = c(40,40))
+plot(Yield.blockkrig)
+```
+
+```{r,fig.width=6,fig.height=8}
+Yield.blockkrig = autoKrige(Yield~1, sample.dat, block = c(80,80))
+plot(Yield.blockkrig)
+```
+
+
+
+
