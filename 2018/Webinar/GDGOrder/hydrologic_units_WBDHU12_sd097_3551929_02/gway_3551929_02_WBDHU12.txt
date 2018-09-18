@@ -1,0 +1,97 @@
+Identification_Information:
+  Citation:
+    Citation_Information:
+      Originator: USDA/NRCS - National Geospatial Center of Excellence
+      Title: 12 Digit Watershed Boundary Dataset in HUC8
+  Description:
+    Purpose: For a link to more detailed processing information on your state's watershed data, please refer to links within the file that was also sent with this dataset called "wbd_state_metadata.html."  
+This dataset is intended to be used as a tool for water-reso
+  Time_Period_of_Content:
+    Time_Period_Information:
+      Single_Date/Time:
+        Calendar_Date: 2013 - Present. See 'LoadDate' attribute field
+  Status:
+    Progress: In Work
+  Spatial_Domain:
+    Bounding_Coordinates:
+      West_Bounding_Coordinate: -97.85141
+      East_Bounding_Coordinate: -97.36948
+      North_Bounding_Coordinate: 44.19541
+      South_Bounding_Coordinate: 43.84852
+  Keywords:
+    Theme:
+      Theme_Keyword_Thesaurus: Standard for Geospatial Dataset File Naming
+      Theme_Keyword: Hydrologic Units, HUC, WBD
+    Place:
+      Place_Keyword_Thesaurus: GNIS
+      Place_Keyword: South Dakota
+      Place_Keyword: Miner
+  Use_Constraints:
+
+    The U.S. Department of Agriculture, Service Center Agencies should be acknowledged as the data source in products derived from these data.
+
+    This data set is not designed for use as a primary regulatory tool in permitting or citing decisions, but may be used as a reference source.  This information may be interpreted by organizations, agencies, units of government, or others based on needs; however, they are responsible for the appropriate application.  Federal, State, or local regulatory bodies are not to reassign to the Service Center Agencies any authority for the decisions that they make.  The Service Center Agencies will not perform any evaluations of these data for purposes related solely to State or local regulatory programs.
+
+    Photographic or digital enlargement of these data to scales greater than at which they were originally mapped can cause misinterpretation of the data.  Digital data files are periodically updated, and users are responsible for obtaining the latest version of the data.
+  Point_of_Contact:
+    Contact_Information:
+      Contact_Organization_Primary:
+        Contact_Organization: National Geospatial Center of Excellence
+      Contact_Address:
+        Address: 501 W. Felix St, Bldg 23
+        City: Fort Worth
+        State_or_Province: Texas
+        Postal_Code: 76115
+Data_Quality_Information:
+  Lineage:
+    Source_Information:
+      Source_Citation:
+        Citation_Information:
+          Originator:
+            NRCS State Offices and USGS
+          Publication_Date: 2013 - Present
+          Title: Watershed Boundary Data - Hydrologic Unit
+      Source_Scale_Denominator: 24,000
+    Process_Step:
+      Process_Description: The dataset from the USGS was loaded  into SDE.
+For a complete description of the attributes and processes used to delineate hydrologic units to 1:24,000 scale accuracy, please refer to document Watershed Boundary Dataset (WBD) User Guide included with each WBD order.
+Archives of HUC 2-12 as national layers can be downloaded 
+from ftp://ftp.ftw.nrcs.usda.gov/wbd/
+      Process_Date: 20170921
+Spatial_Reference_Information:
+  Horizontal_Coordinate_System_Definition:
+    Planar:
+      Grid_Coordinate_System:
+        Grid_Coordinate_System_Name: Universal Transverse Mercator
+        Universal_Transverse_Mercator:
+          UTM_Zone_Number: 14
+          Transverse_Mercator:
+            Scale_Factor_at_Central_Meridian: 0.9996
+            Longitude_of_Central_Meridian: -99
+            Latitude_of_Projection_Origin: 0.0
+            False_Easting: 500000.0
+            False_Northing: 0.0
+    Geodetic_Model:
+      Horizontal_Datum_Name: North American Datum of 1983 (NAD83)
+      Ellipsoid_Name: GRS1980
+      Semi-major_Axis: 6378137.0
+      Denominator_of_Flattening_Ratio: 298.257222101
+Entity_and_Attribute_Information:
+  Overview_Description:
+    Entity_and_Attribute_Overview:
+      Hydrologic Unit delineation are closed polygons that encompass all area draining toward the lowest point (called outlet or pour point) in the polygon. Because of nominal sizes for the different hydrologic unit level: Watershed (40,000 to 250,000 acres) an
+    Entity_and_Attribute_Detail_Citation: See http://nhd.usgs.gov/userguide.html?url=NHD_User_Guide/Feature_Catalog/NHD_Feature_Catalog.htm for a data dictionary.
+Distribution_Information:
+  Distribution_Liability:
+
+    Although these data have been processed successfully on a computer system at the U.S. Department of Agriculture, no warranty expressed or implied is made by the Service Center Agencies regarding the utility of the data on any other system, nor shall the act of distribution constitute any such warranty.  The U.S. Department of Agriculture will warrant the delivery of this product in computer readable format, and will offer appropriate adjustment of credit when the product is determined unreadable by correctly adjusted computer input peripherals, or when the physical medium is delivered in damaged condition.  Request for adjustment of credit must be made within 90 days from the date of this shipment from the ordering site.
+
+    Neither the U.S. Department of Agriculture, nor any of its agencies are liable for misuse of the data, for damage, for transmission of viruses, or for computer contamination through the distribution of these data sets.  The U.S. Department of Agriculture prohibits discrimination in all its programs and activities on the basis of race, color, national origin, sex, religion, age, disability, political beliefs, sexual orientation, or marital or family status. (Not all prohibited bases apply to all programs.)
+  Standard_Order_Process:
+    Digital_Form:
+      Digital_Transfer_Information:
+        Format_Name: ARC/INFO Shape
+Metadata_Reference_Information:
+  Metadata_Date: 02/24/2018
+  Metadata_Standard_Name: SCI Minimum Compliance Metadata
+  Metadata_Standard_Version: SCI Std 003-02

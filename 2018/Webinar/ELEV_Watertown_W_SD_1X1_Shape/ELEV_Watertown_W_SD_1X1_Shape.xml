@@ -1,0 +1,266 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE metadata SYSTEM "http://thor-f5.er.usgs.gov/ngtoc/metadata/fgdc-std-001-1998.dtd"[]>
+<metadata>
+  <idinfo>
+    <citation>
+      <citeinfo>
+        <origin>U.S. Geological Survey, National Geospatial Program</origin>
+        <pubdate>20180211</pubdate>
+        <title>USGS NED 1/3 arc-second Contours for Watertown W, South Dakota 20180211 1 X 1 degree Shapefile</title>
+        <geoform>vector digital data</geoform>
+        <pubinfo>
+          <pubplace>Reston, VA</pubplace>
+          <publish>U.S. Geological Survey</publish>
+        </pubinfo>
+        <onlink>ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Elev/Shape/ELEV_Watertown_W_SD_1X1_Shape.zip</onlink>
+      </citeinfo>
+    </citation>
+    <descript>
+      <abstract>These vector contour lines are derived from the 3D Elevation Program using automated and semi-automated processes. They were
+				created to support 1:24,000-scale topographic map products, but are also published in this GIS vector format. Contour intervals are
+				assigned by 7.5-minute quadrangle, so this vector dataset is not visually seamless across quadrangle boundaries. The vector lines have
+				elevation attributes (in feet above mean sea level on NAVD88), but this dataset does not carry line symbols or annotation.</abstract>
+      <purpose>This dataset represents variant packaging of USGS elevation data. The primary USGS elevation products are gridded elevation
+				points; contours are derived from these data for standard contour maps, and these contour data are also published as GIS vectors.
+				Contours are typically a means of representing elevations for human visualization on maps, and are never more accurate than the
+				gridded elevation data they are derived from.</purpose>
+    </descript>
+    <timeperd>
+      <timeinfo>
+        <rngdates>
+          <begdate>20120403</begdate>
+          <enddate>20150309</enddate>
+        </rngdates>
+      </timeinfo>
+      <current>publication date</current>
+    </timeperd>
+    <status>
+      <progress>Complete</progress>
+      <update>Irregular</update>
+    </status>
+    <spdom>
+      <bounding>
+        <westbc>-97.9999999999999</westbc>
+        <eastbc>-96.9999999999999</eastbc>
+        <northbc>45.0000000000001</northbc>
+        <southbc>44.0000000000001</southbc>
+      </bounding>
+    </spdom>
+    <keywords>
+      <theme>
+        <themekt>ISO 19115 Topic Category</themekt>
+        <themekey>elevation</themekey>
+      </theme>
+      <theme>
+        <themekt>Geospatial Platform</themekt>
+        <themekey>ngda</themekey>
+        <themekey>Elevation Terrestrial</themekey>
+        <themekey>National Elevation Dataset (NED) 1/3 arc-second - Contours</themekey>
+        <themekey>1 x 1 degree</themekey>
+        <themekey>Shapefile</themekey>
+      </theme>
+      <place>
+        <placekt>Geographic Names Information System</placekt>
+        <placekey>US</placekey>
+        <placekey>United States</placekey>
+        <placekey>SD</placekey>
+        <placekey>South Dakota</placekey>
+        <placekey>MinerCounty</placekey>
+        <placekey>SanbornCounty</placekey>
+        <placekey>CodingtonCounty</placekey>
+        <placekey>LakeCounty</placekey>
+        <placekey>BrookingsCounty</placekey>
+        <placekey>SpinkCounty</placekey>
+        <placekey>HamlinCounty</placekey>
+        <placekey>KingsburyCounty</placekey>
+        <placekey>BeadleCounty</placekey>
+        <placekey>ClarkCounty</placekey>
+      </place>
+    </keywords>
+    <accconst>None</accconst>
+    <useconst>None. However, users should be aware that temporal changes may have occurred since this data set was collected and that some parts
+			of this data may no longer represent actual surface conditions. Users should not use this data for critical applications without a full
+			awareness of its limitations. Acknowledgment of the U.S. Geological Survey would be appreciated for products derived from these
+			data.</useconst>
+    <browse>
+      <browsen>ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Elev/Shape/ELEV_Watertown_W_SD_1X1_Shape.jpg</browsen>
+      <browsed>Thumbnail JPG image</browsed>
+      <browset>JPEG</browset>
+    </browse>
+  </idinfo>
+  <dataqual>
+    <attracc>
+      <attraccr>Lines of constant elevation are derived from the USGS 3D Elevation Program using automated processes. The contours are designed
+				for visual clarity at 1:24,000 scale and a quadrangle-specific contour interval.</attraccr>
+    </attracc>
+    <logic>The National Elevation Dataset is seamless. Although the data accuracy varies, the data generally have high enough resolution and
+			accuracy to support consistent and accurate contours at 1:24,000 scale.</logic>
+    <complete>The National Elevation Dataset is national in scope, with complete coverage of the conterminous 48 states, Hawaii, the US Virgin
+			Islands and Puerto Rico. There is partial coverage for Alaska.</complete>
+    <posacc>
+      <horizpa>
+        <horizpar>Contours do not have well-defined position, so National Map Accuracy Standards (NMAS) for horizontal accuracy do not apply.
+					Contour positions are, on average, accurate to within one-half contour interval</horizpar>
+      </horizpa>
+      <vertacc>
+        <vertaccr>The most recently published figure of overall absolute vertical accuracy of the 3DEP within the conterminous US, expressed
+					as the root mean square error (RMSE) of 25,310 reference points is 1.55 meters. However, the vertical accuracy actually varies
+					significantly across the US because of differences in source quality, terrain relief, land cover, and other factors. Details of
+					this analysis are published in "Accuracy Assessment of the U.S. Geological Survey National Elevation Dataset, and Comparison
+					with Other Large-Area Elevation Dataset-SRTM and ASTER: U.S. Geological Survey Open-File Report 2014-1008,"
+					http://pubs.usgs.gov/of/2014/1008/. </vertaccr>
+      </vertacc>
+    </posacc>
+    <lineage>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Geological Survey, National Geospatial Technical Operations Center - National Elevation Dataset is a component of
+							a comprehensive base geospatial data model.</origin>
+            <pubdate>20180211</pubdate>
+            <title>Hypsography</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>This contour featureclass was generated from the 1/3 arc-second version of the 3D Elevation Program. The intended
+							viewing scale for these features is 1:24,000. The contours are derived from a filtered elevation raster to achieve
+							smoother arcs. In some areas, the 3DEP data may be modified by the National Hydrography Dataset (NHD) flow lines and water
+							bodies to facilitate improved integration between the hypsography and hydrography on USGS map products. These contours
+							were generated primarily for use as a layer in GeoPDFs created in the digital mapping program. The raster data source of
+							contours is the 3D Elevation Program 1/3 arc-second layer. Secondary datasets include the high resolution flow lines,
+							water bodies, and areas from the National Hydrography Dataset (NHD). The NHD layers are used in hydro-enforcement of the
+							DEM prior to contour generation. The goals of the hydro-enforcement are to prevent contour lines from extending over the
+							surface of water bodies and to align the contour reentrants with the NHD single- line streams. The 3DEP raster cells are
+							converted to points. Those points, along with the NHD flow lines are input into an interpolation tool to create a new
+							surface. The NHD water bodies and areas are preprocessed to attach the minimum and maximum elevation to each polygon. From
+							these precalculated values, an appropriate value is calculated by which to raise the elevation cells under the NHD
+							polygons. The NHD polygons are then converted into rasters, which in turn will be used to generate a mosaic that includes
+							the new raster surface. The mosaic is filtered to provide smoother contour lines. Contours are generated and depression
+							and index contours are identified. There is no guarantee or warranty concerning the accuracy of the data. Users should be
+							aware that temporal changes may have occurred since these data were collected and generated and that some parts of these
+							data may no longer represent actual surface conditions. Hydro-enforcement and generalization can also significantly alter
+							the spatial characteristics of the contours. Users should not use these data for critical applications without a full
+							awareness of its limitations.</othercit>
+            <onlink>http://Hs.gov/</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate />
+              <enddate />
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Hypsography</srccitea>
+        <srccontr>Contours</srccontr>
+      </srcinfo>
+      <procstep>
+        <procdesc>Contour lines are created from USGS gridded elevation data, using automated and semi-automated processes, followed by
+					limited visual inspection to verify quality, and occasionally editing to improve contour readability and registration with water
+					features in the National Hydrography Dataset. Software is ArcGIS based, with some USGS customization.</procdesc>
+        <procdate>20180211</procdate>
+      </procstep>
+    </lineage>
+  </dataqual>
+  <spref>
+    <horizsys>
+      <geograph>
+        <latres>0.00001</latres>
+        <longres>0.00001</longres>
+        <geogunit>Decimal degrees</geogunit>
+      </geograph>
+      <geodetic>
+        <horizdn>North American Datum of 1983</horizdn>
+        <ellips>Geodetic Reference System 80</ellips>
+        <semiaxis>6378137</semiaxis>
+        <denflat>298.2572221</denflat>
+      </geodetic>
+    </horizsys>
+  </spref>
+  <distinfo>
+    <distrib>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>U.S. Geological Survey, National Geospatial Technical Operations Center</cntorg>
+        </cntorgp>
+        <cntaddr>
+          <addrtype>mailing and physical</addrtype>
+          <address>1400 Independence Road</address>
+          <city>Rolla</city>
+          <state>MO</state>
+          <postal>65401</postal>
+        </cntaddr>
+        <cntaddr>
+          <addrtype>mailing and physical</addrtype>
+          <address>Box 25046 Denver Federal Center</address>
+          <city>Lakewood</city>
+          <state>CO</state>
+          <postal>80225</postal>
+        </cntaddr>
+        <cntvoice>1-888-ASK-USGS (1-888-275-8747)</cntvoice>
+        <cntemail>http://www.usgs.gov/ask/</cntemail>
+        <hours>Monday through Friday 8:00 AM to 4:00 PM</hours>
+        <cntinst>Metadata information can also be obtained through online services using The National Map Viewer, at
+					http://nationalmap.usgs.gov or EarthExplorer, at http://earthexplorer.usgs.gov or Ask USGS at http://www.usgs.gov/ask.</cntinst>
+      </cntinfo>
+    </distrib>
+    <resdesc>Downloadable Data</resdesc>
+    <distliab>No liability for content or accuracy is presumed by USGS for data.</distliab>
+    <stdorder>
+      <digform>
+        <digtinfo>
+          <formname>FileGDB</formname>
+          <formvern>10.1</formvern>
+          <formcont>Spatial objects with unique identifiers and coordinate data.</formcont>
+          <filedec>No compression applied</filedec>
+          <transize>104297701</transize>
+        </digtinfo>
+        <digtopt>
+          <onlinopt>
+            <computer>
+              <networka>
+                <networkr>ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Elev/Shape/ELEV_Watertown_W_SD_1X1_Shape.zip</networkr>
+              </networka>
+            </computer>
+          </onlinopt>
+        </digtopt>
+      </digform>
+      <fees>None</fees>
+    </stdorder>
+  </distinfo>
+  <metainfo>
+    <metd>20180211</metd>
+    <metrd>20180211</metrd>
+    <metfrd>20190211</metfrd>
+    <metc>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>U.S. Geological Survey, National Geospatial Technical Operations Center</cntorg>
+        </cntorgp>
+        <cntaddr>
+          <addrtype>mailing and physical</addrtype>
+          <address>1400 Independence Road</address>
+          <city>Rolla</city>
+          <state>MO</state>
+          <postal>65401</postal>
+        </cntaddr>
+        <cntaddr>
+          <addrtype>mailing and physical</addrtype>
+          <address>Box 25046 Denver Federal Center</address>
+          <city>Lakewood</city>
+          <state>CO</state>
+          <postal>80225</postal>
+        </cntaddr>
+        <cntvoice>1-888-ASK-USGS (1-888-275-8747)</cntvoice>
+        <cntemail>http://www.usgs.gov/ask/</cntemail>
+        <hours>Monday through Friday 8:00 AM to 4:00 PM</hours>
+        <cntinst>Metadata information can also be obtained through online services using The National Map Viewer, at
+					http://nationalmap.usgs.gov or EarthExplorer, at http://earthexplorer.usgs.gov or Ask USGS at http://www.usgs.gov/ask.</cntinst>
+      </cntinfo>
+    </metc>
+    <metstdn>FGDC Content Standard for Digital Geospatial Metadata</metstdn>
+    <metstdv>FGDC-STD-001-1998</metstdv>
+  </metainfo>
+</metadata>
