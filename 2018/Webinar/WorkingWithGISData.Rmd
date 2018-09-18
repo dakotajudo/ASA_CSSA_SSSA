@@ -1,0 +1,222 @@
+---
+title: "Working with GIS data"
+author: "Peter Claussen"
+date: "2/24/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+There seems to be an explosion of players in the market offering digital agronomic services. At their core, many of these services are based on a single core task - integrating field map data with geogrophic and weather data to provide tools for planning and forecast. But what is the nature of these data, and how can they be integrated?
+
+In this webinar, we use an example for our family farm to demonstrate integrating data geospatial data from the United States Geological Survey, the National Resource Conservation Service and the 
+United States Fish and Wildlife Service with yield monitor data to answer a land management problem - are there low yield areas in section that should be allowed to revert to wetland or be replaced with grass waterways?
+
+This webinar with demonstrate basic use of the open source software for GIS data QGIS, and discus the most common file formate - shapefiles - associated with GIS data.
+
+
+Promise - Precision ag allows us to make very site-specific decisions about land management.
+Opportunity - Yield monitor data is provided in GIS format, which allows give us access to a wealth of geological data
+Challenge - GIS data set can be very large, require multiple files, are available from a variety of sources and are measured over range of scales.
+
+The problem
+
+# R libraries
+```{r}
+library(shapefiles)
+```
+
+# Region
+
+From QGIS, we can determine the bounds of our area of interest
+-97.611 - -97.592
+44.082 - 44.096
+
+From
+44.082,-97.611 
+44.096,-97.592
+Create box from coordinates in TMN
+
+
+# Imagery - NAIP Plus (1 meter to 1 foot)
+ FSA 10:1 NAIP Imagery m_4409760_nw_14_1_20140813_20141113 3.75 x 3.75 minute JPEG2000 from The National Map
+ 
+Landsat Explorer
+http://landsatexplorer.esri.com
+
+
+Google Earth Pro
+
+Images titled MonthYear
+
+#Scales
+
+#Region
+## Soils
+
+soils_CRA_sd_3551929_09
+soils_GSMCLIP_sd_3551929_07
+
+#State
+## Soils
+gsmsoilmu_a_sd.shp
+```{r}
+path <- '~/Work/git/statistics/design_documents/yield_monitor_data/webinar2018/wss_aoi_2018-08-09_17-22-37/spatial/soilmu_a_aoi'
+soilmu_a_aoi <- read.shapefile(path)
+library(maptools)
+#shape <- readShapePoints(path)
+shape <- readShapePoly(path)
+#readShapePoly is deprecated; use rgdal::readOGR or sf::st_read
+plot(shape)
+```
+
+```{r,SoilMapPlot}
+library(rgdal)
+#file.exists("~/Work/git/statistics/test_cases/claussen/Harvest/2016/Stevens Middle-Soybeans.shp")
+ogrInfo("/Users/peter/Work/git/statistics/design_documents/yield_monitor_data/webinar2018/wss_aoi_2018-08-09_17-22-37/spatial/soilmu_a_aoi.shp")
+ogrListLayers("/Users/peter/Work/git/statistics/design_documents/yield_monitor_data/webinar2018/wss_aoi_2018-08-09_17-22-37/spatial/soilmu_a_aoi.shp")
+soilmu.ogr <- readOGR("/Users/peter/Work/git/statistics/design_documents/yield_monitor_data/webinar2018/wss_aoi_2018-08-09_17-22-37/spatial/soilmu_a_aoi.shp")
+plot(soilmu.ogr)
+```
+
+wss_gsmsoil_SD_[2016-10-13]
+##Geography
+`geology_GEOLOGY_sd_3551929_01`
+## Land Use
+`land_use_land_cover_NASS_CDL_sd_3551929_04`
+
+# Hydrographic Unit
+
+`hydrologic_units_WBDHU12_sd097_3551929_02`
+
+```{r,HydrographicUnitPlot}
+wbdhu12.ogr <- readOGR("/Users/peter/Work/git/statistics/design_documents/yield_monitor_data/webinar2018/GDGOrder/hydrologic_units_WBDHU12_sd097_3551929_02/wbdhu12_a_sd097.shp")
+plot(wbdhu12.ogr)
+```
+
+
+```{r,WatershedPlot}
+watershed.ogr <- readOGR("/Users/peter/Work/git/statistics/design_documents/yield_monitor_data/webinar2018/HU8_10160011_Watershed/HU8_10160011_Watershed.shp")
+plot(watershed.ogr)
+```
+
+## Flowline
+
+```{r,FlowlinePlot}
+#nhdflowline.ogr <- readOGR("/Users/peter/Work/git/statistics/design_documents/yield_monitor_data/webinar2018/NHD_H_10160011_HU8_Shape/NHDFlowline.shp")
+#plot(nhdflowline.ogr)
+```
+
+
+```{r,ContourPlot}
+#elev_contour.ogr <- readOGR("/Users/peter/Work/git/statistics/design_documents/yield_monitor_data/webinar2018/ELEV_Watertown_W_SD_1X1_Shape/Elev_Contour.shp")
+#plot(elev_contour.ogr)
+```
+
+
+# Wetlands
+
+```{r,WetlandsPlot}
+#wetlands.ogr <- readOGR("/Users/peter/Work/git/statistics/design_documents/yield_monitor_data/webinar2018/HU8_10160011_Watershed/HU8_10160011_Wetlands.shp")
+#plot(wetlands.ogr)
+```
+# Map Indexes
+
+# County
+soils_SSURGSDM_sd097_3551929_06
+VECTOR_Howard_SD_7_5_Min_Shape
+wss_aoi_2018-02-27_12-02-38
+
+# Data
+
+## Shapefile
+Geometry - shp
+Data - dbf
+vector, raster, point
+
+Convert line to point
+ Vector > Geometry Tools > Extract Nodes
+ https://gis.stackexchange.com/questions/225019/extracting-coordinates-from-line-shapefile/225116
+ 
+## Yield Monitor Data
+
+
+Topography
+
+Elev_Contour
+NHD_Flowline
+Soil Map Units
+
+Downloaded from https://viewer.nationalmap.gov/basic/#productSearch
+USGS Topo Map Vector Data
+Elev_Contour.shp
+
+USGS National Hydrography Dataset (NHD) Best Resolution HU8-9 20180206 for HU-8 Subbasin Shapefile Model Version 2.2.1
+
+https://gdg.sc.egov.usda.gov
+https://gdg.sc.egov.usda.gov/GDGHome_DirectDownLoad.aspx
+
+Soils
+https://nrcs.app.box.com/v/soils/file/255251313287
+SD097 - Miner County
+
+
+Wetlands
+https://www.fws.gov/wetlands/data/Data-Download.html
+
+https://www.fws.gov/wetlands/data/mapper.html
+
+
+https://www.nrcs.usda.gov/wps/portal/nrcs/surveylist/soils/survey/state/?stateId=SD
+Survey from 1984
+CfA - Clarno-Bonilla loams, 0-3% slope
+Organic matter high in bonilla (IIc-3) , moderate in Clarno (IIe-2)
+
+EgD - Ethan-Clarno, 9-15% slopes
+
+
+Ethan soil is lower organic than Clarno, capability VIe-3
+Clarno has moderate organic magtter, capability IVe-1
+
+
+HdA Houdek-Dudley complex
+
+Houdek - IIc-2, Dudley - IVs-2
+Dudley - sodium affected subsoil, dense claypan
+
+CkB - Clarno-Ethan complex
+
+https://earthexplorer.usgs.gov/logout/expire
+
+Land Capability Classes
+http://resources.arcgis.com/en/communities/soils/02ms00000005000000.htm
+
+Data sets (8/9/18)
+
+From WSS
+https://www.nrcs.usda.gov/wps/portal/nrcs/surveylist/soils/survey/state/?stateId=SD
+wss_aoi_2018-08-09_17-22-37.zip
+From John Deere
+1533853561938
+From
+NRCS
+SD097
+
+From FWS
+
+From TMN
+VECTOR_Howard_SD_7_5_Min_Shape
+NLCD2011_LC_South_Dakota
+NHD_H_10160011_HU8_Shape
+ELEV_Watertown_W_SD_1X1_Shape
+
+
+Data Aggregators
+https://www.agrible.com/
+
+
+Other topics
+Weather maps and real-time forecasts
+

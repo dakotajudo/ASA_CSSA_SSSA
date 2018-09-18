@@ -1,0 +1,70 @@
+{
+  "Version": "1.0",
+  "OrgId": 223145,
+  "ClientId": "52005d34-0000-1000-4078-e1e1e1358cc8",
+  "ClientName": "Dave Claussen",
+  "FarmId": "769f2a04-7b78-4b3f-9656-84ce61c8b22a",
+  "FarmName": "Kenny-cash",
+  "FieldId": "af6bb476-39b4-4894-aada-8e983c4582dd",
+  "FieldName": "Home",
+  "Operation": "Harvest",
+  "CropSeason": 2013,
+  "CropToken": "SOYBEANS",
+  "FileCreatedTimeStamp": "2018-08-09T22:00:33.4720101Z",
+  "DataAttributes": [
+    {
+      "Name": "DISTANCE",
+      "Unit": "ft",
+      "Description": "Distance Travelled From Previous Point"
+    },
+    {
+      "Name": "SWATHWIDTH",
+      "Unit": "ft",
+      "Description": "Width Of Element"
+    },
+    {
+      "Name": "VRYIELDVOL",
+      "Unit": "bu1ac-1",
+      "Description": "Yield as Volume"
+    },
+    {
+      "Name": "SECTIONID",
+      "Description": "Element Id"
+    },
+    {
+      "Name": "Crop",
+      "Description": "CropId"
+    },
+    {
+      "Name": "Moisture",
+      "Unit": "prcnt",
+      "Description": "Moisture"
+    },
+    {
+      "Name": "WetMass",
+      "Unit": "lb1ac-1",
+      "Description": "Wet Mass"
+    },
+    {
+      "Name": "Time",
+      "Description": "Timestamp"
+    },
+    {
+      "Name": "Heading",
+      "Description": "Machine Heading"
+    },
+    {
+      "Name": "VARIETY",
+      "Description": "Variety Name"
+    },
+    {
+      "Name": "Elevation",
+      "Unit": "ft",
+      "Description": "Elevation"
+    },
+    {
+      "Name": "IsoTime",
+      "Description": "Precise Timestamp"
+    }
+  ]
+}
