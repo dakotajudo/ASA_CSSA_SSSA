@@ -1,0 +1,385 @@
+---
+title: "Adaptive Randomization for Field Trials"
+author: "Peter Claussen"
+output: html_document
+---
+
+```{r}
+library(desplot)
+```
+
+# Abstract
+
+Agricultural field trials are commonly blocked according to the randomized complete block design. The RCBD divides the trial into equal-sized blocks and assumes that variability among experimental units is largely captured by placement in blocks. However, some experiments are affected by factors that are not uniformly distributed in space and that cannot be adequately described by rectangular blocks. Examples of these include counts of pests (weed or insects per plot) or spring stand.
+Historically, analysis of covariance has been recommended to account for spatially varying factors in RCBD experiments. Increasingly, in life sciences but less so in agriculture, adaptive randomization is being using to account for variation among initial states of experimental (plot) units.
+
+In the simplest form, treatments are randomized among plots only after initial covariate assessments are made. Plots are ranked by measured covariates, divided into appropriately size "blocks", then treatments are randomized within the blocks. The blocks may not be spatially contiguous, but are known to be approximately homogeneous with regard to covariates.
+
+The relationship between analysis of covariance and adaptive randomization will be discussed, as well as different methods of adaptive randomization, applicable to agricultural field trials.
+
+# Introduction
+
+From 
+'Use of randomisation ensures asymptotic balancing of patients to treatment'
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3111167/pdf/bjc2011157a.pdf
+
+## Cold Equations
+
+We can simply test the difference between to treatment means $x_i$ and $x_j$ with the test statistic
+
+$$
+t_{\delta} = \frac{\delta}{\sigma \sqrt{n}}
+$$
+- that is, the difference divided by standard error. We generally wish $t_{\delta}$ to be large enough to limit Type I and Type II errors, so we have two $z$, such that
+
+$$
+t_{\delta} \ge z_{\alpha/2} + z_{\beta}
+$$
+
+or
+
+$$
+n \ge 2 \left[ z_{\alpha/2} + z_{\beta} \right]^2 \left( \frac{\sigma}{\delta} \right)^2
+$$
+
+Overview
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3519822/figure/F1/
+
+
+# Terms
+Adaptive Designs - from 
+Adaptive trial designs: a review of barriers and opportunities
+
+"Adaptive designs allow planned modifications based on data accumulating within a study."
+covariate adaptive randomization
+response adaptive randomization
+
+# Simple Randomization
+
+## Constrained Randomization
+## Stratified Randomization
+## Adaptive Randomization
+## Minimization
+
+simple randomization, block randomization and permuted block randomization
+# Algorithms
+
+###  adaptive biased coin design
+
+Cochran and Cox, Table 3.1
+```{r}
+Cochran3_1.dat <- data.frame(
+Rep=as.factor(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4)),
+Blk=as.factor(c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6)),
+Col=as.factor(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8)),
+Plot=as.factor(c(101, 102, 103, 104, 201, 202, 203, 204, 301, 302, 303, 304, 401, 402, 403, 404, 501, 502, 503, 504, 601, 602, 603, 604, 701, 702, 703, 704, 801, 802, 803, 804, 901, 902, 903, 904, 1001, 1002, 1003, 1004, 1101, 1102, 1103, 1104, 1201, 1202, 1203, 1204)),
+Trt=as.factor(c(4, 10, 3, 9, 12, 6, 8, 5, 1, 11, 7, 2, 7, 5, 10, 4, 9, 6, 8, 11, 2, 12, 1, 3, 8, 1, 10, 6, 7, 11, 9, 4, 12, 2, 5, 3, 11, 12, 6, 7, 1, 5, 3, 9, 4, 8, 2, 10)),
+First=c(162, 191, 107, 67, 102, 193, 128, 42, 124, 211, 194, 222, 23, 19, 44, 48, 29, 9, 17, 19, 193, 209, 109, 153, 282, 230, 216, 145, 138, 100, 197, 263, 269, 283, 252, 212, 88, 25, 42, 62, 107, 89, 41, 74, 95, 127, 80, 134),
+Second=c(365, 563, 415, 338, 363, 561, 311, 222, 268, 505, 433, 408, 80, 114, 268, 298, 254, 92, 28, 106, 292, 352, 132, 454, 372, 256, 708, 304, 194, 219, 421, 379, 466, 280, 398, 386, 356, 212, 308, 221, 236, 332, 176, 137, 199, 166, 142, 590)
+)
+Cochran3_1.dat$lat <- as.numeric(Cochran3_1.dat$Blk)
+Cochran3_1.dat$lon <- as.numeric(Cochran3_1.dat$Col)
+Cochran3_1.dat$Treatment <- as.character(Cochran3_1.dat$Trt)
+Cochran3_1.dat$Treatment[Cochran3_1.dat$Treatment %in% c("9","10","11","12")] <- "Check"
+Cochran3_1.dat$Treatment <- as.factor(Cochran3_1.dat$Treatment)
+```
+
+```{r}
+desplot(First~lon*lat, data=Cochran3_1.dat, cex=1, text=Trt,
+        main="Initial Counts")
+```
+
+# Intial Randomization
+### Rank Covariates
+
+```{r}
+#500, 10000 finds a connected solution
+#1000 near connected
+#5000 less connected
+set.seed(1000)
+Cochran3_1.dat$Rank <- rank(Cochran3_1.dat$First,ties.method = c("random"))
+quantile(Cochran3_1.dat$First)
+```
+
+```{r}
+desplot(First~lon*lat, data=Cochran3_1.dat, cex=1, text=Rank,
+        main="Initial Counts")
+```
+
+
+### Calculate Post Block
+```{r}
+Cochran3_1.dat$PostBlock <- ceiling(Cochran3_1.dat$Rank/12)
+Cochran3_1.dat[,c("Trt","Rep","Rank","PostBlock")]
+Cochran3_1.dat$Treatment1 <- 0
+for(blk in 1:max(Cochran3_1.dat$PostBlock)) {
+  Cochran3_1.dat$Treatment1[Cochran3_1.dat$PostBlock==blk] <- sample(1:12)
+}
+```
+
+# Optimization
+
+### Calculate weights
+
+for each plot, calculate the mean squared deviations from neighbor post blocks. We can choose from rook or queen neighbors
+
+```{r}
+desplot(PostBlock~lon*lat, data=Cochran3_1.dat, cex=1, text=Rank,
+        main="Ranks")
+
+Cochran3_1.dat$Weight <- NA
+for (j in 1:10) {
+for (i in 1:dim(Cochran3_1.dat)[1]) {
+  current.plot <- Cochran3_1.dat[i,]
+  neighbor.blocks <- (current.plot$lat-1):(current.plot$lat+1)
+  neighbor.cols <- (current.plot$lon-1):(current.plot$lon+1)
+  neighbors <- subset(Cochran3_1.dat,Cochran3_1.dat$lat %in% neighbor.blocks)
+  neighbors <- subset(neighbors,neighbors$lon %in% neighbor.cols)
+  SS <- sum(neighbors$PostBlock-current.plot$PostBlock)^2
+  #note we don't exclude the base plot - but this will add 0 to the sum, so subtract one from denom
+  Cochran3_1.dat$Weight[i] <- SS/(dim(neighbors)[1]-1)
+  Cochran3_1.dat$NeighborMean[i] <- sum(neighbors$PostBlock)/(dim(neighbors)[1]-1)
+}
+cat(paste("iteration = ", j, "mean = ", mean(Cochran3_1.dat$Weight)," : sd =" , sd(Cochran3_1.dat$Weight)),'\n')
+rank(Cochran3_1.dat$Weight, ties.method = c("random"))
+WeightRank <- rank(Cochran3_1.dat$Weight,ties.method = c("random"))
+move.idx <- which(WeightRank==max(WeightRank))
+
+target.idx <- which.min(abs(Cochran3_1.dat$NeighborMean-Cochran3_1.dat$PostBlock[move.idx]))
+
+move.plot <- Cochran3_1.dat[move.idx,]
+target.plot <- Cochran3_1.dat[target.idx,]
+cat(paste("move = ", move.plot$Plot,"target = ", target.plot$Plot),'\n')
+
+tmp <- Cochran3_1.dat$PostBlock[target.idx]
+Cochran3_1.dat$PostBlock[target.idx] <- Cochran3_1.dat$PostBlock[move.idx]
+Cochran3_1.dat$PostBlock[move.idx] <- tmp
+}
+desplot(PostBlock~lon*lat, data=Cochran3_1.dat, cex=1, text=Rank,
+        main="Ranks")
+
+Cochran3_1.dat$Treatment2 <- 0
+for(blk in 1:max(Cochran3_1.dat$PostBlock)) {
+  Cochran3_1.dat$Treatment2[Cochran3_1.dat$PostBlock==blk] <- sample(1:12)
+}
+
+```
+
+```{r}
+aggregate(First ~ Trt,sd,data=Cochran3_1.dat)
+aggregate(First ~ Treatment1,sd,data=Cochran3_1.dat)
+aggregate(First ~ Treatment2,sd,data=Cochran3_1.dat)
+```
+
+```{r,fig.height=12,fig.width=8}
+par(mfrow=c(3,1))
+SDRank1 <- rank(tapply(Cochran3_1.dat$First,list(Cochran3_1.dat$Trt),mean))
+Cochran3_1.dat$SDRank1 <- SDRank1[Cochran3_1.dat$Trt]
+SDRank2 <- rank(tapply(Cochran3_1.dat$First,list(Cochran3_1.dat$Treatment1),mean))
+Cochran3_1.dat$SDRank2 <- SDRank2[Cochran3_1.dat$Treatment1]
+SDRank3 <- rank(tapply(Cochran3_1.dat$First,list(Cochran3_1.dat$Treatment2),mean))
+Cochran3_1.dat$SDRank3 <- SDRank3[Cochran3_1.dat$Treatment2]
+boxplot(First ~ SDRank1, data=Cochran3_1.dat)
+boxplot(First ~ SDRank2, data=Cochran3_1.dat)
+boxplot(First ~ SDRank3, data=Cochran3_1.dat)
+```
+
+```{r}
+library(ggplot2)
+p<-qplot(as.factor(SDRank1),First,data=Cochran3_1.dat,geom='boxplot')
+p<-p+stat_summary(fun.y=mean,shape=1,col='red',geom='point')
+print(p)
+```
+
+```{r}
+
+summary(aov(First ~ as.factor(Trt),data=Cochran3_1.dat))
+summary(aov(First ~ as.factor(Treatment1),data=Cochran3_1.dat))
+summary(aov(First ~ as.factor(Treatment2),data=Cochran3_1.dat))
+
+bartlett.test(First ~ as.factor(Trt),data=Cochran3_1.dat)
+bartlett.test(First ~ as.factor(Treatment1),data=Cochran3_1.dat)
+bartlett.test(First ~ as.factor(Treatment2),data=Cochran3_1.dat)
+library(car)
+leveneTest(First ~ as.factor(Trt),data=Cochran3_1.dat)
+leveneTest(First ~ as.factor(Treatment1),data=Cochran3_1.dat)
+leveneTest(First ~ as.factor(Treatment2),data=Cochran3_1.dat)
+```
+
+
+```{r optimization}
+midblock = (max(Cochran3_1.dat$PostBlock)-min(Cochran3_1.dat$PostBlock))/2
+Cochran3_1.dat$PostBlock <- ceiling(Cochran3_1.dat$Rank/12)
+desplot(PostBlock~lon*lat, data=Cochran3_1.dat, cex=1, text=Rank,
+        main="Ranks")
+
+Cochran3_1.dat$Weight <- NA
+
+max.iter <- 1000
+progress.tbl <- data.frame(
+  MST = rep(NA,max.iter),
+  MSR = rep(NA,max.iter),
+  Weight = rep(NA,max.iter),
+  NeighborMean = rep(NA,max.iter)
+)
+
+for (j in 1:max.iter) {
+for (i in 1:dim(Cochran3_1.dat)[1]) {
+  current.plot <- Cochran3_1.dat[i,]
+  neighbor.blocks <- (current.plot$lat-1):(current.plot$lat+1)
+  neighbor.cols <- (current.plot$lon-1):(current.plot$lon+1)
+  neighbors <- subset(Cochran3_1.dat,Cochran3_1.dat$lat %in% neighbor.blocks)
+  neighbors <- subset(neighbors,neighbors$lon %in% neighbor.cols)
+  SS <- sum(neighbors$PostBlock-current.plot$PostBlock)^2
+  #note we don't exclude the base plot - but this will add 0 to the sum, so subtract one from denom
+  Cochran3_1.dat$Weight[i] <- SS/(dim(neighbors)[1]-1)
+  Cochran3_1.dat$NeighborMean[i] <- sum(neighbors$PostBlock)/(dim(neighbors)[1]-1)
+}
+#cat(paste("iteration = ", j, "mean = ", mean(Cochran3_1.dat$Weight)," : sd =" , sd(Cochran3_1.dat$Weight)),'\n')
+#cat(Cochran3_1.dat$Weight,'\n')
+rank(Cochran3_1.dat$Weight, ties.method = c("random"))
+WeightRank <- rank(Cochran3_1.dat$Weight,ties.method = c("random"))
+move <- which(WeightRank==max(WeightRank))
+
+#sample from out of place
+targets <- which(WeightRank %in% (max(WeightRank)-10):(max(WeightRank)-1))
+target <- sample(targets)[1]
+
+
+move.plot <- Cochran3_1.dat[move,]
+move.plot
+move.blocks <- (move.plot$lat-2):(move.plot$lat+2)
+move.cols <- (move.plot$lon-2):(move.plot$lon+2)
+move.neighbors <- subset(Cochran3_1.dat,Cochran3_1.dat$lat %in% move.blocks)
+move.neighbors <- subset(move.neighbors,move.neighbors$lon %in% move.cols)
+move.neighbors <- subset(move.neighbors,move.neighbors$Plot != move.plot$Plot)
+move.neighbors
+move.neighbors$NeighborMean - move.plot$PostBlock
+
+
+#target <- which.min(move.plot$PostBlock - move.neighbors$NeighborMean)
+#target.plot <- move.neighbors[target,]
+
+target.plot <- Cochran3_1.dat[target,]
+target.plot
+
+move.idx <- which(Cochran3_1.dat$Plot == move.plot$Plot)
+target.idx <- which(Cochran3_1.dat$Plot == target.plot$Plot)
+#cat(paste("move = ", move.plot$Plot,"target = ", target.plot$Plot),'\n')
+
+tmp <- Cochran3_1.dat$PostBlock[target.idx]
+Cochran3_1.dat$PostBlock[target.idx] <- Cochran3_1.dat$PostBlock[move.idx]
+Cochran3_1.dat$PostBlock[move.idx] <- tmp
+
+aov.tbl <- summary(aov(First ~ as.factor(PostBlock),data=Cochran3_1.dat))[[1]]
+progress.tbl$MST[j] <- aov.tbl[1,'Mean Sq']
+progress.tbl$MSR[j] <- aov.tbl[2,'Mean Sq']
+progress.tbl$NeighborMean[j] <- mean(Cochran3_1.dat$NeighborMean)
+progress.tbl$Weight[j] <- mean(Cochran3_1.dat$Weight) 
+}
+
+
+
+desplot(PostBlock~lon*lat, data=Cochran3_1.dat, cex=1, text=Rank,
+        main="Ranks")
+```
+
+```{r}
+#plot(progress.tbl$NeighborMean)
+plot(progress.tbl$Weight)
+plot(progress.tbl$MST)
+#plot(progress.tbl$MSR)
+```
+
+
+
+```{r simulations}
+max.sim <- 100
+plans <- vector("list", max.sim)
+res.tbl <- data.frame(
+  MST = rep(NA,max.sim),
+  MSR = rep(NA,max.sim),
+  Weight = rep(NA,max.sim),
+  NeighborMean = rep(NA,max.sim)
+)
+for (j in 1:max.sim) {
+  
+  PostBlock <- sample(rep(1:4,12))
+  plans[[j]] <- PostBlock
+  Current.dat <- Cochran3_1.dat
+  Current.dat$PostBlock <- PostBlock
+  hash.key <- ""
+  for(idx in 1:length(PostBlock)) {
+    hash.key <- paste(hash.key,PostBlock[idx],sep="")
+  }
+  aov.tbl <- summary(aov(First ~ as.factor(PostBlock),data=Current.dat))[[1]]
+  res.tbl$MST[j] <- aov.tbl[1,'Mean Sq']
+  res.tbl$MSR[j] <- aov.tbl[2,'Mean Sq']
+  for (i in 1:dim(Current.dat)[1]) {
+  current.plot <- Current.dat[i,]
+  neighbor.blocks <- (current.plot$lat-1):(current.plot$lat+1)
+  neighbor.cols <- (current.plot$lon-1):(current.plot$lon+1)
+  neighbors <- subset(Current.dat,Current.dat$lat %in% neighbor.blocks)
+  neighbors <- subset(neighbors,neighbors$lon %in% neighbor.cols)
+  SS <- sum(neighbors$PostBlock-current.plot$PostBlock)^2
+  #note we don't exclude the base plot - but this will add 0 to the sum, so subtract one from denom
+  Current.dat$Weight[i] <- SS/(dim(neighbors)[1]-1)
+  Current.dat$NeighborMean[i] <- sum(neighbors$PostBlock)/(dim(neighbors)[1]-1)
+  }
+  
+  res.tbl$Weight[j] <- mean(Current.dat$Weight)
+  res.tbl$NeighborMean[j] <- mean(Current.dat$NeighborMean)
+  res.tbl$WeightSD[j] <- sd(Current.dat$Weight)
+  res.tbl$NeighborMeanSD[j] <- sd(Current.dat$NeighborMean)
+}
+
+plot(res.tbl$Weight,res.tbl$MST)
+plot(res.tbl$MSR,res.tbl$MST)
+plot(res.tbl$NeighborMean,res.tbl$MST)
+plot(res.tbl$NeighborMean,res.tbl$Weight)
+plot(res.tbl$WeightSD,res.tbl$MST)
+plot(res.tbl$NeighborMeanSD,res.tbl$MST)
+
+Cochran3_1.dat$PostBlock <- plans[[which.max(res.tbl$MST)]]
+desplot(PostBlock~lon*lat, data=Cochran3_1.dat, cex=1, text=PostBlock,
+        main="Ranks")
+Cochran3_1.dat$PostBlock <- plans[[which.min(res.tbl$Weight)]]
+desplot(PostBlock~lon*lat, data=Cochran3_1.dat, cex=1, text=PostBlock,
+        main="Ranks")
+boxplot(First ~ Treatment,data=Cochran3_1.dat)
+```
+
+```{r}
+lm1 <- lm(Second ~ Trt+Rep,data=Cochran3_1.dat)
+lm2 <- lm(Second ~ First + Trt+Rep,data=Cochran3_1.dat)
+lm3 <- lm(Second ~ Treatment+Rep,data=Cochran3_1.dat)
+lm4 <- lm(Second ~ First + Treatment+Rep,data=Cochran3_1.dat)
+#lm1 <- lm(Second~Blk+Trt,data=Cochran3_1.dat)
+#lm2 <- lm(Second~First + Blk+Trt,data=Cochran3_1.dat)
+```
+
+```{r}
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+ggplot(Cochran3_1.dat, aes(First,Second)) + 
+geom_point(aes(colour = Trt),size=2) + 
+geom_smooth(aes(group=Trt),se = FALSE, method = lm)
+scale_colour_manual(values=cbPalette)# +
+#labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "North 80")
+```
+
+## Table 3.3
+```{r}
+anova(lm1)
+anova(lm2)
+anova(lm3)
+anova(lm4)
+```
+
+```{r}
+AIC(lm(Second ~ First + Trt+Rep,data=Cochran3_1.dat))
+AIC(lm(Second ~ poly(First,2) + Trt+Rep,data=Cochran3_1.dat))
+AIC(lm(Second ~ poly(First,3) + Trt+Rep,data=Cochran3_1.dat))
+anova(lm(Second ~ First + Trt+Rep,data=Cochran3_1.dat))
+anova(lm(Second ~ poly(First,2) + Trt+Rep,data=Cochran3_1.dat))
+anova(lm(Second ~ poly(First,3) + Trt+Rep,data=Cochran3_1.dat))
+```
