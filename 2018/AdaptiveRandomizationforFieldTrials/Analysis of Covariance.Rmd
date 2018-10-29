@@ -1,0 +1,581 @@
+---
+title: "Optimality Criteria for Covariance"
+author: "Peter Claussen"
+output: html_document
+---
+
+```{r}
+options(digits=12)
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+trace <- function(x) {sum(diag(x))}
+```
+
+Cochran and Cox, Table 3.1
+```{r}
+Cochran3_1.dat <- data.frame(
+Rep=as.factor(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4)),
+Blk=as.factor(c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6)),
+Col=as.factor(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 5, 6, 7, 8, 5, 6, 7, 8)),
+Plot=as.factor(c(101, 102, 103, 104, 201, 202, 203, 204, 301, 302, 303, 304, 401, 402, 403, 404, 501, 502, 503, 504, 601, 602, 603, 604, 701, 702, 703, 704, 801, 802, 803, 804, 901, 902, 903, 904, 1001, 1002, 1003, 1004, 1101, 1102, 1103, 1104, 1201, 1202, 1203, 1204)),
+Trt=as.factor(c(4, 10, 3, 9, 12, 6, 8, 5, 1, 11, 7, 2, 7, 5, 10, 4, 9, 6, 8, 11, 2, 12, 1, 3, 8, 1, 10, 6, 7, 11, 9, 4, 12, 2, 5, 3, 11, 12, 6, 7, 1, 5, 3, 9, 4, 8, 2, 10)),
+First=c(162, 191, 107, 67, 102, 193, 128, 42, 124, 211, 194, 222, 23, 19, 44, 48, 29, 9, 17, 19, 193, 209, 109, 153, 282, 230, 216, 145, 138, 100, 197, 263, 269, 283, 252, 212, 88, 25, 42, 62, 107, 89, 41, 74, 95, 127, 80, 134),
+Second=c(365, 563, 415, 338, 363, 561, 311, 222, 268, 505, 433, 408, 80, 114, 268, 298, 254, 92, 28, 106, 292, 352, 132, 454, 372, 256, 708, 304, 194, 219, 421, 379, 466, 280, 398, 386, 356, 212, 308, 221, 236, 332, 176, 137, 199, 166, 142, 590)
+)
+Cochran3_1.dat$lat <- as.numeric(Cochran3_1.dat$Blk)
+Cochran3_1.dat$lon <- as.numeric(Cochran3_1.dat$Col)
+Cochran3_1.dat$Treatment <- as.character(Cochran3_1.dat$Trt)
+Cochran3_1.dat$Treatment[Cochran3_1.dat$Treatment %in% c("9","10","11","12")] <- "Check"
+Cochran3_1.dat$Treatment <- as.factor(Cochran3_1.dat$Treatment)
+```
+
+```{r}
+library(desplot)
+```
+
+# Analysis of Covariance
+
+Following Milliken (), we model the standard randomized complete block model as
+
+
+$$
+y_{ij} = \alpha_i + b_j + e_{ij}
+$$
+and add a linear response to a covariate
+
+$$
+y_{ij} = \alpha_i + b_j + \beta x_{ij} + e_{ij}
+$$
+
+We can extend this to include a treatment-specific response to covariate
+
+$$
+y_{ij} = \alpha_i + b_j +\beta_0 x_{ij} + \beta_i x_{ij} + e_{ij}
+$$
+Optionally, we might center the covariate by
+$$
+y_{ij} = \alpha_i + b_j +\beta_0 (x_{ij} - \bar{x}) + \beta_i (x_{ij} - \bar{x}) + e_{ij}
+$$
+
+## Models
+
+- RCB
+- RCB + covariate
+- RCB + covariate + treatment interaction
+- RCB + covariate + treatment interaction + replicate interaction
+- covariate
+- covariate interaction
+
+```{r}
+rcb.lm <- lm(Second ~ Rep + Trt, data=Cochran3_1.dat, x=TRUE)
+rcbc.lm <- lm(Second ~ Rep + Trt + First, data=Cochran3_1.dat, x=TRUE)
+rcbci.lm <- lm(Second ~ Rep + Trt + First + Trt:First, data=Cochran3_1.dat, x=TRUE)
+rcbciri.lm <- lm(Second ~ Rep + Trt + First + Rep:First + Trt:First, data=Cochran3_1.dat, x=TRUE)
+c.lm <- lm(Second ~ First, data=Cochran3_1.dat, x=TRUE)
+ci.lm <- lm(Second ~ First + Trt:First, data=Cochran3_1.dat, x=TRUE)
+```
+
+```{r}
+summary(aov(rcbciri.lm))
+```
+In this case, there is no evidence of an interaction, so we can use the simple covariate regression model
+
+```{r}
+summary(aov(rcbc.lm))
+summary(aov(c.lm))
+```
+
+```{r}
+summary(rcbc.lm)
+summary(lm(Second ~ First + Rep + Trt, data=Cochran3_1.dat))
+summary(c.lm)
+```
+## Table 9.1, Milliken III
+
+
+```{r}
+arm.dat <- data.frame(
+plot=as.factor(c(102, 201, 302, 401, 502, 601, 101, 202, 301, 402, 501, 602)), 
+treatment=as.factor(c(1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2)), 
+replicate=as.factor(c(1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6)),
+assessment2=c(26.600000, 31.100000, 34.700000, 34.400000, 32.100000, 28.500000, 30.200000, 29.200000, 32.100000, 31.900000, 30.200000, 31.000000), 
+assessment1=c(0.910000, 1.220000, 1.430000, 1.450000, 1.330000, 1.100000, 1.020000, 0.890000, 1.390000, 1.470000, 1.270000, 1.120000)
+)
+arm.lm <- lm(assessment2 ~ replicate + assessment1 + treatment, data=arm.dat, model=FALSE)
+alt.lm <- lm(assessment2 ~ treatment + assessment1 + replicate, data=arm.dat, model=FALSE,x=TRUE)
+aov.tbl<-anova(arm.lm)
+alt.tbl<-anova(alt.lm)
+print(summary(arm.lm))
+print(aov.tbl)
+print(alt.tbl)
+
+treatments <- length(levels(arm.dat$treatment))
+C.t <- match.fun(arm.lm$contrasts[['treatment']])(treatments)
+reps <- length(levels(arm.dat$replicate))
+L.r <- matrix(rep(1,(reps-1)*treatments),nrow=treatments)
+L.r <- L.r/(reps)
+coeffs <- arm.lm$coefficients
+
+cov.means <- rep(mean(arm.dat$assessment1),dim(C.t)[1])
+L  <- cbind(rep(1,dim(C.t)[1]), cov.means, L.r, C.t)
+trt.means <- L %*% coeffs
+means.tbl <- data.frame(trt=as.integer(levels(arm.dat$treatment)),arith=tapply(arm.dat$assessment2, list(arm.dat$treatment), mean),lsmean= trt.means)
+means.tbl
+L.contrasts <- NULL
+for(i in 1:  (dim(L)[1]-1)) {
+  for(j in (i+1):(dim(L)[1])) {
+    L.contrasts <- rbind(L.contrasts, L[i,]-L[j,])
+  }
+}
+L.contrasts
+
+Vcoeffs <- vcov(arm.lm)
+Vcoeffs
+Sigma.m <- 1 / sqrt(diag(L.contrasts %*% Vcoeffs %*% t(L.contrasts)))
+if(dim(L.contrasts)[1]>1) {
+  Sigma <- diag(Sigma.m)
+} else {
+  Sigma <- Sigma.m
+}
+Sigma.m
+t_ <- Sigma %*% L.contrasts %*% coeffs
+Cor <- Sigma %*% (L.contrasts %*% Vcoeffs %*% t(L.contrasts)) %*% t(Sigma)
+se.vec <- diag(L.contrasts %*% Vcoeffs %*% t(L.contrasts))
+SE.table <- matrix(0,nrow=treatments,ncol=treatments)
+
+se.idx <- 1
+for (i in 1:(dim(L)[1]-1)) {
+   for(j in (i+1):(dim(L)[1])) {
+      SE.table[i,j] <- se.vec[se.idx]
+      SE.table[j,i] <- se.vec[se.idx]
+      se.idx <- se.idx + 1
+   }
+}
+SE.table
+X <- alt.lm$x
+(t(X) %*% X)
+
+alpha = 0.05
+err.df <- arm.lm$df.residual
+crit.t <-qtukey(1 - alpha / 2, treatments, err.df)
+crit.tbl <- SE.table * crit.t
+crit.tbl
+```
+
+
+```{r,fig.height=5,fig.width=5}
+qplot(treatment,assessment1,data=arm.dat,geom='boxplot') +   
+  stat_summary(fun.y=mean,shape=1,col='red',geom='point') + 
+  labs(y= "OC", x = "Treatment") +
+  ggtitle("RCB Blocks")
+```
+
+```{r,fig.height=5,fig.width=8}
+ggplot(arm.dat, aes(replicate,assessment1)) + 
+geom_point(aes(colour = treatment),size=2) + 
+scale_colour_manual(values=cbPalette) +
+  labs(colour = "Treatment", x="Replicate", y="OC", title = "Replicate Covariates")
+```
+
+```{r}
+ggplot(arm.dat, aes(assessment1,assessment2)) + 
+geom_point(aes(colour = treatment),size=2) + 
+geom_smooth(aes(group=treatment),se = FALSE, method = lm) +
+scale_colour_manual(values=cbPalette) +
+  labs(colour = "Treatment", x="OC", y="Yield", title = "Replicate Covariates")
+```
+
+```{r}
+ggplot(arm.dat, aes(assessment1,assessment2)) + 
+geom_point(aes(colour = treatment),size=2) + 
+geom_smooth(se = FALSE, method = lm) +
+scale_colour_manual(values=cbPalette) +
+  labs(x="OC", y="Yield", title = "Replicate Covariates")
+```
+
+```{r}
+ggplot(arm.dat[arm.dat$treatment %in% c(1,11),], aes(assessment1,assessment2)) + 
+geom_point(aes(colour = treatment),size=2) + 
+geom_smooth(se = FALSE, method = lm) +
+scale_colour_manual(values=cbPalette) +
+  labs(x="OC", y="Yield", title = "Replicate Covariates")
+```
+
+# Comparisons
+
+We need to normalize the covariate
+
+```{r}
+arm.dat$cov <- arm.dat$assessment1/(max(arm.dat$assessment1))
+```
+
+```{r}
+rcb.lm <- lm(assessment2 ~ replicate + treatment, data=arm.dat, x=TRUE)
+rcbc.lm <- lm(assessment2 ~ replicate + treatment + cov, data=arm.dat, x=TRUE)
+rcbci.lm <- lm(assessment2 ~ replicate + treatment + cov + treatment:cov, data=arm.dat, x=TRUE)
+rcbciri.lm <- lm(assessment2 ~ replicate + treatment + cov + replicate:cov + treatment:cov, data=arm.dat, x=TRUE)
+c.lm <- lm(assessment2 ~ cov, data=arm.dat, x=TRUE)
+ci.lm <- lm(assessment2 ~ cov + treatment:cov, data=arm.dat, x=TRUE)
+```
+
+```{r}
+summary(aov(rcb.lm))
+summary(aov(rcbc.lm))
+summary(aov(rcbci.lm))
+summary(aov(rcbciri.lm))
+summary(aov(c.lm))
+summary(aov(ci.lm))
+```
+
+```{r}
+#summary(rcb.lm)
+#summary(rcbc.lm)
+#summary(rcbci.lm)
+#summary(c.lm)
+#summary(ci.lm)
+```
+
+## Information
+
+- Design information
+
+$$
+\mathcal{I} = X^{t} X
+$$
+
+```{r}
+print(I.rcb <- t(rcb.lm$x) %*% rcb.lm$x)
+print(I.rcbc <- t(rcbc.lm$x) %*% rcbc.lm$x)
+print(I.rcbci <- t(rcbci.lm$x) %*% rcbci.lm$x)
+print(I.c <- t(c.lm$x) %*% c.lm$x)
+print(I.ci <- t(ci.lm$x) %*% ci.lm$x)
+
+print(Ds <- c(det(I.rcb), det(I.rcbc), det(I.rcbci), det(I.c), det(I.ci)))
+print(As <- c(trace(I.rcb), trace(I.rcbc), trace(I.rcbci), trace(I.c), trace(I.ci)))
+```
+
+- Contrast information
+
+$$
+c^{t} \mathcal{I}^{-} c
+$$
+
+since $Var(\widehat{ {c^{t} \tau}} ) = c^{t} \mathcal{I}^{-} c \sigma^2$
+
+```{r}
+print(I.rcb <- t(rcb.lm$x) %*% rcb.lm$x)
+print(I.rcbc <- t(rcbc.lm$x) %*% rcbc.lm$x)
+print(I.rcbci <- t(rcbci.lm$x) %*% rcbci.lm$x)
+print(I.c <- t(c.lm$x) %*% c.lm$x)
+print(I.ci <- t(ci.lm$x) %*% ci.lm$x)
+
+treatments <- length(levels(arm.dat$treatment))
+C.t.rcb <- match.fun(rcb.lm$contrasts[['treatment']])(treatments)
+reps <- length(levels(arm.dat$replicate))
+L.r.rcb <- matrix(rep(1,(reps-1)*treatments),nrow=treatments)
+L.r.rcb <- L.r.rcb/(reps)
+```
+
+```{r}
+midpoint <- mean(arm.dat$cov) #(max(arm.dat$cov) + min(arm.dat$cov))/2
+cov.means <-rep(midpoint,dim(C.t.rcb)[1]) # rep(mean(arm.dat$assessment1),dim(C.t.rcb)[1])
+L.rcb  <- cbind(rep(1,dim(C.t.rcb)[1]), L.r.rcb, C.t.rcb)
+L.rcbc  <- cbind(rep(1,dim(C.t.rcb)[1]), L.r.rcb, C.t.rcb, cov.means)
+L.rcbci  <- cbind(rep(1,dim(C.t.rcb)[1]), L.r.rcb, C.t.rcb, cov.means, C.t.rcb*mean(arm.dat$cov))
+L.c  <- cbind(rep(1,dim(C.t.rcb)[1]), cov.means)
+L.ci  <- cbind(rep(1,dim(C.t.rcb)[1]), cov.means, C.t.rcb*mean(arm.dat$cov))
+```
+
+
+```{r}
+Table9.1.means <- data.frame(
+  RCB = L.rcb %*% coef(rcb.lm),
+  RCBC = L.rcbc %*% coef(rcbc.lm),
+  RCBCI = L.rcbci %*% coef(rcbci.lm),
+  C = L.c %*% coef(c.lm),
+  CI = L.ci %*% coef(ci.lm)
+)
+Table9.1.means
+```
+
+```{r}
+library(lsmeans)
+
+lsmeans(rcb.lm, ~ treatment)
+lsmeans(rcbc.lm, ~ treatment)
+lsmeans(rcbci.lm, ~ treatment)
+```
+
+```{r}
+L.rcb.contrasts <- NULL
+L.rcbc.contrasts <- NULL
+L.rcbci.contrasts <- NULL
+L.c.contrasts <- NULL
+L.ci.contrasts <- NULL
+
+for(i in 1:  (dim(L.rcb)[1]-1)) {
+  for(j in (i+1):(dim(L.rcb)[1])) {
+    L.rcb.contrasts <- rbind(L.rcb.contrasts, L.rcb[i,]-L.rcb[j,])
+    L.rcbc.contrasts <- rbind(L.rcbc.contrasts, L.rcbc[i,]-L.rcbc[j,])
+    L.rcbci.contrasts <- rbind(L.rcbci.contrasts, L.rcbci[i,]-L.rcbci[j,])
+    L.c.contrasts <- rbind(L.c.contrasts, L.c[i,]-L.c[j,])
+    L.ci.contrasts <- rbind(L.ci.contrasts, L.ci[i,]-L.ci[j,])
+  }
+}
+```
+
+
+```{r}
+print(CI.rcb <- L.rcb.contrasts %*% I.rcb %*% t(L.rcb.contrasts))
+print(CI.rcbc <- L.rcbc.contrasts %*% I.rcbc %*% t(L.rcbc.contrasts))
+print(CI.rcbci <- L.rcbci.contrasts %*% I.rcbci %*% t(L.rcbci.contrasts))
+print(CI.c <- L.c.contrasts %*% I.c %*% t(L.c.contrasts))
+print(CI.ci <- L.ci.contrasts %*% I.ci %*% t(L.ci.contrasts))
+
+print(DCs <- c(det(CI.rcb), det(CI.rcbc), det(CI.rcbci), det(CI.c), det(CI.ci)))
+print(ACs <- c(trace(CI.rcb), trace(CI.rcbc), trace(CI.rcbci), trace(CI.c), trace(CI.ci)))
+```
+
+## Cochran Data
+
+```{r}
+aov.lm <- lm(Second ~ Rep + Trt, data=Cochran3_1.dat,x=TRUE)
+aocv.lm <- lm(Second ~ First + Rep + Trt, data=Cochran3_1.dat,x=TRUE)
+alt.lm <- lm(Second ~ Trt + Rep +  First +  0, data=Cochran3_1.dat,x=TRUE)
+aov.tbl<-anova(aov.lm)
+aocv.tbl<-anova(aocv.lm)
+alt.tbl<-anova(alt.lm)
+print(summary(aov.lm))
+print(aov.tbl)
+
+print(summary(aocv.lm))
+print(aocv.tbl)
+
+print(summary(alt.lm))
+print(alt.tbl)
+```
+
+```{r}
+treatments <- length(levels(Cochran3_1.dat$Trt))
+C.t <- match.fun(aocv.lm$contrasts[['Trt']])(treatments)
+reps <- length(levels(Cochran3_1.dat$Rep))
+L.r <- matrix(rep(1,(reps-1)*treatments),nrow=treatments)
+L.r <- L.r/(reps)
+coeffs <- aocv.lm$coefficients
+if(any(is.na(coeffs))) { coeffs[is.na(coeffs)] <- 0 }
+cov.means <- rep(mean(Cochran3_1.dat$First),dim(C.t)[1])
+L  <- cbind(rep(1,dim(C.t)[1]), cov.means, L.r, C.t)
+trt.means <- L %*% coeffs
+means.tbl <- data.frame(trt=as.integer(levels(Cochran3_1.dat$Trt)),arith=tapply(Cochran3_1.dat$Second, list(Cochran3_1.dat$Trt), mean),lsmean= trt.means)
+
+L.contrasts <- NULL
+for(i in 1:  (dim(L)[1]-1)) {
+  for(j in (i+1):(dim(L)[1])) {
+    L.contrasts <- rbind(L.contrasts, L[i,]-L[j,])
+  }
+}
+
+Vcoeffs <- vcov(aocv.lm)
+Sigma.m <- 1 / sqrt(diag(L.contrasts %*% Vcoeffs %*% t(L.contrasts)))
+if(dim(L.contrasts)[1]>1) {
+  Sigma <- diag(Sigma.m)
+} else {
+  Sigma <- Sigma.m
+}
+Sigma.m
+t_ <- Sigma %*% L.contrasts %*% coeffs
+Cor <- Sigma %*% (L.contrasts %*% Vcoeffs %*% t(L.contrasts)) %*% t(Sigma)
+se.vec <- diag(L.contrasts %*% Vcoeffs %*% t(L.contrasts))
+SE.table <- matrix(0,nrow=treatments,ncol=treatments)
+se.idx <- 1
+for (i in 1:(dim(L)[1]-1)) {
+   for(j in (i+1):(dim(L)[1])) {
+      SE.table[i,j] <- se.vec[se.idx]
+      SE.table[j,i] <- se.vec[se.idx]
+      se.idx <- se.idx + 1
+   }
+}
+
+X <- alt.lm$x
+alpha = 0.05
+err.df <- aov.lm$df.residual
+crit.t <-qtukey(1 - alpha / 2, treatments, err.df)
+crit.tbl <- SE.table * crit.t
+```
+
+
+# Optimal Designs
+
+Assume our analysis is based on solving 
+$$
+\hat{\beta} = (F^T F)^{-1} F^T y
+$$
+
+with
+
+$$
+var(\hat{\beta}) = \sigma^2 (F^T F)^{-1}
+$$
+
+where $F$ is the design matrix for the experiment.
+
+D-optimal design maximizes $| F^T F |$, since this minimizes $\sigma^2 (F^T F)^{-1}$
+
+A-optimal are less stringent - they minimize the average variance, or $trace((F^T F)^{-1})$
+## 
+
+
+
+```{r}
+desplot(First~lon*lat, data=Cochran3_1.dat, cex=1, text=Trt,
+        main="Initial Counts")
+```
+
+
+```{r}
+Cochran3_1.dat$Unit <- 1
+#lm1 <- lm(Unit ~ First,data=Cochran3_1.dat,x=TRUE)
+#lm2 <- lm(Unit ~ Rep + Trt + First,data=Cochran3_1.dat,x=TRUE)
+#lm3 <- lm(Unit ~ Rep + Trt + First + I(First^2),data=Cochran3_1.dat,x=TRUE)
+
+lm1 <- lm(Second ~ Rep + Trt,data=Cochran3_1.dat,x=TRUE)
+lm2 <- lm(Second ~ Rep + Trt + First,data=Cochran3_1.dat,x=TRUE)
+lm3 <- lm(Second ~ Rep + Trt + First + I(First^2),data=Cochran3_1.dat,x=TRUE)
+#lm3 <- lm(Second ~ Rep + Trt*First,data=Cochran3_1.dat,x=TRUE)
+```
+
+```{r}
+aov1.tbl <- anova(lm1)
+aov1.tbl
+summary(lm1)
+aov2.tbl <- anova(lm2)
+summary(lm2)
+aov2.tbl
+aov3.tbl <- anova(lm3)
+aov3.tbl
+summary(lm3)
+```
+
+```{r}
+X1 <- lm1$x
+FtF1 <- t(X1)%*% X1
+det(FtF1)
+#det(FtF1)*aov1.tbl[3,3]
+
+X2 <- lm2$x
+FtF2 <- t(X2)%*% X2
+det(FtF2)
+solve(FtF2)
+
+X3 <- lm3$x
+FtF3 <- t(X3)%*% X3
+det(FtF3)
+
+sum(diag(FtF1))
+sum(diag(FtF2))
+sum(diag(FtF3))
+```
+
+# Adaptive randomization
+```{r}
+set.seed(1000)
+Cochran3_1.dat$Rank <- rank(Cochran3_1.dat$First,ties.method = c("random"))
+Cochran3_1.dat$PostBlock <- ceiling(Cochran3_1.dat$Rank/12)
+Cochran3_1.dat[,c("Trt","Rep","Rank","PostBlock")]
+Cochran3_1.dat$TreatmentRank <- 0
+for(blk in 1:max(Cochran3_1.dat$PostBlock)) {
+  Cochran3_1.dat$TreatmentRank[Cochran3_1.dat$PostBlock==blk] <- sample(1:12)
+}
+Cochran3_1.dat$TrtNoRank <- Cochran3_1.dat$TreatmentRank
+Cochran3_1.dat$TreatmentRank <- as.factor(Cochran3_1.dat$TreatmentRank)
+```
+
+# Compare randomizations
+Scale the data
+
+```{r}
+Cochran3_1.dat$FirstScaled <- Cochran3_1.dat$First/max(Cochran3_1.dat$First)
+```
+
+```{r}
+
+max.sim <- 10
+plans <- vector("list", max.sim)
+res.tbl <- data.frame(
+  D = rep(NA,max.sim),
+  A = rep(NA,max.sim)
+)
+
+for (j in 1:max.sim) {
+  Current.dat <- Cochran3_1.dat
+  
+  Current.dat$Trt <- as.factor(sample(levels(Current.dat$Trt))[Current.dat$Trt])
+  lm.tmp <- lm(Second ~ 0 + Trt:First,data=Current.dat,x=TRUE)
+  plans[[j]] <- Current.dat
+  #hash.key <- ""
+
+  
+  X.tmp <- lm.tmp$x
+  FtF.tmp <- t(X.tmp)%*% X.tmp
+  print(diag(FtF.tmp))
+  res.tbl$D[j] <- det(FtF.tmp)
+  res.tbl$A[j] <- sum(diag(FtF.tmp))
+}
+res.tbl$D
+plot(res.tbl$D/max(res.tbl$D))
+plot(res.tbl$A/max(res.tbl$A))
+```
+
+
+# Optimal design in regression
+
+```{r}
+quantiles <- quantile(Cochran3_1.dat$FirstScaled, seq(0, 1, 1/4))
+mid.points <- (quantiles[2:5]+quantiles[1:4])/2
+mid.points
+Cochran3_1.dat$FirstQ <- mid.points[Cochran3_1.dat$Rep]
+
+uniform <- seq(min(Cochran3_1.dat$FirstScaled), max(Cochran3_1.dat$FirstScaled),(max(Cochran3_1.dat$FirstScaled)- min(Cochran3_1.dat$FirstScaled))/4)
+uniform.points <- (uniform[2:5]+uniform[1:4])/2
+Cochran3_1.dat$FirstU <- uniform.points[Cochran3_1.dat$Rep]
+
+lm.S <- lm(Second ~ 0 + Trt:FirstScaled,data=Cochran3_1.dat,x=TRUE)
+X.S <- lm.S$x
+FtF.S <- t(X.S)%*% X.S
+det(FtF.S)
+sum(diag(FtF.S))
+
+lm.R <- lm(Second ~ 0 + TreatmentRank:FirstScaled,data=Cochran3_1.dat,x=TRUE)
+X.R <- lm.R$x
+FtF.R <- t(X.R)%*% X.R
+det(FtF.R)
+sum(diag(FtF.R))
+
+lm.Q <- lm(Second ~ 0 + Trt:FirstQ,data=Cochran3_1.dat,x=TRUE)
+
+X.Q <- lm.Q$x
+FtF.Q <- t(X.Q)%*% X.Q
+det(FtF.Q)
+sum(diag(FtF.Q))
+
+
+lm.U <- lm(Second ~ 0 + Trt:FirstU,data=Cochran3_1.dat,x=TRUE)
+
+X.U <- lm.U$x
+FtF.U <- t(X.U)%*% X.U
+det(FtF.U)
+sum(diag(FtF.U))
+
+```
+
+
+```{r}
+Cochran3_1.dat$TrtNo <- as.numeric(as.character((Cochran3_1.dat$Trt)))
+plot(FirstScaled ~ TrtNo,data=Cochran3_1.dat,type='p',pch=19)
+#points(FirstQ ~ TrtNo,data=Cochran3_1.dat,col='red')
+#points(FirstU ~ TrtNo,data=Cochran3_1.dat,col='blue')
+abline(h=uniform.points,col='blue')
+abline(h=mid.points,col='red')
+points(FirstScaled ~ TrtNoRank,data=Cochran3_1.dat,col='green')
+```
+
