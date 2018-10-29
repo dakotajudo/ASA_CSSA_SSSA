@@ -2,7 +2,9 @@
 title: "Thoughts about Power and Sample Size for On-Farm Strip Trials"
 author: "Peter Claussen"
 date: "6/4/2018"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -27,7 +29,7 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00",
 # East Quarter
 
 ```{r}
-load(file="../yield_monitor_data/workshop2017/Case Study 2/Strips.Rda")
+load(file="../../2017/Workshop/Case Study 2/Strips.Rda")
 ```
 
 ```{r,fig.width=8,fig.height=4, EastQuarterProduct}
@@ -609,4 +611,165 @@ summary(aov(Yield ~ Block+Product + Error(Product:Block), data= EastQuarter.dat)
 # Paired vs unpaired tests
 https://en.wikipedia.org/wiki/Paired_difference_test
 
+
+# Planning
+
+Suppose we have a field where we might test strips, and that we have yield monitor data.
+
+```{r}
+load(file="../../2017/Workshop/Case Study 1/Pooled.Rda")
+```
+
+Corn2013.dat,Corn2015.dat,Soybean2014.dat,Soybean2016.dat
+
+Trim between 50 and 350 
+```{r}
+uniformity.dat <- subset(Soybean2016.dat,Soybean2016.dat$Easting>50)
+uniformity.dat <- subset(uniformity.dat,uniformity.dat$Easting<350)
+uniformity.dat$Gap <- c(0,uniformity.dat$Seconds[2:dim(uniformity.dat)[1]] -uniformity.dat$Seconds[1:(dim(uniformity.dat)[1]-1)])
+hist(uniformity.dat$Gap)
+uniformity.dat$PassNo <- 0
+Pass <- 1
+head(uniformity.dat)
+for(i in 1:dim(uniformity.dat)[1]) {
+  if(uniformity.dat$Gap[i]>5) {
+    Pass <- Pass+1
+  }
+  uniformity.dat$PassNo[i] <- Pass
+}
+#uniformity.dat$Pass <- as.factor(uniformity.dat$Pass)
+```
+
+
+```{r,fig.width=8,fig.height=4, UniformitySwath}
+ggplot(uniformity.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = as.factor(PassNo)),size=2) + 
+#scale_colour_manual(values=cbPalette) +
+labs(colour = "Swath", x="Longitude (m)", y="Latitude (m)", title = "Uniformity 2016")
+```
+
+```{r}
+uniformity.dat <- uniformity.dat[!(uniformity.dat$PassNo %in% c(2,3,6,8,9,10)),]
+```
+
+```{r,fig.width=8,fig.height=4, UniformitySwathSubset}
+uniformity.dat$Pass <- as.factor(uniformity.dat$Pass)
+ggplot(uniformity.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = as.factor(Pass)),size=2) + 
+#scale_colour_manual(values=cbPalette) +
+labs(colour = "Swath", x="Longitude (m)", y="Latitude (m)", title = "Uniformity 2016")
+```
+
+
+Repeat interpolation from part 1
+
+```{r}
+LOESS.basis <- rep(seq(min(uniformity.dat$Easting),max(uniformity.dat$Easting),by=2))
+total.passes <- length(levels(uniformity.dat$Pass))
+SmoothedU.dat <- data.frame(
+  Yield = rep(0,total.passes*length(LOESS.basis)),
+  Easting = rep(LOESS.basis,total.passes),
+  PassNo = rep(levels(uniformity.dat$Pass),each=length(LOESS.basis)),
+  Northing = rep(0,total.passes*length(LOESS.basis))
+)
+
+for(i in levels(uniformity.dat$Pass)) {
+  current.pass <- uniformity.dat[uniformity.dat$Pass==i,]
+  current.loess <- loess(Yield ~ Easting,data=current.pass)
+  current.smoothed <- predict(current.loess, data.frame(Easting = LOESS.basis))
+  SmoothedU.dat$Yield[SmoothedU.dat$PassNo==i] <- current.smoothed
+  SmoothedU.dat$Northing[SmoothedU.dat$PassNo==i] <- mean(current.pass$Northing)
+}
+SmoothedU.dat$Pass <- as.factor(SmoothedU.dat$PassNo)
+```
+
+```{r}
+ggplot(uniformity.dat,aes(Easting,Yield))+
+  geom_point(aes(colour = Pass),size=.1) +
+  #scale_colour_manual(values=cbPalette)+ 
+  stat_smooth(aes(group=Pass, colour = Pass))+
+  labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "Middle")
+```
+
+```{r}
+ggplot(SmoothedU.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Pass),size=.2) + 
+#scale_colour_manual(values=cbPalette) + 
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "") #+  ylim(125, 275)
+```
+
+```{r}
+Prob <- data.frame(
+  Easting = LOESS.basis
+)
+Prob$SD <- 0
+for(i in 1:length(LOESS.basis)) {
+  l <- LOESS.basis[i]
+  obs <- SmoothedU.dat[SmoothedU.dat$Easting==l,]
+  product.sd <- sd(obs$Yield,na.rm=TRUE)
+  Prob$SD[i] <- product.sd
+}
+Prob$R1 <- Prob$SD^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+Prob$R2 <- (Prob$SD/4)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+Prob$R3 <- (Prob$SD/8)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+```
+
+
+
+
+```{r,fig.width=8,fig.height=8}
+par(mfrow=c(2,1))
+plot(SD ~ Easting, data=Prob)
+plot(R1 ~ Easting, data=Prob,ylim=c(0,50),type='l')
+lines(R2 ~ Easting, data=Prob,col='red')
+lines(R3 ~ Easting, data=Prob,col='blue')
+abline(h=6)
+```
+
+
+
+```{r}
+SmoothedU.dat <- SmoothedU.dat[!(SmoothedU.dat$PassNo %in% c(1,4,19,20)),]
+```
+
+
+```{r}
+ggplot(SmoothedU.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Pass),size=.2) + 
+#scale_colour_manual(values=cbPalette) + 
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "") #+  ylim(125, 275)
+```
+
+```{r}
+Prob <- data.frame(
+  Easting = LOESS.basis
+)
+Prob$SD <- 0
+for(i in 1:length(LOESS.basis)) {
+  l <- LOESS.basis[i]
+  obs <- SmoothedU.dat[SmoothedU.dat$Easting==l,]
+  product.sd <- sd(obs$Yield,na.rm=TRUE)
+  Prob$SD[i] <- product.sd
+}
+Prob$R1 <- Prob$SD^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+Prob$R2 <- (Prob$SD/4)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+Prob$R3 <- (Prob$SD/8)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+```
+
+
+
+
+```{r,fig.width=8,fig.height=8}
+par(mfrow=c(2,1))
+plot(SD ~ Easting, data=Prob)
+plot(R1 ~ Easting, data=Prob,ylim=c(0,20),type='l')
+lines(R2 ~ Easting, data=Prob,col='red')
+lines(R3 ~ Easting, data=Prob,col='blue')
+abline(h=5)
+```
+
 # Two dimensions
+
+
+References:
+Comments on the Neyman–Fisher Controversy and Its Consequences
