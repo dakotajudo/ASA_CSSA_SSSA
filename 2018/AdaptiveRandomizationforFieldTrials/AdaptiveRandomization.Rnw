@@ -7,7 +7,7 @@
 \title{Adaptive Randomization}
 \maketitle
 
-<<>>=
+<<echo=false>>=
 options(digits=12)
 trace <- function(x) {sum(diag(x))}
 library(ggplot2)
@@ -36,15 +36,851 @@ assessment1=c(124, 109, 230, 107, 222, 193, 283, 80, 107, 153, 212, 41, 162, 48,
 )
 @
 
-<<Datasets,echo=false>>=
-arm.dat <- data.frame(
-plot=as.factor(c(102, 201, 302, 401, 502, 601, 101, 202, 301, 402, 501, 602)), 
-treatment=as.factor(c(1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2)), 
-replicate=as.factor(c(1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6)),
-assessment2=c(26.60, 31.10, 34.70, 34.40, 32.10, 28.50, 30.20, 29.20, 32.10, 31.90, 30.20, 31.00), 
-assessment1=c(0.91, 1.22, 1.43, 1.45, 1.33, 1.10, 1.02, 0.89, 1.39, 1.47, 1.27, 1.12)
+
+
+\section{Review of the Analysis of Covariance}
+
+We'll review the analysis of covariance using an ARM data format. I used \verb|base.dat| as a template for different randomizations, and comparend algorithms by replacing the base data with different examples of ANCOVA. These have been moved to a later section, but I'll keep the \verb|arm.dat|/\verb|base.dat| convention in place.
+
+<<>>=
+base.dat <- cochran.arm.dat
+arm.dat <- base.dat
+@
+
+\subsubsection{Labels for plots}
+
+<<>>=
+response.label = "Second Count"
+covariate.label = "First Count"
+reps <- length(levels(arm.dat$replicate))
+treatments <- length(levels(arm.dat$treatment))
+@
+
+\section{Trial Maps}
+
+<<1ReplicateMap,fig=TRUE,width=6,height=4>>=
+library(desplot)
+desplot(replicate~x*y, data=arm.dat, cex=1, text=treatment,
+        main="Trial map (color = Block)", col.regions=cbPalette)
+@
+
+
+<<2CovariateMap,fig=TRUE,width=6,height=4>>=
+desplot(assessment1~x*y, data=arm.dat, cex=1, text=treatment,
+        main="Trial map (color = First)")
+@
+
+\subsection{Models}
+
+Cochran and Cox present an analysis of covariance that extends the designed experiment to include simple linear regression of the covariate.
+<<>>=
+anova(lm(assessment2 ~ replicate + treatment,data=arm.dat))
+anova(lm(assessment2 ~ replicate + treatment + assessment1, data=arm.dat))
+@
+
+We will also want to consider testing if the response is quadratic with regard to the covariate, and if there is a treatment by covariate interaction.
+
+<<>>=
+anova(lm(assessment2 ~ replicate + treatment + assessment1 + I(assessment1^2),data=arm.dat))
+anova(lm(assessment2 ~ replicate + treatment + assessment1 + treatment:assessment1,data=arm.dat))
+@
+
+
+To illustrate the differences, plot RCB residuals against the different models:
+
+<<>>=
+arm.dat$RCBResidual <- resid(lm(assessment2 ~ replicate + treatment,data=arm.dat))
+@
+
+<<3ResidualRegression,fig=TRUE,echo=false,width=8,height=4>>=
+ggplot(arm.dat, aes(assessment1,RCBResidual)) + 
+geom_point(aes(colour = treatment),size=2) + 
+geom_smooth(color=cbPalette[treatments+1],se = FALSE, method = lm) +
+scale_colour_manual(values=cbPalette) +
+  labs(colour = "Treatment", x=covariate.label, y=response.label, title = "Regression, RCB Residuals")
+@
+
+<<4QuadResidualRegression,fig=TRUE,echo=false,width=8,height=4>>=
+ggplot(arm.dat, aes(assessment1,RCBResidual)) + 
+geom_point(aes(colour = treatment),size=2) + 
+geom_smooth(color=cbPalette[treatments+1],se = FALSE, method = lm, formula= y ~ poly(x,2)) +
+scale_colour_manual(values=cbPalette) +
+  labs(colour = "Treatment", x=covariate.label, y=response.label, title = "Quadratic Regression, RCB Residuals")
+@
+
+<<5TreatmentResidualRegression,fig=TRUE,echo=false,width=8,height=4>>=
+ggplot(arm.dat, aes(assessment1,RCBResidual)) + 
+geom_point(aes(colour = treatment),size=2) + 
+geom_smooth(aes(group=treatment,color=treatment),se = FALSE, method = lm) +
+scale_colour_manual(values=cbPalette) +
+  labs(colour = "Treatment", x=covariate.label, y=response.label, title = "Treatment Interaction, RCB Residuals")
+@
+
+
+
+\subsection{Treatments Disperson over Covariates}
+
+<<8TreatmentDispersion,fig=TRUE,echo=false,width=6,height=4>>=
+CovMeans <- tapply(arm.dat$assessment1,list(arm.dat$treatment),mean)
+CovOrder <- order(CovMeans)
+ggplot(arm.dat, aes(x=treatment, y=assessment1)) +
+  geom_boxplot(colour=cbPalette[1]) + 
+  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
+  scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
+    labs(x='Treatment', y=covariate.label, title = "Treatment Dispersion")
+@
+
+
+
+\section{Randomizations}
+
+What does an optimal randomization look like?
+
+To calculate D-optimality, we want to normalize covariates to a scale of 0-1. 
+
+<<>>=
+arm.dat$cov <- arm.dat$assessment1/max(arm.dat$assessment1)
+@
+
+
+Simple function to compute $|X^tX|$ from a linear model. We don't actually need to solve the model, we just need to x matrices.
+
+<<>>=
+optimality <- function(lm,contrast=NULL) {
+  if(is.null(lm$x)) {
+    lm <- update(lm,x=TRUE)
+  }
+  X <- lm$x
+  I <- t(X) %*% X
+  return(list(D=det(I),A=sum(diag(I))))
+}
+@
+
+
+2000 seems to be an appropriate number.
+
+<<>>=
+simulations <- 2000
+set.seed(simulations)
+@
+
+Create data structures to hold optimality measures.
+
+<<>>=
+randomization.label <- paste(simulations," Randomizations")
+rcb.designs <- vector("list", length = simulations)
+rcb.designs.dat <- data.frame(
+  Design = rep(0,simulations),
+  MaxMeanDif = rep(0,simulations),
+  MaxSDDif = rep(0,simulations),
+  MeanSD = rep(0,simulations),
+  MomentNorm = rep(0,simulations),
+  ANCOVA = rep(0,simulations),
+  Regression = rep(0,simulations)
+)
+var.designs.dat <- rcb.designs.dat
+var.designs <- rcb.designs
+@
+
+<<>>=
+for (s in 1:simulations) {
+  if(s!=1) {
+    #rerandomize RCB treatments
+    for(blk in levels(arm.dat$replicate)) {
+      arm.dat$treatment[arm.dat$replicate==blk] <- levels(arm.dat$treatment)[sample(1:treatments)]
+    }
+  }
+
+  arm.dat$treatment <- as.factor(arm.dat$treatment)
+  rcb.designs[[s]] <- arm.dat
+  #mean and standard deviation for covariate among treatments
+  cov.means <- tapply(arm.dat$cov,list(arm.dat$treatment),mean)
+  cov.sds <- tapply(arm.dat$cov,list(arm.dat$treatment),sd)
+
+  rcb.designs.dat$MaxMeanDif[s] <- max(cov.means)-min(cov.means)
+  rcb.designs.dat$MaxSDDif[s] <- max(cov.sds)-min(cov.sds)
+  rcb.designs.dat$MeanSD[s] <- mean(cov.sds)
+  rcb.designs.dat$MomentNorm[s] <- sqrt(sum(rcb.designs.dat$MaxMeanDif[s]^2+rcb.designs.dat$MaxSDDif[s]^2))
+    
+  #fit linear models
+ rcb.lm <- lm(assessment1 ~ replicate + treatment, data = arm.dat, method="model.frame", model=FALSE, x = TRUE)
+ ancova.lm <- lm(assessment1 ~ replicate + treatment + cov, data = arm.dat, model=FALSE, x = TRUE)
+#Model1.lm <- lm(assessment1 ~ cov, data = arm.dat, model=FALSE, x = TRUE)
+ rcb.regression.lm <- lm(assessment1 ~ cov +  treatment, data = arm.dat, model=FALSE, x = TRUE)
+#Model3.lm <- lm(assessment1 ~ cov +  treatment + treatment:cov, data = arm.dat, model=FALSE, x = TRUE)
+#Model4.lm <- lm(assessment1 ~ cov +  treatment + replicate + treatment:cov, data = arm.dat, model=FALSE, x = TRUE)
+#Model5.lm <- lm(assessment1 ~ cov +  treatment + replicate + treatment:cov + replicate:cov, data = arm.dat, model=FALSE, x = TRUE)
+
+#opt.1 <- optimality(Model1.lm)
+  opt.rcb.ancova <- optimality(ancova.lm)
+  opt.rcb.regression <- optimality(rcb.regression.lm)
+
+  # randomize by covariate
+  arm.dat$Rank <- rank(arm.dat$cov,ties.method = c("random"))
+  arm.dat$VariableBlock <- ceiling(arm.dat$Rank/treatments)
+  for(blk in 1:max(arm.dat$VariableBlock)) {
+    arm.dat$VariableTreatment[arm.dat$VariableBlock==blk] <- sample(1:treatments)
+  }
+
+  arm.dat$VariableBlock <- as.factor(arm.dat$VariableBlock)
+  arm.dat$VariableTreatment <- as.factor(arm.dat$VariableTreatment)
+  var.designs[[s]] <- arm.dat
+  cov.means <- tapply(arm.dat$cov,list(arm.dat$VariableTreatment),mean)
+  cov.sds <- tapply(arm.dat$cov,list(arm.dat$VariableTreatment),sd)
+  
+  var.designs.dat$MaxMeanDif[s] <- max(cov.means)-min(cov.means)
+  var.designs.dat$MaxSDDif[s] <- max(cov.sds)-min(cov.sds)
+  var.designs.dat$MeanSD[s] <- mean(cov.sds)
+  var.designs.dat$MomentNorm[s] <- sqrt(sum(var.designs.dat$MaxMeanDif[s]^2+var.designs.dat$MaxSDDif[s]^2))
+  
+#VariableModel1.lm <- lm(assessment1 ~ cov, data = arm.dat, model=FALSE, x = TRUE)
+var.ancova.lm <- lm(assessment1 ~ VariableBlock + VariableTreatment + cov, data = arm.dat, model=FALSE, x = TRUE)
+var.regression.lm <- lm(assessment1 ~ cov +  VariableTreatment, data = arm.dat, model=FALSE, x = TRUE)
+#VariableModel3.lm <- lm(assessment1 ~ cov +  VariableTreatment + VariableTreatment:cov, data = arm.dat, model=FALSE, x = TRUE)
+#VariableModel4.lm <- lm(assessment1 ~ cov +  VariableTreatment + VariableBlock + VariableTreatment:cov, data = arm.dat, model=FALSE, x = TRUE)
+#VariableModel5.lm <- lm(assessment1 ~ cov +  VariableTreatment + VariableBlock + VariableTreatment:cov + VariableBlock:cov, data = arm.dat, model=FALSE, x = TRUE)
+
+opt.var.regression <- optimality(var.regression.lm)
+opt.var.ancova <- optimality(var.ancova.lm)
+
+  #calculate optimality from information
+  rcb.designs.dat$ANCOVA[s] = opt.rcb.ancova$D
+  rcb.designs.dat$Regression[s] = opt.rcb.regression$D
+  var.designs.dat$ANCOVA[s] = opt.var.ancova$D
+  var.designs.dat$Regression[s]= opt.var.regression$D
+
+}
+@
+
+
+<<>>=
+rcb.designs.dat$Blocking <- 'RCB'
+var.designs.dat$Blocking <- 'Variable'
+combined.dat <- rbind(rcb.designs.dat,var.designs.dat)
+@
+
+
+We'll show the trial map for the an arbitrary variable blocked randomization.
+
+<<>>=
+example.var <- var.designs[[3]]
+@
+
+<<6BestVariableCovariateMap,fig=TRUE,echo=false,width=6,height=4>>=
+desplot(Rank~x*y, data=example.var, cex=1, text=Rank,
+       main="Trial Map (color = First (Rank))")
+@
+
+
+<<7BestVariableReplicateMap,fig=TRUE,echo=false,width=6,height=4>>=
+desplot(VariableBlock~x*y, data=example.var, cex=1, text=VariableBlock,
+        main="Trial Map (color = Variable block)", col.regions=cbPalette)
+@
+
+
+<<9VariableTreatmentCovariateMeans,fig=TRUE,echo=false,width=6,height=4>>=
+CovMeans <- tapply(example.var$assessment1,list(example.var$VariableTreatment),mean)
+CovOrder <- order(CovMeans)
+ggplot(example.var, aes(x=VariableTreatment, y=assessment1)) +
+  geom_boxplot(colour=cbPalette[1]) + 
+  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
+  scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
+    labs(x='Treatment', y=covariate.label, title = "Distribution of covariate, ranked by mean")
+@
+
+\subsection{Select Most and Least Optimal Randomizations}
+
+
+We select from the various RCB and variable blocked designs the most and least optimal. We'll use this to illustrate optimal and sub-optimal designs. We'll leave space in the first set to include the original randomization and example adaptive randomizations.
+
+<<>>=
+most.rcb.designs <- c(which.max(rcb.designs.dat$Regression)[1],
+                which.max(rcb.designs.dat$ANCOVA)[1], 1, 1)
+most.var.designs <- c(which.max(var.designs.dat$Regression)[1],
+                which.max(var.designs.dat$ANCOVA)[1])
+least.rcb.designs <- c(which.min(rcb.designs.dat$Regression)[1],
+                which.min(rcb.designs.dat$ANCOVA)[1])
+least.var.designs <- c(which.min(var.designs.dat$Regression)[1],
+                which.min(var.designs.dat$ANCOVA)[1])
+@
+
+We'll use this data structure to add points to plots comparing randomizations.
+
+<<>>=
+reference.rcb.dat <- subset(rcb.designs.dat[most.rcb.designs,])
+reference.rcb.dat$Criteria <- c("Regression",
+                              "ANCOVA",
+                             "Original",
+                             "Adaptive"
+                             )
+reference.post.dat <- subset(var.designs.dat[most.var.designs,])
+reference.post.dat$Criteria <- reference.rcb.dat$Criteria[c(1,2)]
+reference.dat <- rbind(reference.rcb.dat,reference.post.dat)
+@
+
+
+Plot D criteria for both regression and ANCOVA against treatment means and treatment dispersions
+
+<<10MaxMeanDifvsRegressionD,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(x=MaxMeanDif, y=Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+ #     geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
+  labs(x='Largest Mean Difference', y="D Optimality", title = paste(randomization.label,", Regression Model",sep=""))
+@
+
+<<11MeanSDvsRegressionD,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(x=MeanSD, y=Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+ #     geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
+  labs(x='Average Covariate SD', y="D Optimality", title = paste(randomization.label,", Regression Model",sep=""))
+@
+
+
+<<14MaxMeanDifvsANCOVA,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(x=MaxMeanDif, y=ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+ #     geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
+  labs(x='Largest Mean Difference',  y="D Optimality", title = paste(randomization.label,", ANCOVA Model",sep=""))
+@
+
+
+<<15MeanSDvsANCOVA,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(x=MeanSD, y=ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+ #     geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
+  labs(x='Average Covariate SD', y="D Optimality", title = paste(randomization.label,", ANCOVA Model",sep=""))
+@
+
+\subsubsection{Optimality for Regression}
+
+<<>>=
+best.var <- var.designs[[most.var.designs[1]]]
+CovRank <- rank(tapply(best.var$assessment1,list(best.var$VariableTreatment),mean),ties.method = c("random"))
+best.var$CovRank <- CovRank[best.var$VariableTreatment]
+best.var$CovRank <- as.factor(best.var$CovRank)
+
+least.var <- var.designs[[least.rcb.designs[1]]]
+CovRank <- rank(tapply(least.var$assessment1,list(least.var$VariableTreatment),mean),ties.method = c("random"))
+least.var$CovRank <- CovRank[least.var$VariableTreatment]
+least.var$CovRank <- as.factor(least.var$CovRank)
+
+best.var$Design <- 'Variable, max(D)'
+least.var$Design <- 'Variable, min(D)'
+
+best.rcb <- rcb.designs[[most.rcb.designs[1]]]
+CovRank <- rank(tapply(best.rcb$assessment1,list(best.rcb$treatment),mean),ties.method = c("random"))
+best.rcb$CovRank <- CovRank[best.rcb$treatment]
+best.rcb$CovRank <- as.factor(best.rcb$CovRank)
+
+least.rcb <- rcb.designs[[most.rcb.designs[1]]]
+CovRank <- rank(tapply(least.rcb$assessment1,list(least.rcb$treatment),mean),ties.method = c("random"))
+least.rcb$CovRank <- CovRank[least.rcb$treatment]
+least.rcb$CovRank <- as.factor(least.rcb$CovRank)
+
+best.rcb$Design <- 'RCB, max(D)'
+least.rcb$Design <- 'RCB, min(D)'
+
+comp.randomizatons <- rbind(best.var,least.var,best.rcb,least.rcb)
+@
+
+<<16CompareRandomizationsRegression,fig=TRUE,echo=false,width=6,height=4>>=
+ggplot(comp.randomizatons, aes(x=CovRank, y=assessment1)) +
+  geom_boxplot(colour=cbPalette[1]) + 
+  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
+  #scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
+  facet_wrap(~Design) +
+   labs(x='Treatment', y=covariate.label, title = "Best and worst randomizations, Regression")
+@
+
+
+\subsubsection{Optimality for ANCOVA}
+
+<<>>=
+example.var <- var.designs[[1]]
+best.var <- var.designs[[most.var.designs[2]]]
+CovRank <- rank(tapply(best.var$cov,list(best.var$VariableTreatment),mean),ties.method = c("random"))
+best.var$CovRank <- CovRank[best.var$VariableTreatment]
+best.var$CovRank <- as.factor(best.var$CovRank)
+
+least.var <- var.designs[[least.var.designs[2]]]
+CovRank <- rank(tapply(least.var$cov,list(least.var$VariableTreatment),mean),ties.method = c("random"))
+least.var$CovRank <- CovRank[least.var$VariableTreatment]
+least.var$CovRank <- as.factor(least.var$CovRank)
+
+best.var$Design <- 'Variable, max(D)'
+least.var$Design <- 'Variable, min(D)'
+
+best.rcb <- rcb.designs[[most.rcb.designs[2]]]
+CovRank <- rank(tapply(best.rcb$cov,list(best.rcb$treatment),mean),ties.method = c("random"))
+best.rcb$CovRank <- CovRank[best.rcb$treatment]
+best.rcb$CovRank <- as.factor(best.rcb$CovRank)
+
+least.rcb <- rcb.designs[[most.rcb.designs[2]]]
+CovRank <- rank(tapply(least.rcb$cov,list(least.rcb$treatment),mean),ties.method = c("random"))
+least.rcb$CovRank <- CovRank[least.rcb$treatment]
+least.rcb$CovRank <- as.factor(least.rcb$CovRank)
+
+best.rcb$Design <- 'RCB, max(D)'
+least.rcb$Design <- 'RCB, min(D)'
+
+comp.randomizatons <- rbind(best.var,least.var,best.rcb,least.rcb)
+@
+
+
+<<17CompareRandomizationsANCOVA,fig=TRUE,echo=false,width=6,height=4>>=
+ggplot(comp.randomizatons, aes(x=CovRank, y=assessment1)) +
+  geom_boxplot(colour=cbPalette[1]) + 
+  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
+  #scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
+  facet_wrap(~Design) +
+   labs(x='Treatment', y=covariate.label, title = "Best and worst randomizations, ANCOVA")
+@
+
+Add points to the graphs representing the original randomization and the optimal regression model.
+
+<<12MaxMeanDifvsRegressionOriginal,fig=TRUE,echo=false,width=7,height=4>>=
+plotref.dat <- reference.dat[reference.dat$Criteria %in% c("Original","Regression"),]
+plotref.dat$Criteria <- c("Optimal (RCB)", "Original", "Optimal (Variable)")
+ggplot(combined.dat, aes(x=MaxMeanDif, y=Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+      geom_point(data = plotref.dat, mapping = aes(x=MaxMeanDif, y=Regression, shape=Criteria), size = 4) +
+  labs(x='Largest Mean Difference', y="D Optimality", title = "Regression Model")
+@
+
+<<13MeanSDvsRegressionOriginal,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(x=MeanSD, y=Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+      geom_point(data = plotref.dat, mapping = aes(x=MeanSD, y=Regression, shape=Criteria), size = 4) +
+  labs(x='Average Covariate SD', y="D Optimality", title = "Regression Model")
+@
+
+
+\section{Variables as Columns}
+
+This design was randomized as a 12x12 Latin square, and we keep the first 4 rows. These rows are the complete blocks, and columns are used to identify covariate ranks within complete blocks.
+
+<<>>=
+latin.dat <- data.frame(
+plot=as.factor(c(907, 1012, 1105, 1208, 910, 1002, 1111, 1209, 906, 1001, 1104, 1212, 903, 1007, 1108, 1202, 905, 1010, 1109, 1201, 911, 1006, 1112, 1207, 904, 1003, 1102, 1210, 908, 1005, 1101, 1206, 909, 1011, 1107, 1203, 912, 1004, 1110, 1205, 902, 1008, 1106, 1211, 901, 1009, 1103, 1204)), 
+treatment=as.factor(c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12)), 
+replicate=as.factor(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4)),
+column=c(7,12,5,8,10,2,11,9,6,1,4,12,3,7,8,2,5,10,9,1,11,6,12,7,4,3,2,10,8,5,1,6,9,11,7,3,12,4,10,5,2,8,6,11,1,9,3,4), 
+y=c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4), 
+x=c(7, 12, 5, 8, 10, 2, 11, 9, 6, 1, 4, 12, 3, 7, 8, 2, 5, 10, 9, 1, 11, 6, 12, 7, 4, 3, 2, 10, 8, 5, 1, 6, 9, 11, 7, 3, 12, 4, 10, 5, 2, 8, 6, 11, 1, 9, 3, 4), 
+assessment1=c(124, 109, 230, 107, 222, 193, 283, 80, 107, 153, 212, 41, 162, 48, 263, 95, 42, 19, 252, 89, 193, 9, 145, 42, 194, 23, 138, 62, 128, 17, 282, 127, 67, 29, 197, 74, 191, 44, 216, 134, 211, 19, 100, 88, 102, 209, 269, 25),
+assessment2=c(268, 132, 256, 236, 408, 292, 280, 142, 415, 454, 386, 176, 365, 298, 379, 199, 222, 114, 398, 332, 561, 92, 304, 308, 433, 80, 194, 221, 311, 28, 372, 166, 338, 254, 421, 137, 563, 268, 708, 590, 505, 106, 219, 356, 363, 352, 466, 212)
 )
 
+row.names(latin.dat) <- latin.dat$plot
+
+replicates <- length(levels(latin.dat$replicate))
+treatments <- length(levels(latin.dat$treatment))
+latin.dat$cov <- latin.dat$assessment1/max(latin.dat$assessment1)
+
+latin.dat$AdaptiveTreatment <- 0
+latin.dat$AdaptiveRank <- 0
+#
+for(r in 1:replicates) {
+  rows <- latin.dat$replicate==r
+  #get the treatment column numbers
+  current.columns <- latin.dat$column[rows]
+  current.treatments <- latin.dat$treatment[rows]
+  
+  #get covariate and ranks
+  current.covariates <- latin.dat$assessment1[rows]
+  current.rank <- rank(current.covariates,ties.method = "random")
+
+  #track the adaptive rank
+  latin.dat$AdaptiveRank[rows] <- current.rank
+  
+  #order covariates
+  current.order <- order(current.covariates)
+  current.plots <- latin.dat$plot[rows]
+
+  #map column order to plot ordered by covariates
+  latin.dat[as.character(current.plots[current.order]),'AdaptiveTreatment'] <- current.treatments[order(current.columns)]
+  
+}
+@
+
+
+<<LatinFinal,fig=TRUE,echo=false,width=6,height=3>>=
+ggplot(latin.dat, aes(x=AdaptiveTreatment, y=assessment1)) + geom_point(aes(colour = replicate),size=1) + scale_colour_manual(values=cbPalette)
+@
+
+Calculate optimality for the example column variable blocks.
+
+<<ComputeAdaptiveOptimalityLatin>>=
+latin.dat$AdaptiveTreatment <- as.factor(latin.dat$AdaptiveTreatment)
+
+latin.dat[,c('replicate',"AdaptiveTreatment")]
+
+model1 <- optimality(lm(assessment2 ~ AdaptiveTreatment + cov,data=latin.dat,x=TRUE))
+model2 <- optimality(lm(assessment2 ~ replicate +  AdaptiveTreatment + cov,data=latin.dat,x=TRUE))
+#model3 <- optimality(lm(assessment2 ~ cov +  replicate + AdaptiveTreatment + AdaptiveTreatment:cov,data=latin.dat,x=TRUE))
+
+adaptive <- which(reference.rcb.dat$Criteria == "Adaptive")
+reference.dat$Regression[adaptive] <- model1$D
+reference.dat$ANCOVA[adaptive] <- model2$D
+
+cov.means <- tapply(latin.dat$cov,list(latin.dat$AdaptiveTreatment),mean)
+cov.sds <- tapply(latin.dat$cov,list(latin.dat$AdaptiveTreatment),sd)
+
+reference.dat$MaxMeanDif[adaptive] <- max(cov.means)-min(cov.means)
+reference.dat$MaxSDDif[adaptive] <- max(cov.sds)-min(cov.sds)
+reference.dat$MeanSD[adaptive] <- mean(cov.sds)
+reference.dat$MomentNorm[adaptive] <- sqrt(sum(reference.dat$MaxMeanDif[adaptive]^2+reference.dat$MaxSDDif[adaptive]^2))
+@
+
+Plot the optimality of the previous randomizations, adding a point for the column variable block example.
+
+<<21MaxMeanDifvsRegressionAdaptiveLatin,fig=TRUE,echo=false,width=7,height=4>>=
+plotref.dat <- reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),]
+plotref.dat$Criteria <- c("Original","Youden")
+ggplot(combined.dat, aes(MaxMeanDif, Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+      geom_point(data = plotref.dat , mapping = aes(x=MaxMeanDif, y=Regression, shape=Criteria), size = 4) +
+    labs(x='Largest Mean Difference', y="D Optimality", title = "Optimality, Regression Model")
+@
+
+
+<<18AdaptiveColumnMeansLatin,fig=TRUE,echo=false,width=6,height=4>>=
+latin.dat$AdaptiveRank <- as.factor(latin.dat$AdaptiveRank)
+ColMeans <- tapply(latin.dat$assessment1,list(latin.dat$AdaptiveRank),mean)
+ColOrder <- order(ColMeans)
+ggplot(latin.dat, aes(x=AdaptiveRank, y=assessment1)) +
+  geom_boxplot(colour=cbPalette[1]) + 
+  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
+  scale_x_discrete(limits=names(ColMeans)[ColOrder]) +
+    labs(x='Column', y=covariate.label, title = "Distribution of covariate by Column")
+@
+
+
+<<19ColumnCovariates,fig=TRUE,echo=false,width=6,height=3>>=
+ggplot(latin.dat, aes(x=AdaptiveRank, y=assessment1)) + geom_point(aes(colour = replicate),size=1) + scale_colour_manual(values=cbPalette) +
+      labs(x='Column', y=covariate.label, title = "First Values")
+@
+
+
+<<20ColumnMap,fig=TRUE,width=8,height=6>>=
+desplot(AdaptiveRank~x*y, data=latin.dat, cex=1, text=treatment,
+        main="Randomization Map (color = Column)", col.regions=cbPalette)
+@
+
+
+\section{Adaptive Design}
+
+While column variable blocks improves treatment dispersion, we don't find maximally optimal designs. Since D-otpimal designs tend to minimize the spread of covariate means over treatments, while maximizing covariate standard deviation, we develop an adaptive algorithm that alternates between minimizing means and maximiming deviances.
+
+
+\subsection{Step 1}
+Start with first replicate, assign treatments by rank.
+
+<<Step1>>=
+arm.dat <- base.dat
+
+replicates <- length(levels(arm.dat$replicate))
+treatments <- length(levels(arm.dat$treatment))
+arm.dat$cov <- arm.dat$assessment1/max(arm.dat$assessment1)
+
+arm.dat$AdaptiveTreatment <- 0
+arm.dat$CovRank <- 0
+
+#for(blk in 1:max(arm.dat$VariableBlock)) {
+randomization <-  1:treatments
+rows <- arm.dat$replicate==1
+cov1 <- arm.dat$cov[rows]
+
+assigned <- arm.dat$AdaptiveTreatment
+
+rank1 <- rank(cov1,ties.method = "random")
+randomization[rank1]
+arm.dat$AdaptiveTreatment[rows] <- rank1
+arm.dat$CovRank[rows] <- rank1
+
+arm.dat$Step <- 1
+steps.dat <- arm.dat
+@
+
+\subsection{Step 2}
+
+Reverse treatment order by rank, relative to step 1.
+
+<<Step2>>=
+rows <- arm.dat$replicate==2
+cov2 <- arm.dat$cov[rows]
+
+rank2 <- rank(cov2,ties.method = "random")
+cov2[rank2]
+rank2
+rank2[treatments:1]
+(treatments:1)[rank2]
+arm.dat$AdaptiveTreatment[rows] <- (treatments:1)[rank2]
+arm.dat$CovRank[rows] <- rank2
+arm.dat$Step <- 2
+steps.dat <- rbind(arm.dat,steps.dat)
+@
+
+\subsection{Steps 3 and 4}
+
+Iterate over remaining replicates. If the step is odd numbered, then treatments with the smallest range should get the most extreme values; otherwise, treatments with the largest mean deviations get the plots that will normalize covariate means.
+
+Using plot numbers as row names simplifies matching covariates to treatments.
+
+<<>>=
+row.names(arm.dat) <- arm.dat$plot
+@
+
+<<Steps3_4>>=
+for(r in 3:replicates) {
+  assigned.dat <- subset(arm.dat,arm.dat$AdaptiveTreatment>0)
+  current.sd <- tapply(assigned.dat$assessment1,list(assigned.dat$AdaptiveTreatment),sd)
+  current.mean <- tapply(assigned.dat$assessment1,list(assigned.dat$AdaptiveTreatment),mean)
+  
+  rows <- arm.dat$replicate==r
+  cov <- arm.dat$cov[rows]
+  plots <- arm.dat$plot[rows]
+
+  plot.order <- order(cov - mean(assigned.dat$assessment1))
+  
+  sd.order <- order(current.sd)
+  mean.order <- order(current.mean)
+  
+  if(r%%2==1) {
+    arm.dat[as.character(plots[plot.order[(treatments:1)]]),'AdaptiveTreatment'] <- (1:treatments)[sd.order]
+  } else {
+    arm.dat[as.character(plots[plot.order[(treatments:1)]]),'AdaptiveTreatment'] <- (1:treatments)[mean.order]
+  }
+  arm.dat$Step <- r
+  steps.dat <- rbind(arm.dat,steps.dat)
+}
+@
+
+
+We can visualize the process by plotting covariate against treatment at each step.
+
+<<22AdaptiveSteps,fig=TRUE,echo=false,width=6,height=7>>=
+steps.dat$AdaptiveTreatment <- as.factor(steps.dat$AdaptiveTreatment)
+ggplot(steps.dat, aes(x=AdaptiveTreatment, y=assessment1)) + geom_point(aes(colour = replicate),size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ Step,nrow=4) +
+  labs(x='Treatment', y="First", title = "Adaptive Randomization")
+@
+
+Now calculate optimality for the proposed randomization and add to randomization plots.
+
+<<ComputeAdaptiveOptimality>>=
+arm.dat$AdaptiveTreatment <- as.factor(arm.dat$AdaptiveTreatment)
+
+arm.dat[,c('replicate',"AdaptiveTreatment")]
+
+model1 <- optimality(lm(assessment2 ~ AdaptiveTreatment + cov,data=arm.dat,x=TRUE))
+model2 <- optimality(lm(assessment2 ~ replicate +  AdaptiveTreatment + cov,data=arm.dat,x=TRUE))
+
+adaptive <- which(reference.rcb.dat$Criteria == "Adaptive")
+reference.dat$Regression[adaptive] <- model1$D
+reference.dat$ANCOVA[adaptive] <- model2$D
+
+cov.means <- tapply(arm.dat$cov,list(arm.dat$AdaptiveTreatment),mean)
+cov.sds <- tapply(arm.dat$cov,list(arm.dat$AdaptiveTreatment),sd)
+
+reference.dat$MaxMeanDif[adaptive] <- max(cov.means)-min(cov.means)
+reference.dat$MaxSDDif[adaptive] <- max(cov.sds)-min(cov.sds)
+reference.dat$MeanSD[adaptive] <- mean(cov.sds)
+reference.dat$MomentNorm[adaptive] <- sqrt(sum(reference.dat$MaxMeanDif[adaptive]^2+reference.dat$MaxSDDif[adaptive]^2))
+@
+
+
+<<23MaxMeanDifvsRegressionAdaptive,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(MaxMeanDif, Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MaxMeanDif, y=Regression, shape=Criteria), size = 4) +
+    labs(x='Largest Mean Difference', y="D Optimality", title = paste(randomization.label,", Regression Model",sep=""))
+@
+
+<<24MaxMeanDifvsANCOVAAdaptive,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(MaxMeanDif, ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MaxMeanDif, y=ANCOVA, shape=Criteria), size = 4) +
+    labs(x='Largest Mean Difference', y="D Optimality", title = paste(randomization.label,", ANCOVA Model",sep=""))
+@
+
+
+<<MeanSDvsRegressionAdaptive,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(MeanSD, Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MeanSD, y=Regression, shape=Criteria), size = 4) +
+    labs(x='Mean Standard Deviation', y="D Optimality", title = paste(randomization.label,", Regression Model",sep=""))
+@
+
+<<MeanSDvsANCOVAAdaptive,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(MeanSD, ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MeanSD, y=ANCOVA, shape=Criteria), size = 4) +
+    labs(x='Mean Standard Deviation', y="D Optimality", title = paste(randomization.label,", ANCOVA Model",sep=""))
+@
+
+
+<<AdaptiveCovariateMeans,fig=TRUE,echo=false,width=6,height=4>>=
+CovMeans <- tapply(arm.dat$assessment1,list(arm.dat$AdaptiveTreatment),mean)
+CovOrder <- order(CovMeans)
+ggplot(arm.dat, aes(x=AdaptiveTreatment, y=assessment1)) +
+  geom_boxplot(colour=cbPalette[1]) + 
+  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
+  scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
+    labs(x='Treatment', y=covariate.label, title = "Distribution of covariate, ranked by mean")
+@
+
+
+\section{Adaptive Design : 2}
+
+Rank by replicate means
+
+<<>>=
+arm.dat <- base.dat
+
+replicates <- length(levels(arm.dat$replicate))
+treatments <- length(levels(arm.dat$treatment))
+arm.dat$cov <- arm.dat$assessment1/max(arm.dat$assessment1)
+
+arm.dat$AdaptiveTreatment <- 0
+arm.dat$CovRank <- 0
+
+replicate.means <- tapply(arm.dat$assessment1,list(arm.dat$replicate),mean)
+
+replicate.order <- order(replicate.means)
+replicate.rank <- rank(replicate.means)
+
+mid.idx <- floor(replicates/2)
+
+mid.idx
+
+selected.rows <- arm.dat$replicate==replicate.order[mid.idx]
+current.covariates <- arm.dat$assessment1[selected.rows]
+
+current.rank <- rank(current.covariates,ties.method = "random")
+
+arm.dat$AdaptiveTreatment[selected.rows] <- current.rank
+arm.dat$CovRank[selected.rows] <- current.rank
+
+arm.dat$Step <- 1
+stepsB.dat <- arm.dat
+  
+@
+
+<<>>=
+selected.rows <- arm.dat$replicate==replicate.order[mid.idx+1]
+current.covariates <- arm.dat$assessment1[selected.rows]
+current.rank <- rank(current.covariates,ties.method = "random")
+
+arm.dat$AdaptiveTreatment[selected.rows] <- (treatments:1)[current.rank]
+arm.dat$CovRank[selected.rows] <- current.rank
+arm.dat$Step <- 2
+stepsB.dat <- rbind(arm.dat,stepsB.dat)
+@
+
+
+<<>>=
+row.names(arm.dat) <- arm.dat$plot
+
+for(r in 1:(floor(replicates/2)-1)) {
+  assigned.dat <- subset(arm.dat,arm.dat$AdaptiveTreatment>0)
+  current.sd <- tapply(assigned.dat$assessment1,list(assigned.dat$AdaptiveTreatment),sd)
+  current.mean <- tapply(assigned.dat$assessment1,list(assigned.dat$AdaptiveTreatment),mean)
+  
+  rows <- arm.dat$replicate==replicate.order[r+mid.idx+1]
+  cov <- arm.dat$assessment1[rows]
+  plots <- arm.dat$plot[rows]
+
+  plot.order <- order(cov - mean(assigned.dat$assessment1))
+  
+  sd.order <- order(current.sd)
+  mean.order <- order(current.mean)
+  
+  arm.dat[as.character(plots[plot.order[(treatments:1)]]),'AdaptiveTreatment'] <- (1:treatments)[sd.order]
+
+  arm.dat$Step <- 2+r
+  stepsB.dat <- rbind(arm.dat,stepsB.dat)
+
+  assigned.dat <- subset(arm.dat,arm.dat$AdaptiveTreatment>0)
+  rows <- arm.dat$replicate==replicate.order[mid.idx-r]
+  cov <- arm.dat$assessment1[rows]
+  plots <- arm.dat$plot[rows]
+
+  plot.order <- order(cov - mean(assigned.dat$assessment1))
+  
+  sd.order <- order(current.sd)
+  mean.order <- order(current.mean)
+  
+    arm.dat[as.character(plots[plot.order[(treatments:1)]]),'AdaptiveTreatment'] <- (1:treatments)[mean.order]
+     arm.dat$Step <- 2+r+1
+  stepsB.dat <- rbind(arm.dat,stepsB.dat)
+}
+@
+
+<<AdaptiveStepsB,fig=TRUE,echo=false,width=6,height=7>>=
+ggplot(stepsB.dat, aes(x=AdaptiveTreatment, y=assessment1)) + geom_point(aes(colour = replicate),size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ Step,nrow=4) +
+  labs(x='Treatment', y="First", title = "Adaptive Randomization")
+@
+
+<<ComputeAdaptiveOptimalityB>>=
+arm.dat$AdaptiveTreatment <- as.factor(arm.dat$AdaptiveTreatment)
+
+arm.dat[,c('replicate',"AdaptiveTreatment")]
+
+model1 <- optimality(lm(assessment2 ~ AdaptiveTreatment + cov,data=arm.dat,x=TRUE))
+model2 <- optimality(lm(assessment2 ~ replicate +  AdaptiveTreatment + cov,data=arm.dat,x=TRUE))
+#model3 <- optimality(lm(assessment2 ~ cov +  replicate + AdaptiveTreatment + AdaptiveTreatment:cov,data=arm.dat,x=TRUE))
+
+adaptive <- which(reference.rcb.dat$Criteria == "Adaptive")
+reference.dat$Regression[adaptive] <- model1$D
+reference.dat$ANCOVA[adaptive] <- model2$D
+
+cov.means <- tapply(arm.dat$cov,list(arm.dat$AdaptiveTreatment),mean)
+cov.sds <- tapply(arm.dat$cov,list(arm.dat$AdaptiveTreatment),sd)
+
+reference.dat$MaxMeanDif[adaptive] <- max(cov.means)-min(cov.means)
+reference.dat$MaxSDDif[adaptive] <- max(cov.sds)-min(cov.sds)
+reference.dat$MeanSD[adaptive] <- mean(cov.sds)
+reference.dat$MomentNorm[adaptive] <- sqrt(sum(reference.dat$MaxMeanDif[adaptive]^2+reference.dat$MaxSDDif[adaptive]^2))
+@
+
+
+<<MaxMeanDifvsMaxSDDifAdaptiveB,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(x=MaxMeanDif, y=MeanSD)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MaxMeanDif, y=MeanSD, shape=Criteria,colour = Blocking), size = 4) +
+    labs(x='Largest Mean Difference', y="Average SD", title = "Moment Ranges")
+@
+
+<<MaxMeanDifvsRegressionAdaptiveB,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(MaxMeanDif, Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MaxMeanDif, y=Regression, shape=Criteria), size = 4) +
+    labs(x='Largest Mean Difference', y="D Optimality", title = "Optimality, Regression Model")
+@
+
+<<MaxMeanDifvsANCOVAAdaptiveB,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(MaxMeanDif, ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MaxMeanDif, y=ANCOVA, shape=Criteria), size = 4) +
+    labs(x='Largest Mean Difference', y="D Optimality", title = "Optimality, ANCOVA Model")
+@
+
+
+<<MeanSDvsRegressionAdaptiveB,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(MeanSD, Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MeanSD, y=Regression, shape=Criteria), size = 4) +
+    labs(x='Mean Standard Deviation', y="D Optimality", title = "Optimality, Regression Model")
+@
+
+<<MeanSDvsANCOVAAdaptiveB,fig=TRUE,echo=false,width=7,height=4>>=
+ggplot(combined.dat, aes(MeanSD, ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
+      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MeanSD, y=ANCOVA, shape=Criteria), size = 4) +
+    labs(x='Mean Standard Deviation', y="D Optimality", title = "Optimality, ANCOVA Model")
+@
+
+
+<<AdaptiveCovariateMeansB,fig=TRUE,echo=false,width=6,height=4>>=
+CovMeans <- tapply(arm.dat$assessment1,list(arm.dat$AdaptiveTreatment),mean)
+CovOrder <- order(CovMeans)
+ggplot(arm.dat, aes(x=AdaptiveTreatment, y=assessment1)) +
+  geom_boxplot(colour=cbPalette[1]) + 
+  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
+  scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
+    labs(x='Treatment', y=covariate.label, title = "Distribution of covariate, ranked by mean")
+@
+
+
+\section{Additional Examples}
+
+These are some additional data sets that were used to compare different randomization algorithms.
+
+<<Datasets,echo=false>>=
 milliken10.2.arm.dat <- data.frame(
 plot=as.factor(c(101, 202, 303, 404, 501, 605, 703, 804, 902, 1004, 1105, 1203, 105, 201, 305, 401, 505, 603, 701, 803, 905, 1002, 1104, 1201, 104, 203, 304, 405, 502, 604, 705, 801, 903, 1001, 1103, 1202, 102, 205, 302, 403, 504, 602, 704, 802, 901, 1003, 1102, 1205, 103, 204, 301, 402, 503, 601, 702, 805, 904, 1005, 1101, 1204)), 
 treatment=as.factor(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5)), 
@@ -63,23 +899,10 @@ kuehl17.3.arm.dat <- data.frame(
 )
 
 
-blocking.arm.dat <- data.frame(
-plot=as.factor(c(108, 210, 311, 407, 509, 604, 710, 806, 105, 209, 308, 406, 502, 606, 705, 804, 106, 205, 301, 403, 508, 610, 706, 801, 102, 204, 305, 404, 510, 601, 704, 805, 103, 206, 309, 402, 506, 605, 701, 803, 111, 202, 303, 409, 504, 608, 703, 811, 104, 201, 304, 411, 503, 607, 702, 808, 109, 211, 307, 405, 501, 603, 708, 802, 101, 203, 302, 410, 505, 609, 707, 810, 107, 208, 310, 401, 507, 611, 709, 807, 110, 207, 306, 408, 511, 602, 711, 809)), 
-treatment=as.factor(c(1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11)), 
-replicate=as.factor(c(1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8)), 
-assessment2=c(7, 2, 4, 4, 3, 7, 3, 1, 9, 5, 6, 6, 3, 9, 3, 5, 4, 5, 4, 6, 5, 6, 8, 9, 5, 0, 9, 3, 2, 9, 1, 3, 3, 3, 3, 9, 2, 3, 6, 2, 2, 5, 6, 4,
-7, 3, 3, 1, 7, 3, 3, 8, 4, 5, 2, 3, 9, 6, 2, 0, 0, 1, 4, 4, 2, 8, 8, 1, 9, 9, 0, 4, 2, 2, 9, 1, 9, 4, 6, 4, 5, 4, 1, 2, 8, 4, 5, 5), 
-assessment1=c(23, 5, 7, 30, 17, 24, 18, 24, 52, 12, 41, 13, 72, 19, 114, 78, 37, 56, 44, 28, 13, 22, 2, 43, 35, 64, 20, 29, 19, 25, 44, 11, 45, 15, 17, 67, 7, 24, 17, 23,
-10, 142, 72, 10, 25, 56, 25, 29, 47, 78, 80, 50, 41, 15, 20, 20, 31, 14, 42, 107, 14, 29, 12, 23, 56, 30, 87, 11, 17, 12, 2, 30, 7, 37, 8, 41, 20, 74, 9, 17, 20, 20,
-21, 37, 44, 49, 16, 21)
-)
-
 gomez.arm.dat <- data.frame(
 plot=as.factor(c(202, 304, 403, 504, 508, 108, 205, 309, 502, 507, 204, 409, 503, 506, 510, 101, 106, 307, 501, 509, 103, 110, 206, 208, 404, 105, 210, 306, 405, 407, 203, 209, 301, 402, 406, 102, 308, 401, 410, 505, 104, 109, 207, 303, 310, 107, 201, 302, 305, 408)), 
 treatment=as.factor(c(1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10)), 
-replicate=as.factor(c(1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5)), 
-block=as.factor(c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)), 
-column=as.factor(c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)), 
+replicate=as.factor(c(1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5)),
 y=c(2, 3, 4, 5, 5, 1, 2, 3, 5, 5, 2, 4, 5, 5, 5, 1, 1, 3, 5, 5, 1, 1, 2, 2, 4, 1, 2, 3, 4, 4, 2, 2, 3, 4, 4, 1, 3, 4, 4, 5, 1, 1, 2, 3, 3,
 1, 2, 3, 3, 4), 
 x=c(2, 4, 3, 4, 8, 8, 5, 9, 2, 7, 4, 9, 3, 6, 10, 1, 6, 7, 1, 9, 3, 10, 6, 8, 4, 5, 10, 6, 5, 7, 3, 9, 1, 2, 6, 2, 8, 1, 10, 5, 4, 9, 7, 3, 10,
@@ -146,738 +969,24 @@ assessment1=c(56, 59, 62, 68, 71, 76, 83, 87, 60, 62, 65, 66, 73, 75, 84, 88, 56
 )
 @
 
-\section{Review of the Analysis of Covariance}
+Change commented code to produce randomizations for different data sets.
 
 <<>>=
 #base.dat <- milliken3.15.arm.dat
 #base.dat <- steel17.10.dat
 #base.dat <- gomez.10.4.arm.dat
-base.dat <- cochran.arm.dat
-#base.dat <- milliken10.2.arm.dat
+#base.dat <- cochran.arm.dat
+base.dat <- milliken10.2.arm.dat
 #base.dat <- kuehl17.3.arm.dat
-#base.dat <- blocking.arm.dat
 arm.dat <- base.dat
-response.label = "Second Count"
-covariate.label = "First Count"
-reps <- length(levels(arm.dat$replicate))
-treatments <- length(levels(arm.dat$treatment))
-@
-
-Different models of ANCOVA
-
-<<>>=
-anova(lm(assessment2 ~ replicate + treatment,data=arm.dat))
-anova(lm(assessment2 ~ replicate + treatment + assessment1,data=arm.dat))
-anova(lm(assessment2 ~ replicate + treatment + assessment1 + I(assessment1^2),data=arm.dat))
-anova(lm(assessment2 ~ replicate + treatment + assessment1 + treatment:assessment1,data=arm.dat))
-arm.dat$RCBResidual <- resid(lm(assessment2 ~ replicate + treatment,data=arm.dat))
-@
-
-<<2CovariateMap,fig=TRUE,width=6,height=4>>=
-library(desplot)
-desplot(assessment1~x*y, data=arm.dat, cex=1, text=treatment,
-        main="Trial map (color = First)")
-@
-
-<<1ReplicateMap,fig=TRUE,width=6,height=4>>=
-desplot(replicate~x*y, data=arm.dat, cex=1, text=treatment,
-        main="Trial map (color = Block)", col.regions=cbPalette)
-@
-
-
-\subsection{Treatments Disperson over Covariates}
-
-<<8TreatmentDispersion,fig=TRUE,echo=false,width=6,height=4>>=
-CovMeans <- tapply(arm.dat$assessment1,list(arm.dat$treatment),mean)
-CovOrder <- order(CovMeans)
-ggplot(arm.dat, aes(x=treatment, y=assessment1)) +
-  geom_boxplot(colour=cbPalette[1]) + 
-  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
-  scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
-    labs(x='Treatment', y=covariate.label, title = "Treatment Dispersion")
-@
-
-
-
-<<SimpleRegression,fig=TRUE,echo=false,width=8,height=4>>=
-ggplot(arm.dat, aes(assessment1,assessment2)) + 
-geom_point(aes(colour = treatment),size=2) + 
-geom_smooth(color=cbPalette[treatments+1],se = FALSE, method = lm) +
-scale_colour_manual(values=cbPalette) +
-  labs(colour = "Treatment", x=covariate.label, y=response.label, title = "Simple Regression")
-@
-
-<<>>=
-trt.mean <- tapply(arm.dat$assessment2,list(arm.dat$treatment),mean)
-arm.dat$assessment2norm <- arm.dat$assessment2-trt.mean[arm.dat$treatment]+mean(arm.dat$assessment2)
-@
-
-<<AdjustedRegression,fig=TRUE,echo=false,width=8,height=4>>=
-ggplot(arm.dat, aes(assessment1,assessment2norm)) + 
-geom_point(aes(colour = treatment),size=2) + 
-geom_smooth(color=cbPalette[treatments+1],se = FALSE, method = lm) +
-scale_colour_manual(values=cbPalette) +
-  labs(colour = "Treatment", x=covariate.label, y=response.label, title = "Regression, response adjusted for treatment effect")
-@
-
-
-<<3ResidualRegression,fig=TRUE,echo=false,width=8,height=4>>=
-ggplot(arm.dat, aes(assessment1,RCBResidual)) + 
-geom_point(aes(colour = treatment),size=2) + 
-geom_smooth(color=cbPalette[treatments+1],se = FALSE, method = lm) +
-scale_colour_manual(values=cbPalette) +
-  labs(colour = "Treatment", x=covariate.label, y=response.label, title = "Regression, RCB Residuals")
-@
-
-<<4QuadResidualRegression,fig=TRUE,echo=false,width=8,height=4>>=
-ggplot(arm.dat, aes(assessment1,RCBResidual)) + 
-geom_point(aes(colour = treatment),size=2) + 
-geom_smooth(color=cbPalette[treatments+1],se = FALSE, method = lm, formula= y ~ poly(x,2)) +
-scale_colour_manual(values=cbPalette) +
-  labs(colour = "Treatment", x=covariate.label, y=response.label, title = "Quadratic Regression, RCB Residuals")
-@
-
-<<5TreatmentResidualRegression,fig=TRUE,echo=false,width=8,height=4>>=
-ggplot(arm.dat, aes(assessment1,RCBResidual)) + 
-geom_point(aes(colour = treatment),size=2) + 
-geom_smooth(aes(group=treatment,color=treatment),se = FALSE, method = lm) +
-scale_colour_manual(values=cbPalette) +
-  labs(colour = "Treatment", x=covariate.label, y=response.label, title = "Treatment Interaction, RCB Residuals")
-@
-
-
-<<>>=
-summary(lm(assessment2 ~ treatment + assessment1,data=arm.dat))
-summary(lm(assessment2norm ~ assessment1, data=arm.dat))
-summary(lm(assessment2 ~ replicate + treatment + assessment1,data=arm.dat))
-summary(lm(assessment2norm ~ replicate + assessment1, data=arm.dat))
-summary(lm(RCBResidual ~ assessment1, data=arm.dat))
-@
-
-
-\section{Randomizations}
-
-What does an optimal randomization look like?
-
-To calculate D-optimality, we want to normalize covariates to a scale of 0-1. 
-<<>>=
 arm.dat$cov <- arm.dat$assessment1/max(arm.dat$assessment1)
 @
 
-
-Simple function to compute $|X^tX|$
-
 <<>>=
-optimality <- function(lm,contrast=NULL) {
-  if(is.null(lm$x)) {
-    lm <- update(lm,x=TRUE)
-  }
-  X <- lm$x
-  I <- t(X) %*% X
-  return(list(D=det(I),A=sum(diag(I))))
-}
-@
-
-
-<<>>=
-simulations <- 2000
-set.seed(simulations)
-randomization.label <- paste(simulations," Randomizations")
-rcb.designs <- vector("list", length = simulations)
-rcbrand.dat <- data.frame(
-  Design = rep(0,simulations),
-  MaxMeanDif = rep(0,simulations),
-  MaxSDDif = rep(0,simulations),
-  MeanSD = rep(0,simulations),
-  MomentNorm = rep(0,simulations),
-  ANCOVA = rep(0,simulations),
-  Regression = rep(0,simulations)#,
-  #D3 = rep(0,simulations),
-  #D4 = rep(0,simulations),
-  #D5 = rep(0,simulations),
-  #A = rep(0,simulations),
-  #A2 = rep(0,simulations),
-  #A3 = rep(0,simulations),
-  #A4 = rep(0,simulations)
-)
-
-postrand.dat <- rcbrand.dat
-post.designs <- rcb.designs
-
-
-@
-
-<<>>=
-for (s in 1:simulations) {
-  if(s!=1) {
-    #rerandomize RCB treatments
-    for(blk in levels(arm.dat$replicate)) {
-      arm.dat$treatment[arm.dat$replicate==blk] <- levels(arm.dat$treatment)[sample(1:treatments)]
-    }
-  }
-
-  arm.dat$treatment <- as.factor(arm.dat$treatment)
-  rcb.designs[[s]] <- arm.dat
-  #mean and standard deviation for covariate among treatments
-  cov.means <- tapply(arm.dat$cov,list(arm.dat$treatment),mean)
-  cov.sds <- tapply(arm.dat$cov,list(arm.dat$treatment),sd)
-
-  rcbrand.dat$MaxMeanDif[s] <- max(cov.means)-min(cov.means)
-  rcbrand.dat$MaxSDDif[s] <- max(cov.sds)-min(cov.sds)
-  rcbrand.dat$MeanSD[s] <- mean(cov.sds)
-  rcbrand.dat$MomentNorm[s] <- sqrt(sum(rcbrand.dat$MaxMeanDif[s]^2+rcbrand.dat$MaxSDDif[s]^2))
-    
-  #fit linear models
- rcb.lm <- lm(assessment1 ~ replicate + treatment, data = arm.dat, model=FALSE, x = TRUE)
- ancova.lm <- lm(assessment1 ~ replicate + treatment + cov, data = arm.dat, model=FALSE, x = TRUE)
-#Model1.lm <- lm(assessment1 ~ cov, data = arm.dat, model=FALSE, x = TRUE)
- regression.lm <- lm(assessment1 ~ cov +  treatment, data = arm.dat, model=FALSE, x = TRUE)
-#Model3.lm <- lm(assessment1 ~ cov +  treatment + treatment:cov, data = arm.dat, model=FALSE, x = TRUE)
-#Model4.lm <- lm(assessment1 ~ cov +  treatment + replicate + treatment:cov, data = arm.dat, model=FALSE, x = TRUE)
-#Model5.lm <- lm(assessment1 ~ cov +  treatment + replicate + treatment:cov + replicate:cov, data = arm.dat, model=FALSE, x = TRUE)
-
-#opt.1 <- optimality(Model1.lm)
-  opt.cov <- optimality(ancova.lm)
-  opt.reg <- optimality(regression.lm)
-
-  # randomize by covariate
-  arm.dat$Rank <- rank(arm.dat$cov,ties.method = c("random"))
-  arm.dat$VariableBlock <- ceiling(arm.dat$Rank/treatments)
-  for(blk in 1:max(arm.dat$VariableBlock)) {
-    arm.dat$VariableTreatment[arm.dat$VariableBlock==blk] <- sample(1:treatments)
-  }
-
-  arm.dat$VariableBlock <- as.factor(arm.dat$VariableBlock)
-  arm.dat$VariableTreatment <- as.factor(arm.dat$VariableTreatment)
-  post.designs[[s]] <- arm.dat
-  cov.means <- tapply(arm.dat$cov,list(arm.dat$VariableTreatment),mean)
-  cov.sds <- tapply(arm.dat$cov,list(arm.dat$VariableTreatment),sd)
-  
-  postrand.dat$MaxMeanDif[s] <- max(cov.means)-min(cov.means)
-  postrand.dat$MaxSDDif[s] <- max(cov.sds)-min(cov.sds)
-  postrand.dat$MeanSD[s] <- mean(cov.sds)
-  postrand.dat$MomentNorm[s] <- sqrt(sum(postrand.dat$MaxMeanDif[s]^2+postrand.dat$MaxSDDif[s]^2))
-  
-#VariableModel1.lm <- lm(assessment1 ~ cov, data = arm.dat, model=FALSE, x = TRUE)
-postancova.lm <- lm(assessment1 ~ VariableBlock + VariableTreatment + cov, data = arm.dat, model=FALSE, x = TRUE)
-postregression.lm <- lm(assessment1 ~ cov +  VariableTreatment, data = arm.dat, model=FALSE, x = TRUE)
-#VariableModel3.lm <- lm(assessment1 ~ cov +  VariableTreatment + VariableTreatment:cov, data = arm.dat, model=FALSE, x = TRUE)
-#VariableModel4.lm <- lm(assessment1 ~ cov +  VariableTreatment + VariableBlock + VariableTreatment:cov, data = arm.dat, model=FALSE, x = TRUE)
-#VariableModel5.lm <- lm(assessment1 ~ cov +  VariableTreatment + VariableBlock + VariableTreatment:cov + VariableBlock:cov, data = arm.dat, model=FALSE, x = TRUE)
-
-opt.postreg <- optimality(postregression.lm)
-opt.postcov <- optimality(postancova.lm)
-
-  #calculate optimality from information
-  rcbrand.dat$ANCOVA[s] = opt.cov$D
-  rcbrand.dat$Regression[s] = opt.reg$D
-  postrand.dat$ANCOVA[s] = opt.postcov$D
-  postrand.dat$Regression[s]= opt.postreg$D
-
-}
-@
-
-\subsection{Visualize Randomizations}
-
-<<>>=
-rcbrand.dat$Blocking <- 'RCB'
-postrand.dat$Blocking <- 'Variable'
-combined.dat <- rbind(rcbrand.dat,postrand.dat)
-@
-
-Plot D criteria for both regression and ANCOVA against treatment means and treatment dispersions
-
-<<10MaxMeanDifvsRegressionD,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MaxMeanDif, y=Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
- #     geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
-  labs(x='Largest Mean Difference', y="D Optimality", title = paste(randomization.label,", Regression Model",sep=""))
-@
-
-<<11MeanSDvsRegressionD,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MeanSD, y=Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
- #     geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
-  labs(x='Average Covariate SD', y="D Optimality", title = paste(randomization.label,", Regression Model",sep=""))
-@
-
-
-
-
-
-<<14MaxMeanDifvsANCOVA,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MaxMeanDif, y=ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
- #     geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
-  labs(x='Largest Mean Difference',  y="D Optimality", title = paste(randomization.label,", ANCOVA Model",sep=""))
-@
-
-<<15MeanSDvsANCOVA,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MeanSD, y=ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
- #     geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
-  labs(x='Average Covariate SD', y="D Optimality", title = paste(randomization.label,", ANCOVA Model",sep=""))
-@
-@
-
-
-<<RegressionvsANCOVA,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=Regression, y=ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
- #     geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
-  labs(x='Regression Optimality', y="ANCOVA Optimality", title = randomization.label)
-@
-
-<<MaxMeanDifvsANCOVA,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MaxMeanDif, y=ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
- #     geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
-  labs(x='Largest Mean Difference', y="D Optimality", title = "ANCOVA Model")
-@
-
-<<MeanSDvsANCOVA,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MeanSD, y=ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
- #     geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
-  labs(x='Average Covariate SD', y="D Optimality", title = "ANCOVA Model")
-@
-
-\subsection{Relationship among optimality measures}
-
-
-We want a subset of designs that represent best and worst dispersions
-
-<<>>=
-opt.designs<- c(which.max(rcbrand.dat$Regression)[1],
-                which.max(rcbrand.dat$ANCOVA)[1],
-#                which.max(rcbrand.dat$D2)[1],
-#                which.min(rcbrand.dat$MomentNorm)[1],
-                 1,
-                1#,
-                #which.min(rcbrand.dat$MaxMeanDif*rcbrand.dat$MeanSD)
-                )
-opt.post.designs <- c(which.max(postrand.dat$Regression)[1],
-                which.max(postrand.dat$ANCOVA)[1]
-                )
-sub.designs <- c(which.min(rcbrand.dat$Regression)[1],
-                which.min(rcbrand.dat$ANCOVA)[1]
-                )
-sub.post.designs <- c(which.min(postrand.dat$Regression)[1],
-                which.min(postrand.dat$ANCOVA)[1]
-                )
-opt.d.rcb <- opt.designs[1]
-opt.d.post <- opt.post.designs[1]
-worst.d.rcb <- sub.designs[1]
-worst.d.post <- sub.post.designs[1]
-
-opt.d.rcb2 <- opt.designs[2]
-opt.d.post2 <- opt.post.designs[2]
-worst.d.rcb2 <- sub.designs[2]
-worst.d.post2 <- sub.post.designs[2]
-@
-
-<<>>=
-opt.designs
-sub.designs 
-opt.post.designs
-sub.post.designs
-@
-
-<<>>=
-reference.rcb.dat <- subset(rcbrand.dat[opt.designs,])
-reference.rcb.dat$Criteria <- c("Regression",
-                              "ANCOVA",
-                             "Original",
-                             "Adaptive"
-                             )
-reference.post.dat <- subset(postrand.dat[opt.post.designs,])
-reference.post.dat$Criteria <- reference.rcb.dat$Criteria[c(1,2)]
-reference.dat <- rbind(reference.rcb.dat,reference.post.dat)
-@
-
-\clearpage
-\subsection{Best and Worst Randomizations}
-
-<<>>=
-example.post <- post.designs[[3]]
-best.post <- post.designs[[opt.d.post]]
-CovRank <- rank(tapply(best.post$assessment1,list(best.post$VariableTreatment),mean),ties.method = c("random"))
-best.post$CovRank <- CovRank[best.post$VariableTreatment]
-best.post$CovRank <- as.factor(best.post$CovRank)
-
-worst.post <- post.designs[[worst.d.post]]
-CovRank <- rank(tapply(worst.post$assessment1,list(worst.post$VariableTreatment),mean),ties.method = c("random"))
-worst.post$CovRank <- CovRank[worst.post$VariableTreatment]
-worst.post$CovRank <- as.factor(worst.post$CovRank)
-
-best.post$Design <- 'Variable, max(D)'
-worst.post$Design <- 'Variable, min(D)'
-
-best.rcb <- rcb.designs[[opt.d.rcb]]
-CovRank <- rank(tapply(best.rcb$assessment1,list(best.rcb$treatment),mean),ties.method = c("random"))
-best.rcb$CovRank <- CovRank[best.rcb$treatment]
-best.rcb$CovRank <- as.factor(best.rcb$CovRank)
-
-worst.rcb <- rcb.designs[[worst.d.rcb]]
-CovRank <- rank(tapply(worst.rcb$assessment1,list(worst.rcb$treatment),mean),ties.method = c("random"))
-worst.rcb$CovRank <- CovRank[worst.rcb$treatment]
-worst.rcb$CovRank <- as.factor(worst.rcb$CovRank)
-
-best.rcb$Design <- 'RCB, max(D)'
-worst.rcb$Design <- 'RCB, min(D)'
-
-comp.rcb <- rbind(best.rcb,worst.rcb)
-
-comp.randomizatons <- rbind(best.post,worst.post,best.rcb,worst.rcb)
-@
-
-<<16CompareRandomizationsRegression,fig=TRUE,echo=false,width=6,height=4>>=
-ggplot(comp.randomizatons, aes(x=CovRank, y=assessment1)) +
-  geom_boxplot(colour=cbPalette[1]) + 
-  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
-  #scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
-  facet_wrap(~Design) +
-   labs(x='Treatment', y=covariate.label, title = "Best and worst randomizations, Regression")
-@
-
-<<6BestVariableCovariateMap,fig=TRUE,echo=false,width=6,height=4>>=
-desplot(Rank~x*y, data=example.post, cex=1, text=Rank,
-       main="Trial Map (color = First (Rank))")
-@
-
-
-<<7BestVariableReplicateMap,fig=TRUE,echo=false,width=6,height=4>>=
-desplot(VariableBlock~x*y, data=example.post, cex=1, text=VariableBlock,
-        main="Trial Map (color = Variable block)", col.regions=cbPalette)
-@
-
-
-<<9VariableTreatmentCovariateMeans,fig=TRUE,echo=false,width=6,height=4>>=
-CovMeans <- tapply(example.post$assessment1,list(example.post$VariableTreatment),mean)
-CovOrder <- order(CovMeans)
-ggplot(example.post, aes(x=VariableTreatment, y=assessment1)) +
-  geom_boxplot(colour=cbPalette[1]) + 
-  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
-  scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
-    labs(x='Treatment', y=covariate.label, title = "Distribution of covariate, ranked by mean")
-@
-
-
-<<>>=
-example.post <- post.designs[[1]]
-best.post <- post.designs[[opt.d.post2]]
-CovRank <- rank(tapply(best.post$cov,list(best.post$VariableTreatment),mean),ties.method = c("random"))
-best.post$CovRank <- CovRank[best.post$VariableTreatment]
-best.post$CovRank <- as.factor(best.post$CovRank)
-
-worst.post <- post.designs[[worst.d.post2]]
-CovRank <- rank(tapply(worst.post$cov,list(worst.post$VariableTreatment),mean),ties.method = c("random"))
-worst.post$CovRank <- CovRank[worst.post$VariableTreatment]
-worst.post$CovRank <- as.factor(worst.post$CovRank)
-
-best.post$Design <- 'Variable, max(D)'
-worst.post$Design <- 'Variable, min(D)'
-
-best.rcb <- rcb.designs[[opt.d.rcb2]]
-CovRank <- rank(tapply(best.rcb$cov,list(best.rcb$treatment),mean),ties.method = c("random"))
-best.rcb$CovRank <- CovRank[best.rcb$treatment]
-best.rcb$CovRank <- as.factor(best.rcb$CovRank)
-
-worst.rcb <- rcb.designs[[worst.d.rcb2]]
-CovRank <- rank(tapply(worst.rcb$cov,list(worst.rcb$treatment),mean),ties.method = c("random"))
-worst.rcb$CovRank <- CovRank[worst.rcb$treatment]
-worst.rcb$CovRank <- as.factor(worst.rcb$CovRank)
-
-best.rcb$Design <- 'RCB, max(D)'
-worst.rcb$Design <- 'RCB, min(D)'
-
-comp.rcb <- rbind(best.rcb,worst.rcb)
-
-comp.randomizatons <- rbind(best.post,worst.post,best.rcb,worst.rcb)
-@
-
-<<17CompareRandomizationsANCOVA,fig=TRUE,echo=false,width=6,height=4>>=
-ggplot(comp.randomizatons, aes(x=CovRank, y=assessment1)) +
-  geom_boxplot(colour=cbPalette[1]) + 
-  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
-  #scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
-  facet_wrap(~Design) +
-   labs(x='Treatment', y=covariate.label, title = "Best and worst randomizations, ANCOVA")
-@
-
-
-<<MaxMeanDifvsRegressionRef,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MaxMeanDif, y=Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MaxMeanDif, y=Regression, shape=Criteria), size = 4) +
-  labs(x='Largest Mean Difference', y="D Optimality", title = "Regression Model")
-@
-
-<<MeanSDvsRegressionRef,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MeanSD, y=Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat[reference.dat$Criteria %in% c("ANCOVA","Regression"),], mapping = aes(x=MeanSD, y=Regression, shape=Criteria), size = 4) +
-  labs(x='Average Covariate SD', y="D Optimality", title = "ANCOVA Model")
-@
-
-
-\subsection{Compare with original}
-
-<<12MaxMeanDifvsRegressionOriginal,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MaxMeanDif, y=Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original"),], mapping = aes(x=MaxMeanDif, y=Regression, shape=Criteria), size = 4) +
-  labs(x='Largest Mean Difference', y="D Optimality", title = "Regression Model")
-@
-
-<<13MeanSDvsRegressionOriginal,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MeanSD, y=Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original"),], mapping = aes(x=MeanSD, y=Regression, shape=Criteria), size = 4) +
-  labs(x='Average Covariate SD', y="D Optimality", title = "Regression Model")
-@
-
-
-\section{RCB with Variable Blocking}
-
-
-
-
-<<MaxMeanDifvsMeanSD,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MaxMeanDif, y=MeanSD)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette)  +
-      geom_point(data = reference.dat, mapping = aes(x=MaxMeanDif, y=MeanSD, shape=Criteria), size = 3) +
-    labs(x='Largest Mean Difference', y="Mean SD", title = "Moment Ranges")
-@
-
-
-
-
-
-
-%<<MeanSDvsD2,fig=TRUE,echo=false,width=7,height=4>>=
-%ggplot(combined.dat, aes(x=MeanSD, y=D2)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-% #     geom_point(data = reference.dat, mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
-%  labs(x='Average Covariate SD', y="D Optimality", title = "Regression Model")
-%@
-
-
-%<<MaxMeanDifvsD2,fig=TRUE,echo=false,width=7,height=4>>=
-%ggplot(combined.dat, aes(x=MaxMeanDif, y=D2)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-%  labs(x='Largest Mean Difference', y="D Optimality", title = "Optimality, Model 1")
-%@
-
-%<<MaxMeanDifvsD2opt,fig=TRUE,echo=false,width=7,height=4>>=
-%ggplot(combined.dat, aes(x=MaxMeanDif, y=D2)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-%      geom_point(data = reference.dat, mapping = aes(x=MaxMeanDif, y=D2, shape=Criteria), size = 4) +
-%  labs(x='Largest Mean Difference', y="D Optimality", title = "Optimality, Model 1")
-%@
-
-%<<MaxSDDifvsD2,fig=TRUE,echo=false,width=7,height=4>>=
-%ggplot(combined.dat, aes(x=MaxSDDif, y=D2)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette)  +
-%      geom_point(data = reference.dat, mapping = aes(x=MaxSDDif, y=D2, shape=Criteria), size = 4) +
-%  labs(x='Largest SD Difference', y="D Optimality", title = "Optimality, Model 1")
-%@
-
-%<<MomentNormvsD2,fig=TRUE,echo=false,width=7,height=4>>=
-%ggplot(combined.dat, aes(x=MomentNorm, y=D2)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette)  +
-%      geom_point(data = reference.dat, mapping = aes(x=MomentNorm, y=D2, shape=Criteria), size = 4) + labs(x='Moment Norm', y="D Optimality", title = "Optimality, Model 1")
-%@
-
-
-%<<MaxMeanDifvsD3,fig=TRUE,echo=false,width=7,height=4>>=
-%ggplot(combined.dat, aes(x=MaxMeanDif, y=D3)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-%      geom_point(data = reference.dat, mapping = aes(x=MaxMeanDif, y=D3, shape=Criteria), size = 4) +
-%    labs(x='Largest Mean Difference', y="D Optimality", title = "Optimality, Model 2")
-%@
-
-%<<MaxSDDifvsD3,fig=TRUE,echo=false,width=7,height=4>>=
-%ggplot(combined.dat, aes(x=MaxSDDif, y=D3)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette)  +
-%      geom_point(data = reference.dat, mapping = aes(x=MaxSDDif, y=D3, shape=Criteria), size = 4)+
-%  labs(x='Largest SD Difference', y="D Optimality", title = "Optimality, Model 2")
-%@
-
-%<<MomentNormvsD3,fig=TRUE,echo=false,width=7,height=4>>=
-%ggplot(combined.dat, aes(x=MomentNorm, y=D3)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette)  +
-%      geom_point(data = reference.dat, mapping = aes(x=MomentNorm, y=D3, shape=Criteria), size = 4) + labs(x='Moment Norm', y="D Optimality", title = "Optimality, Model 2")
-%@
-
-
-%<<MaxMeanDifvsD4,fig=TRUE,echo=false,width=7,height=4>>=
-%ggplot(combined.dat, aes(MaxMeanDif, D4)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-%      geom_point(data = reference.dat, mapping = aes(x=MaxMeanDif, y=D4, shape=Criteria), size = 4) +
-%    labs(x='Largest Mean Difference', y="D Optimality", title = "Optimality, Model 3")
-%@
-
-%<<MaxSDDifvsD4,fig=TRUE,echo=false,width=7,height=4>>=
-%ggplot(combined.dat, aes(MaxSDDif, D4)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette)  +
-%      geom_point(data = reference.dat, mapping = aes(x=MaxSDDif, y=D4, shape=Criteria), size = 4) +
-%    labs(x='Largest SD Difference', y="D Optimality", title = "Optimality, Model 3")
-%@
-
-%<<MomentNormvsD4,fig=TRUE,echo=false,width=7,height=4>>=
-%ggplot(combined.dat, aes(x=MomentNorm, y=D4)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette)  +
-%      geom_point(data = reference.dat, mapping = aes(x=MomentNorm, y=D4, shape=Criteria), size = 4) + labs(x='Moment Norm', y="D Optimality", title = "Optimality, Model 3")
-%@
-
-
-
-
-\section{Adaptive Design}
-
-Step 1. Randomize one replicate
-<<>>=
-arm.dat <- base.dat
-
-replicates <- length(levels(arm.dat$replicate))
-treatments <- length(levels(arm.dat$treatment))
-arm.dat$cov <- arm.dat$assessment1/max(arm.dat$assessment1)
-
-arm.dat$AdaptiveTreatment <- 0
-arm.dat$CovRank <- 0
-
-#for(blk in 1:max(arm.dat$VariableBlock)) {
-randomization <-  1:treatments
-rows <- arm.dat$replicate==1
-cov1 <- arm.dat$cov[rows]
-
-assigned <- arm.dat$AdaptiveTreatment
-
-rank1 <- rank(cov1,ties.method = "random")
-randomization[rank1]
-arm.dat$AdaptiveTreatment[rows] <- rank1
-arm.dat$CovRank[rows] <- rank1
-
-arm.dat$Step <- 1
-steps.dat <- arm.dat
-@
-
-<<>>=
-rows <- arm.dat$replicate==2
-cov2 <- arm.dat$cov[rows]
-
-rank2 <- rank(cov2,ties.method = "random")
-cov2[rank2]
-rank2
-rank2[treatments:1]
-(treatments:1)[rank2]
-arm.dat$AdaptiveTreatment[rows] <- (treatments:1)[rank2]
-arm.dat$CovRank[rows] <- rank2
-arm.dat$Step <- 2
-steps.dat <- rbind(arm.dat,steps.dat)
-@
-
-Treatments with the smallest range should get the most extreme values. 
-
-<<>>=
-row.names(arm.dat) <- arm.dat$plot
-@
-
-<<>>=
-for(r in 3:replicates) {
-  assigned.dat <- subset(arm.dat,arm.dat$AdaptiveTreatment>0)
-  current.sd <- tapply(assigned.dat$assessment1,list(assigned.dat$AdaptiveTreatment),sd)
-  current.mean <- tapply(assigned.dat$assessment1,list(assigned.dat$AdaptiveTreatment),mean)
-  
-  rows <- arm.dat$replicate==r
-  cov <- arm.dat$cov[rows]
-  plots <- arm.dat$plot[rows]
-
-  plot.order <- order(cov - mean(assigned.dat$assessment1))
-  
-  sd.order <- order(current.sd)
-  mean.order <- order(current.mean)
-  
-  if(r%%2==1) {
-    arm.dat[as.character(plots[plot.order[(treatments:1)]]),'AdaptiveTreatment'] <- (1:treatments)[sd.order]
-    #arm.dat[as.character(plots[plot.order[(treatments:1)]]),'AdaptiveTreatment'] <- (1:treatments)[mean.order]
-  } else {
-    arm.dat[as.character(plots[plot.order[(treatments:1)]]),'AdaptiveTreatment'] <- (1:treatments)[mean.order]
-   #     arm.dat[as.character(plots[plot.order[(treatments:1)]]),'AdaptiveTreatment'] <- (1:treatments)[sd.order]
-  }
-  arm.dat$Step <- r
-  steps.dat <- rbind(arm.dat,steps.dat)
-}
-@
-
-<<22AdaptiveSteps,fig=TRUE,echo=false,width=6,height=7>>=
-steps.dat$AdaptiveTreatment <- as.factor(steps.dat$AdaptiveTreatment)
-ggplot(steps.dat, aes(x=AdaptiveTreatment, y=assessment1)) + geom_point(aes(colour = replicate),size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ Step,nrow=4) +
-  labs(x='Treatment', y="First", title = "Adaptive Randomization")
-@
-
-<<ComputeAdaptiveOptimality>>=
-arm.dat$AdaptiveTreatment <- as.factor(arm.dat$AdaptiveTreatment)
-
-arm.dat[,c('replicate',"AdaptiveTreatment")]
-
-model1 <- optimality(lm(assessment2 ~ AdaptiveTreatment + cov,data=arm.dat,x=TRUE))
-model2 <- optimality(lm(assessment2 ~ replicate +  AdaptiveTreatment + cov,data=arm.dat,x=TRUE))
-#model3 <- optimality(lm(assessment2 ~ cov +  replicate + AdaptiveTreatment + AdaptiveTreatment:cov,data=arm.dat,x=TRUE))
-
-adaptive <- which(reference.rcb.dat$Criteria == "Adaptive")
-reference.dat$Regression[adaptive] <- model1$D
-reference.dat$ANCOVA[adaptive] <- model2$D
-
-cov.means <- tapply(arm.dat$cov,list(arm.dat$AdaptiveTreatment),mean)
-cov.sds <- tapply(arm.dat$cov,list(arm.dat$AdaptiveTreatment),sd)
-
-reference.dat$MaxMeanDif[adaptive] <- max(cov.means)-min(cov.means)
-reference.dat$MaxSDDif[adaptive] <- max(cov.sds)-min(cov.sds)
-reference.dat$MeanSD[adaptive] <- mean(cov.sds)
-reference.dat$MomentNorm[adaptive] <- sqrt(sum(reference.dat$MaxMeanDif[adaptive]^2+reference.dat$MaxSDDif[adaptive]^2))
-@
-
-
-<<MaxMeanDifvsMaxSDDifAdaptive,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MaxMeanDif, y=MaxSDDif)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat, mapping = aes(x=MaxMeanDif, y=MaxSDDif, shape=Criteria,colour = Blocking), size = 4) +
-    labs(x='Largest Mean Difference', y="Largest SD Difference", title = "Moment Ranges")
-@
-
-<<23MaxMeanDifvsRegressionAdaptive,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(MaxMeanDif, Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MaxMeanDif, y=Regression, shape=Criteria), size = 4) +
-    labs(x='Largest Mean Difference', y="D Optimality", title = paste(randomization.label,", Regression Model",sep=""))
-@
-
-<<24MaxMeanDifvsANCOVAAdaptive,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(MaxMeanDif, ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MaxMeanDif, y=ANCOVA, shape=Criteria), size = 4) +
-    labs(x='Largest Mean Difference', y="D Optimality", title = paste(randomization.label,", ANCOVA Model",sep=""))
-@
-
-
-<<MeanSDvsRegressionAdaptive,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(MeanSD, Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MeanSD, y=Regression, shape=Criteria), size = 4) +
-    labs(x='Mean Standard Deviation', y="D Optimality", title = paste(randomization.label,", Regression Model",sep=""))
-@
-
-<<MeanSDvsANCOVAAdaptive,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(MeanSD, ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),], mapping = aes(x=MeanSD, y=ANCOVA, shape=Criteria), size = 4) +
-    labs(x='Mean Standard Deviation', y="D Optimality", title = paste(randomization.label,", ANCOVA Model",sep=""))
-@
-
-%<<MaxMeanDifvsDAdaptive,fig=TRUE,echo=false,width=7,height=4>>=
-%ggplot(combined.dat, aes(MaxMeanDif, D)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-%      geom_point(data = reference.dat, mapping = aes(x=MaxMeanDif, y=D, shape=Criteria), size = 4) +
-%    labs(x='Largest Mean Difference', y="D Optimality", title = "Optimality, Model 3")
-%@
-
-<<>>=
-reference.dat
-@
-
-<<AdaptiveCovariateMeans,fig=TRUE,echo=false,width=6,height=4>>=
-CovMeans <- tapply(arm.dat$assessment1,list(arm.dat$AdaptiveTreatment),mean)
-CovOrder <- order(CovMeans)
-ggplot(arm.dat, aes(x=AdaptiveTreatment, y=assessment1)) +
-  geom_boxplot(colour=cbPalette[1]) + 
-  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
-  scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
-    labs(x='Treatment', y=covariate.label, title = "Distribution of covariate, ranked by mean")
-@
-
-
-\subsection{Second Example}
-<<>>=
-arm.dat <- milliken10.2.arm.dat
-arm.dat$cov <- arm.dat$assessment1/max(arm.dat$assessment1)
-
 replicates <- length(levels(arm.dat$replicate))
 treatments <- length(levels(arm.dat$treatment))
 
-rcbrand.dat <- data.frame(
+rcb.designs.dat <- data.frame(
   Design = rep(0,simulations),
   MaxMeanDif = rep(0,simulations),
   MaxSDDif = rep(0,simulations),
@@ -887,9 +996,10 @@ rcbrand.dat <- data.frame(
   Regression = rep(0,simulations)
 )
 
-postrand.dat <- rcbrand.dat
-post.designs <- rcb.designs
+var.designs.dat <- rcb.designs.dat
+var.designs <- rcb.designs
 @
+
 <<>>=
 for (s in 1:simulations) {
   if(s!=1) {
@@ -905,19 +1015,19 @@ for (s in 1:simulations) {
   cov.means <- tapply(arm.dat$cov,list(arm.dat$treatment),mean)
   cov.sds <- tapply(arm.dat$cov,list(arm.dat$treatment),sd)
 
-  rcbrand.dat$MaxMeanDif[s] <- max(cov.means)-min(cov.means)
-  rcbrand.dat$MaxSDDif[s] <- max(cov.sds)-min(cov.sds)
-  rcbrand.dat$MeanSD[s] <- mean(cov.sds)
-  rcbrand.dat$MomentNorm[s] <- sqrt(sum(rcbrand.dat$MaxMeanDif[s]^2+rcbrand.dat$MaxSDDif[s]^2))
+  rcb.designs.dat$MaxMeanDif[s] <- max(cov.means)-min(cov.means)
+  rcb.designs.dat$MaxSDDif[s] <- max(cov.sds)-min(cov.sds)
+  rcb.designs.dat$MeanSD[s] <- mean(cov.sds)
+  rcb.designs.dat$MomentNorm[s] <- sqrt(sum(rcb.designs.dat$MaxMeanDif[s]^2+rcb.designs.dat$MaxSDDif[s]^2))
     
   #fit linear models
- rcb.lm <- lm(assessment1 ~ replicate + treatment, data = arm.dat, model=FALSE, x = TRUE)
- ancova.lm <- lm(assessment1 ~ replicate + treatment + cov, data = arm.dat, model=FALSE, x = TRUE)
+  rcb.lm <- lm(assessment1 ~ replicate + treatment, data = arm.dat, model=FALSE, x = TRUE)
+  rcb.ancova.lm <- lm(assessment1 ~ replicate + treatment + cov, data = arm.dat, model=FALSE, x = TRUE)
 
- regression.lm <- lm(assessment1 ~ cov +  treatment, data = arm.dat, model=FALSE, x = TRUE)
+  rcb.regression.lm <- lm(assessment1 ~ cov +  treatment, data = arm.dat, model=FALSE, x = TRUE)
 
-  opt.cov <- optimality(ancova.lm)
-  opt.reg <- optimality(regression.lm)
+  opt.rcb.ancova <- optimality(rcb.ancova.lm)
+  opt.rcb.regression <- optimality(rcb.regression.lm)
 
   # randomize by covariate
   arm.dat$Rank <- rank(arm.dat$cov,ties.method = c("random"))
@@ -928,37 +1038,36 @@ for (s in 1:simulations) {
 
   arm.dat$VariableBlock <- as.factor(arm.dat$VariableBlock)
   arm.dat$VariableTreatment <- as.factor(arm.dat$VariableTreatment)
-  post.designs[[s]] <- arm.dat
+  var.designs[[s]] <- arm.dat
   cov.means <- tapply(arm.dat$cov,list(arm.dat$VariableTreatment),mean)
   cov.sds <- tapply(arm.dat$cov,list(arm.dat$VariableTreatment),sd)
   
-  postrand.dat$MaxMeanDif[s] <- max(cov.means)-min(cov.means)
-  postrand.dat$MaxSDDif[s] <- max(cov.sds)-min(cov.sds)
-  postrand.dat$MeanSD[s] <- mean(cov.sds)
-  postrand.dat$MomentNorm[s] <- sqrt(sum(postrand.dat$MaxMeanDif[s]^2+postrand.dat$MaxSDDif[s]^2))
+  var.designs.dat$MaxMeanDif[s] <- max(cov.means)-min(cov.means)
+  var.designs.dat$MaxSDDif[s] <- max(cov.sds)-min(cov.sds)
+  var.designs.dat$MeanSD[s] <- mean(cov.sds)
+  var.designs.dat$MomentNorm[s] <- sqrt(sum(var.designs.dat$MaxMeanDif[s]^2+var.designs.dat$MaxSDDif[s]^2))
   
-postancova.lm <- lm(assessment1 ~ VariableBlock + VariableTreatment + cov, data = arm.dat, model=FALSE, x = TRUE)
-postregression.lm <- lm(assessment1 ~ cov +  VariableTreatment, data = arm.dat, model=FALSE, x = TRUE)
+  var.ancova.lm <- lm(assessment1 ~ VariableBlock + VariableTreatment + cov, data = arm.dat, model=FALSE, x = TRUE)
+  var.regression.lm <- lm(assessment1 ~ cov +  VariableTreatment, data = arm.dat, model=FALSE, x = TRUE)
 
-opt.postreg <- optimality(postregression.lm)
-opt.postcov <- optimality(postancova.lm)
+  opt.var.regression <- optimality(var.regression.lm)
+  opt.var.ancova <- optimality(var.ancova.lm)
 
   #calculate optimality from information
-  rcbrand.dat$ANCOVA[s] = opt.cov$D
-  rcbrand.dat$Regression[s] = opt.reg$D
-  postrand.dat$ANCOVA[s] = opt.postcov$D
-  postrand.dat$Regression[s]= opt.postreg$D
+  rcb.designs.dat$ANCOVA[s] = opt.rcb.ancova$D
+  rcb.designs.dat$Regression[s] = opt.rcb.regression$D
+  var.designs.dat$ANCOVA[s] = opt.var.ancova$D
+  var.designs.dat$Regression[s]= opt.var.regression$D
 
 }
-rcbrand.dat$Blocking <- 'RCB'
-postrand.dat$Blocking <- 'Variable'
-combined.dat <- rbind(rcbrand.dat,postrand.dat)
+rcb.designs.dat$Blocking <- 'RCB'
+var.designs.dat$Blocking <- 'Variable'
+combined.dat <- rbind(rcb.designs.dat,var.designs.dat)
 @
 
 
 
 <<>>=
-
 arm.dat$AdaptiveTreatment <- 0
 arm.dat$CovRank <- 0
 
@@ -1071,316 +1180,11 @@ ggplot(combined.dat, aes(MaxMeanDif, Regression)) + geom_point(aes(colour = Bloc
     labs(x='Largest Mean Difference', y="D Optimality", title = paste(randomization.label,", Regression Model",sep=""))
 @
 
+
 <<27MaxMeanDifvsANCOVAAdaptiveTwo,fig=TRUE,echo=false,width=7,height=4>>=
 ggplot(combined.dat, aes(MaxMeanDif, ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
       geom_point(data = reference.dat[reference.dat$Criteria %in% c("Adaptive"),], mapping = aes(x=MaxMeanDif, y=ANCOVA, shape=Criteria), size = 4) +
     labs(x='Largest Mean Difference', y="D Optimality", title = paste(randomization.label,", ANCOVA Model",sep=""))
-@
-
-
-\section{Adaptive Design : 2}
-
-Rank by replicate means
-
-<<>>=
-arm.dat <- base.dat
-
-replicates <- length(levels(arm.dat$replicate))
-treatments <- length(levels(arm.dat$treatment))
-arm.dat$cov <- arm.dat$assessment1/max(arm.dat$assessment1)
-
-arm.dat$AdaptiveTreatment <- 0
-arm.dat$CovRank <- 0
-
-replicate.means <- tapply(arm.dat$assessment1,list(arm.dat$replicate),mean)
-
-replicate.order <- order(replicate.means)
-replicate.rank <- rank(replicate.means)
-
-mid.idx <- floor(replicates/2)
-
-mid.idx
-
-selected.rows <- arm.dat$replicate==replicate.order[mid.idx]
-current.covariates <- arm.dat$assessment1[selected.rows]
-
-current.rank <- rank(current.covariates,ties.method = "random")
-
-arm.dat$AdaptiveTreatment[selected.rows] <- current.rank
-arm.dat$CovRank[selected.rows] <- current.rank
-
-arm.dat$Step <- 1
-stepsB.dat <- arm.dat
-  
-@
-
-<<>>=
-selected.rows <- arm.dat$replicate==replicate.order[mid.idx+1]
-current.covariates <- arm.dat$assessment1[selected.rows]
-current.rank <- rank(current.covariates,ties.method = "random")
-
-arm.dat$AdaptiveTreatment[selected.rows] <- (treatments:1)[current.rank]
-arm.dat$CovRank[selected.rows] <- current.rank
-arm.dat$Step <- 2
-stepsB.dat <- rbind(arm.dat,stepsB.dat)
-@
-
-
-<<>>=
-row.names(arm.dat) <- arm.dat$plot
-
-for(r in 1:(floor(replicates/2)-1)) {
-  assigned.dat <- subset(arm.dat,arm.dat$AdaptiveTreatment>0)
-  current.sd <- tapply(assigned.dat$assessment1,list(assigned.dat$AdaptiveTreatment),sd)
-  current.mean <- tapply(assigned.dat$assessment1,list(assigned.dat$AdaptiveTreatment),mean)
-  
-  rows <- arm.dat$replicate==replicate.order[r+mid.idx+1]
-  cov <- arm.dat$assessment1[rows]
-  plots <- arm.dat$plot[rows]
-
-  plot.order <- order(cov - mean(assigned.dat$assessment1))
-  
-  sd.order <- order(current.sd)
-  mean.order <- order(current.mean)
-  
-  arm.dat[as.character(plots[plot.order[(treatments:1)]]),'AdaptiveTreatment'] <- (1:treatments)[sd.order]
-
-  arm.dat$Step <- 2+r
-  stepsB.dat <- rbind(arm.dat,stepsB.dat)
-
-  assigned.dat <- subset(arm.dat,arm.dat$AdaptiveTreatment>0)
-  rows <- arm.dat$replicate==replicate.order[mid.idx-r]
-  cov <- arm.dat$assessment1[rows]
-  plots <- arm.dat$plot[rows]
-
-  plot.order <- order(cov - mean(assigned.dat$assessment1))
-  
-  sd.order <- order(current.sd)
-  mean.order <- order(current.mean)
-  
-    arm.dat[as.character(plots[plot.order[(treatments:1)]]),'AdaptiveTreatment'] <- (1:treatments)[mean.order]
-     arm.dat$Step <- 2+r+1
-  stepsB.dat <- rbind(arm.dat,stepsB.dat)
-}
-@
-
-
-
-<<AdaptiveStepsB,fig=TRUE,echo=false,width=6,height=7>>=
-ggplot(stepsB.dat, aes(x=AdaptiveTreatment, y=assessment1)) + geom_point(aes(colour = replicate),size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ Step,nrow=4) +
-  labs(x='Treatment', y="First", title = "Adaptive Randomization")
-@
-
-<<ComputeAdaptiveOptimalityB>>=
-arm.dat$AdaptiveTreatment <- as.factor(arm.dat$AdaptiveTreatment)
-
-arm.dat[,c('replicate',"AdaptiveTreatment")]
-
-model1 <- optimality(lm(assessment2 ~ AdaptiveTreatment + cov,data=arm.dat,x=TRUE))
-model2 <- optimality(lm(assessment2 ~ replicate +  AdaptiveTreatment + cov,data=arm.dat,x=TRUE))
-#model3 <- optimality(lm(assessment2 ~ cov +  replicate + AdaptiveTreatment + AdaptiveTreatment:cov,data=arm.dat,x=TRUE))
-
-adaptive <- which(reference.rcb.dat$Criteria == "Adaptive")
-reference.dat$Regression[adaptive] <- model1$D
-reference.dat$ANCOVA[adaptive] <- model2$D
-
-cov.means <- tapply(arm.dat$cov,list(arm.dat$AdaptiveTreatment),mean)
-cov.sds <- tapply(arm.dat$cov,list(arm.dat$AdaptiveTreatment),sd)
-
-reference.dat$MaxMeanDif[adaptive] <- max(cov.means)-min(cov.means)
-reference.dat$MaxSDDif[adaptive] <- max(cov.sds)-min(cov.sds)
-reference.dat$MeanSD[adaptive] <- mean(cov.sds)
-reference.dat$MomentNorm[adaptive] <- sqrt(sum(reference.dat$MaxMeanDif[adaptive]^2+reference.dat$MaxSDDif[adaptive]^2))
-@
-
-
-<<MaxMeanDifvsMaxSDDifAdaptiveB,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(x=MaxMeanDif, y=MaxSDDif)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat, mapping = aes(x=MaxMeanDif, y=MaxSDDif, shape=Criteria,colour = Blocking), size = 4) +
-    labs(x='Largest Mean Difference', y="Largest SD Difference", title = "Moment Ranges")
-@
-
-<<MaxMeanDifvsRegressionAdaptiveB,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(MaxMeanDif, Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat, mapping = aes(x=MaxMeanDif, y=Regression, shape=Criteria), size = 4) +
-    labs(x='Largest Mean Difference', y="D Optimality", title = "Optimality, Regression Model")
-@
-
-<<MaxMeanDifvsANCOVAAdaptiveB,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(MaxMeanDif, ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat, mapping = aes(x=MaxMeanDif, y=ANCOVA, shape=Criteria), size = 4) +
-    labs(x='Largest Mean Difference', y="D Optimality", title = "Optimality, ANCOVA Model")
-@
-
-
-<<MeanSDvsRegressionAdaptiveB,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(MeanSD, Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat, mapping = aes(x=MeanSD, y=Regression, shape=Criteria), size = 4) +
-    labs(x='Mean Standard Deviation', y="D Optimality", title = "Optimality, Regression Model")
-@
-
-<<MeanSDvsANCOVAAdaptiveB,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(MeanSD, ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat, mapping = aes(x=MeanSD, y=ANCOVA, shape=Criteria), size = 4) +
-    labs(x='Mean Standard Deviation', y="D Optimality", title = "Optimality, ANCOVA Model")
-@
-
-<<>>=
-reference.dat
-@
-
-<<AdaptiveCovariateMeansB,fig=TRUE,echo=false,width=6,height=4>>=
-CovMeans <- tapply(arm.dat$assessment1,list(arm.dat$AdaptiveTreatment),mean)
-CovOrder <- order(CovMeans)
-ggplot(arm.dat, aes(x=AdaptiveTreatment, y=assessment1)) +
-  geom_boxplot(colour=cbPalette[1]) + 
-  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
-  scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
-    labs(x='Treatment', y=covariate.label, title = "Distribution of covariate, ranked by mean")
-@
-
-\section{Variables as Columns}
-
-<<>>=
-arm.dat <- data.frame(
-plot=as.factor(c(907, 1012, 1105, 1208, 910, 1002, 1111, 1209, 906, 1001, 1104, 1212, 903, 1007, 1108, 1202, 905, 1010, 1109, 1201, 911, 1006, 1112, 1207, 904, 1003, 1102, 1210, 908, 1005, 1101, 1206, 909, 1011, 1107, 1203, 912, 1004, 1110, 1205, 902, 1008, 1106, 1211, 901, 1009, 1103, 1204)), 
-treatment=as.factor(c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12)), 
-replicate=as.factor(c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4)),
-column=c(7,12,5,8,10,2,11,9,6,1,4,12,3,7,8,2,5,10,9,1,11,6,12,7,4,3,2,10,8,5,1,6,9,11,7,3,12,4,10,5,2,8,6,11,1,9,3,4), 
-y=c(1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4), 
-x=c(7, 12, 5, 8, 10, 2, 11, 9, 6, 1, 4, 12, 3, 7, 8, 2, 5, 10, 9, 1, 11, 6, 12, 7, 4, 3, 2, 10, 8, 5, 1, 6, 9, 11, 7, 3, 12, 4, 10, 5, 2, 8, 6, 11, 1, 9, 3, 4), 
-lat=c(3, 10, 17, 24, 3, 10, 17, 24, 3, 10, 17, 24, 3, 10, 17, 24, 3, 10, 17, 24, 3, 10, 17, 24, 3, 10, 17, 24, 3, 10, 17, 24, 3, 10, 17, 24, 3, 10, 17, 24, 3, 10, 17, 24, 3, 10, 17, 24), 
-lon=c(29, 51.5, 20, 33.5, 42.5, 6.5, 47, 38, 24.5, 2, 15.5, 51.5, 11, 29, 33.5, 6.5, 20, 42.5, 38, 2, 47, 24.5, 51.5, 29, 15.5, 11, 6.5, 42.5, 33.5, 20, 2, 24.5, 38, 47, 29, 11, 51.5, 15.5, 42.5, 20, 6.5, 33.5, 24.5, 47, 2, 38, 11, 15.5), 
-assessment1=c(124, 109, 230, 107, 222, 193, 283, 80, 107, 153, 212, 41, 162, 48, 263, 95, 42, 19, 252, 89, 193, 9, 145, 42, 194, 23, 138, 62, 128, 17, 282, 127, 67, 29, 197, 74, 191, 44, 216, 134, 211, 19, 100, 88, 102, 209, 269, 25),
-assessment2=c(268, 132, 256, 236, 408, 292, 280, 142, 415, 454, 386, 176, 365, 298, 379, 199, 222, 114, 398, 332, 561, 92, 304, 308, 433, 80, 194, 221, 311, 28, 372, 166, 338, 254, 421, 137, 563, 268, 708, 590, 505, 106, 219, 356, 363, 352, 466, 212)
-)
-
-row.names(arm.dat) <- arm.dat$plot
-
-replicates <- length(levels(arm.dat$replicate))
-treatments <- length(levels(arm.dat$treatment))
-arm.dat$cov <- arm.dat$assessment1/max(arm.dat$assessment1)
-
-
-arm.dat$AdaptiveTreatment <- 0
-arm.dat$nAdaptiveRank <- 0
-#
-for(r in 1:replicates) {
-  rows <- arm.dat$replicate==r
-  #get the treatment column numbers
-  current.columns <- arm.dat$column[rows]
-  cat('\ncolumns\n')
-  print(current.columns)
-  current.treatments <- arm.dat$treatment[rows]
-  print(current.treatments)
-  
-  #get covariate and ranks
-  current.covariates <- arm.dat$assessment1[rows]
-  #print(current.covariates)
-  
-  current.rank <- rank(current.covariates,ties.method = "random")
-  #print(current.rank)
-  arm.dat$AdaptiveRank[rows] <- current.rank
-  current.order <- order(current.covariates)
-  #print(current.order)
-  current.plots <- arm.dat$plot[rows]
-  cat('\nPlots by covariate order\n')
-  print(current.plots[current.order])
-
-  cat('\nCovariate\n')
-  print(arm.dat[as.character(current.plots[current.order]),'assessment1'])
-  cat('\nAdaptiveRank\n')
-  print(arm.dat[as.character(current.plots[current.order]),'AdaptiveRank'])
-  cat('\nTreatments ordered by column\n')
-  print(current.treatments[order(current.columns)])
-  
-  #current.columns <- arm.dat[as.character(current.plots[current.order]),'column']
-  arm.dat[as.character(current.plots[current.order]),'AdaptiveTreatment'] <- current.treatments[order(current.columns)]
-  
-  print(arm.dat[as.character(current.plots[current.order]),c('plot','column','AdaptiveTreatment')])
-}
-@
-
-
-<<LatinFinal,fig=TRUE,echo=false,width=6,height=3>>=
-ggplot(arm.dat, aes(x=AdaptiveTreatment, y=assessment1)) + geom_point(aes(colour = replicate),size=1) + scale_colour_manual(values=cbPalette)
-@
-
-<<ComputeAdaptiveOptimalityLatin>>=
-arm.dat$AdaptiveTreatment <- as.factor(arm.dat$AdaptiveTreatment)
-
-arm.dat[,c('replicate',"AdaptiveTreatment")]
-
-model1 <- optimality(lm(assessment2 ~ AdaptiveTreatment + cov,data=arm.dat,x=TRUE))
-model2 <- optimality(lm(assessment2 ~ replicate +  AdaptiveTreatment + cov,data=arm.dat,x=TRUE))
-#model3 <- optimality(lm(assessment2 ~ cov +  replicate + AdaptiveTreatment + AdaptiveTreatment:cov,data=arm.dat,x=TRUE))
-
-adaptive <- which(reference.rcb.dat$Criteria == "Adaptive")
-reference.dat$Regression[adaptive] <- model1$D
-reference.dat$ANCOVA[adaptive] <- model2$D
-
-cov.means <- tapply(arm.dat$cov,list(arm.dat$AdaptiveTreatment),mean)
-cov.sds <- tapply(arm.dat$cov,list(arm.dat$AdaptiveTreatment),sd)
-
-reference.dat$MaxMeanDif[adaptive] <- max(cov.means)-min(cov.means)
-reference.dat$MaxSDDif[adaptive] <- max(cov.sds)-min(cov.sds)
-reference.dat$MeanSD[adaptive] <- mean(cov.sds)
-reference.dat$MomentNorm[adaptive] <- sqrt(sum(reference.dat$MaxMeanDif[adaptive]^2+reference.dat$MaxSDDif[adaptive]^2))
-@
-
-
-
-<<>>=
-reference.dat
-@
-
-<<21MaxMeanDifvsRegressionAdaptiveLatin,fig=TRUE,echo=false,width=7,height=4>>=
-plotref.dat <- reference.dat[reference.dat$Criteria %in% c("Original","Adaptive"),]
-plotref.dat$Criteria <- c("Original","Youden")
-ggplot(combined.dat, aes(MaxMeanDif, Regression)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = plotref.dat , mapping = aes(x=MaxMeanDif, y=Regression, shape=Criteria), size = 4) +
-    labs(x='Largest Mean Difference', y="D Optimality", title = "Optimality, Regression Model")
-@
-
-<<MaxMeanDifvsANCOVAAdaptiveLatin,fig=TRUE,echo=false,width=7,height=4>>=
-ggplot(combined.dat, aes(MaxMeanDif, ANCOVA)) + geom_point(aes(colour = Blocking),size=1) + scale_colour_manual(values=cbPalette) +
-      geom_point(data = reference.dat, mapping = aes(x=MaxMeanDif, y=ANCOVA, shape=Criteria), size = 4) +
-    labs(x='Largest Mean Difference', y="D Optimality", title = "Optimality, ANCOVA Model")
-@
-
-<<AdaptiveCovariateMeansY,fig=TRUE,echo=false,width=6,height=4>>=
-CovMeans <- tapply(arm.dat$assessment1,list(arm.dat$AdaptiveTreatment),mean)
-CovOrder <- order(CovMeans)
-ggplot(arm.dat, aes(x=AdaptiveTreatment, y=assessment1)) +
-  geom_boxplot(colour=cbPalette[1]) + 
-  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
-  scale_x_discrete(limits=names(CovMeans)[CovOrder]) +
-    labs(x='Treatment', y=covariate.label, title = "Distribution of covariate, ranked by mean")
-@
-
-
-<<18AdaptiveColumnMeansY,fig=TRUE,echo=false,width=6,height=4>>=
-arm.dat$AdaptiveRank <- as.factor(arm.dat$AdaptiveRank)
-ColMeans <- tapply(arm.dat$assessment1,list(arm.dat$AdaptiveRank),mean)
-ColOrder <- order(ColMeans)
-
-ggplot(arm.dat, aes(x=AdaptiveRank, y=assessment1)) +
-  geom_boxplot(colour=cbPalette[1]) + 
-  stat_summary(fun.y=mean,col=cbPalette[2],geom='point') +
-  scale_x_discrete(limits=names(ColMeans)[ColOrder]) +
-    labs(x='Column', y=covariate.label, title = "Distribution of covariate by Column")
-@
-
-
-<<19ColumnCovariates,fig=TRUE,echo=false,width=6,height=3>>=
-ggplot(arm.dat, aes(x=AdaptiveRank, y=assessment1)) + geom_point(aes(colour = replicate),size=1) + scale_colour_manual(values=cbPalette) +
-      labs(x='Column', y=covariate.label, title = "First Values")
-@
-
-
-<<20ColumnMap,fig=TRUE,width=8,height=6>>=
-desplot(AdaptiveRank~x*y, data=arm.dat, cex=1, text=treatment,
-        main="Randomization Map (color = Column)", col.regions=cbPalette)
 @
 
 
