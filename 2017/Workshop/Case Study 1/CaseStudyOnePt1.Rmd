@@ -11,6 +11,8 @@ output:
 library(MASS)
 library(ggplot2)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+library(ape) # Moran.I
+library(ncf) # plot.lisa
 ```
 
 We wish to combine four yield maps from a single field.
@@ -348,13 +350,13 @@ The 2016 field seems to be the most problematic, so we compare LISA plots for `P
 ```{r,Soybean2016P30,fig.width=8,fig.height=4}
 Soybean2016P30.lisa <- lisa(Soybean2016.dat$Easting, Soybean2016.dat$Northing, Soybean2016.dat$Percent, 
                          neigh=grid.size, resamp=500, quiet=TRUE)
-plot.lisa(Soybean2016P30.lisa, negh.mean=FALSE)
+#plot.lisa(Soybean2016P30.lisa, negh.mean=FALSE)
 ```
 
 ```{r,Soybean2016Q30,fig.width=8,fig.height=4}
 Soybean2016Q30.lisa <- lisa(Soybean2016.dat$Easting, Soybean2016.dat$Northing, Soybean2016.dat$Quantile, 
                          neigh=grid.size, resamp=500, quiet=TRUE)
-plot.lisa(Soybean2016Q30.lisa, negh.mean=FALSE)
+#plot.lisa(Soybean2016Q30.lisa, negh.mean=FALSE)
 ```
 
 ```{r,fig.width=8,fig.height=4}
