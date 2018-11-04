@@ -1,0 +1,7 @@
+"Climate Factor Area (USLE)"|"30"|"Climate Factor"|366099|"12989"|"354177"
+"County or Parish"|"SD097"|"Miner"|366099|"12989"|"354178"
+"MLRA"|"102B"|"Till Plains"|4626|"12989"|"354179"
+"MLRA"|"55C"|"Southern Black Glaciated Plains"|361473|"12989"|"354180"
+"MLRA Soil Survey Area"|"10-RED"|"Redfield, South Dakota"||"12989"|"354181"
+"Rainfall Factor Area (USLE)"|"100"|"Rainfall Factor"|366099|"12989"|"354182"
+"State or Territory"|"SD"|"South Dakota"|366099|"12989"|"354183"

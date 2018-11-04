@@ -1,0 +1,6 @@
+"SD097"|5|"GPI"|"Gravel pit"|An open excavation from which soil and underlying material have been removed, and used without crushing, as a source of sand or gravel. Typically 0 to 4 acres.|"219317"
+"SD097"|5|"GRA"|"Gravelly spot"|Surface layer has more than 35 percent, by volume, of rock fragments that are mostly less than 3 inches in diameter.  Typically 0 to 4 acres.|"219318"
+"SD097"|5|"SAN"|"Sandy spot"|Surface layer with sand content greater than 75 percent in areas where the surface layer of the named soils of the surrounding map unit have less than about 25 percent sand. Typically 0 to 4 acres.|"219319"
+"SD097"|5|"STN"|"Stony spot"|An area with 0.01 to 3 percent of the surface covered with rock fragments that are greater than 10 inches in diameter. Typically 0 to 4 acres.|"219320"
+"SD097"|5|"STV"|"Very stony spot"|An area with more than 3 percent of the surface covered with rock fragments that are greater than 10 inches in diameter. Typically 0 to 4 acres.|"219321"
+"SD097"|5|"WET"|"Wet Spot"|Somewhat poorly drained to very poorly drained area that is at least 2 drainage classes wetter than the named soils in the surrounding map unit. Typically 0 to 4 acres.|"219322"

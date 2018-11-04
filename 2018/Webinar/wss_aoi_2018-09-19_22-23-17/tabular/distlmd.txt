@@ -1,0 +1,11 @@
+"Non-MLRA Soil Survey Area"|"SD097"|"Miner County, South Dakota"||01/01/1983 00:00:00|"certified, all components"|10/04/2017 23:37:16|"Survey Data reviewed and soil interpretations approved by South Dakota State Soil Scientist or his designee before Export to Soil Data Warehouse. Data quality controlled by the Redfield, SD Major land Resource Area Office, and the Stanton, NE Major Land Resource Area Offices; Data quality assurance by the MO-10 Regional Office Staff, St. Paul, MN.
+
+SD097 
+
+The ""CgA cxt4-Clarno-Crossplain loams, 0 to 2 percent slopes"" mapunit was combined with the ""CgA 2wkqb-Clarno-Crossplain complex, 0 to 2 percent slopes"" map unit as a result of the "" SDJR - MLRA 55C - Clarno-Crossplain complex, 0 to 2 percent slopes "" project. 
+
+The tabular database was edited and populated according to guidance in Exhibits A and B of National Instruction (NI-305), and Part 610 of the National Soil Survey Handbook. Any spatial data edits are certified correct by theSoil Survey region, State Soil Scientist (SSS), and by the National Digitizing Center. The SSS concurs with the correlation of all projects mentioned, as they are documented in Soil Survey Area Legend(s) and in the Project Correlation table. 
+
+
+
+"|"12989"|"56932"|"56834"
