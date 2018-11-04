@@ -1,0 +1,1226 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE metadata SYSTEM "http://thor-f5.er.usgs.gov/ngtoc/metadata/fgdc-std-001-1998.dtd"[]>
+<metadata>
+  <idinfo>
+    <citation>
+      <citeinfo>
+        <origin>U.S. Geological Survey, National Geospatial Technical Operations Center</origin>
+        <pubdate>20180210</pubdate>
+        <title>USGS Topo Map Vector Data (Vector) 70426 Howard, South Dakota 20180210 for 7.5 x 7.5 minute Shapefile</title>
+        <geoform>vector digital data</geoform>
+        <pubinfo>
+          <pubplace>Reston, VA</pubplace>
+          <publish>U.S. Geological Survey</publish>
+        </pubinfo>
+        <onlink>ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/TopoMapVector/SD/Shape/VECTOR_Howard_SD_7_5_Min_Shape.zip</onlink>
+      </citeinfo>
+    </citation>
+    <descript>
+      <abstract>Layers of geospatial data include contours, boundaries, land cover, hydrography, roads, transportation, geographic names, structures,
+        and other selected map features.</abstract>
+      <purpose>This dataset depicts geographic features on the surface of the earth. It is a general purpose dataset for users who are not GIS
+        experts. The geospatial data in this dataset are from selected National Map data holdings and other government sources.</purpose>
+    </descript>
+    <timeperd>
+      <timeinfo>
+        <rngdates>
+          <begdate>20111109</begdate>
+          <enddate>20170925</enddate>
+        </rngdates>
+      </timeinfo>
+      <current>publication date</current>
+    </timeperd>
+    <status>
+      <progress>Complete</progress>
+      <update>Irregular</update>
+    </status>
+    <spdom>
+      <bounding>
+        <westbc>-97.6249999999999</westbc>
+        <eastbc>-97.4999999999999</eastbc>
+        <northbc>44.1250000000001</northbc>
+        <southbc>44.0000000000001</southbc>
+      </bounding>
+    </spdom>
+    <keywords>
+      <theme>
+        <themekt>None</themekt>
+        <themekey>contours</themekey>
+        <themekey>transportation</themekey>
+        <themekey>structures</themekey>
+        <themekey>geographic names</themekey>
+        <themekey>hydrography</themekey>
+        <themekey>boundary</themekey>
+        <themekey>Public Land Survey System</themekey>
+        <themekey>woodland</themekey>
+        <themekey>Combined Vector</themekey>
+        <themekey>7.5 x 7.5 minute</themekey>
+        <themekey>Shapefile</themekey>
+      </theme>
+      <place>
+        <placekt>Geographic Names Information System</placekt>
+        <placekey>US</placekey>
+        <placekey>United States</placekey>
+        <placekey>SD</placekey>
+        <placekey>South Dakota</placekey>
+        <placekey>MinerCounty</placekey>
+      </place>
+    </keywords>
+    <accconst>None</accconst>
+    <useconst>None. However, users should be aware that temporal changes may have occurred since this data set was collected and that some parts of
+      this data may no longer represent actual surface conditions. Users should not use this data for critical applications without a full awareness
+      of its limitations. Acknowledgment of the U.S. Geological Survey would be appreciated for products derived from these data.</useconst>
+    <browse>
+      <browsen>ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/TopoMapVector/SD/Shape/VECTOR_Howard_SD_7_5_Min_Shape.jpg</browsen>
+      <browsed>Thumbnail JPG image</browsed>
+      <browset>JPEG</browset>
+    </browse>
+  </idinfo>
+  <dataqual>
+    <attracc>
+      <attraccr>Content is derived from USGS national geospatial databases. The data is owned and hosted by the USGS, but does not preclude using data
+        sources owned and hosted by other organizations, provided that these sources have been approved by the USGS data program.</attraccr>
+    </attracc>
+    <logic>This product is a layered set of data. This design is based on use of specific commercial software systems therefore any changes to the
+      software specifications and dependencies will be followed by the USGS and codified in the product standard.</logic>
+    <complete>Each layer is extracted from the USGS national geospatial databases.</complete>
+    <posacc>
+      <horizpa>
+        <horizpar>There is a diversity of national data sources in this product. Although the data accuracy varies, the data generally have high
+          enough horizontal accuracy to support NMAS and mapping at 1:24,000 scale. NMAS horizontal accuracy requires that at least 90 percent of
+          well-defined points tested are within 0.02 inch of the true position.</horizpar>
+      </horizpa>
+      <vertacc>
+        <vertaccr>Contours are generated from the National Elevation Dataset (NED). The most recently published figure of overall absolute vertical
+          accuracy of the NED within the conterminous US, expressed as the root mean square error (RMSE) of 25,310 reference points is 1.55 meters.
+          However, the vertical accuracy actually varies significantly across the US because of differences in source quality, terrain relief, land
+          cover, and other factors. Details of this analysis are published in "Accuracy Assessment of the U.S. Geological Survey National Elevation
+          Dataset, and Comparison with Other Large-Area Elevation Datasets-SRTM and ASTER: U.S. Geological Survey Open-File Report 2014-1008,"
+          http://pubs.usgs.gov/2014.1008/ .</vertaccr>
+      </vertacc>
+    </posacc>
+    <lineage>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Geological Survey, National Geospatial Technical Operations Center - National Elevation Dataset is a component of a
+              comprehensive base geospatial data model.</origin>
+            <pubdate>20180210</pubdate>
+            <title>Hypsography</title>
+            <geoform>Vector digital data</geoform>
+            <othercit> This contour feature class was generated from the 1/3 arc-second version of the 3D Elevation Program. The intended viewing
+              scale for these features is 1:24,000. The contours are derived from a filtered elevation raster to achieve smoother arcs. In some areas,
+              the 3DEP data may be modified by the National Hydrography Dataset (NHD) flow lines and water bodies to facilitate improved integration
+              between the hypsography and hydrography on USGS map products. These contours were generated primarily for use as a layer in GeoPDFs
+              created in the digital mapping program. The raster data source of contours is the 3D Elevation Program 1/3 arc-second layer. Secondary
+              datasets include the high resolution flow lines, water bodies, and areas from the National Hydrography Dataset (NHD). The NHD layers are
+              used in hydro-enforcement of the DEM prior to contour generation. The goals of the hydro-enforcement are to prevent contour lines from
+              extending over the surface of water bodies and to align the contour reentrants with the NHD single- line streams. The 3DEP raster cells
+              are converted to points. Those points, along with the NHD flow lines are input into an interpolation tool to create a new surface. The
+              NHD water bodies and areas are preprocessed to attach the minimum and maximum elevation to each polygon. From these precalculated
+              values, an appropriate value is calculated by which to raise the elevation cells under the NHD polygons. The NHD polygons are then
+              converted into rasters, which in turn will be used to generate a mosaic that includes the new raster surface. The mosaic is filtered to
+              provide smoother contour lines. Contours are generated and depression and index contours are identified. There is no guarantee or
+              warranty concerning the accuracy of the data. Users should be aware that temporal changes may have occurred since these data were
+              collected and generated and that some parts of these data may no longer represent actual surface conditions. Hydro-enforcement and
+              generalization can also significantly alter the spatial characteristics of the contours. Users should not use these data for critical
+              applications without a full awareness of its limitations. </othercit>
+            <onlink>http://ned.usgs.gov/</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate />
+              <enddate />
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Hypsography</srccitea>
+        <srccontr>Contours</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>International Boundary Commission</origin>
+            <pubdate>20180210</pubdate>
+            <title>U.S.-Canada National Boundary</title>
+            <geoform>vector digital data</geoform>
+            <othercit>The boundary is a digital representation of the International boundary between the United States and Canada as per the Treaty of
+              1908. It has been generated from a combination of recent surveys and datum conversions. It is intended for general mapping purposes
+              only. The boundary dataset is composed of 29 segments that correspond to the original 256 boundary maps. Attributes of each segment
+              define the scale in which the line in that area may be accurately depicted. It is produced for mapping purposes only and not intended to
+              illustrate the boundary beyond the limits of the scale for any given segment</othercit>
+            <onlink>http://www.internationalboundarycommission.org/</onlink>
+            <onlink>http://www.internationalboundarycommission.org/index-eng.html</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2006</begdate>
+              <enddate>2006</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>U.S. / Canada International Boundary</srccitea>
+        <srccontr>International Boundary between Canada and the United States</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin> U.S. Geological Survey, U.S. Department of Agriculture, and the Instituto Nacional de Estadistica y Geografia of Mexico. </origin>
+            <pubdate>20180210</pubdate>
+            <title>U.S.-Mexico National Boundary</title>
+            <geoform>vector digital data</geoform>
+            <othercit>The international boundary between Mexico and the United States, defined as a joint venture between the U.S. Department of
+              Agriculture (USDA) and the Instituto Nacional de Estadistica y Geografia of Mexico (INEGI), resulted in an unofficial United
+              States-Mexico boundary dataset that was further enhanced by the U.S. Geological Survey's Border Environmental Health Initiative (BEHI).
+              With the data frame scale set to 1:5,000 in ArcMap, the center of the Rio Grande/Rio Bravo was digitized using the NAIP 2004 Imagery. In
+              areas with dense stands of salt cedar (bounding box = UL -104.714 30.038, UR -104.664 30.037, LR -104.666 29.933, LL -104.717 29.934;
+              NAD83), the center of the channel was difficult, and sometimes impossible, to easily determine. To determine the location of the
+              boundary, the GIS analyst compared the location of the line in the INEGI 1:250K Limite feature class with the NAIP 2004 Imagery and
+              adjusted the boundary to the image, thus, the delineation of the international boundary is less certain in these areas. The remaining
+              part of the border was extracted from the INEGI 1:250K Limite feature class and appended to the line feature class created along the Rio
+              Grande/Rio Bravo. The U.S. Geological Survey reviewed the original USDA data against 2007 NAIP imagery and further edited 9 line
+              segments in the Rio Grande areas to conform to National Map Accuracy Standards.</othercit>
+            <onlink>http://borderhealth.cr.usgs.gov/projectindex.html</onlink>
+            <onlink>http://extract.cr.usgs.gov/BorderHealth/Boundaries/Int_Boundary/International_Boundary_Shapefile.zip</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>1972</begdate>
+              <enddate>2006</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>U.S. / Mexico International Boundary</srccitea>
+        <srccontr>International Boundary between Mexico and the United States</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin> U.S. Department of Agriculture (USDA) Forest Service - Washington Office Automated Lands Program (ALP). </origin>
+            <pubdate>20180210</pubdate>
+            <title>USDA Forest Service Boundary</title>
+            <geoform>vector digital data</geoform>
+            <othercit>The forest service boundaries defined by the USDA Forest Service encompassing the National Forest System (NFS) lands within the
+              original proclaimed National Forests, along with lands added to the NFS which have taken on the status of 'reserved from the public
+              domain' under the General Exchange Act. The following area types are included: National Forest, Experimental Area, Experimental Forest,
+              Experimental Range, Land Utilization Project, National Grassland, Purchase Unit, and Special Management Area. The nationwide Proclaimed
+              Forest dataset was created by the USDA Forest Service, Washington Office Automated Lands Program (ALP) staff from collected source data
+              created by the Regional Offices. Only maps in USDA Forest Service areas will contain USDA Forest boundaries.</othercit>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2009</begdate>
+              <enddate>2009</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>USDA Forest Service Boundaries</srccitea>
+        <srccontr>National Forest Service Boundaries</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>Office of the Deputy Under Secretary of Defense for Installations and Environment, Business Enterprise Integration
+              Directorate</origin>
+            <pubdate>20180210</pubdate>
+            <title>U.S. Military Installations, Ranges, and Training Areas</title>
+            <geoform>vector digital data</geoform>
+            <othercit>This dataset depicts the authoritative boundaries of the most commonly known Department of Defense (DoD) sites, installations,
+              ranges, and training areas in the United States and Territories. These sites encompass land which is federally owned or otherwise
+              managed. This dataset was compiled by the Defense Installation Spatial Data Infrastructure (DISDI) Program. This dataset represents the
+              baseline for georeferenced boundaries of sites selected from the 2010 Base Structure Report. The boundary locations are intended for
+              planning purposes only and do not represent the legal or surveyed land parcel boundaries. This list does not necessarily represent a
+              comprehensive collection of all DoD facilities, and only those in the fifty United States and US Territories were considered for
+              inclusion. Maps produced at a scale of 1:50,000 or larger which otherwise comply with National Map Accuracy Standards will remain
+              compliant if this data is incorporated. Although these data have been provided by the DoD components, no warranty expressed or implied
+              is made regarding the utility of the data on any other system, in derived products or data alterations, nor shall the act of
+              distribution constitute such warranty.</othercit>
+            <onlink>http://www.acq.osd.mil/ie/index.shtml</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>50000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2011</begdate>
+              <enddate>2011</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>U.S. Department of Defense Military Installations</srccitea>
+        <srccontr>Boundary lines, installation names</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Census Bureau</origin>
+            <pubdate>20180210</pubdate>
+            <title>State and Equivalent Boundary</title>
+            <geoform>vector digital data</geoform>
+            <othercit>The Census Bureau collects boundaries from state and county governments through the Boundary and Annexation Survey, and
+              publishes the results as TIGER files. The USGS uses the TIGER data without editing or alteration.</othercit>
+            <onlink>http://www.census.gov/geo/maps-data/data/tiger.html</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2013</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>State Boundaries</srccitea>
+        <srccontr>State and Equivalent Boundary</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Census Bureau</origin>
+            <pubdate>20180210</pubdate>
+            <title>County and Equivalent Boundary</title>
+            <geoform>vector digital data</geoform>
+            <othercit>The Census Bureau collects boundaries from state and county governments through the Boundary and Annexation Survey (BAS), and
+              publishes the results as TIGER files. The USGS uses the TIGER data without editing or alteration for US Topo.</othercit>
+            <onlink>http://www.census.gov/geo/www/tiger/index.html</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2013</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>County Boundaries</srccitea>
+        <srccontr>County and Equivalent Boundary</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Census Bureau</origin>
+            <pubdate>20180210</pubdate>
+            <title>Incorporated Places Boundary</title>
+            <geoform>vector digital data</geoform>
+            <othercit>The boundaries of most incorporated places are as of January 1, 2013, as reported through the Census Bureau's Boundary and
+              Annexation Survey. Limited updates that occurred after January 1, 2013, such as newly incorporated places, are also included. The
+              boundaries of all Census Designated Places (CDP) were delineated as part of the Census Bureau's Participant Statistical Areas Program
+              (PSAP) for the 2010 Census. The USGS uses the TIGER data without editing or alteration.</othercit>
+            <onlink>http://www.census.gov/geo/www/tiger/index.html</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2013</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Incorporated Places Boundaries</srccitea>
+        <srccontr>Incorporated Places Boundaries</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Census Bureau</origin>
+            <pubdate>20180210</pubdate>
+            <title>Jurisdictional Boundary</title>
+            <othercit>The 115th Congress is seated from January 2017 to 2019. The TIGER/Line shapefiles for the District of Columbia, Puerto Rico, and
+              the Island Areas (American Samoa, Guam, the Commonwealth of the Northern Mariana Islands, and the U.S. Virgin Islands) each contain a
+              single record for the non-voting delegate district in these areas. The boundaries of all other congressional districts are provided to
+              the Census Bureau through the Redistricting Data Program (RDP). The USGS uses the TIGER data without editing or alteration for US
+              Topo.</othercit>
+            <onlink>http://www.census.gov/geo/maps-data/data/tiger.html</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2016</begdate>
+              <enddate>2016</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Jurisdictional Boundaries</srccitea>
+        <srccontr>115th Congressional Districts Boundaries</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Census Bureau</origin>
+            <pubdate>20180210</pubdate>
+            <title>Minor Civil Divisions Boundary</title>
+            <geoform>vector digital data</geoform>
+            <othercit>The boundaries of most legal Minor Civil Divisions (MCD) are as of January 1, 2013, as reported through the Census Bureau's
+              Boundary and Annexation Survey. The boundaries of all Census Designated Places (CDP)are those as reported as part of the Census Bureau's
+              Participant Statistical Areas Program (PSAP) for the 2010 Census. The USGS uses the TIGER data without editing or alteration.</othercit>
+            <onlink>http://www.census.gov/geo/www/tiger/index.html</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2013</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Minor Civil Divisions Boundaries</srccitea>
+        <srccontr>Minor Civil Divisions Boundaries</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Census Bureau</origin>
+            <pubdate>20180210</pubdate>
+            <title>Native American Area Boundary</title>
+            <geoform>vector digital data</geoform>
+            <othercit>The Native American Area boundaries are as of January 1, 2013 as reported through Census Bureau's Boundary and Annexation
+              Survey. The USGS dataset is a combination of two Census Bureau files. It includes the American Indian/Alaska Native/Native Hawaiian
+              Areas National (AIANNH) National TIGER/Line shapefile, including the following legal entities: federally recognized American Indian
+              reservations and off-reservation trust land areas, state-recognized American Indian reservations, and Hawaiian home lands. Also included
+              is the Alaska Native Regional Corporation (ANRC) State-based TIGER/Line shapefile containing a record of the 12 Alaska Native Regional
+              Corporations used to conduct both the for-profit and non-profit affairs of Alaska Natives within a defined region of Alaska. The USGS
+              uses the TIGER data without editing or alteration.</othercit>
+            <onlink>http://www.census.gov/geo/www/tiger/index.html</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2013</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Native American Area Boundaries</srccitea>
+        <srccontr>Native American Area Boundaries</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>National Park Service - Land Resources Division</origin>
+            <pubdate>20180210</pubdate>
+            <title>National Park Service Boundary</title>
+            <geoform>vector digital data</geoform>
+            <othercit>This dataset depicts National Park Service unit boundaries for display and general analysis purposes. The USGS converted areas
+              of generally 3 acres or less to point features to facilitate cartographic display on the US Topo digital map product. See Source URL for
+              link to complete dataset. This data set is complete but subject to continual updates to reflect boundary amendments, legislation, and
+              acquisitions, and improved processing techniques. The data is being regularly updated with verified boundaries from NPS Land Resources
+              Division. The data is intended for use as a tool for display and general GIS analysis purposes only. It is in no way intended for
+              engineering or legal purposes. The data accuracy is checked against best available sources which may be dated. NPS assumes no liability
+              for use of this data. Boundaries from the Land Resources Division have separate polygons for each type of unit. For example Denali
+              National Park and Denali National Preserve are separate individual polygons.</othercit>
+            <onlink>https://irma.nps.gov/App/Portal</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2002</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>National Park Service Boundary</srccitea>
+        <srccontr>Current Administrative Boundaries of the National Park System Units</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Census Bureau</origin>
+            <pubdate>20180210</pubdate>
+            <title>Unincorporated Places Boundary</title>
+            <geoform>vector digital data</geoform>
+            <othercit>The boundaries of most unincorporated places in this shapefile are as of January 1, 2013, as reported through the Census
+              Bureau's Boundary and Annexation Survey (BAS). Limited updates that occurred after January 1, 2013, such as newly unincorporated places,
+              are also included. The boundaries of all Census Designated Places (CDPs) were delineated as part of the Census Bureau's Participant
+              Statistical Areas Program (PSAP) for the 2010 Census. The USGS uses the TIGER data without editing or alteration.</othercit>
+            <onlink>http://www.census.gov/geo/www/tiger/index.html</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2013</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Unincorporated Places Boundaries</srccitea>
+        <srccontr>Unincorporated Places Boundaries</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Department of Interior, U.S. Fish and Wildlife Service</origin>
+            <pubdate>20180210</pubdate>
+            <title>US Fish and Wildlife Service</title>
+            <geoform>vector digital data</geoform>
+            <othercit>This data set depicts simplified boundaries of lands administered by the U.S. Fish and Wildlife Service including National
+              Wildlife Refuges, National Fish Hatcheries, FWS administrative sites, and other conservation areas. The Alaska National Wildlife Refuge
+              Boundaries data set depicts the legislative boundary of the 16 National Wildlife Refuges in Alaska at a source scale of 1:63,360. The
+              dataset was created by the U.S. Fish and Wildlife Service, Region 7, Division of Realty and Natural Resources. The USGS substituted the
+              Alaska National Wildlife Refuge boundaries for the USFWS Simplified Wildlife Refuge Boundaries in Alaska for cartographic purposes. The
+              USFWS Simplified Wildlife Refuge Boundaries are simplified from the U.S. Fish and Wildlife Service Real Estate Interest data layer
+              containing polygons representing tracts of land (parcels) in which the Service has a property or management interest. These interests
+              include full land ownership, secondary interests in property primarily managed and reported by other federal agencies, leased property,
+              property managed by agreement with other parties, and, within National Wildlife Refuges, property governed by conservation easements. A
+              conservation easement is a permanent, legally enforceable land preservation agreement between a landowner and a government agency that
+              restricts real estate, commercial and industrial development of the land, which remains private property. Inholdings of private property
+              within Refuge areas not covered by conservation easements are excluded from these boundaries. The Hawaiian Islands National Wildlife
+              Refuge and Waterfowl production area easements acquired through the small wetlands program have been omitted. Interior boundaries
+              between parcels were dissolved to produce a single set of simplified external boundaries for each feature. These are resource grade
+              mapping representations of the U.S. Fish and Wildlife Service boundaries. For legal descriptions of the land represented here contact
+              the USFWS Realty Office. This map layer was compiled by the U.S. Fish and Wildlife Service. The Alaska National Wildlife Refuges dataset
+              was derived from the following digital sources and legal documents: 1) Federal Register, Vol. 48, No. 38 Thursday, February 24, 1983
+              Notices Pages 7890-8029. 2) USGS 1:250,000 scale Alaska Boundary Series maps entitled: Alaska National Interest Lands Conservation Act
+              December 2, 1980 P.L. 96-487 3) Various legal documents such as survey plats, legal metes and bounds descriptions, Deeds, and Titles. 4)
+              USGS 1:63,360 scale revised hydrography Digital Line Graphs depicting ground conditions from 1955 to 1986. Although these Fish and
+              Wildlife boundaries represent lands administered by the U.S. Fish and Wildlife Service, not all areas are open to the public. Some
+              fragile habitats need to be protected from human traffic, some management areas are closed, and the terms of some conservation easements
+              preclude public access. The public is urged to contact specific Refuges or other conservation areas before visiting.</othercit>
+            <onlink>http://www.fws.gov/GIS/data/CadastralDB/FWS_Simplified_Boundaries.zip</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>1950</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>U. S. Fish and Wildlife Service Boundary</srccitea>
+        <srccontr>Boundary polygons and names</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Dept. of Interior, Bureau of Land Management, Division of Support Services, Branch of Information Resource
+              Management</origin>
+            <pubdate>20180210</pubdate>
+            <title>Public Land Survey System</title>
+            <geoform>vector digital data</geoform>
+            <othercit>The PLSS information is for general reference purposes only, and should not be used to determine legal boundaries or land
+              ownership. The Bureau of Land Management (BLM) is the authoritative source for PLSS information at the federal level, and the US Topo
+              representation is derived from BLM GIS data files called Cadastral National Spatial Data Infrastructure or CadNSDI. The management of
+              these data is not completely uniform throughout the country. Although this metadata record is included with all maps, PLSS is currently
+              shown on US Topo Maps for only a few states. PLSS will be added to US Topo maps in more states in coming years as BLM authorized CadNSDI
+              format is made available. The three layers USGS stores from PLSS are the Township, First Division and Special Surveys. Metadata for BLM
+              PLSS data is at http://www.geocommunicator.gov/GeoComm/metadata/index.htm#PLSS, though this URL may change in the near future. Alternate
+              sources of PLSS data will continued to be served mainly in western states where BLM is the data steward or the data is from a trusted
+              source. Notes on individual states follow,----Alaska PLSS consists of protracted (computed, not surveyed) data only. For more
+              information see http://sdms.ak.blm.gov/sdms/data_protracted_grid_gis.html----Ohio was the original PLSS state in the early 1800s, and
+              the land network there is unusually complex. The source data include four first-division parcel types. These are all shown on US Topo
+              maps, and are labeled according to BLM's attribution, with a leading letter followed by either a number or more letters. The meanings of
+              the leading letters are S=Section, F=Fractional Section, L=Lot, Q=Quarter Township.</othercit>
+            <onlink>http://sdms.ak.blm.gov/sdms/data_protracted_grid_gis.html</onlink>
+            <onlink>http://www.geocommunicator.gov/GeoComm/lsis_home/home/index.htm</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2008</begdate>
+              <enddate>2015</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Public Land Survey System - BLM</srccitea>
+        <srccontr>Townships and ranges, sections</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>Department of Veterans Affairs, National Cemetery Administration and U.S. Geological Survey</origin>
+            <pubdate>20180210</pubdate>
+            <title>NCA National Cemeteries</title>
+            <geoform>vector digital data</geoform>
+            <othercit>This dataset represents boundaries of National cemeteries administered by the U.S. Department of Veterans Affairs, National
+              Cemetery Administration. This layer may also contain a small number of boundaries for those managed by the Department of the Army. This
+              data is subject to change as other national cemetery areas are authorized. This dataset is intended for general mapping and reference
+              purposes only.</othercit>
+            <onlink>http://nationalmap.gov/boundaries.html/</onlink>
+          </citeinfo>
+        </srccite>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2013</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>National Cemetery Boundary</srccitea>
+        <srccontr>Name, general location information from NCA, Boundaries from parcel and other mapping datasets.</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Geological Survey, National Geospatial Technical Operations Center</origin>
+            <pubdate>20180210</pubdate>
+            <title>Geographic Names Information System (GNIS)</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>The Geographic Names Information System (GNIS) is the Federal and national standard for geographic nomenclature. The U.S.
+              Geological Survey developed the GNIS in support of the U.S. Board on Geographic Names as the official repository of domestic geographic
+              names data, the official vehicle for geographic names use by all departments of the Federal Government, and the source for applying
+              geographic names to Federal electronic and printed products.</othercit>
+            <onlink>http://geonames.usgs.gov/</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2012</begdate>
+              <enddate>2012</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Geographic Names</srccitea>
+        <srccontr>Geographic feature names</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Geological Survey, National Geospatial Technical Operations Center</origin>
+            <pubdate>20180210</pubdate>
+            <title>Land Cover - Woodland</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>The Woodland Tint is a derivative land cover product created using several national map layers: three National Land Cover
+              Database (NLCD) 2001 raster layers (Tree Canopy, Imperviousness, and Land Cover); and two vector layers (National Hydrography Dataset
+              and Transportation). The process begins with masking the NLCD 2001 Canopy Data with NLCD 2001 Imperviousness V1 (values from 1-100), and
+              Land Cover V1 (value 11 = Open Water). The resulting raster data with canopy values of 20 and greater are converted to woodland vector
+              polygons and smoothed via the Paek Algorithm. The woodland polygons are masked with buffered Transportation (Roads, Airport Runways, and
+              Railroads) and Hydrography (NHD Areas excluding Inundation Area and NHD Waterbodies excluding Swamp/Marsh). The resulting polygons are
+              checked for scale appropriate size (minimum size of one acre), and the small woodland polygons as well as small clearings within the
+              woodland polygons are deleted.</othercit>
+            <onlink>http://nationalmap.usgs.gov</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2001</begdate>
+              <enddate>2012</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Land Cover - Woodland</srccitea>
+        <srccontr>National Landcover Dataset; National Hydrography Dataset; National Transportation Dataset</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Geological Survey in cooperation with U.S. Environmental Protection Agency, USDA Forest Service, and other Federal, State and
+              local partners. National Hydrography Dataset is a component of a comprehensive base geospatial data model.</origin>
+            <pubdate>20180210</pubdate>
+            <title>Hydrography</title>
+            <geoform>vector digital data</geoform>
+            <othercit>The National Hydrography Dataset (NHD) is a feature-based database that interconnects and uniquely identifies the stream
+              segments or reaches that make up the nation's surface water drainage system. The high-resolution NHD was originally created using
+              1:24,000-scale data. State and Local Stewards are improving the data by incorporating local updates based on more current and more
+              accurate source data. Water features in the real world are relatively dynamic and the differences at the time of data collection mean
+              that water features may not register exactly to other layers. The hydrographic feature names contained in and displayed by the NHD are
+              extracted and validated from the Geographic Names Information System (GNIS). Spatial objects may be filtered or generalized to achieve a
+              1:24,000-scale representation.</othercit>
+            <onlink>http://nhd.usgs.gov/</onlink>
+            <onlink>http://nhd.usgs.gov/gnis.html</onlink>
+            <onlink>http://nhdgeo.usgs.gov/metadata/nhd_high.htm</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>20100820</begdate>
+              <enddate>20100820</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Hydrography</srccitea>
+        <srccontr>Hydrography features and feature names</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>Global Land Ice Measurements from Space initiative (GLIMS)</origin>
+            <pubdate>20180210</pubdate>
+            <title>Gaging Stations</title>
+            <geoform>vector digital data</geoform>
+            <othercit>This dataset, termed "GAGES II", an acronym for Geospatial Attributes of Gages for Evaluating Streamflow, version II, provides
+              geospatial data and classifications for 9,322 stream gages maintained by the U.S. Geological Survey (USGS). It is an update to the
+              original GAGES in 2010. The GAGES II dataset consists of gages which have had either 20+ complete years (not necessarily continuous) of
+              discharge record since 1950, or are currently active, as of water year 2009, and whose watersheds lie within the United States,
+              including Alaska, Hawaii, and Puerto Rico. Only active stations, as identified by the GAGES II dataset, are symbolized.</othercit>
+            <onlink>http://water.usgs.gov/lookup/getspatial?gagesII_Sept2011</onlink>
+            <onlink>http://water.usgs.gov/GIS/metadata/usgswrd/XML/gagesII_Sept2011.xml</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate />
+              <enddate />
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Hydrography - Gaging Stations</srccitea>
+        <srccontr>Hydrography features and gaging stations</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>State and Federal Partners, updates from USGS' The National Map Corps volunteers </origin>
+            <pubdate>20180210</pubdate>
+            <title>Fire Stations</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>Any location where fire fighters are stationed or based out of, or where equipment that such personnel use in carrying out their
+              jobs is stored for ready use. Fire Departments which are Mobile Units and not having a permanent location, are included, in which case
+              their location has been depicted at the city/town hall or at the center of their service area if a city/town hall does not exist. This
+              dataset includes those locations primarily engaged in forest or grasslands fire fighting, including fire lookout towers if the towers
+              are in current use for fire protection purposes. This dataset includes both private and governmental entities. Locations that serve only
+              administrative function are excluded. Locations serving both administrative and operational functions are included.</othercit>
+            <onlink>http://nationalmap.usgs.gov</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>None</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>20060101</begdate>
+              <enddate>20120101</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>ground condition</srccurr>
+        </srctime>
+        <srccitea>Structures - Fire Stations</srccitea>
+        <srccontr>Geographic features and feature names</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin> State and Federal Partners, updates from USGS' The National Map Corps volunteers</origin>
+            <pubdate>20180210</pubdate>
+            <title>Law Enforcement</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>Included are locations where sworn officers of a law enforcement agency are regularly based or stationed. This dataset includes
+              local police, county sheriff's offices, state police or highway patrol locations. Most federal law enforcement agency locations are not
+              included.</othercit>
+            <onlink>http://nationalmap.usgs.gov</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>None</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>20051019</begdate>
+              <enddate>20150203</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>ground condition</srccurr>
+        </srctime>
+        <srccitea>Structures - Law Enforcement</srccitea>
+        <srccontr> Geographic features and feature names</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin> State and Federal Partners, updates from USGS' The National Map Corps volunteers</origin>
+            <pubdate>20180210</pubdate>
+            <title>Prisons/Correctional Facility</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>Includes both private and government medium and high security prisons and correctional institutions. Low and minimum security
+              institutions such as local jails, prison camps, correctional farms or work farms, detention and treatment centers are generally
+              excluded.</othercit>
+            <onlink>http://nationalmap.usgs.gov</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>None</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>20070803</begdate>
+              <enddate>20150203</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>ground condition</srccurr>
+        </srctime>
+        <srccitea>Structures - Prisons/Correctional Facility</srccitea>
+        <srccontr> Geographic features and feature names</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>State and Federal Partners, updates from USGS' The National Map Corps volunteers </origin>
+            <pubdate>20180210</pubdate>
+            <title>Schools</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>The schools within this dataset are composed of Public elementary and secondary education in the US as defined and tracked by
+              the National Center for Education Statistics (NCES), Common Core Dataset (CCD). Private schools in this dataset are composed of Private
+              elementary and secondary education in the US as defined by the Private School Survey, NCES. The colleges and Universities are composed
+              of postsecondary education facilities as defined by the Integrated Post Secondary Education System (IPEDS), NCES. Included are Doctoral
+              and Research Universities, Masters Colleges and Universities, Baccalaureate Colleges, Associates Colleges, Theological seminaries,
+              Medical schools and other health care professions, schools of engineering and technology, business and management, art, music, design,
+              Law schools, Teachers colleges, Tribal colleges and other specialized institutions.</othercit>
+            <onlink>http://nationalmap.usgs.gov</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>None</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>20080101</begdate>
+              <enddate>20080101</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>ground condition</srccurr>
+        </srctime>
+        <srccitea>Structures - Schools</srccitea>
+        <srccontr>Geographic features and feature names</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>State and Federal Partners, updates from USGS' The National Map Corps volunteers </origin>
+            <pubdate>20180210</pubdate>
+            <title>Hospitals</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>Includes general medical and surgical hospitals, psychiatric, substance abuse and specialty hospitals such as Children's
+              hospitals, cancer, maternity and rehabilitation hospitals. Other types of hospitals are included if represented in data sets provided by
+              various partners for this compilation. Hospitals operated by the US Department of Veterans Affairs are included. Nursing homes, long
+              term care facilities and Urgent Care facilities are generally excluded. Locations that are administrative offices only are excluded from
+              the dataset.</othercit>
+            <onlink>http://nationalmap.usgs.gov</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>None</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>20060101</begdate>
+              <enddate>20110101</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>ground condition</srccurr>
+        </srctime>
+        <srccitea>Structures - Hospitals</srccitea>
+        <srccontr>Geographic features and feature names</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>State government websites</origin>
+            <pubdate>20180210</pubdate>
+            <title>State Capitol buildings</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>Includes the official State Capitol buildings for the U.S. states and territories</othercit>
+            <onlink>http://nationalmap.usgs.gov</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>None</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2014</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>ground condition</srccurr>
+        </srctime>
+        <srccitea>Structures - State Capitol building</srccitea>
+        <srccontr>Geographic features and feature names</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>Oak Ridge National Laboratory</origin>
+            <pubdate>20180210</pubdate>
+            <title>Transportation, Railroads</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>Railroads are derived from an unpublished data set provided to USGS by Oak Ridge National Laboratory (ORNL) Geographic
+              Information Science and Technology Group (GIST). Following is an excerpt from the GIST description of the data set; the original data
+              contain attributes not used by US Topo: The rail lines layer represents the freight lines of the nation's railroad system. The data set
+              covers all 50 states and the District of Columbia, as well as territories and possessions of the United States. No rail lines exist in
+              American Samoa, Guam, Northern Mariana Islands, and the Virgin Islands of the US. Phase 1 of this product is a completed deliverable.
+              This phase involved adding and validating network attribute data including railroad ownership, trackage and haulage rights, operational
+              status, operating subdivisions, signaling systems, track class and traffic density. Phase 2 adjusted the topological alignment of the
+              track using the best available remote sensing imagery. Information originally based on the Department of Transportation (DOT) Federal
+              Railroad Administration (FRA) 1:100K rail network. The data have been updated by Oak Ridge National Laboratory (ORNL) Geographic
+              Information Science and Technology Group (GIST).</othercit>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2014</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Railroads - Oak Ridge National Laboratory</srccitea>
+        <srccontr>Main track centerlines</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>Federal Aviation Administration</origin>
+            <pubdate>20180210</pubdate>
+            <title>Airports</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>Runway outlines are for Federal Aviation Administration (FAA)-recognized public and private airports in the United States. The
+              FAA runway coordinates, FAA_RunwayID, and Airport Location Codes were used by the USGS to digitize runway outlines on recent NAIP
+              orthoimagery. The digitized data were inspected for accuracy and completeness then loaded into the USGS national transportation
+              database.</othercit>
+            <onlink>http://www.faa.gov</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2011</begdate>
+              <enddate>2012</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Transportation - Airports</srccitea>
+        <srccontr>runways</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>Various government agencies and volunteer organizations</origin>
+            <pubdate>20180210</pubdate>
+            <title>Recreational Trails</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>The first recreational trails were added to US Topo maps in 2013. The data for trails come from a variety of sources. Accuracy
+              and currency is the responsibility of the data owner; USGS evaluates the authoritativeness of the source but does not independently
+              verify data accuracy. Trails are not complete, and will not be complete for the foreseeable future. Trails will be added as data become
+              available from land management agencies and other authoritative sources. All recreational trails information presented on US Topo maps
+              is public domain, though the original source data is not necessarily public domain. This metadata section documents all data sources for
+              all maps, not this specific map. Trails listed here are not guaranteed to be present on all relevant maps, due to schedule differences
+              between data delivery and US Topo production schedules. Feature-level metadata is not provided in the US Topo product; there is no link
+              between a line on the map and the source of that specific trail. Notes on data sources follow --------- For the 11 National Scenic
+              Trails (NST): Ice Age National Scenic Trail: data provided by the volunteer organization Ice Age Trail Alliance,
+              http://www.iceagetrail.org, in cooperation with National Park Service and Wisconsin Department of Natural Resources. - Pacific Crest
+              National Scenic Trail: unpublished data provided by US Forest Service - Appalachian National Scenic Trail: data published by the
+              Appalachian Trial Conservancy, http://appalachiantrail.org/about-the-trail/mapping-gis-data, in cooperation with National Park Service -
+              North Country National Scenic Trail: unpublished dataset provided by National Park Service - Arizona National Scenic Trail: data from
+              AZGEO Clearinghouse, https://azgeo.az.gov/azgeo/, in cooperation with U.S. Forest Service - Pacific Northwest National Scenic Trail:
+              unpublished data provided by US Forest Service - Natchez Trace National Scenic Trail: unpublished dataset provided by National Park
+              Service --------- For other trail types and sources: US Fish and Wildlife Service lands: the USFWS Hiking Trails Inventory is
+              administered by the US Department of Transportation Federal Highway Administration, and Pacific Western Technologies, LTD. The purpose
+              of the dataset is to create a baseline inventory of all non-motorized trails on US Fish and Wildlife Service Stations. - US Forest
+              Service lands: trails within National Forests are from unpublished data provided by USFS. These data are developed from sources of
+              differing accuracy. US Topo does not portray access and travel management information indicating which trails are managed for or open to
+              specific modes of travel (motorized/non-motorized) or associated seasons of use. USFS trails (other than selected NSTs described above)
+              are currently shown on US Topo only in Colorado. - The International Mountain Bicycling Association, IMBA, shares their bicycle trails
+              data with USGS as part of an ongoing partnership. IMBA-collected trails are generally not shown inside delineated Federal lands (e.g.,
+              National Forests) on US Topo maps.</othercit>
+            <onlink>http://www.nps.gov/ncrc/programs/nts/nts_trails.html</onlink>
+            <onlink>http://www.pnts.org</onlink>
+            <onlink>http://www.fws.gov/gis/data/national/</onlink>
+            <onlink>https://www.imba.com/</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2006</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Recreational Trails</srccitea>
+        <srccontr>Trail centerline</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>U.S. Census Bureau, Geography Division</origin>
+            <pubdate>20180210</pubdate>
+            <title>Transportation, Census Roads</title>
+            <geoform>vector digital data</geoform>
+            <othercit>Dataset source is Census Bureau MAF/TIGER database extracts in the form of TIGER/Line Shapefiles. The TIGER/Line shapefiles and
+              related database files are an extract of selected geographic and cartographic information from the U.S. Census Bureau's Master Address
+              File/Topologically Integrated Geographic Encoding and Referencing (MAF/TIGER) Database (MTDB). The MTDB represents a seamless national
+              file with no overlaps or gaps between parts, however, each TIGER/Line shapefile is designed to stand alone as an independent dataset, or
+              they can be combined to cover the entire nation. The U.S. Geological Survey filters Census roads to remove short road segments which are
+              less than 500 feet in length, are not named and are classified as local roads. The USGS National Transportation Dataset functional road
+              classification system is applied to the Census datasets. The original TIGER/Line Shapefile products are not copyrighted however
+              TIGER/Line and Census TIGER are registered trademarks of the U.S. Census Bureau. The horizontal spatial accuracy information present in
+              the TIGER/Line shapefiles is provided for the purposes of statistical analysis and census operations only and the data may not be
+              suitable for high-precision measurement applications. Full metadata for TIGER/Line shapefiles is available from U.S. Census
+              Bureau</othercit>
+            <onlink>http://www.census.gov/geo/maps-data/data/tiger.html</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>24000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2013</begdate>
+              <enddate>2014</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Roads - Census</srccitea>
+        <srccontr>Road centerlines, route numbers, road classification, street names</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>Alaska Railroad Corporation</origin>
+            <pubdate>20180210</pubdate>
+            <title>Transportation, Railroads</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>This record applies to Alaska data only. Railroad data is provided by the Alaska Railroad Corporation, and may not include other
+              owner's rail features. Unpublished data provided directly to USGS. Current as of 2012. For more information, contact Alaska Railroad
+              Corporation, 327 W. Ship Creek Ave., Anchorage, AK. 99501, phone 907-265-3100, or emailgrunwaldm@akrrr.com</othercit>
+            <onlink />
+          </citeinfo>
+        </srccite>
+        <srcscale>25000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2012</begdate>
+              <enddate>2012</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Railroads - Alaska Railroad Corporation</srccitea>
+        <srccontr>Main track centerlines</srccontr>
+      </srcinfo>
+      <srcinfo>
+        <srccite>
+          <citeinfo>
+            <origin>Alaska Department of Transportation</origin>
+            <pubdate>20180210</pubdate>
+            <title>Transportation, public domain roads</title>
+            <geoform>Vector digital data</geoform>
+            <othercit>This record applies to Alaska data only. Roads gathered from various state and local sources, integrated by the Alaska
+              Department of Transportation (ADOT) and provided to USGS for use in USGS map products. This specific road dataset is unpublished, but
+              earlier versions are published on the ADOT web site.</othercit>
+            <onlink>http://www.dot.state.ak.us/stwdplng/mapping/</onlink>
+          </citeinfo>
+        </srccite>
+        <srcscale>25000</srcscale>
+        <typesrc>digital data</typesrc>
+        <srctime>
+          <timeinfo>
+            <rngdates>
+              <begdate>2013</begdate>
+              <enddate>2013</enddate>
+            </rngdates>
+          </timeinfo>
+          <srccurr>publication date</srccurr>
+        </srctime>
+        <srccitea>Roads - Alaska Department of Transportation</srccitea>
+        <srccontr>Road centerlines, road classification, street names</srccontr>
+      </srcinfo>
+      <procstep>
+        <procdesc>The data for this product are created as follows. All geospatial content is taken from national geospatial databases under the
+          stewardship of USGS data programs. The NAIP imagery is provided by a seamless tile service that delivers image data at the resolution and
+          quality of the source imagery. The raster and vector data, including grids and collar information, are processed using ESRI ArcGIS software
+          and exported. Map formatting is performed using a custom application, which includes post-processing to embed the metadata XML
+          document.</procdesc>
+        <procdate>20180210</procdate>
+      </procstep>
+    </lineage>
+  </dataqual>
+  <spdoinfo>
+    <indspref>Public Land Survey System</indspref>
+    <direct>Vector</direct>
+    <ptvctinf>
+      <sdtsterm>
+        <sdtstype>Entity point</sdtstype>
+      </sdtsterm>
+      <sdtsterm>
+        <sdtstype>Void polygon composed of rings</sdtstype>
+      </sdtsterm>
+      <sdtsterm>
+        <sdtstype>Complete chain</sdtstype>
+      </sdtsterm>
+      <sdtsterm>
+        <sdtstype>Complete chain</sdtstype>
+        <ptvctcnt>1012</ptvctcnt>
+      </sdtsterm>
+    </ptvctinf>
+  </spdoinfo>
+  <spref>
+    <horizsys>
+      <geograph>
+        <latres>0.00001</latres>
+        <longres>0.00001</longres>
+        <geogunit>Decimal degrees</geogunit>
+      </geograph>
+      <geodetic>
+        <horizdn>North American Datum of 1983</horizdn>
+        <ellips>Geodetic Reference System 80</ellips>
+        <semiaxis>6378137</semiaxis>
+        <denflat>298.2572221</denflat>
+      </geodetic>
+    </horizsys>
+  </spref>
+  <distinfo>
+    <distrib>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>U.S. Geological Survey, National Geospatial Technical Operations Center</cntorg>
+        </cntorgp>
+        <cntaddr>
+          <addrtype>mailing and physical</addrtype>
+          <address>1400 Independence Road</address>
+          <city>Rolla</city>
+          <state>MO</state>
+          <postal>65401</postal>
+        </cntaddr>
+        <cntaddr>
+          <addrtype>mailing and physical</addrtype>
+          <address>Box 25046 Denver Federal Center</address>
+          <city>Lakewood</city>
+          <state>CO</state>
+          <postal>80225</postal>
+        </cntaddr>
+        <cntvoice>1-888-ASK-USGS (1-888-275-8747)</cntvoice>
+        <cntemail>http://www.usgs.gov/ask/</cntemail>
+        <hours>Monday through Friday 8:00 AM to 4:00 PM</hours>
+        <cntinst>Metadata information can also be obtained through online services using The National Map Viewer, at http://nationalmap.usgs.gov or
+          EarthExplorer, at http://earthexplorer.usgs.gov or Ask USGS at http://www.usgs.gov/ask.</cntinst>
+      </cntinfo>
+    </distrib>
+    <resdesc>Downloadable Data</resdesc>
+    <distliab>No liability for content or accuracy is presumed by USGS for data.</distliab>
+    <stdorder>
+      <digform>
+        <digtinfo>
+          <formname>FileGDB</formname>
+          <formvern>10.1</formvern>
+          <formcont>Spatial objects with unique identifiers and coordinate data.</formcont>
+          <filedec>No compression applied</filedec>
+          <transize>4191945</transize>
+        </digtinfo>
+        <digtopt>
+          <onlinopt>
+            <computer>
+              <networka>
+                <networkr>ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/TopoMapVector/SD/Shape/VECTOR_Howard_SD_7_5_Min_Shape.zip</networkr>
+              </networka>
+            </computer>
+          </onlinopt>
+        </digtopt>
+      </digform>
+      <fees>None</fees>
+    </stdorder>
+  </distinfo>
+  <metainfo>
+    <metd>20180210</metd>
+    <metrd>20180210</metrd>
+    <metfrd>20190210</metfrd>
+    <metc>
+      <cntinfo>
+        <cntorgp>
+          <cntorg>U.S. Geological Survey, National Geospatial Technical Operations Center</cntorg>
+        </cntorgp>
+        <cntaddr>
+          <addrtype>mailing and physical</addrtype>
+          <address>1400 Independence Road</address>
+          <city>Rolla</city>
+          <state>MO</state>
+          <postal>65401</postal>
+        </cntaddr>
+        <cntaddr>
+          <addrtype>mailing and physical</addrtype>
+          <address>Box 25046 Denver Federal Center</address>
+          <city>Lakewood</city>
+          <state>CO</state>
+          <postal>80225</postal>
+        </cntaddr>
+        <cntvoice>1-888-ASK-USGS (1-888-275-8747)</cntvoice>
+        <cntemail>http://www.usgs.gov/ask/</cntemail>
+        <hours>Monday through Friday 8:00 AM to 4:00 PM</hours>
+        <cntinst>Metadata information can also be obtained through online services using The National Map Viewer, at http://nationalmap.usgs.gov or
+          EarthExplorer, at http://earthexplorer.usgs.gov or Ask USGS at http://www.usgs.gov/ask.</cntinst>
+      </cntinfo>
+    </metc>
+    <metstdn>FGDC Content Standard for Digital Geospatial Metadata</metstdn>
+    <metstdv>FGDC-STD-001-1998</metstdv>
+  </metainfo>
+</metadata>
