@@ -10,3 +10,4 @@
 *.Rhistory
 
 *.tex
+.Rproj.user
