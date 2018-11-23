@@ -2,6 +2,7 @@
 \usepackage{amsmath}
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 	
 R preliminaries
 
@@ -11,7 +12,7 @@ path = "~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R"
 for (nm in list.files(path)) {
    source(file.path(path, nm))
 }
-setwd("~/Work/git/ASA_CSSA_SSSA/working")
+#setwd("~/Work/git/ASA_CSSA_SSSA/working")
 bestseed <- 1500
 set.seed(bestseed)
 library(ggplot2)
@@ -25,8 +26,8 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00",
 Assume we have yield (or other agronomic assessment) data in spatial format, such as yield monitor data. For example, this data from the SDSU research station near Beresford. This file has been edited from the original format and is comma-seperated. It has been trimmed and converted to metric coordinates as descrbed elsewhere.
 
 <<>>=
-load(file="trimmed.dat.Rda")
-load(file="trimmed.vgm.Rda")
+load(file="~/Work/git/ASA_CSSA_SSSA/working/trimmed.dat.Rda")
+load(file="~/Work/git/ASA_CSSA_SSSA/working/trimmed.vgm.Rda")
 @
 
 <<00TrimmedDataMap,fig=TRUE,echo=false,width=4,height=4.4>>=
@@ -81,7 +82,6 @@ geom_point(aes(colour = trt),size = 6) +
 scale_colour_manual(values=cbPalette) +
 xlim(c(4,29)) + ylim(c(4,28)) +
 labs(colour = "Treatment", x="Longitude (m)", y="Latitude (m)")
-
 @
 
 
@@ -1068,12 +1068,12 @@ lsmeans(ResMS.lm, ~ Source+Class)
 tapply(simulationsPooled.dat$aov$RepMS,list(simulationsPooled.dat$aov$Source,simulationsPooled.dat$aov$Class),mean)
 RepMS.lm <- lm(RepMS ~ Source*Class,data=simulationsPooled.dat$aov)
 anova(RepMS.lm)
-lsmeans(RepMS.lm, cld ~ Source+Class)
+lsmeans(RepMS.lm,  ~ Source+Class)
 
 tapply(simulationsPooled.dat$aov$CV,list(simulationsPooled.dat$aov$Source,simulationsPooled.dat$aov$Class),mean)
 CV.lm <- lm(CV ~ Source*Class,data=simulationsPooled.dat$aov)
 anova(CV.lm)
-lsmeans(CV.lm, cld ~ Source+Class)
+lsmeans(CV.lm,  ~ Source+Class)
 @
 
 There don't seem to be significant differences among Residul Mean Squares for classes; 
