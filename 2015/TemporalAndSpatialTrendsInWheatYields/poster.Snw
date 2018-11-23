@@ -4,20 +4,20 @@ library(ggplot2)
 library(gridExtra)
 library(maps)
 library(xtable)
-source("../ASA_CSSA_SSSA/R/map_functions.R")
+source("../../ASA_CSSA_SSSA/R/map_functions.R")
 @
 
 <<echo=false>>=
-load(file="data/usda/covariates.dat.Rda")
+load(file="../data/usda/covariates.dat.Rda")
 
-   state.yield.dat <- read.csv("./data/usda/B1926239-B043-3DBC-B92F-C4BB7F081392.csv", header = TRUE)
+   state.yield.dat <- read.csv("../data/usda/B1926239-B043-3DBC-B92F-C4BB7F081392.csv", header = TRUE)
    state.yield.plot <- ggplot(state.yield.dat, aes(Year,Value)) 
    state.yield.plot <- state.yield.plot + scale_fill_manual(values=cbPalette) + scale_colour_manual(values=cbPalette)
    state.yield.plot <- state.yield.plot + geom_point(aes(color=State),size=2,alpha = 0.2)
    state.yield.plot <- state.yield.plot + geom_smooth(aes(group= State,color=State),weight=16,se = FALSE,method="loess")
 
-load(file="data/usda/income.relative.dat.Rda")
-load(file="data/usda/income.total.dat.Rda")
+load(file="../data/usda/income.relative.dat.Rda")
+load(file="../data/usda/income.total.dat.Rda")
 mean.relative.income <- tapply(income.relative.dat$Value,list(income.relative.dat$statecounty),mean,na.rm=TRUE)
 mean.total.income <- tapply(income.total.dat$Value,list(income.total.dat$statecounty),mean,na.rm=TRUE)
 
