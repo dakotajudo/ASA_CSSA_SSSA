@@ -22,7 +22,7 @@ generate.rcb.plan <- function(reps,treatments) {
 
 generate.rcb.plans <- function(reps,treatments,count) {
 
-  base.plan <- generate.rcb.plan(reps,treatment)
+  base.plan <- generate.rcb.plan(reps,treatments)
   
   rcb.list <- vector("list", count)
   cnt=1
