@@ -7,7 +7,7 @@
 <<echo=false>>=
 library(ggplot2)
 library(maps)
-source("../../../ASA_CSSA_SSSA/R/map_functions.R")
+source("../../ASA_CSSA_SSSA/R/map_functions.R")
 @
 
 I've found the weather data from \verb|http://wonder.cdc.gov/EnvironmentalData.html| to be the easiest to use for a reasonable estimate of county level weather values.

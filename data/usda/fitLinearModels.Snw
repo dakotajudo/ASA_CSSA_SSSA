@@ -24,7 +24,7 @@ We start our analysis centered on the USDA NAS data set at \verb|http://quicksta
    36000+ records
 
 <<echo=false>>=
-source("../../../ASA_CSSA_SSSA/R/map_functions.R")
+source("../../ASA_CSSA_SSSA/R/map_functions.R")
 library(ggplot2)
 library(gridExtra)
 library(maps)
