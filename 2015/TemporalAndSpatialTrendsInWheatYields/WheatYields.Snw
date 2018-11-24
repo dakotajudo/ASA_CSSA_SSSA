@@ -8,7 +8,7 @@
 
 
 <<>>=
-source("../ASA_CSSA_SSSA/R/map_functions.R")
+source("../../ASA_CSSA_SSSA/R/map_functions.R")
 
 @
 
@@ -21,10 +21,10 @@ as an Rda file. If a file (or controlling file) is not present, the appropriate 
 <<echo=false,results=hide>>=
 full=TRUE
 current.wd <- getwd()
-covariateFileName <- "data/usda/covariates.dat.Rda"
-covariateFullFileName <- "data/usda/full.covariates.dat.Rda"
+covariateFileName <- "../../data/usda/covariates.dat.Rda"
+covariateFullFileName <- "../../data/usda/full.covariates.dat.Rda"
 if(!file.exists(covariateFileName)) {
-   setwd('data/usda')
+   setwd('../../data/usda')
    Sweave("fitLinearModels.Snw")
    setwd(current.wd)
 } else {
@@ -37,7 +37,7 @@ ref <- 1984+(2014-1984)/2
 @
 
 <<centralyear,fig=TRUE,width=6.35,height=4>>=
-setwd('data/usda/')
+setwd('../../data/usda/')
 load.if.needed("county.yield.dat")
 setwd(current.wd)
 county.yield.dat$State <- as.character(county.yield.dat$State)
@@ -56,7 +56,7 @@ county.yield.plot
 @
 
 <<fullyear,fig=TRUE,width=8,height=4>>=
-setwd('data/usda/')
+setwd('../../data/usda/')
 load.if.needed("full.yield.dat")
 setwd(current.wd)
 
@@ -97,7 +97,7 @@ periph.dat=NULL
 \subsection{Weather}
 <<>>=
 if(!("min.a" %in% names(covariates.dat))) {
-   setwd('data/wonder')
+   setwd('../../data/wonder')
    Sweave("fitLinearModels.Snw")
    setwd(current.wd)
 }
@@ -105,7 +105,7 @@ if(!("min.a" %in% names(covariates.dat))) {
 
 <<>>=
 if(!("min.a" %in% names(full.covariates.dat))) {
-   setwd('data/wonder')
+   setwd('../../data/wonder')
    Sweave("fitLinearModels.Snw")
    setwd(current.wd)
 }
@@ -116,7 +116,7 @@ See \verb|data\IPNI| for more discussion of this data.
 
 <<>>=
 if(!("Farm_TonsN.a" %in% names(covariates.dat))) {
-   setwd('data/ipni')
+   setwd('../../data/ipni')
    Sweave("fitLinearModels.Snw")
    setwd(current.wd)
 }
@@ -124,7 +124,7 @@ if(!("Farm_TonsN.a" %in% names(covariates.dat))) {
 
 <<>>=
 if(!("Farm_TonsN.a" %in% names(full.covariates.dat))) {
-   setwd('data/ipni')
+   setwd('../../data/ipni')
    Sweave("fitLinearModels.Snw")
    setwd(current.wd)
 }
@@ -133,7 +133,7 @@ if(!("Farm_TonsN.a" %in% names(full.covariates.dat))) {
 Other measures
 <<>>=
 if(!("harvested.a" %in% names(covariates.dat))) {
-   setwd('data/usda/')
+   setwd('../../data/usda/')
    if(!file.exists("harvested.late.county.lm.Rda")) {
       Sweave("fitLinearModels.Snw")
    } else {
@@ -159,7 +159,7 @@ if(!("harvested.a" %in% names(covariates.dat))) {
 }
 
 if(!("harvested.a" %in% names(full.covariates.dat))) {
-   setwd('data/usda/')
+   setwd('../../data/usda/')
    if(!file.exists("harvested.late.full.lm.Rda")) {
       Sweave("fitLinearModels.Snw")
    } else {
@@ -204,7 +204,7 @@ grid.arrange(arrangeGrob(
 Check work
 <<>>=
 setwd(current.wd)
-setwd('data/usda/')
+setwd('../../data/usda/')
 load.if.needed("harvested.late.county.lm")
 load.if.needed("county.harvested.dat")
 setwd(current.wd)
@@ -323,7 +323,7 @@ ggmap.full.values(full.covariates.dat$yield.b,full.covariates.dat$statecounty,ma
 @
 
 <<>>=
-setwd('data/usda/')
+setwd('../../data/usda/')
 #stophammer
 load.if.needed("full.income.relative.dat")
 load.if.needed("income.relative.dat")
@@ -366,7 +366,7 @@ covariate.terms <- names(full.covariates.dat)[5:dim(full.covariates.dat)[2]]
 
 <<>>=
 if(!("Distance" %in% names(covariates.dat))) {
-   setwd('data/wwheat/')
+   setwd('../../data/wwheat/')
    Sweave("fitLinearModels.Snw")
    setwd(current.wd)
 }
@@ -375,7 +375,7 @@ if(!("Distance" %in% names(covariates.dat))) {
 
 <<>>=
 if(!("Distance" %in% names(full.covariates.dat))) {
-   setwd('data/wwheat/')
+   setwd('../../data/wwheat/')
    Sweave("fitFullLinearModels.Snw")
    setwd(current.wd)
 }
@@ -714,8 +714,8 @@ common.scale <- max(abs(1.05*covariates.dat$yield.b))
 
 <<>>=
 setwd(current.wd)
-load(file="data/usda/early.lm.Rda")
-load(file="data/usda/mid.lm.Rda")
+load(file="../../data/usda/early.lm.Rda")
+load(file="../../data/usda/mid.lm.Rda")
 rpn.mid.estimates <- extract.county.estimates(mid.lm,term=1)
 rpn.mid.year.estimates <- extract.county.estimates(mid.lm,term=2)
 common.scale <- max(c(common.scale, max(abs(1.05*rpn.mid.year.estimates))))
@@ -741,8 +741,8 @@ grid.arrange(arrangeGrob(
 
 <<>>=
 setwd(current.wd)
-load(file="data/usda/early.full.lm.Rda")
-load(file="data/usda/mid.full.lm.Rda")
+load(file="../../data/usda/early.full.lm.Rda")
+load(file="../../data/usda/mid.full.lm.Rda")
 full.mid.estimates <- extract.county.estimates(mid.full.lm,term=1)
 full.mid.year.estimates <- extract.county.estimates(mid.full.lm,term=2)
 
@@ -768,7 +768,7 @@ grid.arrange(arrangeGrob(
 \section{Offset}
 <<echo=false>>=
 if(!file.exists("data/usda/covariates2.dat.Rda")) {
-   setwd('data/usda')
+   setwd('../../data/usda')
    if(!file.exists("late2.county.lm.Rda")) {
       Sweave("fitLinearModels.Snw")
    }
@@ -778,7 +778,7 @@ if(!file.exists("data/usda/covariates2.dat.Rda")) {
    load.if.needed("late6.county.lm")
    setwd(current.wd)
    
-   setwd('data/wonder')
+   setwd('../../data/wonder')
    load.if.needed("min2.lm")
    load.if.needed("max2.lm")
    load.if.needed("heat2.lm")
@@ -854,7 +854,7 @@ covariates6.dat$precip.b=extract.county.estimates(precip6.lm,term=2)[coef6.idx]
 covariates6.dat$sun.a=extract.county.estimates(sun6.lm,term=1)[coef6.idx]
 covariates6.dat$sun.b=extract.county.estimates(sun6.lm,term=2)[coef6.idx]
 
-   setwd('data/usda')
+   setwd('../../data/usda')
    save(covariates2.dat, file="covariates2.dat.Rda")
    save(covariates4.dat, file="covariates4.dat.Rda")
    save(covariates6.dat, file="covariates6.dat.Rda")
@@ -862,7 +862,7 @@ covariates6.dat$sun.b=extract.county.estimates(sun6.lm,term=2)[coef6.idx]
 
 } 
 
-setwd('data/usda')
+setwd('../../data/usda')
 load.if.needed("covariates2.dat")
 load.if.needed("covariates4.dat")
 load.if.needed("covariates6.dat")
@@ -1003,7 +1003,7 @@ points(covariates.dat$yield.b,yield.b.6[as.character(covariates.dat$statecounty)
 
 
 <<>>=
-setwd('data/usda')
+setwd('../../data/usda')
 load.if.needed("county.late5.dat")
 load.if.needed("county.late10.dat")
 load.if.needed("county.late15.dat")
@@ -1019,7 +1019,7 @@ grid.arrange(arrangeGrob(
 
 <<fig=TRUE>>=
 
-setwd('data/usda')
+setwd('../../data/usda')
 load.if.needed("late5.county.lm")
 load.if.needed("late10.county.lm")
 load.if.needed("late15.county.lm")
@@ -1039,7 +1039,7 @@ grid.arrange(arrangeGrob(
 
 
 <<>>=
-setwd('data/usda')
+setwd('../../data/usda')
 load.if.needed("full.late5.dat")
 load.if.needed("full.late10.dat")
 load.if.needed("full.late15.dat")
@@ -1055,7 +1055,7 @@ grid.arrange(arrangeGrob(
 
 <<fig=TRUE>>=
 
-setwd('data/usda')
+setwd('../../data/usda')
 load.if.needed("late5.full.lm")
 load.if.needed("late10.full.lm")
 load.if.needed("late15.full.lm")

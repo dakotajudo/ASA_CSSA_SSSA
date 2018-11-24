@@ -5,7 +5,7 @@
 
 
 <<echo=false>>=
-source("../../../ASA_CSSA_SSSA/R/map_functions.R")
+source("../../ASA_CSSA_SSSA/R/map_functions.R")
 library(ggplot2)
 library(maps)
 local.wd <- getwd()

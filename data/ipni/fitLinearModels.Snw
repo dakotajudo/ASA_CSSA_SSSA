@@ -10,7 +10,7 @@
 <<echo=false>>=
 library(ggplot2)
 library(maps)
-source("../../../ASA_CSSA_SSSA/R/map_functions.R")
+source("../../ASA_CSSA_SSSA/R/map_functions.R")
 @
 
 We need to load the current covariate data file to determine states and counties to fit.
