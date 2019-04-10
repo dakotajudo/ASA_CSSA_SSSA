@@ -3,6 +3,7 @@
 \usepackage{amsmath}
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 \title{Geospatial analysis of yield trends in winter wheat}\author{Peter Claussen}\maketitle
 
@@ -767,7 +768,7 @@ grid.arrange(arrangeGrob(
 
 \section{Offset}
 <<echo=false>>=
-if(!file.exists("data/usda/covariates2.dat.Rda")) {
+if(!file.exists("../../data/usda/covariates2.dat.Rda")) {
    setwd('../../data/usda')
    if(!file.exists("late2.county.lm.Rda")) {
       Sweave("fitLinearModels.Snw")
