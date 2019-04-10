@@ -58,7 +58,7 @@ rcb.analysis <- function(current.dat,REML=TRUE) {
   require(nlme)
   #is there valid data?
   current.dat <- subset(current.dat,!is.na(current.dat$YldVolDry))
-  if(dim(current.dat)[1]<10) {
+  if(dim(current.dat)[1]<9) {
     return(NULL)
   }
   aov.tbl <- summary(aov(YldVolDry ~ as.factor(trt)+as.factor(rep),data=current.dat))

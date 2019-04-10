@@ -20,7 +20,7 @@ generate.rcb.plan <- function(reps,treatments) {
 }
 
 
-generate.rcb.plans <- function(reps,treatments,count) {
+generate.rcb.plans <- function(reps,treatments,count,hash=TRUE) {
 
   base.plan <- generate.rcb.plan(reps,treatments)
   
@@ -35,15 +35,24 @@ generate.rcb.plans <- function(reps,treatments,count) {
       trt <- c(trt,sample(1:treatments))
     }
     current.plan$trt <- as.factor(trt)
-    
-    hash.key <- plan.to.string(current.plan)
-    if(!(hash.key %in% hashes)) {
+    if(hash) {
+      hash.key <- plan.to.string(current.plan)
+      if(!(hash.key %in% hashes)) {
+        hashes <- c(hashes,hash.key)
+        rcb.list[[cnt]] <- current.plan
+        cnt <- cnt + 1
+      }
+    } else {
       rcb.list[[cnt]] <- current.plan
-      hashes <- c(hashes,hash.key)
       cnt <- cnt +1
     }
   }
   
-  names(rcb.list) <- as.character(1:count)
+  if(hash) {
+    names(rcb.list) <- hashes
+  } else {
+    names(rcb.list) <- as.character(1:count)
+  }
+
   return(rcb.list)
 }
