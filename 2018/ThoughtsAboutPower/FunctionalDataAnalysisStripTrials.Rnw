@@ -1,0 +1,893 @@
+\documentclass{article}
+\usepackage{amsmath}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\title{Thoughts about Power and Sample Size for On-Farm Strip Trials}
+\maketitle{}
+
+\section*{Abstract}
+
+<<LoadGraphics,echo=FALSE>>=
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+@
+
+\section{Introduction}
+
+<<LoadData>>=
+#load(file="../../2017/Workshop/Case Study 2/Strips.Rda")
+EastQuarter.dat <- read.csv("./east.csv",header=TRUE,comment.char = "#")
+@
+
+Process data
+<<eval=FALSE>>=
+
+
+#convert to radians
+EastQuarter.dat$LonR <- (pi/180) * EastQuarter.dat$Longitude 
+EastQuarter.dat$LatR <- (pi/180) * EastQuarter.dat$Latitude
+origin <- c(min(EastQuarter.dat$LonR),min(EastQuarter.dat$LatR))
+origin
+a = 6378137
+f =  1/298.2572221
+e2 = (2*f - f^2)
+sin2_phi <- sin(EastQuarter.dat$LatR)^2
+div <- sqrt(1-e2*sin2_phi)
+L_phi <- (a*(1-e2))/(div^3)
+L_lambda <- a*cos(EastQuarter.dat$LatR)/div
+
+EastQuarter.dat$Easting <- L_lambda*(EastQuarter.dat$LonR - origin[1])
+EastQuarter.dat$Northing <- L_phi*(EastQuarter.dat$LatR - origin[2])
+
+max(EastQuarter.dat$Easting)
+max(EastQuarter.dat$Northing)
+@
+
+<<>>=
+EastQuarter.dat$Easting <- EastQuarter.dat$X - min(EastQuarter.dat$X)
+EastQuarter.dat$Northing <- EastQuarter.dat$Y - min(EastQuarter.dat$Y)
+@
+
+<<>>=
+EastQuarter.dat$Yield <- EastQuarter.dat$DryYield
+
+EastQuarter.dat$DateTime <- as.POSIXct(as.character(EastQuarter.dat$Time), 
+                                       format = "%m/%d/%Y %I:%M:%S %p",tz = "")
+EastQuarter.dat$Seconds <- EastQuarter.dat$DateTime - EastQuarter.dat$DateTime[1]
+
+#remove trivial values
+EastQuarter.dat <- subset(EastQuarter.dat,EastQuarter.dat$Yield!=0)
+  
+EastQuarter.dat$Product <- as.factor(EastQuarter.dat$Product)
+
+EastQuarter.dat <- subset(EastQuarter.dat,EastQuarter.dat$Yield<300)
+@
+
+<<EastQuarterRaw,fig=TRUE,echo=false,width=5,height=7>>=
+ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Product),size=1) + 
+scale_colour_manual(values=cbPalette) +
+labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+@
+
+<<>>=
+EastQuarterN.dat <- EastQuarter.dat[EastQuarter.dat$Strip %in% 1:6,]
+EastQuarterS.dat <- EastQuarter.dat[EastQuarter.dat$Strip %in% 6:17,]
+@
+
+<<eval=FALSE>>=
+EastQuarterS.dat <- subset(EastQuarter.dat,EastQuarter.dat$Easting>=120)
+#EastQuarter.dat$Easting <- EastQuarter.dat$Easting - min(EastQuarter.dat$Easting)
+EastQuarterS.dat <- subset(EastQuarterS.dat,EastQuarterS.dat$Easting<=580)
+
+EastQuarterS.dat <- subset(EastQuarterS.dat,EastQuarterS.dat$Northing>=445)
+#EastQuarter.dat$Northing <- EastQuarter.dat$Northing - min(EastQuarter.dat$Northing)
+EastQuarterS.dat <- subset(EastQuarterS.dat,EastQuarterS.dat$Northing<=590)
+
+EastQuarterS.dat$Product <- as.factor(as.character(EastQuarterS.dat$Product))
+
+EastQuarterN.dat <- subset(EastQuarter.dat,EastQuarter.dat$Easting>=110)
+#EastQuarter.dat$Easting <- EastQuarter.dat$Easting - min(EastQuarter.dat$Easting)
+EastQuarterN.dat <- subset(EastQuarterN.dat,EastQuarterN.dat$Easting<=595)
+
+EastQuarterN.dat <- subset(EastQuarterN.dat,EastQuarterN.dat$Northing>=580)
+#EastQuarter.dat$Northing <- EastQuarter.dat$Northing - min(EastQuarter.dat$Northing)
+EastQuarterN.dat <- subset(EastQuarterN.dat,EastQuarterN.dat$Northing<=670)
+EastQuarterN.dat$Product <- as.factor(as.character(EastQuarterN.dat$Product))
+EastQuarterN.dat <- EastQuarterN.dat[EastQuarterN.dat$Product!="D",]
+@
+
+<<EastQuarterNMaps,fig=TRUE,echo=false,width=8,height=7>>=
+library(gridExtra)
+pair.colors <- c(2,5)
+grid.arrange(
+  arrangeGrob(
+        ggplot(EastQuarterN.dat, aes(Easting,Northing)) + 
+           geom_point(aes(colour = Product),size=2) + 
+           scale_colour_manual(values=cbPalette) +
+           labs(colour = "Variety", x="Easting", y="Northing", title = "N Seeding Map"),
+    ggplot(EastQuarterN.dat, aes(Easting,Northing)) + 
+           geom_point(aes(colour = Yield),size=2) + 
+           scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+           labs(colour = "Yield", x="Easting", y="Northing",title="N Harvest Map"),
+
+    nrow=2
+  )
+)
+@
+
+<<EastQuarterSMaps,fig=TRUE,echo=false,width=8,height=7>>=
+library(gridExtra)
+pair.colors <- c(2,5)
+grid.arrange(
+  arrangeGrob(
+        ggplot(EastQuarterS.dat, aes(Easting,Northing)) + 
+           geom_point(aes(colour = Product),size=2) + 
+           scale_colour_manual(values=cbPalette) +
+           #scale_colour_manual(values=cbPalette[pair.colors]) +
+           labs(colour = "Variety", x="Easting", y="Northing", title = "S Seeding Map"),
+    ggplot(EastQuarterS.dat, aes(Easting,Northing)) + 
+           geom_point(aes(colour = Yield),size=2) + 
+           scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+           labs(colour = "Yield", x="Easting", y="Northing",title="S Harvest Map"),
+
+    nrow=2
+  )
+)
+
+@
+
+
+<<echo=FALSE>>=
+EastQuarterS.dat$Direction <- "Easterly"
+EastQuarterS.dat$Direction[EastQuarterS.dat$Heading>100] <- "Westerly"
+EastQuarterS.dat$Direction <- as.factor(EastQuarterS.dat$Direction)
+
+EastQuarterS.dat$StripNo <- EastQuarterS.dat$Strip
+EastQuarterS.dat$Strip <- as.factor(EastQuarterS.dat$Strip)
+
+EastQuarterN.dat$Direction <- "Easterly"
+EastQuarterN.dat$Direction[EastQuarterN.dat$Heading>100] <- "Westerly"
+EastQuarterN.dat$Direction <- as.factor(EastQuarterN.dat$Direction)
+
+EastQuarterN.dat$StripNo <- EastQuarterN.dat$Strip
+EastQuarterN.dat$Strip <- as.factor(EastQuarterN.dat$Strip)
+@
+
+
+<<EastQuarterStrips,fig=TRUE,echo=false>>=
+ggplot(EastQuarterS.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Strip),size=2) + 
+scale_colour_manual(values=cbPalette) +
+labs(colour = "Strip", x="Easting", y="Northing", title = "East Quarter")
+@
+
+
+\section{Simple Univariate Analysis}
+
+<<>>=
+means.dat <- with(EastQuarterS.dat, data.frame(
+  Strip = aggregate(Yield ~ Strip,EastQuarterS.dat,mean,na.rm=TRUE)[,1],
+  Yield = aggregate(Yield ~ Strip,EastQuarterS.dat,mean,na.rm=TRUE)[,2],
+  Product = aggregate(as.numeric(Product) ~ Strip,EastQuarterS.dat,mean,na.rm=TRUE)[,2],
+  Northing = aggregate(Northing ~ Strip,EastQuarterS.dat,mean,na.rm=TRUE)[,2]
+))
+means.dat
+means.dat$Product <- levels(EastQuarterS.dat$Product)[means.dat$Product]
+@
+
+
+<<AverageYields,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(means.dat, aes(x=Northing, y=Yield, color=Product,fill=Product)) +
+  geom_bar(stat="identity") + scale_colour_manual(values=cbPalette[pair.colors]) + scale_fill_manual(values=cbPalette[pair.colors])
+@
+
+
+<<>>=
+print(product.means <- tapply(means.dat$Yield,list(means.dat$Product),mean,na.rm=TRUE))
+print(product.sd <- tapply(means.dat$Yield,list(means.dat$Product),sd,na.rm=TRUE))
+print(pooled.sd <- mean(product.sd))
+print(delta <- abs(product.means[1]-product.means[2]))
+print(pooled.t <- delta / (sqrt((2*pooled.sd^2)/6)))
+@
+
+Assuming a two-sided test, we can compute a critical $t$ and a $Pr(>t)$ by
+<<>>=
+qt(1-0.05/2,10)
+2*(1-pt(pooled.t,10))
+@
+
+\section{Functional Analysis}
+
+<<ConstantStripFunction,fig=TRUE,echo=false>>=
+ggplot(EastQuarterS.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) + stat_smooth(method=lm, formula = y ~ 1, aes(group=Strip, colour = Product),se=FALSE) +
+labs(colour = "Variety", x="Easting", y="Yield", title = "Yield as a constant function")
+@
+
+
+\subsection{Yield Function}
+
+Assume that most error is sampling error, so we produce LOESS smoothed curves.
+
+<<LOESSStripFunctionSimpleN,fig=TRUE,echo=false>>=
+ggplot(EastQuarterN.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) + stat_smooth(aes(group=Strip, colour = Product),se=FALSE) +
+labs(colour = "Variety", x="Easting", y="Yield", title = "East Quarter")
+@
+
+<<LOESSStripFunctionSimpleS,fig=TRUE,echo=false>>=
+ggplot(EastQuarterS.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) + stat_smooth(aes(group=Strip, colour = Product),se=FALSE) +
+labs(colour = "Variety", x="Easting", y="Yield", title = "East Quarter")
+@
+
+
+<<>>=
+LOESS.basis <- rep(seq(min(EastQuarterS.dat$Easting),max(EastQuarterS.dat$Easting),by=2))
+total.passes <- max(EastQuarterS.dat$StripNo)-min(EastQuarterS.dat$StripNo) +1
+total.passes
+strips <- min(EastQuarterS.dat$StripNo):max(EastQuarterS.dat$StripNo)
+Smoothed.dat <- data.frame(
+  Yield = rep(0,total.passes*length(LOESS.basis)),
+  Easting = rep(LOESS.basis,total.passes),
+  StripNo = rep(strips,each=length(LOESS.basis)),
+  Strip = rep(0,total.passes*length(LOESS.basis)),
+  Product = rep(levels(EastQuarterS.dat$Product),total.passes*length(LOESS.basis)/length(levels(EastQuarterS.dat$Product))),
+  Northing = rep(0,total.passes*length(LOESS.basis))
+)
+#for(i in 1:max(EastQuarterS.dat$StripNo)) {
+for(i in strips) {
+  current.pass <- EastQuarterS.dat[EastQuarterS.dat$StripNo==i,]
+  current.loess <- loess(Yield ~ Easting,data=current.pass)
+  current.smoothed <- predict(current.loess, data.frame(Easting = LOESS.basis))
+  Smoothed.dat$Yield[Smoothed.dat$StripNo==i] <- current.smoothed
+  Smoothed.dat$Strip[Smoothed.dat$StripNo==i] <- current.pass$Strip[1]
+  Smoothed.dat$Product[Smoothed.dat$StripNo==i] <- current.pass$Product[1]
+  Smoothed.dat$Northing[Smoothed.dat$StripNo==i] <- mean(current.pass$Northing)
+}
+Smoothed.dat$Strip <- as.factor(Smoothed.dat$StripNo)
+@
+
+
+<<>>=
+LOESS.basis <- rep(seq(min(EastQuarterN.dat$Easting),max(EastQuarterN.dat$Easting),by=2))
+total.passes <- max(EastQuarterN.dat$StripNo)-min(EastQuarterN.dat$StripNo) +1
+total.passes
+strips <- min(EastQuarterN.dat$StripNo):max(EastQuarterN.dat$StripNo)
+Smoothed.dat <- data.frame(
+  Yield = rep(0,total.passes*length(LOESS.basis)),
+  Easting = rep(LOESS.basis,total.passes),
+  StripNo = rep(strips,each=length(LOESS.basis)),
+  Strip = rep(0,total.passes*length(LOESS.basis)),
+  Product = rep(levels(EastQuarterN.dat$Product),total.passes*length(LOESS.basis)/length(levels(EastQuarterN.dat$Product))),
+  Northing = rep(0,total.passes*length(LOESS.basis))
+)
+#for(i in 1:max(EastQuarterS.dat$StripNo)) {
+for(i in strips) {
+  current.pass <- EastQuarterN.dat[EastQuarterN.dat$StripNo==i,]
+  current.loess <- loess(Yield ~ Easting,data=current.pass)
+  current.smoothed <- predict(current.loess, data.frame(Easting = LOESS.basis))
+  Smoothed.dat$Yield[Smoothed.dat$StripNo==i] <- current.smoothed
+  Smoothed.dat$Strip[Smoothed.dat$StripNo==i] <- current.pass$Strip[1]
+  Smoothed.dat$Product[Smoothed.dat$StripNo==i] <- current.pass$Product[1]
+  Smoothed.dat$Northing[Smoothed.dat$StripNo==i] <- mean(current.pass$Northing)
+}
+Smoothed.dat$Strip <- as.factor(Smoothed.dat$StripNo)
+@
+
+<<LOESSEstimates,fig=TRUE,echo=false>>=
+ggplot(Smoothed.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+#scale_colour_manual(values=cbPalette[pair.colors]) + 
+  scale_colour_manual(values=cbPalette) + 
+labs(colour = "Variety", x="Easting", y="Yield", title = "East Quarter") +
+  ylim(125, 275)
+@
+
+
+<<>>=
+TTests <- data.frame(
+  Easting = LOESS.basis
+)
+for(i in 1:length(LOESS.basis)) {
+  l <- LOESS.basis[i]
+  obs <- Smoothed.dat[Smoothed.dat$Easting==l,]
+  product.means <- tapply(obs$Yield,list(obs$Product),mean,na.rm=TRUE)
+  product.sd <- tapply(obs$Yield,list(obs$Product),sd,na.rm=TRUE)
+  TTests$Delta[i] <- product.means['DKC 53-56']-product.means["DS 9604 ra"]
+  #TTests$Delta[i] <- product.means['DKC 53-56']-product.means["W7290 vt3"]
+  TTests$SD[i] <- sqrt(sum(product.sd^2,na.rm=TRUE)/2)
+}
+TTests$t <- TTests$Delta/(sqrt((2*TTests$SD^2)/6))
+TTests$P <- 2*(1-pt(TTests$t,10))
+@
+
+
+<<SummaryFunctions,fig=TRUE,echo=false,width=6,height=9>>=
+CombinedT <- data.frame(
+  Easting=rep(TTests$Easting,4),
+  Measure = c(rep('Treatment Differences',length(TTests$Delta)),
+              rep('Standard Deviation',length(TTests$SD)),
+              rep('t Ratio',length(TTests$t)),
+              rep('Probability>t',length(TTests$P))),
+  Value = c(TTests$Delta,TTests$SD,TTests$t,TTests$P),
+  Signficant = rep(TTests$P<0.05,4)
+)
+CombinedT$Measure <- factor(CombinedT$Measure,levels=c('Treatment Differences','Standard Deviation','t Ratio','Probability>t'))
+ggplot(CombinedT, aes(Easting,Value)) + 
+geom_point(aes(color=Signficant)) + #cbPalette[1]) + 
+scale_colour_manual(values=cbPalette) +
+labs(x="Easting", title = "Functional Statistics") + facet_wrap(~ Measure,nrow = 4,scales="free_y")
+@
+
+
+\section{Planning}
+
+<<>>=
+load(file="../../2017/Workshop/Case Study 1/Pooled.Rda")
+middle.dat <- read.csv("./middle.csv",header=TRUE,comment.char = "#")
+middle.dat$Easting <- middle.dat$X - min(middle.dat$X)
+middle.dat$Northing <- middle.dat$Y - min(middle.dat$Y)
+middle.dat$VRYIELDVOL <- middle.dat$mean
+middle.dat$Yield <- middle.dat$VRYIELDVOL
+middle.dat$StripNo <- middle.dat$Strip
+middle.dat$Strip <- as.factor(middle.dat$Strip)
+uniformity.dat <- middle.dat
+@
+
+<<UniformityExported,fig=TRUE,echo=false,width=12,height=5>>=
+ggplot(middle.dat, aes(X,Y)) + 
+geom_point(aes(colour = VRYIELDVOL),size=2) + 
+#scale_colour_manual(values=c(cbPalette,cbPalette)) +
+labs(colour = "Strip", x="Easting", y="Northing", title = "Corn 2015")
+@
+
+
+<<UniformitySwath,fig=TRUE,echo=false,width=8,height=4>>=
+middle.dat$Strip <- as.factor(as.numeric(as.factor(middle.dat$Strip)))
+#uniformity.dat$Strip <- as.factor(uniformity.dat$Strip)
+ggplot(middle.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Strip),size=2) + 
+#scale_colour_manual(values=cbPalette) +
+labs(colour = "Strip", x="Easting", y="Northing", title = "Corn 2015")
+@
+
+
+
+<<>>=
+LOESS.basis <- rep(seq(min(middle.dat$Easting),max(uniformity.dat$Easting),by=2))
+total.passes <- length(levels(middle.dat$Strip))
+SmoothedU.dat <- data.frame(
+  Yield = rep(0,total.passes*length(LOESS.basis)),
+  Easting = rep(LOESS.basis,total.passes),
+  Strip = rep(levels(middle.dat$Strip),each=length(LOESS.basis)),
+  Northing = rep(0,total.passes*length(LOESS.basis))
+)
+
+for(i in levels(uniformity.dat$Strip)) {
+  current.pass <- uniformity.dat[uniformity.dat$Strip==i,]
+  current.loess <- loess(Yield ~ Easting,data=current.pass)
+  current.smoothed <- predict(current.loess, data.frame(Easting = LOESS.basis))
+  SmoothedU.dat$Yield[SmoothedU.dat$Strip==i] <- current.smoothed
+  SmoothedU.dat$Northing[SmoothedU.dat$Strip==i] <- mean(current.pass$Northing)
+}
+@
+
+<<UniformityFunctions,fig=TRUE,echo=false,width=8,height=4>>=
+ggplot(SmoothedU.dat, aes(Easting,Yield)) + 
+geom_line(aes(colour = Strip),size=1) + 
+scale_colour_manual(values=cbPalette) + scale_linetype_discrete()
+labs(colour = "Variety", x="Easting", y="Yield", title = "") #+  ylim(125, 275)
+@
+
+
+<<>>=
+Power <- data.frame(
+  Easting = LOESS.basis
+)
+
+for(i in 1:length(LOESS.basis)) {
+  l <- LOESS.basis[i]
+  obs <- SmoothedU.dat[SmoothedU.dat$Easting==l,]
+  Power$SD[i] <- sd(obs$Yield,na.rm=TRUE)
+  Power$CV[i] <- 100*Power$SD[i]/mean(obs$Yield)
+  Power$n[i] <- length(!is.na(obs$Yield))/2
+}
+Power$D1 <- (Power$CV/2)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+Power$D4 <- (Power$CV/4)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+Power$D8 <- (Power$CV/8)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+
+Power$R4 =  Power$CV*(qt(1-0.05/2,((4-1)*2))-qt(0.2,((4-1)*2)))/sqrt(4)
+Power$R5 =  Power$CV*(qt(1-0.05/2,((5-1)*2))-qt(0.2,((5-1)*2)))/sqrt(5)
+Power$R6 =  Power$CV*(qt(1-0.05/2,((6-1)*2))-qt(0.2,((6-1)*2)))/sqrt(6)
+@
+
+
+<<>>=
+annotate.color="#333333"
+@
+
+<<UniformityFunctionsSD,fig=TRUE,echo=false,width=8,height=4>>=
+#SmoothedU.dat$Strip = as.factor(as.numeric(SmoothedU.dat$Strip))
+ggplot(SmoothedU.dat, aes(Easting,Yield)) + 
+geom_line(aes(colour = Strip),size=1) + 
+  geom_line(data=Power,aes(x=Easting,y=SD),size=1,color=annotate.color) + 
+  scale_colour_manual(values=cbPalette) + 
+labs(colour = "Strip", x="Easting", y="Bushels/Acre", title = "Strip Yield Functions") +
+    annotate(geom="text", x=100, y=max(Power$SD,na.rm=TRUE)+2, label="Standard Deviation",
+              color= annotate.color)
+@
+
+<<MinimumReps,fig=TRUE,echo=false,width=6,height=3>>=
+PowerD <- data.frame(
+  Easting=rep(Power$Easting,3),
+  Difference = c(rep("2%",length(Power$D1)),
+              rep("4%",length(Power$D4)),
+              rep("8%",length(Power$D8))),
+  Value = c(Power$D1,Power$D4,Power$D8)
+)
+#CombinedT$Measure <- factor(CombinedT$Measure,levels=c('Treatment Differences','Standard Deviation','t Ratio','Probability>t'))
+ggplot(PowerD, aes(Easting,Value)) + 
+geom_line(aes(color=Difference)) + #cbPalette[1]) + 
+scale_colour_manual(values=cbPalette) +
+labs(x="Easting", y = "Required Replicates")  +
+  geom_hline(yintercept=6, linetype="dashed", color = annotate.color) +
+  annotate(geom="text", x=100, y=8, label="6 Replicates",
+              color= annotate.color) + ylim(0,40)
+
+@
+
+
+<<MinimumD,fig=TRUE,echo=false,width=6,height=3>>=
+PowerN <- data.frame(
+  Easting=rep(Power$Easting,3),
+  Replicates = c(rep("4",length(Power$R4)),
+              rep("5",length(Power$R5)),
+              rep("6",length(Power$R6))),
+  Value = c(Power$R4,Power$R5,Power$R6)
+)
+#CombinedT$Measure <- factor(CombinedT$Measure,levels=c('Treatment Differences','Standard Deviation','t Ratio','Probability>t'))
+ggplot(PowerN, aes(Easting,Value)) + 
+geom_line(aes(color=Replicates,linetype=Replicates)) + #cbPalette[1]) + 
+scale_colour_manual(values=cbPalette) +
+scale_linetype_discrete() +
+labs(x="Easting", y = "Minimum Difference") +
+  geom_hline(yintercept=2, linetype="dashed", color = annotate.color) +
+  annotate(geom="text", x=100, y=3, label="2%",
+              color= annotate.color) + ylim(0,20) +
+  geom_hline(yintercept=4, linetype="dashed", color = annotate.color) +
+  annotate(geom="text", x=100, y=5, label="4%",
+              color= annotate.color) + ylim(0,20) +
+  geom_hline(yintercept=8, linetype="dashed", color = annotate.color) +
+  annotate(geom="text", x=100, y=9, label="8%",
+              color= annotate.color) + ylim(0,20)
+@
+
+
+<<>>=
+#SmoothedU.dat <- SmoothedU.dat[!(SmoothedU.dat$StripNo %in% c(1,4,19,20)),]
+#uniformity.dat <- uniformity.dat[!(uniformity.dat$StripNo %in% c(1,4,19,20)),]
+
+#border.passes.2015 <- c(1,4)
+#SmoothedU.dat$Border <- (SmoothedU.dat$StripNo %in% border.passes.2015)
+#uniformity.dat$Border <- (uniformity.dat$StripNo %in% border.passes.2015)
+@
+
+
+<<>>=
+#SmoothedU.dat <- SmoothedU.dat[!SmoothedU.dat$Border,]
+#uniformity.dat <- uniformity.dat[!uniformity.dat$Border,]
+@
+
+<<UniformitySwathSubset,fig=TRUE,echo=false,width=8,height=4>>=
+#uniformity.dat$Strip <- as.factor(uniformity.dat$StripNo)
+uniformity.dat$Strip <- as.factor(as.numeric(as.factor(uniformity.dat$StripNo)))
+ggplot(uniformity.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Strip),size=2) + 
+scale_colour_manual(values=cbPalette) +
+labs(colour = "Strip", x="Easting", y="Northing", title = "Soybeans 2016")
+@
+
+
+%<<UniformitySubset,fig=TRUE,echo=false,width=8,height=4>>=
+%SmoothedU.dat$Strip <- as.factor(as.numeric(SmoothedU.dat$Strip))
+%ggplot(SmoothedU.dat, aes(Easting,Yield)) + 
+%geom_point(aes(colour = Strip),size=.2) + 
+%#scale_colour_manual(values=cbPalette) + 
+%labs(colour = "Strip", x="Easting", y="Yield", title = "") #+  ylim(125, 275)
+%@
+
+<<>>=
+#for(i in 1:length(LOESS.basis)) {
+#  l <- LOESS.basis[i]
+#  obs <- SmoothedU.dat[SmoothedU.dat$Easting==l,]
+#  Power$SD[i] <-sd(obs$Yield,na.rm=TRUE)
+#  Power$n[i] <- length(!is.na(obs$Yield))/2
+#}
+#Power$D1 <- Power$SD^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+#Power$D4 <- (Power$SD/4)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+#Power$D8 <- (Power$SD/8)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+
+#Power$R4 =  Power$SD*(qnorm(1-0.05/2)-qnorm(0.2))/sqrt(4)
+#Power$R5 =  Power$SD*(qnorm(1-0.05/2)-qnorm(0.2))/sqrt(5)
+for(i in 1:length(LOESS.basis)) {
+  l <- LOESS.basis[i]
+  obs <- SmoothedU.dat[SmoothedU.dat$Easting==l,]
+  Power$SD[i] <- sd(obs$Yield,na.rm=TRUE)
+  Power$CV[i] <- 100*Power$SD[i]/mean(obs$Yield)
+  Power$n[i] <- length(!is.na(obs$Yield))/2
+}
+Power$D1 <- (Power$CV/2)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+Power$D4 <- (Power$CV/4)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+Power$D8 <- (Power$CV/8)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+
+Power$R4 =  Power$SD*(qt(1-0.05/2,((5-1)*2))-qt(0.2,((5-1)*2)))/sqrt(4)
+Power$R5 =  Power$SD*(qt(1-0.05/2,((5-1)*2))-qt(0.2,((5-1)*2)))/sqrt(5)
+Power$R6 =  Power$SD*(qt(1-0.05/2,((6-1)*2))-qt(0.2,((6-1)*2)))/sqrt(6)
+@
+
+
+<<UniformityFunctionsSDSubset,fig=TRUE,echo=false,width=8,height=4>>=
+SmoothedU.dat$Strip = as.factor(as.numeric(SmoothedU.dat$Strip))
+ggplot(SmoothedU.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Strip),size=.2) + 
+  geom_point(data=Power,aes(x=Easting,y=SD),size=.4,color=annotate.color) + 
+  scale_colour_manual(values=cbPalette) + 
+labs(colour = "Strip", x="Easting", y="Bushels/Acre", title = "Strip Yield Functions") +
+    annotate(geom="text", x=100, y=max(Power$SD,na.rm=TRUE)+2, label="Standard Deviation",
+              color= annotate.color)
+@
+
+
+<<MinimumRepsSubset,fig=TRUE,echo=false,width=6,height=3>>=
+PowerD <- data.frame(
+  Easting=rep(Power$Easting,3),
+  Difference = c(rep("Difference = 2%",length(Power$D1)),
+              rep("Difference = 4%",length(Power$D4)),
+              rep("Difference = 8%",length(Power$D8))),
+  Value = c(Power$D1,Power$D4,Power$D8)
+)
+#CombinedT$Measure <- factor(CombinedT$Measure,levels=c('Treatment Differences','Standard Deviation','t Ratio','Probability>t'))
+ggplot(PowerD, aes(Easting,Value)) + 
+geom_point(aes(color=Difference)) + #cbPalette[1]) + 
+scale_colour_manual(values=cbPalette) +
+labs(x="Easting", y = "Required Replicates")  +
+  geom_hline(yintercept=5, linetype="dashed", color = annotate.color) +
+  annotate(geom="text", x=100, y=6, label="Available Strips",
+              color= annotate.color) + ylim(0,40)
+
+@
+
+
+<<MinimumDSubset,fig=TRUE,echo=false,width=6,height=3>>=
+PowerN <- data.frame(
+  Easting=rep(Power$Easting,3),
+  Replicates = c(rep("4 Strips",length(Power$R4)),
+              rep("5 Strips",length(Power$R5)),
+              rep("6 Strips",length(Power$R6))),
+  Value = c(Power$R4,Power$R5,Power$R6)
+)
+#CombinedT$Measure <- factor(CombinedT$Measure,levels=c('Treatment Differences','Standard Deviation','t Ratio','Probability>t'))
+ggplot(PowerN, aes(Easting,Value)) + 
+geom_point(aes(color=Replicates)) + #cbPalette[1]) + 
+scale_colour_manual(values=cbPalette) +
+labs(x="Easting", y = "Minimum Difference") +
+  geom_hline(yintercept=4, linetype="dashed", color = annotate.color) +
+  annotate(geom="text", x=100, y=5, label="Expected Difference",
+              color= annotate.color) + ylim(0,20)
+@
+
+
+\clearpage
+\section{Appendix}
+
+
+
+\clearpage
+\subsection{Other Smoothing Functions}
+
+We chose LOESS as an approximating function to interpolate sampled yield to a regular grid. There are other options.
+
+<<LOESSStripFunction,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(EastQuarterS.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) + stat_smooth(aes(group=Strip, colour = Product)) +
+labs(colour = "Variety", x="Easting", y="Yield", title = "LOESS Interpolation")
+@
+
+
+<<SplineStripFunction,fig=TRUE,echo=false,width=8,height=5>>=
+library(splines)
+ggplot(EastQuarterS.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) + stat_smooth(method=lm, formula =  y ~ ns(x,3), aes(group=Strip, colour = Product)) +
+labs(colour = "Variety", x="Easting", y="Yield", title = "Cubic spline interpolation")
+@
+
+
+<<Poly5StripFunction,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(EastQuarterS.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) + stat_smooth(method=lm, formula =  y ~ poly(x,5), aes(group=Strip, colour = Product)) +
+labs(colour = "Variety", x="Easting", y="Yield", title = "Fifth degree polynomial")
+@
+
+<<Poly9StripFunction,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(EastQuarterS.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) + stat_smooth(method=lm, formula =  y ~ poly(x,9), aes(group=Strip, colour = Product)) +
+labs(colour = "Variety", x="Easting", y="Yield", title = "Ninth degree polynomial")
+@
+
+
+
+<<>>=
+LOESS.basis <- rep(seq(2,398,by=2))
+Poly5.dat <- Smoothed.dat
+Poly9.dat <- Smoothed.dat
+Spline.dat <- Smoothed.dat
+TTestsPoly5 <- TTests
+TTestsPoly9 <- TTests
+TTestsSpline <- TTests
+strips <- levels(EastQuarterS.dat$Strip)
+for(i in strips) {
+  
+  current.pass <- EastQuarterS.dat[EastQuarterS.dat$Strip==i,]
+  current.poly <- lm(Yield ~ poly(Easting,5),data=current.pass)
+  current.smoothed <- predict(current.poly, data.frame(Easting = LOESS.basis))
+  Poly5.dat$Yield[Poly5.dat$Strip==i] <- current.smoothed
+  
+  current.poly <- lm(Yield ~ poly(Easting,9),data=current.pass)
+  current.smoothed <- predict(current.poly, data.frame(Easting = LOESS.basis))
+  Poly9.dat$Yield[Poly9.dat$Strip==i] <- current.smoothed
+  
+  current.ns <- lm(Yield ~ ns(Easting,3),data=current.pass)
+  current.smoothed <- predict(current.ns, data.frame(Easting = LOESS.basis))
+  Spline.dat$Yield[Spline.dat$Strip==i] <- current.smoothed
+  
+}
+
+
+
+for (j in 1:length(LOESS.basis)) {
+  l <- LOESS.basis[j]
+  
+  obsPoly5 <- Poly5.dat[Poly5.dat$Easting==l,]
+  Poly5.means <- tapply(obsPoly5$Yield,list(obsPoly5$Product),mean,na.rm=TRUE)
+  Poly5.sd <- tapply(obsPoly5$Yield,list(obsPoly5$Product),sd,na.rm=TRUE)
+  TTestsPoly5$Delta[j] <- Poly5.means[1]-Poly5.means[2]
+  TTestsPoly5$SD[j] <- sqrt(sum(Poly5.sd^2)/2)
+  
+  obs <- Poly9.dat[Poly9.dat$Easting==l,]
+  product.means <- tapply(obs$Yield,list(obs$Product),mean,na.rm=TRUE)
+  product.sd <- tapply(obs$Yield,list(obs$Product),sd,na.rm=TRUE)
+  TTestsPoly9$Delta[j] <- product.means[1]-product.means[2]
+  TTestsPoly9$SD[j] <- sqrt(sum(product.sd^2)/2)
+  
+  obs <- Spline.dat[Spline.dat$Easting==l,]
+  product.means <- tapply(obs$Yield,list(obs$Product),mean,na.rm=TRUE)
+  product.sd <- tapply(obs$Yield,list(obs$Product),sd,na.rm=TRUE)
+  TTestsSpline$Delta[j] <- product.means[1]-product.means[2]
+  TTestsSpline$SD[j] <- sqrt(sum(product.sd^2)/2)
+}
+@
+
+
+<<>>=
+Poly5.dat$Function <- "Fifth Degree"
+Poly9.dat$Function <- "Ninth Degree"
+Spline.dat$Function <- "Cubic Spline"
+Smoothed.dat$Function <- "LOESS"
+
+TTestsPoly5$Function <- "Fifth Degree"
+TTestsPoly9$Function <- "Ninth Degree"
+TTestsSpline$Function <- "Cubic Spline"
+TTests$Function <- "LOESS"
+
+CompSmooth.dat <- rbind(Smoothed.dat,Poly5.dat,Poly9.dat,Spline.dat)
+CompT <- rbind(TTests,TTestsPoly5,TTestsPoly9,TTestsSpline)
+CompT$t <- CompT$Delta/(sqrt((2*CompT$SD^2)/6))
+CompT$P <- 2*(1-pt(CompT$t,10))
+@
+
+
+<<CompareSingleStrip,fig=TRUE,echo=false,width=6,height=4>>=
+SingleStrip.dat <- data.frame(
+  Yield <- c(CompSmooth.dat[CompSmooth.dat$StripNo==1,"Yield"],
+             EastQuarterS.dat[EastQuarterS.dat$StripNo==1,'Yield']),
+  Easting <- c(CompSmooth.dat[CompSmooth.dat$StripNo==1,"Easting"],
+             EastQuarterS.dat[EastQuarterS.dat$StripNo==1,'Easting']),
+  Function <- c(as.character(CompSmooth.dat[CompSmooth.dat$StripNo==1,"Function"]),
+             rep("Yield Monitor",length(EastQuarterS.dat[EastQuarterS.dat$StripNo==1,'Yield'])))
+)
+
+ggplot(SingleStrip.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Function,shape=Function),size=.2) + 
+scale_colour_manual(values=cbPalette) + 
+labs(colour = "Function", x="Easting", y="Yield", title = "") #+  ylim(125, 275)
+@
+
+
+<<SmoothOneStrip,fig=TRUE,echo=false,width=6,height=4>>=
+ggplot(EastQuarterS.dat[EastQuarterS.dat$Strip==1,], aes(Easting,Yield)) + 
+geom_point(color=cbPalette[1],size=.6) + 
+stat_smooth(aes(group=Strip),colour = cbPalette[2]) +
+  stat_smooth(method=lm, formula =  y ~ ns(x,3), aes(group=Strip),colour = cbPalette[3]) +
+  stat_smooth(method=lm, formula =  y ~ poly(x,5), aes(group=Strip),colour = cbPalette[4]) +
+  stat_smooth(method=lm, formula =  y ~ poly(x,9), aes(group=Strip),colour = cbPalette[5]) +
+labs(colour = "Variety", x="Easting", y="Yield", title = "Smoothing One Strip")
+@
+
+
+<<SmoothOneStripPoly,fig=TRUE,echo=false,width=6,height=4>>=
+ggplot(EastQuarterS.dat[EastQuarterS.dat$Strip==levels(EastQuarterS.dat$Strip)[1],], aes(Easting,Yield)) + 
+geom_point(color=cbPalette[1],size=.6) + 
+ # stat_smooth(aes(group=Strip,colour = 'LOESS')) +
+  stat_smooth(method=lm, formula =  y ~ poly(x,3), aes(group=Strip,color = "Third")) +
+  stat_smooth(method=lm, formula =  y ~ poly(x,5), aes(group=Strip,colour = "Fifth")) +
+  stat_smooth(method=lm, formula =  y ~ poly(x,9), aes(group=Strip,colour = "Ninth")) +
+  stat_smooth(method=lm, formula =  y ~ poly(x,13), aes(group=Strip,colour = "Thirteenth")) +
+  stat_smooth(method=lm, formula =  y ~ poly(x,17), aes(group=Strip,colour = 'Seventeenth')) +
+  scale_color_manual("Polynomial Order", values = c(#"LOESS" = cbPalette[1],
+                                                   "Third" = cbPalette[2], 
+                                                  "Fifth" = cbPalette[3], 
+                                                  "Ninth" = cbPalette[4], 
+                                                  "Thirteenth" = cbPalette[5], 
+                                                  "Seventeenth" = cbPalette[6]
+                                                  )) +
+labs(colour = "Variety", x="Easting", y="Yield", title = "Increasing Polynomials") 
+@
+
+
+<<SmoothOneStripLOESS,fig=TRUE,echo=false,width=6,height=4>>=
+ggplot(EastQuarterS.dat[EastQuarterS.dat$Strip==levels(EastQuarterS.dat$Strip)[1],], aes(Easting,Yield)) + 
+geom_point(color=cbPalette[1],size=.6) + 
+ # stat_smooth(aes(group=Strip,colour = 'LOESS')) +
+  geom_smooth(mapping=aes(color = "90%"), span=0.9) +
+  geom_smooth(mapping=aes(color = "70%"), span=0.7) +
+  geom_smooth(mapping=aes(color = "50%"), span=0.5) +
+  geom_smooth(mapping=aes(color = "30%"), span=0.3) +
+  geom_smooth(mapping=aes(color = "10%"),span=0.10) +
+  scale_color_manual("Span Width", values = c(#"LOESS" = cbPalette[1],
+                                                   "90%" = cbPalette[2], 
+                                                  "70%" = cbPalette[3], 
+                                                  "50%" = cbPalette[4], 
+                                                  "30%" = cbPalette[5], 
+                                                  "10%" = cbPalette[6]
+                                                  )) +
+labs(colour = "Variety", x="Easting", y="Yield", title = "LOESS Spans") 
+@
+
+
+<<SmoothOneStripSpline,fig=TRUE,echo=false,width=6,height=4>>=
+ggplot(EastQuarterS.dat[EastQuarterS.dat$Strip==levels(EastQuarterS.dat$Strip)[1],], aes(Easting,Yield)) + 
+geom_point(color=cbPalette[1],size=.6) + 
+ # stat_smooth(aes(group=Strip,colour = 'LOESS')) +
+  stat_smooth(method=lm, formula =  y ~ ns(x,3), aes(color = "3 df")) +
+  stat_smooth(method=lm, formula =  y ~ ns(x,5), aes(color = "5 df")) +
+  stat_smooth(method=lm, formula =  y ~ ns(x,9), aes(color = "9 df")) +
+  stat_smooth(method=lm, formula =  y ~ ns(x,13), aes(color = "13 df")) +
+  stat_smooth(method=lm, formula =  y ~ ns(x,17), aes(color = "17 df")) +
+  scale_color_manual("Span Width", values = c(#"LOESS" = cbPalette[1],
+                                                  "3 df" = cbPalette[2], 
+                                                  "5 df" = cbPalette[3], 
+                                                  "9 df" = cbPalette[4], 
+                                                  "13 df" = cbPalette[5], 
+                                                  "17 df" = cbPalette[6]
+                                                  ),
+                                   breaks=c("3 df","5 df","9 df","13 df","17 df")) +
+labs(colour = "Variety", x="Easting", y="Yield", title = "Spline Knots") 
+@
+
+
+
+
+<<CompareFunctions,fig=TRUE,echo=false,width=8,height=4>>=
+ggplot(CompSmooth.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Function),size=.2) + 
+scale_colour_manual(values=cbPalette) + 
+labs(colour = "Function", x="Easting", y="Yield", title = "") #+  ylim(125, 275)
+@
+
+
+<<CompareSD,fig=TRUE,echo=false,width=8,height=4>>=
+ggplot(CompT, aes(Easting,SD)) + 
+geom_line(aes(colour = Function),size=1) + 
+scale_colour_manual(values=cbPalette) + 
+labs(colour = "Function", x="Easting", y="SD", title = "") #+  ylim(125, 275)
+@
+
+<<CompareDelta,fig=TRUE,echo=false,width=8,height=4>>=
+ggplot(CompT, aes(Easting,Delta)) + 
+geom_line(aes(colour = Function),size=1) + 
+scale_colour_manual(values=cbPalette) + 
+labs(colour = "Function", x="Easting", y="Delta", title = "") #+  ylim(125, 275)
+@
+
+<<CompareP,fig=TRUE,echo=false,width=8,height=4>>=
+ggplot(CompT, aes(Easting,P)) + 
+geom_line(aes(colour = Function),size=1) + 
+scale_colour_manual(values=cbPalette) + 
+labs(colour = "Function", x="Easting", y="P", title = "") + 
+  geom_hline(yintercept=0.05,color=cbPalette[6],size=1,linetype='dashed')
+   #geom_hline(0.05,color=cbPalette[6],size=2,linetype='dashed')
+@
+
+
+<<SummaryFunctionsComparisons,fig=TRUE,echo=false,width=6,height=9>>=
+ComparisonT <- data.frame(
+  Easting=rep(CompT$Easting,3),
+  Function=rep(CompT$Function,3),
+  Measure = c(rep('Treatment Differences',length(CompT$Delta)),
+              rep('Standard Deviation',length(CompT$SD)),
+              rep('Probability>t',length(CompT$P))),
+  Value = c(CompT$Delta,CompT$SD,CompT$P),
+  Signficant = rep(CompT$P<0.05,3)
+)
+ComparisonT$Measure <- factor(ComparisonT$Measure,levels=c('Treatment Differences','Standard Deviation','Probability>t'))
+ComparisonT$Function <- factor(ComparisonT$Function,levels=c("LOESS","Cubic Spline","Fifth Degree", "Ninth Degree"))
+ggplot(ComparisonT, aes(Easting,Value)) + 
+geom_point(aes(color=Function)) + #cbPalette[1]) + 
+scale_colour_manual(values=cbPalette) +
+labs(x="Easting", title = "Functional Statistics") + facet_wrap(~ Measure,nrow = 4,scales="free_y")
+@
+
+<<SummaryFunctionsComparisonsP,fig=TRUE,echo=false,width=6,height=9>>=
+ggplot(ComparisonT, aes(Easting,Value)) + 
+geom_point(aes(color=Signficant)) + #cbPalette[1]) + 
+scale_colour_manual(values=cbPalette) +
+labs(x="Easting", title = "Functional Statistics") + facet_wrap(~ Measure,nrow = 4,scales="free_y")
+@
+
+\clearpage
+\subsection{Error Terms}
+
+Our discussion to this point assumed a pooled sd; we may compute sd independently for each treatment and pooling by
+$$
+\sigma^2 = \frac{(n_1-1)s_1^2 + (n_2-1)s_2^2 + \dots (n_k-1)s_k^2 }{N-k} = \frac{\sum_i (n_i-1)s_i^2}{N-k}
+$$
+
+If we assume strips are always treated in pairs, our t statistic becomes
+
+\begin{equation}
+t = \frac{\delta}{\sigma / \sqrt{n}}
+\end{equation}
+
+With two sd, we can write
+
+\begin{equation}
+t = \frac{\delta}{\sqrt{\sigma^2_1/n_1 + \sigma^2_2/n_2}}
+\end{equation}
+\clearpage
+
+<<>>=
+product.means <- tapply(means.dat$Yield,list(means.dat$Product),mean,na.rm=TRUE)
+product.means
+product.sd <- tapply(means.dat$Yield,list(means.dat$Product),sd,na.rm=TRUE)
+product.sd
+mean(product.sd)
+pooled.sd <- sqrt(sum((6-1)*(product.sd^2))/(12-2))
+pooled.sd
+delta <- product.means[1]-product.means[2]
+delta
+
+print(independent.t <- delta / sqrt(sum(product.sd^2/6)))
+print(pooled.t <- delta / (pooled.sd*(sqrt(2/6))))
+print(paired.t <- delta / (pooled.sd/sqrt(6)))
+
+2*(1-pt(independent.t,10))
+2*(1-pt(pooled.t,10))
+2*(1-pt(paired.t,10))
+@
+
+\subsection{Permutations}
+
+
+
+\end{document}

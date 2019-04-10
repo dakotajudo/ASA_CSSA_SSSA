@@ -1,0 +1,2561 @@
+<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+<qgis version="3.4.2-Madeira" projectname="">
+  <homePath path=""/>
+  <title></title>
+  <autotransaction active="0"/>
+  <evaluateDefaultValues active="0"/>
+  <trust active="0"/>
+  <projectCrs>
+    <spatialrefsys>
+      <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
+      <srsid>3452</srsid>
+      <srid>4326</srid>
+      <authid>EPSG:4326</authid>
+      <description>WGS 84</description>
+      <projectionacronym>longlat</projectionacronym>
+      <ellipsoidacronym>WGS84</ellipsoidacronym>
+      <geographicflag>true</geographicflag>
+    </spatialrefsys>
+  </projectCrs>
+  <layer-tree-group>
+    <customproperties/>
+    <layer-tree-layer expanded="0" checked="Qt::Checked" providerKey="ogr" source="./East Quarter-2015-Harvest-Corn.shp" name="East Quarter Product" id="East_Quarter_2015_Harvest_Corn20181222101657754">
+      <customproperties/>
+    </layer-tree-layer>
+    <layer-tree-layer expanded="0" checked="Qt::Checked" providerKey="ogr" source="./East Quarter-2015-Harvest-Corn.shp" name="East Quarter Harvest" id="Stratmeyer_John_Farms_East_Quarter_2015_Harvest_Corn20171007192751455">
+      <customproperties/>
+    </layer-tree-layer>
+    <custom-order enabled="0">
+      <item>Stratmeyer_John_Farms_East_Quarter_2015_Harvest_Corn20171007192751455</item>
+      <item>East_Quarter_2015_Harvest_Corn20181222101657754</item>
+    </custom-order>
+  </layer-tree-group>
+  <snapping-settings tolerance="0" mode="1" unit="2" type="1" intersection-snapping="0" enabled="0">
+    <individual-layer-settings>
+      <layer-setting tolerance="0" units="2" type="2" id="Stratmeyer_John_Farms_East_Quarter_2015_Harvest_Corn20171007192751455" enabled="0"/>
+      <layer-setting tolerance="12" units="1" type="1" id="East_Quarter_2015_Harvest_Corn20181222101657754" enabled="0"/>
+    </individual-layer-settings>
+  </snapping-settings>
+  <relations/>
+  <mapcanvas annotationsVisible="1" name="theMapCanvas">
+    <units>degrees</units>
+    <extent>
+      <xmin>-96.88618340363524339</xmin>
+      <ymin>43.44574436221916613</ymin>
+      <xmax>-96.87478011735805694</xmax>
+      <ymax>43.4549413329629246</ymax>
+    </extent>
+    <rotation>0</rotation>
+    <destinationsrs>
+      <spatialrefsys>
+        <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
+        <srsid>3452</srsid>
+        <srid>4326</srid>
+        <authid>EPSG:4326</authid>
+        <description>WGS 84</description>
+        <projectionacronym>longlat</projectionacronym>
+        <ellipsoidacronym>WGS84</ellipsoidacronym>
+        <geographicflag>true</geographicflag>
+      </spatialrefsys>
+    </destinationsrs>
+    <rendermaptile>0</rendermaptile>
+  </mapcanvas>
+  <projectModels/>
+  <legend updateDrawingOrder="true">
+    <legendlayer drawingOrder="-1" checked="Qt::Checked" showFeatureCount="0" open="false" name="East Quarter Product">
+      <filegroup open="false" hidden="false">
+        <legendlayerfile layerid="East_Quarter_2015_Harvest_Corn20181222101657754" isInOverview="0" visible="1"/>
+      </filegroup>
+    </legendlayer>
+    <legendlayer drawingOrder="-1" checked="Qt::Checked" showFeatureCount="0" open="false" name="East Quarter Harvest">
+      <filegroup open="false" hidden="false">
+        <legendlayerfile layerid="Stratmeyer_John_Farms_East_Quarter_2015_Harvest_Corn20171007192751455" isInOverview="0" visible="1"/>
+      </filegroup>
+    </legendlayer>
+  </legend>
+  <mapViewDocks/>
+  <mapViewDocks3D/>
+  <projectlayers>
+    <maplayer refreshOnNotifyEnabled="0" autoRefreshTime="0" styleCategories="AllStyleCategories" simplifyAlgorithm="0" simplifyDrawingTol="1" minScale="1e+08" refreshOnNotifyMessage="" maxScale="0" simplifyMaxScale="1" geometry="Point" readOnly="0" labelsEnabled="0" simplifyLocal="1" autoRefreshEnabled="0" hasScaleBasedVisibilityFlag="0" type="vector" simplifyDrawingHints="0">
+      <extent>
+        <xmin>-96.8847711198121857</xmin>
+        <ymin>43.44688339641393782</ymin>
+        <xmax>-96.87619240118112884</xmax>
+        <ymax>43.45380229876814582</ymax>
+      </extent>
+      <id>East_Quarter_2015_Harvest_Corn20181222101657754</id>
+      <datasource>./East Quarter-2015-Harvest-Corn.shp</datasource>
+      <keywordList>
+        <value></value>
+      </keywordList>
+      <layername>East Quarter Product</layername>
+      <srs>
+        <spatialrefsys>
+          <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
+          <srsid>3452</srsid>
+          <srid>4326</srid>
+          <authid>EPSG:4326</authid>
+          <description>WGS 84</description>
+          <projectionacronym>longlat</projectionacronym>
+          <ellipsoidacronym>WGS84</ellipsoidacronym>
+          <geographicflag>true</geographicflag>
+        </spatialrefsys>
+      </srs>
+      <resourceMetadata>
+        <identifier></identifier>
+        <parentidentifier></parentidentifier>
+        <language></language>
+        <type></type>
+        <title></title>
+        <abstract></abstract>
+        <contact>
+          <name></name>
+          <organization></organization>
+          <position></position>
+          <voice></voice>
+          <fax></fax>
+          <email></email>
+          <role></role>
+        </contact>
+        <links/>
+        <fees></fees>
+        <encoding></encoding>
+        <crs>
+          <spatialrefsys>
+            <proj4></proj4>
+            <srsid>0</srsid>
+            <srid>0</srid>
+            <authid></authid>
+            <description></description>
+            <projectionacronym></projectionacronym>
+            <ellipsoidacronym></ellipsoidacronym>
+            <geographicflag>false</geographicflag>
+          </spatialrefsys>
+        </crs>
+        <extent>
+          <spatial minz="0" crs="" dimensions="2" maxx="0" maxy="0" minx="0" maxz="0" miny="0"/>
+          <temporal>
+            <period>
+              <start></start>
+              <end></end>
+            </period>
+          </temporal>
+        </extent>
+      </resourceMetadata>
+      <provider encoding="UTF-8">ogr</provider>
+      <vectorjoins/>
+      <layerDependencies/>
+      <dataDependencies/>
+      <legend type="default-vector"/>
+      <expressionfields/>
+      <map-layer-style-manager current="default">
+        <map-layer-style name="default"/>
+      </map-layer-style-manager>
+      <auxiliaryLayer/>
+      <flags>
+        <Identifiable>1</Identifiable>
+        <Removable>1</Removable>
+        <Searchable>1</Searchable>
+      </flags>
+      <renderer-v2 enableorderby="0" forceraster="0" symbollevels="0" attr="Product0" type="categorizedSymbol">
+        <categories>
+          <category label="7290" symbol="0" value="7290" render="true"/>
+          <category label="DKC 53-56" symbol="1" value="DKC 53-56" render="true"/>
+          <category label="DS 9604 ra" symbol="2" value="DS 9604 ra" render="true"/>
+          <category label="DS9903 ra" symbol="3" value="DS9903 ra" render="true"/>
+          <category label="W7290 vt3" symbol="4" value="W7290 vt3" render="true"/>
+          <category label="" symbol="5" value="" render="true"/>
+        </categories>
+        <symbols>
+          <symbol type="marker" name="0" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="213,94,0,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@0@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="213,94,0,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,0" k="outline_color"/>
+                  <prop v="solid" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="1" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="230,159,0,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@1@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="230,159,0,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,0" k="outline_color"/>
+                  <prop v="solid" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="2" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="0,158,115,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@2@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="0,158,115,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,0" k="outline_color"/>
+                  <prop v="solid" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="3" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="153,153,153,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@3@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="153,153,153,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,0" k="outline_color"/>
+                  <prop v="solid" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="4" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="86,180,233,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@4@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="86,180,233,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,0" k="outline_color"/>
+                  <prop v="solid" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="5" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="153,153,153,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@5@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="153,153,153,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,0" k="outline_color"/>
+                  <prop v="solid" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+        </symbols>
+        <source-symbol>
+          <symbol type="marker" name="0" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="144,223,113,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@0@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="144,223,113,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,0" k="outline_color"/>
+                  <prop v="solid" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+        </source-symbol>
+        <colorramp type="preset" name="[source]">
+          <prop v="153,153,153,255" k="preset_color_0"/>
+          <prop v="230,159,0,255" k="preset_color_1"/>
+          <prop v="43,90,116,255" k="preset_color_10"/>
+          <prop v="0,79,57,255" k="preset_color_11"/>
+          <prop v="120,114,33,255" k="preset_color_12"/>
+          <prop v="0,57,89,255" k="preset_color_13"/>
+          <prop v="106,175,0,255" k="preset_color_14"/>
+          <prop v="102,60,211,255" k="preset_color_15"/>
+          <prop v="86,180,233,255" k="preset_color_2"/>
+          <prop v="0,158,115,255" k="preset_color_3"/>
+          <prop v="0,114,178,255" k="preset_color_4"/>
+          <prop v="213,94,0,255" k="preset_color_5"/>
+          <prop v="240,228,66,255" k="preset_color_6"/>
+          <prop v="204,121,167,255" k="preset_color_7"/>
+          <prop v="0,0,0,255" k="preset_color_8"/>
+          <prop v="115,79,128,255" k="preset_color_9"/>
+          <prop v="#999999" k="preset_color_name_0"/>
+          <prop v="#e69f00" k="preset_color_name_1"/>
+          <prop v="#2b5a74" k="preset_color_name_10"/>
+          <prop v="#004f39" k="preset_color_name_11"/>
+          <prop v="#787221" k="preset_color_name_12"/>
+          <prop v="#003959" k="preset_color_name_13"/>
+          <prop v="#6aaf00" k="preset_color_name_14"/>
+          <prop v="#663cd3" k="preset_color_name_15"/>
+          <prop v="#56b4e9" k="preset_color_name_2"/>
+          <prop v="#009e73" k="preset_color_name_3"/>
+          <prop v="#0072b2" k="preset_color_name_4"/>
+          <prop v="#d55e00" k="preset_color_name_5"/>
+          <prop v="#f0e442" k="preset_color_name_6"/>
+          <prop v="#cc79a7" k="preset_color_name_7"/>
+          <prop v="#000000" k="preset_color_name_8"/>
+          <prop v="#734f80" k="preset_color_name_9"/>
+          <prop v="preset" k="rampType"/>
+        </colorramp>
+        <rotation/>
+        <sizescale/>
+      </renderer-v2>
+      <customproperties>
+        <property value="0" key="embeddedWidgets/count"/>
+        <property key="variableNames"/>
+        <property key="variableValues"/>
+      </customproperties>
+      <blendMode>0</blendMode>
+      <featureBlendMode>0</featureBlendMode>
+      <layerOpacity>1</layerOpacity>
+      <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Histogram">
+        <DiagramCategory barWidth="5" scaleBasedVisibility="0" penColor="#000000" minScaleDenominator="0" penWidth="0" maxScaleDenominator="1e+08" sizeType="MM" labelPlacementMethod="XHeight" backgroundAlpha="255" height="15" lineSizeType="MM" lineSizeScale="3x:0,0,0,0,0,0" opacity="1" rotationOffset="270" backgroundColor="#ffffff" sizeScale="3x:0,0,0,0,0,0" penAlpha="255" enabled="0" diagramOrientation="Up" minimumSize="0" scaleDependency="Area" width="15">
+          <fontProperties description=".SF NS Text,13,-1,5,50,0,0,0,0,0" style=""/>
+          <attribute color="#000000" label="" field=""/>
+        </DiagramCategory>
+      </SingleCategoryDiagramRenderer>
+      <DiagramLayerSettings linePlacementFlags="2" dist="0" priority="0" showAll="1" obstacle="0" placement="0" zIndex="0">
+        <properties>
+          <Option type="Map">
+            <Option value="" type="QString" name="name"/>
+            <Option name="properties"/>
+            <Option value="collection" type="QString" name="type"/>
+          </Option>
+        </properties>
+      </DiagramLayerSettings>
+      <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+        <activeChecks/>
+        <checkConfiguration/>
+      </geometryOptions>
+      <fieldConfiguration>
+        <field name="Heading">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Distance">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Elevatio">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Time">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Width">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="DelStatus">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Relative">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="AirTempe">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="WindSpee">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="SoilTemp">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="WindDire">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="SkyCondi">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="SoilMois">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="FuelRate">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Product0">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Record01">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="HarvestM">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="YieldMas">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="YieldWet">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="DryYield">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="LoadNumber">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="LoadName">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="LoadDest">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Operator">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Machine">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Implement1">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Client">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Farm">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Field">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Task">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="OperType">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="ProcYear">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+      </fieldConfiguration>
+      <aliases>
+        <alias index="0" field="Heading" name=""/>
+        <alias index="1" field="Distance" name=""/>
+        <alias index="2" field="Elevatio" name=""/>
+        <alias index="3" field="Time" name=""/>
+        <alias index="4" field="Width" name=""/>
+        <alias index="5" field="DelStatus" name=""/>
+        <alias index="6" field="Relative" name=""/>
+        <alias index="7" field="AirTempe" name=""/>
+        <alias index="8" field="WindSpee" name=""/>
+        <alias index="9" field="SoilTemp" name=""/>
+        <alias index="10" field="WindDire" name=""/>
+        <alias index="11" field="SkyCondi" name=""/>
+        <alias index="12" field="SoilMois" name=""/>
+        <alias index="13" field="FuelRate" name=""/>
+        <alias index="14" field="Product0" name=""/>
+        <alias index="15" field="Record01" name=""/>
+        <alias index="16" field="HarvestM" name=""/>
+        <alias index="17" field="YieldMas" name=""/>
+        <alias index="18" field="YieldWet" name=""/>
+        <alias index="19" field="DryYield" name=""/>
+        <alias index="20" field="LoadNumber" name=""/>
+        <alias index="21" field="LoadName" name=""/>
+        <alias index="22" field="LoadDest" name=""/>
+        <alias index="23" field="Operator" name=""/>
+        <alias index="24" field="Machine" name=""/>
+        <alias index="25" field="Implement1" name=""/>
+        <alias index="26" field="Client" name=""/>
+        <alias index="27" field="Farm" name=""/>
+        <alias index="28" field="Field" name=""/>
+        <alias index="29" field="Task" name=""/>
+        <alias index="30" field="OperType" name=""/>
+        <alias index="31" field="ProcYear" name=""/>
+      </aliases>
+      <excludeAttributesWMS/>
+      <excludeAttributesWFS/>
+      <defaults>
+        <default expression="" applyOnUpdate="0" field="Heading"/>
+        <default expression="" applyOnUpdate="0" field="Distance"/>
+        <default expression="" applyOnUpdate="0" field="Elevatio"/>
+        <default expression="" applyOnUpdate="0" field="Time"/>
+        <default expression="" applyOnUpdate="0" field="Width"/>
+        <default expression="" applyOnUpdate="0" field="DelStatus"/>
+        <default expression="" applyOnUpdate="0" field="Relative"/>
+        <default expression="" applyOnUpdate="0" field="AirTempe"/>
+        <default expression="" applyOnUpdate="0" field="WindSpee"/>
+        <default expression="" applyOnUpdate="0" field="SoilTemp"/>
+        <default expression="" applyOnUpdate="0" field="WindDire"/>
+        <default expression="" applyOnUpdate="0" field="SkyCondi"/>
+        <default expression="" applyOnUpdate="0" field="SoilMois"/>
+        <default expression="" applyOnUpdate="0" field="FuelRate"/>
+        <default expression="" applyOnUpdate="0" field="Product0"/>
+        <default expression="" applyOnUpdate="0" field="Record01"/>
+        <default expression="" applyOnUpdate="0" field="HarvestM"/>
+        <default expression="" applyOnUpdate="0" field="YieldMas"/>
+        <default expression="" applyOnUpdate="0" field="YieldWet"/>
+        <default expression="" applyOnUpdate="0" field="DryYield"/>
+        <default expression="" applyOnUpdate="0" field="LoadNumber"/>
+        <default expression="" applyOnUpdate="0" field="LoadName"/>
+        <default expression="" applyOnUpdate="0" field="LoadDest"/>
+        <default expression="" applyOnUpdate="0" field="Operator"/>
+        <default expression="" applyOnUpdate="0" field="Machine"/>
+        <default expression="" applyOnUpdate="0" field="Implement1"/>
+        <default expression="" applyOnUpdate="0" field="Client"/>
+        <default expression="" applyOnUpdate="0" field="Farm"/>
+        <default expression="" applyOnUpdate="0" field="Field"/>
+        <default expression="" applyOnUpdate="0" field="Task"/>
+        <default expression="" applyOnUpdate="0" field="OperType"/>
+        <default expression="" applyOnUpdate="0" field="ProcYear"/>
+      </defaults>
+      <constraints>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Heading" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Distance" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Elevatio" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Time" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Width" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="DelStatus" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Relative" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="AirTempe" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="WindSpee" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="SoilTemp" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="WindDire" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="SkyCondi" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="SoilMois" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="FuelRate" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Product0" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Record01" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="HarvestM" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="YieldMas" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="YieldWet" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="DryYield" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="LoadNumber" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="LoadName" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="LoadDest" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Operator" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Machine" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Implement1" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Client" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Farm" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Field" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Task" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="OperType" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="ProcYear" notnull_strength="0"/>
+      </constraints>
+      <constraintExpressions>
+        <constraint exp="" field="Heading" desc=""/>
+        <constraint exp="" field="Distance" desc=""/>
+        <constraint exp="" field="Elevatio" desc=""/>
+        <constraint exp="" field="Time" desc=""/>
+        <constraint exp="" field="Width" desc=""/>
+        <constraint exp="" field="DelStatus" desc=""/>
+        <constraint exp="" field="Relative" desc=""/>
+        <constraint exp="" field="AirTempe" desc=""/>
+        <constraint exp="" field="WindSpee" desc=""/>
+        <constraint exp="" field="SoilTemp" desc=""/>
+        <constraint exp="" field="WindDire" desc=""/>
+        <constraint exp="" field="SkyCondi" desc=""/>
+        <constraint exp="" field="SoilMois" desc=""/>
+        <constraint exp="" field="FuelRate" desc=""/>
+        <constraint exp="" field="Product0" desc=""/>
+        <constraint exp="" field="Record01" desc=""/>
+        <constraint exp="" field="HarvestM" desc=""/>
+        <constraint exp="" field="YieldMas" desc=""/>
+        <constraint exp="" field="YieldWet" desc=""/>
+        <constraint exp="" field="DryYield" desc=""/>
+        <constraint exp="" field="LoadNumber" desc=""/>
+        <constraint exp="" field="LoadName" desc=""/>
+        <constraint exp="" field="LoadDest" desc=""/>
+        <constraint exp="" field="Operator" desc=""/>
+        <constraint exp="" field="Machine" desc=""/>
+        <constraint exp="" field="Implement1" desc=""/>
+        <constraint exp="" field="Client" desc=""/>
+        <constraint exp="" field="Farm" desc=""/>
+        <constraint exp="" field="Field" desc=""/>
+        <constraint exp="" field="Task" desc=""/>
+        <constraint exp="" field="OperType" desc=""/>
+        <constraint exp="" field="ProcYear" desc=""/>
+      </constraintExpressions>
+      <expressionfields/>
+      <attributeactions>
+        <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
+      </attributeactions>
+      <attributetableconfig sortOrder="0" sortExpression="" actionWidgetStyle="dropDown">
+        <columns>
+          <column type="field" name="Heading" hidden="0" width="-1"/>
+          <column type="field" name="Distance" hidden="0" width="-1"/>
+          <column type="field" name="Elevatio" hidden="0" width="-1"/>
+          <column type="field" name="Time" hidden="0" width="-1"/>
+          <column type="field" name="Width" hidden="0" width="-1"/>
+          <column type="field" name="DelStatus" hidden="0" width="-1"/>
+          <column type="field" name="Relative" hidden="0" width="-1"/>
+          <column type="field" name="AirTempe" hidden="0" width="-1"/>
+          <column type="field" name="WindSpee" hidden="0" width="-1"/>
+          <column type="field" name="SoilTemp" hidden="0" width="-1"/>
+          <column type="field" name="WindDire" hidden="0" width="-1"/>
+          <column type="field" name="SkyCondi" hidden="0" width="-1"/>
+          <column type="field" name="SoilMois" hidden="0" width="-1"/>
+          <column type="field" name="FuelRate" hidden="0" width="-1"/>
+          <column type="field" name="Product0" hidden="0" width="-1"/>
+          <column type="field" name="Record01" hidden="0" width="-1"/>
+          <column type="field" name="HarvestM" hidden="0" width="-1"/>
+          <column type="field" name="YieldMas" hidden="0" width="-1"/>
+          <column type="field" name="YieldWet" hidden="0" width="-1"/>
+          <column type="field" name="DryYield" hidden="0" width="-1"/>
+          <column type="field" name="LoadNumber" hidden="0" width="-1"/>
+          <column type="field" name="LoadName" hidden="0" width="-1"/>
+          <column type="field" name="LoadDest" hidden="0" width="-1"/>
+          <column type="field" name="Operator" hidden="0" width="-1"/>
+          <column type="field" name="Machine" hidden="0" width="-1"/>
+          <column type="field" name="Implement1" hidden="0" width="-1"/>
+          <column type="field" name="Client" hidden="0" width="-1"/>
+          <column type="field" name="Farm" hidden="0" width="-1"/>
+          <column type="field" name="Field" hidden="0" width="-1"/>
+          <column type="field" name="Task" hidden="0" width="-1"/>
+          <column type="field" name="OperType" hidden="0" width="-1"/>
+          <column type="field" name="ProcYear" hidden="0" width="-1"/>
+          <column type="actions" hidden="1" width="-1"/>
+        </columns>
+      </attributetableconfig>
+      <conditionalstyles>
+        <rowstyles/>
+        <fieldstyles/>
+      </conditionalstyles>
+      <editform tolerant="1"></editform>
+      <editforminit/>
+      <editforminitcodesource>0</editforminitcodesource>
+      <editforminitfilepath></editforminitfilepath>
+      <editforminitcode><![CDATA[# -*- coding: utf-8 -*-
+"""
+QGIS forms can have a Python function that is called when the form is
+opened.
+
+Use this function to add extra logic to your forms.
+
+Enter the name of the function in the "Python Init function"
+field.
+An example follows:
+"""
+from qgis.PyQt.QtWidgets import QWidget
+
+def my_form_open(dialog, layer, feature):
+	geom = feature.geometry()
+	control = dialog.findChild(QWidget, "MyLineEdit")
+]]></editforminitcode>
+      <featformsuppress>0</featformsuppress>
+      <editorlayout>generatedlayout</editorlayout>
+      <editable>
+        <field editable="1" name="AirTempe"/>
+        <field editable="1" name="Client"/>
+        <field editable="1" name="DelStatus"/>
+        <field editable="1" name="Distance"/>
+        <field editable="1" name="DryYield"/>
+        <field editable="1" name="Elevatio"/>
+        <field editable="1" name="Farm"/>
+        <field editable="1" name="Field"/>
+        <field editable="1" name="FuelRate"/>
+        <field editable="1" name="HarvestM"/>
+        <field editable="1" name="Heading"/>
+        <field editable="1" name="Implement1"/>
+        <field editable="1" name="LoadDest"/>
+        <field editable="1" name="LoadName"/>
+        <field editable="1" name="LoadNumber"/>
+        <field editable="1" name="Machine"/>
+        <field editable="1" name="OperType"/>
+        <field editable="1" name="Operator"/>
+        <field editable="1" name="ProcYear"/>
+        <field editable="1" name="Product0"/>
+        <field editable="1" name="Record01"/>
+        <field editable="1" name="Relative"/>
+        <field editable="1" name="SkyCondi"/>
+        <field editable="1" name="SoilMois"/>
+        <field editable="1" name="SoilTemp"/>
+        <field editable="1" name="Task"/>
+        <field editable="1" name="Time"/>
+        <field editable="1" name="Width"/>
+        <field editable="1" name="WindDire"/>
+        <field editable="1" name="WindSpee"/>
+        <field editable="1" name="YieldMas"/>
+        <field editable="1" name="YieldWet"/>
+      </editable>
+      <labelOnTop>
+        <field labelOnTop="0" name="AirTempe"/>
+        <field labelOnTop="0" name="Client"/>
+        <field labelOnTop="0" name="DelStatus"/>
+        <field labelOnTop="0" name="Distance"/>
+        <field labelOnTop="0" name="DryYield"/>
+        <field labelOnTop="0" name="Elevatio"/>
+        <field labelOnTop="0" name="Farm"/>
+        <field labelOnTop="0" name="Field"/>
+        <field labelOnTop="0" name="FuelRate"/>
+        <field labelOnTop="0" name="HarvestM"/>
+        <field labelOnTop="0" name="Heading"/>
+        <field labelOnTop="0" name="Implement1"/>
+        <field labelOnTop="0" name="LoadDest"/>
+        <field labelOnTop="0" name="LoadName"/>
+        <field labelOnTop="0" name="LoadNumber"/>
+        <field labelOnTop="0" name="Machine"/>
+        <field labelOnTop="0" name="OperType"/>
+        <field labelOnTop="0" name="Operator"/>
+        <field labelOnTop="0" name="ProcYear"/>
+        <field labelOnTop="0" name="Product0"/>
+        <field labelOnTop="0" name="Record01"/>
+        <field labelOnTop="0" name="Relative"/>
+        <field labelOnTop="0" name="SkyCondi"/>
+        <field labelOnTop="0" name="SoilMois"/>
+        <field labelOnTop="0" name="SoilTemp"/>
+        <field labelOnTop="0" name="Task"/>
+        <field labelOnTop="0" name="Time"/>
+        <field labelOnTop="0" name="Width"/>
+        <field labelOnTop="0" name="WindDire"/>
+        <field labelOnTop="0" name="WindSpee"/>
+        <field labelOnTop="0" name="YieldMas"/>
+        <field labelOnTop="0" name="YieldWet"/>
+      </labelOnTop>
+      <widgets/>
+      <previewExpression>LoadName</previewExpression>
+      <mapTip></mapTip>
+    </maplayer>
+    <maplayer refreshOnNotifyEnabled="0" autoRefreshTime="0" styleCategories="AllStyleCategories" simplifyAlgorithm="0" simplifyDrawingTol="1" minScale="1e+08" refreshOnNotifyMessage="" maxScale="0" simplifyMaxScale="1" geometry="Point" readOnly="0" labelsEnabled="0" simplifyLocal="1" autoRefreshEnabled="0" hasScaleBasedVisibilityFlag="0" type="vector" simplifyDrawingHints="0">
+      <extent>
+        <xmin>-96.8847711198121857</xmin>
+        <ymin>43.44688339641393782</ymin>
+        <xmax>-96.87619240118112884</xmax>
+        <ymax>43.45380229876814582</ymax>
+      </extent>
+      <id>Stratmeyer_John_Farms_East_Quarter_2015_Harvest_Corn20171007192751455</id>
+      <datasource>./East Quarter-2015-Harvest-Corn.shp</datasource>
+      <keywordList>
+        <value></value>
+      </keywordList>
+      <layername>East Quarter Harvest</layername>
+      <srs>
+        <spatialrefsys>
+          <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
+          <srsid>3452</srsid>
+          <srid>4326</srid>
+          <authid>EPSG:4326</authid>
+          <description>WGS 84</description>
+          <projectionacronym>longlat</projectionacronym>
+          <ellipsoidacronym>WGS84</ellipsoidacronym>
+          <geographicflag>true</geographicflag>
+        </spatialrefsys>
+      </srs>
+      <resourceMetadata>
+        <identifier></identifier>
+        <parentidentifier></parentidentifier>
+        <language></language>
+        <type></type>
+        <title></title>
+        <abstract></abstract>
+        <contact>
+          <name></name>
+          <organization></organization>
+          <position></position>
+          <voice></voice>
+          <fax></fax>
+          <email></email>
+          <role></role>
+        </contact>
+        <links/>
+        <fees></fees>
+        <encoding></encoding>
+        <crs>
+          <spatialrefsys>
+            <proj4></proj4>
+            <srsid>0</srsid>
+            <srid>0</srid>
+            <authid></authid>
+            <description></description>
+            <projectionacronym></projectionacronym>
+            <ellipsoidacronym></ellipsoidacronym>
+            <geographicflag>false</geographicflag>
+          </spatialrefsys>
+        </crs>
+        <extent>
+          <spatial minz="0" crs="" dimensions="2" maxx="0" maxy="0" minx="0" maxz="0" miny="0"/>
+          <temporal>
+            <period>
+              <start></start>
+              <end></end>
+            </period>
+          </temporal>
+        </extent>
+      </resourceMetadata>
+      <provider encoding="UTF-8">ogr</provider>
+      <vectorjoins/>
+      <layerDependencies/>
+      <dataDependencies/>
+      <legend type="default-vector"/>
+      <expressionfields/>
+      <map-layer-style-manager current="default">
+        <map-layer-style name="default"/>
+      </map-layer-style-manager>
+      <auxiliaryLayer/>
+      <flags>
+        <Identifiable>1</Identifiable>
+        <Removable>1</Removable>
+        <Searchable>1</Searchable>
+      </flags>
+      <renderer-v2 enableorderby="0" forceraster="0" symbollevels="0" attr="DryYield" graduatedMethod="GraduatedColor" type="graduatedSymbol">
+        <ranges>
+          <range upper="0.000000000000000" lower="0.000000000000000" label=" 0.0 - 0.0 " symbol="0" render="true"/>
+          <range upper="91.936549999999997" lower="0.000000000000000" label=" 0.0 - 91.9 " symbol="1" render="true"/>
+          <range upper="135.315699999999993" lower="91.936549999999997" label=" 91.9 - 135.3 " symbol="2" render="true"/>
+          <range upper="154.605500000000006" lower="135.315699999999993" label=" 135.3 - 154.6 " symbol="3" render="true"/>
+          <range upper="168.062825000000004" lower="154.605500000000006" label=" 154.6 - 168.1 " symbol="4" render="true"/>
+          <range upper="178.699150000000003" lower="168.062825000000004" label=" 168.1 - 178.7 " symbol="5" render="true"/>
+          <range upper="188.407575000000008" lower="178.699150000000003" label=" 178.7 - 188.4 " symbol="6" render="true"/>
+          <range upper="197.454299999999989" lower="188.407575000000008" label=" 188.4 - 197.5 " symbol="7" render="true"/>
+          <range upper="206.742975000000001" lower="197.454299999999989" label=" 197.5 - 206.7 " symbol="8" render="true"/>
+          <range upper="217.457499999999982" lower="206.742975000000001" label=" 206.7 - 217.5 " symbol="9" render="true"/>
+          <range upper="231.202174999999983" lower="217.457499999999982" label=" 217.5 - 231.2 " symbol="10" render="true"/>
+          <range upper="1644.467900000000100" lower="231.202174999999983" label=" 231.2 - 1644.5 " symbol="11" render="true"/>
+        </ranges>
+        <symbols>
+          <symbol type="marker" name="0" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="240,228,66,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@0@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="240,228,66,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="1" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="219,215,65,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@1@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="219,215,65,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="10" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="21,92,58,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@10@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="21,92,58,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="11" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="0,79,57,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@11@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="0,79,57,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="2" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="197,201,64,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@2@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="197,201,64,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="3" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="175,188,63,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@3@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="175,188,63,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="4" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="153,174,62,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@4@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="153,174,62,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="5" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="131,160,62,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@5@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="131,160,62,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="6" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="109,147,61,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@6@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="109,147,61,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="7" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="87,133,60,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@7@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="87,133,60,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="8" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="65,120,59,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@8@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="65,120,59,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+          <symbol type="marker" name="9" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="43,106,58,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@9@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="43,106,58,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+        </symbols>
+        <source-symbol>
+          <symbol type="marker" name="0" alpha="1" clip_to_extent="1">
+            <layer class="FilledMarker" pass="0" locked="0" enabled="1">
+              <prop v="0" k="angle"/>
+              <prop v="134,71,140,255" k="color"/>
+              <prop v="1" k="horizontal_anchor_point"/>
+              <prop v="square" k="name"/>
+              <prop v="0,0" k="offset"/>
+              <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+              <prop v="MM" k="offset_unit"/>
+              <prop v="diameter" k="scale_method"/>
+              <prop v="1.4" k="size"/>
+              <prop v="3x:0,0,0,0,0,0" k="size_map_unit_scale"/>
+              <prop v="MM" k="size_unit"/>
+              <prop v="1" k="vertical_anchor_point"/>
+              <data_defined_properties>
+                <Option type="Map">
+                  <Option value="" type="QString" name="name"/>
+                  <Option name="properties"/>
+                  <Option value="collection" type="QString" name="type"/>
+                </Option>
+              </data_defined_properties>
+              <symbol type="fill" name="@0@0" alpha="1" clip_to_extent="1">
+                <layer class="SimpleFill" pass="0" locked="0" enabled="1">
+                  <prop v="3x:0,0,0,0,0,0" k="border_width_map_unit_scale"/>
+                  <prop v="134,71,140,255" k="color"/>
+                  <prop v="bevel" k="joinstyle"/>
+                  <prop v="0,0" k="offset"/>
+                  <prop v="3x:0,0,0,0,0,0" k="offset_map_unit_scale"/>
+                  <prop v="MM" k="offset_unit"/>
+                  <prop v="0,0,0,255" k="outline_color"/>
+                  <prop v="no" k="outline_style"/>
+                  <prop v="0" k="outline_width"/>
+                  <prop v="MM" k="outline_width_unit"/>
+                  <prop v="solid" k="style"/>
+                  <data_defined_properties>
+                    <Option type="Map">
+                      <Option value="" type="QString" name="name"/>
+                      <Option name="properties"/>
+                      <Option value="collection" type="QString" name="type"/>
+                    </Option>
+                  </data_defined_properties>
+                </layer>
+              </symbol>
+            </layer>
+          </symbol>
+        </source-symbol>
+        <colorramp type="gradient" name="[source]">
+          <prop v="240,228,66,255" k="color1"/>
+          <prop v="0,79,57,255" k="color2"/>
+          <prop v="0" k="discrete"/>
+          <prop v="gradient" k="rampType"/>
+        </colorramp>
+        <mode name="quantile"/>
+        <symmetricMode astride="false" enabled="false" symmetryPoint="0"/>
+        <rotation/>
+        <sizescale/>
+        <labelformat decimalplaces="1" format=" %1 - %2 " trimtrailingzeroes="false"/>
+      </renderer-v2>
+      <customproperties>
+        <property value="0" key="embeddedWidgets/count"/>
+        <property key="variableNames"/>
+        <property key="variableValues"/>
+      </customproperties>
+      <blendMode>0</blendMode>
+      <featureBlendMode>0</featureBlendMode>
+      <layerOpacity>1</layerOpacity>
+      <SingleCategoryDiagramRenderer attributeLegend="1" diagramType="Histogram">
+        <DiagramCategory barWidth="5" scaleBasedVisibility="0" penColor="#000000" minScaleDenominator="0" penWidth="0" maxScaleDenominator="1e+08" sizeType="MM" labelPlacementMethod="XHeight" backgroundAlpha="255" height="15" lineSizeType="MM" lineSizeScale="3x:0,0,0,0,0,0" opacity="1" rotationOffset="270" backgroundColor="#ffffff" sizeScale="3x:0,0,0,0,0,0" penAlpha="255" enabled="0" diagramOrientation="Up" minimumSize="0" scaleDependency="Area" width="15">
+          <fontProperties description=".SF NS Text,13,-1,5,50,0,0,0,0,0" style=""/>
+          <attribute color="#000000" label="" field=""/>
+        </DiagramCategory>
+      </SingleCategoryDiagramRenderer>
+      <DiagramLayerSettings linePlacementFlags="2" dist="0" priority="0" showAll="1" obstacle="0" placement="0" zIndex="0">
+        <properties>
+          <Option type="Map">
+            <Option value="" type="QString" name="name"/>
+            <Option name="properties"/>
+            <Option value="collection" type="QString" name="type"/>
+          </Option>
+        </properties>
+      </DiagramLayerSettings>
+      <geometryOptions removeDuplicateNodes="0" geometryPrecision="0">
+        <activeChecks/>
+        <checkConfiguration/>
+      </geometryOptions>
+      <fieldConfiguration>
+        <field name="Heading">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Distance">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Elevatio">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Time">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Width">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="DelStatus">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Relative">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="AirTempe">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="WindSpee">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="SoilTemp">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="WindDire">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="SkyCondi">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="SoilMois">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="FuelRate">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Product0">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Record01">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="HarvestM">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="YieldMas">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="YieldWet">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="DryYield">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="LoadNumber">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="LoadName">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="LoadDest">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Operator">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Machine">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Implement1">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Client">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Farm">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Field">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="Task">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="OperType">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+        <field name="ProcYear">
+          <editWidget type="TextEdit">
+            <config>
+              <Option type="Map">
+                <Option value="0" type="QString" name="IsMultiline"/>
+                <Option value="0" type="QString" name="UseHtml"/>
+              </Option>
+            </config>
+          </editWidget>
+        </field>
+      </fieldConfiguration>
+      <aliases>
+        <alias index="0" field="Heading" name=""/>
+        <alias index="1" field="Distance" name=""/>
+        <alias index="2" field="Elevatio" name=""/>
+        <alias index="3" field="Time" name=""/>
+        <alias index="4" field="Width" name=""/>
+        <alias index="5" field="DelStatus" name=""/>
+        <alias index="6" field="Relative" name=""/>
+        <alias index="7" field="AirTempe" name=""/>
+        <alias index="8" field="WindSpee" name=""/>
+        <alias index="9" field="SoilTemp" name=""/>
+        <alias index="10" field="WindDire" name=""/>
+        <alias index="11" field="SkyCondi" name=""/>
+        <alias index="12" field="SoilMois" name=""/>
+        <alias index="13" field="FuelRate" name=""/>
+        <alias index="14" field="Product0" name=""/>
+        <alias index="15" field="Record01" name=""/>
+        <alias index="16" field="HarvestM" name=""/>
+        <alias index="17" field="YieldMas" name=""/>
+        <alias index="18" field="YieldWet" name=""/>
+        <alias index="19" field="DryYield" name=""/>
+        <alias index="20" field="LoadNumber" name=""/>
+        <alias index="21" field="LoadName" name=""/>
+        <alias index="22" field="LoadDest" name=""/>
+        <alias index="23" field="Operator" name=""/>
+        <alias index="24" field="Machine" name=""/>
+        <alias index="25" field="Implement1" name=""/>
+        <alias index="26" field="Client" name=""/>
+        <alias index="27" field="Farm" name=""/>
+        <alias index="28" field="Field" name=""/>
+        <alias index="29" field="Task" name=""/>
+        <alias index="30" field="OperType" name=""/>
+        <alias index="31" field="ProcYear" name=""/>
+      </aliases>
+      <excludeAttributesWMS/>
+      <excludeAttributesWFS/>
+      <defaults>
+        <default expression="" applyOnUpdate="0" field="Heading"/>
+        <default expression="" applyOnUpdate="0" field="Distance"/>
+        <default expression="" applyOnUpdate="0" field="Elevatio"/>
+        <default expression="" applyOnUpdate="0" field="Time"/>
+        <default expression="" applyOnUpdate="0" field="Width"/>
+        <default expression="" applyOnUpdate="0" field="DelStatus"/>
+        <default expression="" applyOnUpdate="0" field="Relative"/>
+        <default expression="" applyOnUpdate="0" field="AirTempe"/>
+        <default expression="" applyOnUpdate="0" field="WindSpee"/>
+        <default expression="" applyOnUpdate="0" field="SoilTemp"/>
+        <default expression="" applyOnUpdate="0" field="WindDire"/>
+        <default expression="" applyOnUpdate="0" field="SkyCondi"/>
+        <default expression="" applyOnUpdate="0" field="SoilMois"/>
+        <default expression="" applyOnUpdate="0" field="FuelRate"/>
+        <default expression="" applyOnUpdate="0" field="Product0"/>
+        <default expression="" applyOnUpdate="0" field="Record01"/>
+        <default expression="" applyOnUpdate="0" field="HarvestM"/>
+        <default expression="" applyOnUpdate="0" field="YieldMas"/>
+        <default expression="" applyOnUpdate="0" field="YieldWet"/>
+        <default expression="" applyOnUpdate="0" field="DryYield"/>
+        <default expression="" applyOnUpdate="0" field="LoadNumber"/>
+        <default expression="" applyOnUpdate="0" field="LoadName"/>
+        <default expression="" applyOnUpdate="0" field="LoadDest"/>
+        <default expression="" applyOnUpdate="0" field="Operator"/>
+        <default expression="" applyOnUpdate="0" field="Machine"/>
+        <default expression="" applyOnUpdate="0" field="Implement1"/>
+        <default expression="" applyOnUpdate="0" field="Client"/>
+        <default expression="" applyOnUpdate="0" field="Farm"/>
+        <default expression="" applyOnUpdate="0" field="Field"/>
+        <default expression="" applyOnUpdate="0" field="Task"/>
+        <default expression="" applyOnUpdate="0" field="OperType"/>
+        <default expression="" applyOnUpdate="0" field="ProcYear"/>
+      </defaults>
+      <constraints>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Heading" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Distance" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Elevatio" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Time" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Width" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="DelStatus" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Relative" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="AirTempe" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="WindSpee" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="SoilTemp" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="WindDire" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="SkyCondi" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="SoilMois" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="FuelRate" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Product0" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Record01" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="HarvestM" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="YieldMas" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="YieldWet" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="DryYield" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="LoadNumber" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="LoadName" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="LoadDest" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Operator" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Machine" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Implement1" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Client" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Farm" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Field" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="Task" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="OperType" notnull_strength="0"/>
+        <constraint constraints="0" unique_strength="0" exp_strength="0" field="ProcYear" notnull_strength="0"/>
+      </constraints>
+      <constraintExpressions>
+        <constraint exp="" field="Heading" desc=""/>
+        <constraint exp="" field="Distance" desc=""/>
+        <constraint exp="" field="Elevatio" desc=""/>
+        <constraint exp="" field="Time" desc=""/>
+        <constraint exp="" field="Width" desc=""/>
+        <constraint exp="" field="DelStatus" desc=""/>
+        <constraint exp="" field="Relative" desc=""/>
+        <constraint exp="" field="AirTempe" desc=""/>
+        <constraint exp="" field="WindSpee" desc=""/>
+        <constraint exp="" field="SoilTemp" desc=""/>
+        <constraint exp="" field="WindDire" desc=""/>
+        <constraint exp="" field="SkyCondi" desc=""/>
+        <constraint exp="" field="SoilMois" desc=""/>
+        <constraint exp="" field="FuelRate" desc=""/>
+        <constraint exp="" field="Product0" desc=""/>
+        <constraint exp="" field="Record01" desc=""/>
+        <constraint exp="" field="HarvestM" desc=""/>
+        <constraint exp="" field="YieldMas" desc=""/>
+        <constraint exp="" field="YieldWet" desc=""/>
+        <constraint exp="" field="DryYield" desc=""/>
+        <constraint exp="" field="LoadNumber" desc=""/>
+        <constraint exp="" field="LoadName" desc=""/>
+        <constraint exp="" field="LoadDest" desc=""/>
+        <constraint exp="" field="Operator" desc=""/>
+        <constraint exp="" field="Machine" desc=""/>
+        <constraint exp="" field="Implement1" desc=""/>
+        <constraint exp="" field="Client" desc=""/>
+        <constraint exp="" field="Farm" desc=""/>
+        <constraint exp="" field="Field" desc=""/>
+        <constraint exp="" field="Task" desc=""/>
+        <constraint exp="" field="OperType" desc=""/>
+        <constraint exp="" field="ProcYear" desc=""/>
+      </constraintExpressions>
+      <expressionfields/>
+      <attributeactions>
+        <defaultAction value="{00000000-0000-0000-0000-000000000000}" key="Canvas"/>
+      </attributeactions>
+      <attributetableconfig sortOrder="0" sortExpression="" actionWidgetStyle="dropDown">
+        <columns>
+          <column type="field" name="Time" hidden="0" width="-1"/>
+          <column type="field" name="Heading" hidden="0" width="-1"/>
+          <column type="actions" hidden="1" width="-1"/>
+          <column type="field" name="Distance" hidden="0" width="-1"/>
+          <column type="field" name="Elevatio" hidden="0" width="-1"/>
+          <column type="field" name="Width" hidden="0" width="-1"/>
+          <column type="field" name="DelStatus" hidden="0" width="-1"/>
+          <column type="field" name="Relative" hidden="0" width="-1"/>
+          <column type="field" name="AirTempe" hidden="0" width="-1"/>
+          <column type="field" name="WindSpee" hidden="0" width="-1"/>
+          <column type="field" name="SoilTemp" hidden="0" width="-1"/>
+          <column type="field" name="WindDire" hidden="0" width="-1"/>
+          <column type="field" name="SkyCondi" hidden="0" width="-1"/>
+          <column type="field" name="SoilMois" hidden="0" width="-1"/>
+          <column type="field" name="FuelRate" hidden="0" width="-1"/>
+          <column type="field" name="Product0" hidden="0" width="-1"/>
+          <column type="field" name="Record01" hidden="0" width="-1"/>
+          <column type="field" name="HarvestM" hidden="0" width="-1"/>
+          <column type="field" name="YieldMas" hidden="0" width="-1"/>
+          <column type="field" name="YieldWet" hidden="0" width="-1"/>
+          <column type="field" name="DryYield" hidden="0" width="-1"/>
+          <column type="field" name="LoadNumber" hidden="0" width="-1"/>
+          <column type="field" name="LoadName" hidden="0" width="-1"/>
+          <column type="field" name="LoadDest" hidden="0" width="-1"/>
+          <column type="field" name="Operator" hidden="0" width="-1"/>
+          <column type="field" name="Machine" hidden="0" width="-1"/>
+          <column type="field" name="Implement1" hidden="0" width="-1"/>
+          <column type="field" name="Client" hidden="0" width="-1"/>
+          <column type="field" name="Farm" hidden="0" width="-1"/>
+          <column type="field" name="Field" hidden="0" width="-1"/>
+          <column type="field" name="Task" hidden="0" width="-1"/>
+          <column type="field" name="OperType" hidden="0" width="-1"/>
+          <column type="field" name="ProcYear" hidden="0" width="-1"/>
+        </columns>
+      </attributetableconfig>
+      <conditionalstyles>
+        <rowstyles/>
+        <fieldstyles/>
+      </conditionalstyles>
+      <editform tolerant="1">.</editform>
+      <editforminit/>
+      <editforminitcodesource>0</editforminitcodesource>
+      <editforminitfilepath>.</editforminitfilepath>
+      <editforminitcode><![CDATA[# -*- coding: utf-8 -*-
+"""
+QGIS forms can have a Python function that is called when the form is
+opened.
+
+Use this function to add extra logic to your forms.
+
+Enter the name of the function in the "Python Init function"
+field.
+An example follows:
+"""
+from qgis.PyQt.QtWidgets import QWidget
+
+def my_form_open(dialog, layer, feature):
+	geom = feature.geometry()
+	control = dialog.findChild(QWidget, "MyLineEdit")
+]]></editforminitcode>
+      <featformsuppress>0</featformsuppress>
+      <editorlayout>generatedlayout</editorlayout>
+      <editable>
+        <field editable="1" name="AirTempe"/>
+        <field editable="1" name="Client"/>
+        <field editable="1" name="DelStatus"/>
+        <field editable="1" name="Distance"/>
+        <field editable="1" name="DryYield"/>
+        <field editable="1" name="Elevatio"/>
+        <field editable="1" name="Farm"/>
+        <field editable="1" name="Field"/>
+        <field editable="1" name="FuelRate"/>
+        <field editable="1" name="HarvestM"/>
+        <field editable="1" name="Heading"/>
+        <field editable="1" name="Implement1"/>
+        <field editable="1" name="LoadDest"/>
+        <field editable="1" name="LoadName"/>
+        <field editable="1" name="LoadNumber"/>
+        <field editable="1" name="Machine"/>
+        <field editable="1" name="OperType"/>
+        <field editable="1" name="Operator"/>
+        <field editable="1" name="ProcYear"/>
+        <field editable="1" name="Product0"/>
+        <field editable="1" name="Record01"/>
+        <field editable="1" name="Relative"/>
+        <field editable="1" name="SkyCondi"/>
+        <field editable="1" name="SoilMois"/>
+        <field editable="1" name="SoilTemp"/>
+        <field editable="1" name="Task"/>
+        <field editable="1" name="Time"/>
+        <field editable="1" name="Width"/>
+        <field editable="1" name="WindDire"/>
+        <field editable="1" name="WindSpee"/>
+        <field editable="1" name="YieldMas"/>
+        <field editable="1" name="YieldWet"/>
+      </editable>
+      <labelOnTop>
+        <field labelOnTop="0" name="AirTempe"/>
+        <field labelOnTop="0" name="Client"/>
+        <field labelOnTop="0" name="DelStatus"/>
+        <field labelOnTop="0" name="Distance"/>
+        <field labelOnTop="0" name="DryYield"/>
+        <field labelOnTop="0" name="Elevatio"/>
+        <field labelOnTop="0" name="Farm"/>
+        <field labelOnTop="0" name="Field"/>
+        <field labelOnTop="0" name="FuelRate"/>
+        <field labelOnTop="0" name="HarvestM"/>
+        <field labelOnTop="0" name="Heading"/>
+        <field labelOnTop="0" name="Implement1"/>
+        <field labelOnTop="0" name="LoadDest"/>
+        <field labelOnTop="0" name="LoadName"/>
+        <field labelOnTop="0" name="LoadNumber"/>
+        <field labelOnTop="0" name="Machine"/>
+        <field labelOnTop="0" name="OperType"/>
+        <field labelOnTop="0" name="Operator"/>
+        <field labelOnTop="0" name="ProcYear"/>
+        <field labelOnTop="0" name="Product0"/>
+        <field labelOnTop="0" name="Record01"/>
+        <field labelOnTop="0" name="Relative"/>
+        <field labelOnTop="0" name="SkyCondi"/>
+        <field labelOnTop="0" name="SoilMois"/>
+        <field labelOnTop="0" name="SoilTemp"/>
+        <field labelOnTop="0" name="Task"/>
+        <field labelOnTop="0" name="Time"/>
+        <field labelOnTop="0" name="Width"/>
+        <field labelOnTop="0" name="WindDire"/>
+        <field labelOnTop="0" name="WindSpee"/>
+        <field labelOnTop="0" name="YieldMas"/>
+        <field labelOnTop="0" name="YieldWet"/>
+      </labelOnTop>
+      <widgets/>
+      <previewExpression>Width</previewExpression>
+      <mapTip>SWATHWIDTH</mapTip>
+    </maplayer>
+  </projectlayers>
+  <layerorder>
+    <layer id="Stratmeyer_John_Farms_East_Quarter_2015_Harvest_Corn20171007192751455"/>
+    <layer id="East_Quarter_2015_Harvest_Corn20181222101657754"/>
+  </layerorder>
+  <properties>
+    <PAL>
+      <SearchMethod type="int">0</SearchMethod>
+      <ShowingAllLabels type="bool">false</ShowingAllLabels>
+      <ShowingPartialsLabels type="bool">true</ShowingPartialsLabels>
+      <DrawRectOnly type="bool">false</DrawRectOnly>
+      <CandidatesPolygon type="int">30</CandidatesPolygon>
+      <CandidatesLine type="int">50</CandidatesLine>
+      <CandidatesPoint type="int">16</CandidatesPoint>
+      <ShowingCandidates type="bool">false</ShowingCandidates>
+      <DrawOutlineLabels type="bool">true</DrawOutlineLabels>
+    </PAL>
+    <SpatialRefSys>
+      <ProjectCRSID type="int">3452</ProjectCRSID>
+      <ProjectCrs type="QString">EPSG:4326</ProjectCrs>
+      <ProjectCRSProj4String type="QString">+proj=longlat +datum=WGS84 +no_defs</ProjectCRSProj4String>
+      <ProjectionsEnabled type="int">1</ProjectionsEnabled>
+    </SpatialRefSys>
+    <Legend>
+      <filterByMap type="bool">false</filterByMap>
+    </Legend>
+    <Paths>
+      <Absolute type="bool">false</Absolute>
+    </Paths>
+    <Measurement>
+      <AreaUnits type="QString"></AreaUnits>
+      <DistanceUnits type="QString"></DistanceUnits>
+    </Measurement>
+    <PositionPrecision>
+      <Automatic type="bool">true</Automatic>
+      <DecimalPlaces type="int">2</DecimalPlaces>
+    </PositionPrecision>
+    <Digitizing>
+      <DefaultSnapType type="QString">off</DefaultSnapType>
+      <AvoidIntersectionsList type="QStringList"/>
+      <SnappingMode type="QString">current_layer</SnappingMode>
+      <LayerSnappingList type="QStringList">
+        <value>Stratmeyer_John_Farms_East_Quarter_2015_Harvest_Corn20171007192751455</value>
+      </LayerSnappingList>
+      <DefaultSnapToleranceUnit type="int">2</DefaultSnapToleranceUnit>
+      <DefaultSnapTolerance type="double">0</DefaultSnapTolerance>
+      <LayerSnappingToleranceList type="QStringList">
+        <value>0.000000</value>
+      </LayerSnappingToleranceList>
+      <LayerSnapToList type="QStringList">
+        <value>to_vertex_and_segment</value>
+      </LayerSnapToList>
+      <LayerSnappingEnabledList type="QStringList">
+        <value>disabled</value>
+      </LayerSnappingEnabledList>
+      <LayerSnappingToleranceUnitList type="QStringList">
+        <value>2</value>
+      </LayerSnappingToleranceUnitList>
+    </Digitizing>
+    <Gui>
+      <SelectionColorRedPart type="int">255</SelectionColorRedPart>
+      <SelectionColorBluePart type="int">0</SelectionColorBluePart>
+      <CanvasColorBluePart type="int">255</CanvasColorBluePart>
+      <CanvasColorGreenPart type="int">255</CanvasColorGreenPart>
+      <SelectionColorAlphaPart type="int">255</SelectionColorAlphaPart>
+      <SelectionColorGreenPart type="int">255</SelectionColorGreenPart>
+      <CanvasColorRedPart type="int">255</CanvasColorRedPart>
+    </Gui>
+  </properties>
+  <visibility-presets/>
+  <transformContext/>
+  <projectMetadata>
+    <identifier></identifier>
+    <parentidentifier></parentidentifier>
+    <language></language>
+    <type></type>
+    <title></title>
+    <abstract></abstract>
+    <links/>
+    <author></author>
+    <creation></creation>
+  </projectMetadata>
+  <Annotations/>
+  <Layouts/>
+</qgis>

@@ -1,0 +1,660 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SearchIndexes Version="1.0">
+    <Documents>
+        <Document ID="94AF3FB9-33A1-4990-B12F-E4194B143CA5">
+            <Title>Note on MLA Guidelines</Title>
+            <Text>GENERAL GUIDELINES
+For full guidelines, you should of course refer to the MLA Handbook.
+
+Citations
+Some examples of how to cite sources in the body of the paper:
+When the author’s name is in the sentence: 	Jeffrey Jones states that “good times they are a’coming” (89).
+When the author’s name is not in the sentence: 	It has been stated that good times are coming (Jones 89).
+When more than one work by the same author are cited: 	One assertion is that his back was “hairy” (Solo-Organa, That Hairy Thing 84) - so hirsute, in fact, that he was likened to “a walking carpet” (Solo-Organa, Second Fiddle to Chewbacca 189).
+Two or more authors: 	The closed-universe theory has been called into question (Rifle and Hartley 346-69).
+No author listed: 	The zoo was apparently enclosed in a large drape to emulate night (Tralfamadore in Focus 57).
+
+Works Cited Page
+All entries should be double-spaced and listed in alphabetical order by the author’s last name. If no author is given, base the order on the first word of the entry. All entries should have a hanging indent of half an inch (that is, the first line of each entry should be flush with the left margin, and subsequent lines should be indented by half an inch).
+
+Online Resources
+The following web resources were used in putting together this template. (Note that although some of the links below point to descriptions of older versions of the MLA format, this template is based on the 7th edition, from 2009.)
+
+General Formatting Guidelines
+http://owl.english.purdue.edu/owl/resource/747/01/
+http://www.writinghelp-central.com/mla-format-rules.html
+http://www.csus.edu/owl/index/mla/mla_format.htm
+
+Citation Guidelines
+http://library.csun.edu/egarcia/documents/mlacitation_quickguide.pdf</Text>
+        </Document>
+        <Document ID="6CD86AC1-2476-4557-BAB9-09DB0E652558">
+            <Title>QGIS Project Properties</Title>
+            <Text>#</Text>
+        </Document>
+        <Document ID="06D1A473-076A-4C1E-8E4E-AA1C38475F7E">
+            <Title>Sample Code</Title>
+        </Document>
+        <Document ID="D86DA694-DF58-4EA5-8EE0-C437460A91EA">
+            <Title>MLA Format Notes</Title>
+        </Document>
+        <Document ID="6CC5E1CA-9987-43F5-A06E-9CECCBE4A915">
+            <Title>Example 1</Title>
+            <Text>
+MISSING_IMAGE:/Users/dakotajudo/Work/git/ASA_CSSA_SSSA/2018/ThoughtsAboutPower/FunctionalDataAnalysisStripTrials-EastQuarterMaps.pdf
+
+
+
+
+</Text>
+        </Document>
+        <Document ID="84B4DA4E-2D65-4388-833C-DACD3AD8B063">
+            <Title>Example 1</Title>
+            <Text>Example 1 comes from an on-farm corn variety test using a split-plant comparison method (T.A. Doerge and D.L. Gardner) harvested  The data were obtained aas shape files exported from a John Deere ApexTM  . 
+
+Two varieties were assigned to the left and to the right half of a standard corn planter. Seed was harvested with a GSP enabled combined, with the width of the harvester one-half the planter width. Twelve passes were planted, representing two planted strips, and 24 passes were harvested. For simplicity, two half-passes (and thus, two harvested passes) are merged as a single strip. For analysis, this leaves 12 experimental units with two treatments and six replicates. It should be noted that this is a simplification of the design.
+
+Trial maps were edited to include yield points tagged with one of three Product
+
+
+Open Attribute Table
+Open Field Calculator
+
+
+def time_difference(values,feature,parnet):
+    current =  datetime.datetime.strptime(values[0], "%m/%d/%Y %H:%M:%S %p")
+    reference = datetime.datetime.strptime(values[1], "%m/%d/%Y %H:%M:%S %p")
+    dif =  current-reference
+    return dif.total_seconds()
+
+
+Add field
+#
+
+Modify Attributes of Selected Features
+
+￼</Text>
+        </Document>
+        <Document ID="CB62745A-94E6-4EA1-BA10-57D7F5F8524A">
+            <Title>Works Cited</Title>
+            <Text>NOTE: These references are provided only as a rough example. Before you replace them with your own references, be sure to check the MLA formatting guidelines either online or with your institution to ensure that you use the latest standards.
+Barron, W. R. J. Trawthe and Treason: The Sin of Gawain Reconsidered. Manchester UP, 1980. 
+Brewer, Derek. “The Social Context of Medieval English Literature.” The New Pelican Guide to English Literature: 1. Medieval Literature Part One: Chaucer and the Alliterative Tradition, edited by Boris Ford. Penguin, 1995, pp. 15-40. 
+Burrow, J. A. A Reading of Sir Gawain and the Green Knight. Routledge, 1965. 
+Haines, Victor Yelverton. The Fortunate Fall of Sir Gawain: The Typology of Sir Gawain and the Green Knight. UP of America, 1982. 
+Jokinen, Annina, editor. “Sir Gawain and the Green Knight.” Luminarium: Anthology of English Literature. 28 Jan. 2010. Web. www.completewebaddress.com 
+Jones, Alfred. “Understanding Old English Poetry.” Time, 10 Oct. 2001, pp. 50-62. 
+Kiteley, J. F. “The Knight Who Cared for His Life.” Critical Studies of Gawain and the Green Knight. Edited by Donald R. Howard and Christian K. Zacher. U of Notre Dame P, 1968, pp. 215-222. 
+Pearsall, Derek. Old English and Middle English Poetry. Routledge, 1977.
+Shepherd, Geoffrey. “The Nature of Alliterative Poetry in Late Medieval England.” Proceedings of the British Academy [New York] vol. 56, no. 1, Winter 1970, pp.  57-76. MLA International Bibliography, www.mlaaddress/complete
+Thurby, Andrew and Samuel Gray. Heroes of Middle English Alliterative Poetry. DK, 2001.</Text>
+        </Document>
+        <Document ID="38E553E4-64A6-4E47-BB25-8A59ACF2DF64">
+            <Title>Functional Forms for Functional Data</Title>
+            <Text>In most cases, functional data will be represented as a sequence of observations over an experimental unit. We’ll denote Kij observations as the vector 
+#
+thus
+￼
+Choosing an appropriate function f is part of the art of functional analysis. The choice of function is largely going to depend on the relative importance placed on two components of the functional form - smoothing and interpolation.
+Functional data are in theory continuous values, but data are commonly collected at discrete intervals, and measurement errors occur during when functions are sampled. Smoothing occurs when functional forms are chosen to minimize variance between the function values at sample points and the sampled values. 
+Discrete functional data units are frequently cannot be sampled at identical independent values (i.d. the same d). Instead, values at non-sampled d are inferred from sample points yijk by a process of interpolation. The number of sampled points used for each interpolated value characterizes the choice of functional forms.
+</Text>
+        </Document>
+        <Document ID="BBA8371D-C1D4-49DB-ACE8-B8D9BC4F366F">
+            <Title>Polynomial Functions</Title>
+            <Text>Polynomial functions are frequently used as functional forms due to their simplicity and flexibility. Unlike power or exponential functions, polynomial functions can be fit to data using ordinary least squares (polynomial regression), while any number of data points can be fit exactly using polynomials of sufficiently high order.
+Polynomial functions take the form
+#
+￼
+The order of the polynomial is given by the magnitude of the largest exponent n, and N+1 data points can be fit perfectly (e=0) with a polynomial of order n. Thus, any midpoint value between two arbitrary points xi and xj can be interpolated exactly with a polynomial of order 1. i.e y = a +bx. One possible functional form for yij, then, computes y(d) for any d by identifying the yikK bounding d and finding the straight line interpolation between the point. 
+Pair-wise linear interpolation has the advantage of computational simplicity but does not minimize variance for the approximating function over the range of data
+
+Global vs local polynomials
+Piece-wise interpolation.
+Splines
+</Text>
+        </Document>
+        <Document ID="1E62E151-4C07-42F5-8902-56A0C27F2DF6">
+            <Title>Introduction</Title>
+        </Document>
+        <Document ID="22685829-8049-4045-93C1-0255CBEBD305">
+            <Title>FunctionalDataAnalysisStripTrialsWord</Title>
+            <Text>Peter Claussen
+
+
+
+
+Introduction
+
+Univariate Data Analysis
+
+
+Functional Data Analysis
+
+Functional Forms for Functional Data
+Polynomial Functions
+
+Functional Omnibus Test
+Suppose we wish to have an omnibus test of significance for treatment effect, independent of position - that is, a main treatment effect as opposed to a treatment by position interaction effect. The traditional analysis of variance would test the mean squares of treatment means over strips against residual error. 
+
+Materials and Methods
+Example 1
+
+Example 2
+
+Discussion
+Summarizing Results
+Presentation of experimental results in functional form as an appeal. Consider how a farmer might experience crop yields - in a harvester, moving through time and space. Yield changes may be detectable by changes in engine speed or output; the farmer may remember patches of different soil types experienced during planting. 
+Interpretation of p-values
+
+
+
+
+Tables
+
+Strip
+Variety
+Yield Data Points
+Yield Average
+Sample SD
+Sample SE
+Northing
+1
+E
+518
+162.8279
+29.83083
+0.2399760
+3.787845
+2
+B
+527
+175.5724
+39.67935
+0.2743955
+16.082465
+3
+E
+519
+163.8603
+32.22227
+0.2491692
+28.274649
+4
+B
+526
+188.5818
+30.38731
+0.2403551
+40.354902
+5
+E
+530
+175.2685
+27.12060
+0.2262099
+52.571117
+6
+B
+528
+192.4624
+24.31691
+0.2146037
+64.626749
+7
+E
+535
+185.2256
+23.45168
+0.2093679
+76.832520
+8
+B
+530
+197.2943
+23.57872
+0.2109221
+89.062328
+9
+E
+529
+181.0466
+26.00689
+0.2217259
+101.170738
+10
+B
+542
+191.6723
+24.83957
+0.2140782
+113.383573
+11
+E
+551
+193.0240
+25.16112
+0.2136924
+125.521797
+12
+B
+534
+208.5366
+20.67455
+0.1967648
+137.705798
+
+
+
+Treatment Mean
+SD
+
+
+
+E
+
+192.3533
+11.97669
+
+
+
+B
+
+176.8755
+10.79454
+
+
+
+Difference
+
+
+11.38561
+
+
+
+
+
+
+
+Univariate
+Functional
+Means model
+#
+￼
+Mean estimate
+￼
+￼
+Variance estimate
+￼
+￼
+Difference between means
+￼
+￼
+Test statistic
+￼
+￼
+
+
+
+Required replicates
+￼
+￼
+Detectable differences
+￼
+￼
+
+Figures
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</Text>
+        </Document>
+        <Document ID="56957253-B604-4F96-A6CF-754A7F6D0865">
+            <Title>About</Title>
+            <Text>MLA PAPER TEMPLATE
+
+About
+This template is designed to produce an essay that adheres to the MLA (Modern Language Association of America) format. However, you should check the exact guidelines of the institution to which you are submitting your paper, as there can be slight variations in expectations (such as whether the first page has a header or not, or whether citations should use italics or underlines). See “Adjusting This Template” (below) for information on how to tweak your project to meet your requirements.
+
+How To Use This Template
+	•	Edit the “Title” document so that it contains the title of your essay, your instructor’s name and so on.
+	•	Compose your essay in text documents inside the “Main Content” folder. Whether you use a single document or multiple text files to write your essay is entirely up to you - just make sure they are all inside the “Main Content” folder.
+	•	Indent block quotes or other special passages using styles. For instance, to add a block quote, choose “Block Quote” from the Format &gt; Style menu (or from the styles button in the format bar). The required MLA formatting will be applied to block quotes during Compile.
+	•	For specially-formatted passages you can also use the exact formatting you require and enclose them in a “Preserve Formatting” block. This tells Scrivener not to override or change the formatting for such passages during Compile. To do so, select the passage and go to Format &gt; Preserve Formatting. All other text (excepting text with styles applied) will have the default MLA indentation assigned during the compilation process.
+	•	This template includes an “Endnotes” document which will be used to hold any footnotes you have created in the main body of the text. If you have not created any footnotes, you should either delete this document or deselect its “Include in Compile” setting in the Inspector or Compile sheet.
+	•	Edit the “Works Cited” file so that it contains your own bibliography, being careful to adhere to MLA formatting. (Please note that the dummy text in the “Works Cited” file is provided only as a rough example and not as an exemplar. Do not use it as the basis for your own references—instead, refer to the MLA formatting guidelines online or as provided by your institution.)
+
+Tables and Figures
+If you need to use tables or figures in your manuscript, you can label them using the following tags, replacing “KEYWORD” with a unique word that identifies your table or figure.
+
+!fig(KEYWORD)
+!table(KEYWORD)
+
+These tags will be replaced with numbers in the compiled document, with the numbering stream for figures being separate from the numbering stream for tables.
+
+You can refer to such tags as follows:
+
+#fig(KEYWORD)
+#table(KEYWORD)
+
+Here’s an example:
+
+Table !table(sales): Sales 2011
+Table !table(dates): Shipment dates
+Figure !fig(skeleton): The skeleton of the gnu.
+Figure !fig(malcolmreynolds): The second coolest character in Firefly.
+
+… (For sales figures, see table #table(sales))… For shipment dates, see table #table(dates)… where he discovered the skeleton of a gnarled gnu (see figure #fig(skeleton))… Chronicles providing a similar role, albeit without the Castle actor (see figure #fig(malcolmreynolds)).
+
+In the compiled document, the above text would look like this:
+
+Table 1: Sales 2011
+Table 2: Shipment dates
+Figure 1: The skeleton of the gnu.
+Figure 2: The second coolest character in Firefly.
+
+… (For sales figures, see table 1)… For shipment dates, see table 2… where he discovered the skeleton of a gnarled gnu (see figure 1)… Chronicles providing a similar role, albeit without the Castle actor (see figure 2).
+
+Compiling
+	•	Go to File &gt; Compile…
+	•	Ensure “MLA Format” is selected in the “Formats” sidebar.
+	•	The first time you compile your paper:
+	⁃	Click on the gear button in the the right-most header bar of the Compile panel to open the Options pane.
+	⁃	Fill in the title, abbreviated title and author information. The title will be used on the title page, and the surname will be used in page headers.
+	•	Click on “Compile” when everything is set up as you want.
+
+Adjusting This Template
+	•	If you require the header to be omitted from the first page and only start on the second:
+	⁃	In Compile, Ctrl-click on “MLA Format” in the left sidebar and select “Edit Format…”. The Compile panel will change size and content, to show all of the options that can be used to create a format.
+	⁃	Click on “Page Settings” in the sidebar.
+	⁃	Tick “Different header and footer on first pages”.
+	⁃	Click the “Save” button.
+	•	Compile is set to use Times New Roman by default. If you require a different font, set the “Font” at the top of the “Section Layouts” pane.
+
+Sample Document
+The “Example Essay” PDF file in the Research folder shows how the essay will look when compiled.
+
+Final Note
+Scrivener project templates are flexible and are not intended to restrict you to a particular workflow. You can change, delete or move the files and folders contained in the template to suit how you work.
+
+Like all templates in Scrivener, this project was originally created from the “Blank” template. Everything you can do with this project, you could equally do by creating a “Blank” project and setting it up yourself.
+
+You can create your own templates by setting up a skeletal project with the files, folders and settings you would like to use for new projects and using File &gt; Save As Template.</Text>
+        </Document>
+        <Document ID="39D9C368-60EA-4708-8642-5941215A40FF">
+            <Title>Main Content</Title>
+        </Document>
+        <Document ID="3961BE47-41D3-47F9-8FF0-C8C7D5526B16">
+            <Title>Example 2 Processing</Title>
+            <Text>#
+￼
+￼</Text>
+        </Document>
+        <Document ID="F918ADBF-A745-4EFA-A26F-694017A4B348">
+            <Title>Title</Title>
+            <Text>Functional Data Analysis and Experimental Design for On-farm Strip Trials</Text>
+            <Notes>The &lt;$PROJECTTITLE&gt; and &lt;$fullname&gt; tags get replaced with metadata information you can set when compiling. Other information is taken from Contacts when the project is created.
+
+Feel free to edit the text of the title page as required.</Notes>
+        </Document>
+        <Document ID="55BD09F5-FFF6-4958-B4B1-364B08265F9E">
+            <Title>Univariate Data Analysis</Title>
+            <Text>To introduce functional data analysis, we start with a simple strip trial for variety testing. We will show how a simple univariate analysis - independent means t-test - is extended to an analysis of functional data.
+We will further simplify the analysis by modeling the experiment as an a comparison of two means with pooled standard deviation, using a simple t-test. Write the statistical model as
+#
+Let
+￼
+where 
+￼
+Then for this example (Table 1), t = 2.35 and p(t)=0.04.</Text>
+        </Document>
+        <Document ID="3FAA1EFF-81B9-47B4-B0A1-FAFF08B2D91B">
+            <Title>Identify Passes</Title>
+            <Text>Each experimental unit must be uniquely identified for functional analysis. Strips were identified by first trimming end rows. From the first example, only points at longitude distances between 180 and 580 Easting; 180 was subtracted from all longitude distances. The data were also restricted to Northings of 435-580 meters.
+(Figure?)
+Similarly, data for example 2 was to restricted to 40 to 360 meters Easting. The data were not subset for Northing.
+Yield points were associated with passes by iterating over all points by time stamps, starting with the first measured point, with a pass counter set to 1. Yield points are recorded at one second intervals. When a time gap of greater than 5 seconds was found, the pass counter was incremented by 1. In this data, there were no incomplete passes - that is, a gap created in the middle of pass because the harvester was stopped or left the pass and later returned.
+After passes were numbered, the data for example 2 were inspected an the outer passes were removed from further analysis. (Figure?)</Text>
+        </Document>
+        <Document ID="7A021F85-240E-470F-A716-5DA8C1260825">
+            <Title>Body</Title>
+            <Text>Title
+• Core Ideas
+• Abstract
+• Abbreviations list
+• Text
+• Tables*
+• Figure captions
+• Figures*
+• References list
+• Supplemental material and data (if any)</Text>
+        </Document>
+        <Document ID="FF7F8B2F-BFC8-4A7E-A5D8-9D4E6F4BB766">
+            <Title>Eample Essay</Title>
+            <Text>Sarah Tu Dent
+Professor Rosewater Philosophy of Whales 101 13 December 2017
+String Theory, Time and Tralfamadore
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam euismod porta
+tortor, non pretium justo tristique id. Nunc dignissim, metus at fringilla congue, diam sapien aliquet quam, sed eleifend nunc odio quis mi. In blandit nec dolor ullamcorper cursus. Maecenas in lorem sit amet lorem tempor tincidunt sit amet non ligula.
+This is a block quote consisting of a single paragraph. Phasellus rutrum ex quis sagittis condimentum. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Ut hendrerit ante et vehicula vulputate.
+Nulla venenatis pretium nisl, quis ullamcorper mi condimentum a. Nam ultrices elit arcu, tincidunt aliquet risus tempor et. Morbi ac rutrum urna. Pellentesque commodo mi vel congue scelerisque. Fusce a lorem sed urna dignissim pulvinar non in magna.1
+Mauris blandit in nisl vitae scelerisque. Vestibulum sagittis felis et mauris euismod posuere. Curabitur in tellus sit amet lorem ornare pharetra. Vestibulum vel magna placerat, fermentum elit id, hendrerit libero. Etiam mattis consectetur egestas.
+Etiam nec nunc ornare, blandit ex sit amet, feugiat ligula. Pellentesque bibendum placerat risus a semper. Pellentesque consequat faucibus pellentesque. Nullam in aliquet est. Ut imperdiet augue sed mauris molestie ultrices. Aliquam eros tellus, venenatis sit amet arcu et, placerat lacinia ex.
+Nam euismod pharetra faucibus. Praesent scelerisque fermentum tortor, bibendum
+Dent 1
+
+ornare turpis posuere nec. Morbi feugiat quam non ornare bibendum.
+This is a longer quotation, comprising more than one paragraph, so the
+first line of each paragraph is indented. Donec sollicitudin odio id urna semper, tempus maximus nibh sagittis. Cras lacinia orci ut vehicula molestie.
+Nulla facilisi. Aenean sodales ut neque sed sodales. Nulla pellentesque tincidunt ante, ut eleifend risus finibus eu. In quis luctus orci. Donec a lorem tristique, egestas dui nec, interdum augue. Aliquam imperdiet vestibulum ultricies.
+Suspendisse augue ante, tristique gravida dolor id, finibus volutpat nisl. Aenean dapibus sollicitudin est. Duis aliquam lacus nec velit lobortis, vitae pulvinar diam commodo.2
+Suspendisse scelerisque purus nec nunc ornare rhoncus. Vivamus eu aliquet est. Maecenas cursus quis elit vel ornare. Fusce vitae nisi non purus pretium pellentesque nec imperdiet justo. Morbi dictum elementum felis non sollicitudin.
+Ut in turpis varius, suscipit magna non, cursus mi. Suspendisse sem nunc, facilisis eu scelerisque at, tincidunt id nulla. Ut condimentum orci et erat venenatis varius. Vestibulum dapibus, mauris eu rhoncus elementum, ante purus ultrices est, id ultricies metus tellus vel tortor.
+Curabitur in odio eu massa condimentum tincidunt. Pellentesque dapibus metus tellus, quis porta lectus feugiat in. In ac imperdiet elit. In risus est, rhoncus eget vehicula id, feugiat at ipsum. Morbi pulvinar dolor quis nisi tincidunt vulputate ut id felis. Maecenas sed nisi laoreet purus consectetur semper at eget nulla.3
+Aliquam erat volutpat. Sed semper vel purus ac feugiat. Praesent arcu nulla, porttitor vitae leo id, convallis molestie sem. Proin molestie, tellus eget volutpat egestas, diam lorem
+Dent 2
+
+dictum massa, lobortis egestas leo massa convallis enim. Praesent mollis vitae leo a sodales. Nullam mollis dolor quis nisi congue, at maximus enim tempor. Vestibulum ut leo ac dui ornare malesuada.
+Dent 3
+
+Endnotes
+1. This endnote was added to the text as an inspector footnote, but gets moved to the
+endnotes page during the compile process.
+2. Scrivener’s Compile settings handle the block quote indentation in the final
+document so long as you use the “Block Quote” style for your quotes.
+3. Donec faucibus velit tortor, eget venenatis eros laoreet vel. Duis non lacus metus.
+Donec suscipit sodales velit nec lobortis.
+Dent 4
+
+Works Cited
+Barron, W. R. J. Trawthe and Treason: The Sin of Gawain Reconsidered. Manchester:
+Manchester UP, 1980. Print.
+Brewer, Derek. “The Social Context of Medieval English Literature.” The New Pelican
+Guide to English Literature 1. Medieval Literature Part One: Chaucer and the
+Alliterative Tradition. Ed. Boris Ford. London: Penguin, 1995. 15-40. Print. Burrow, J. A. A Reading of Sir Gawain and the Green Knight. London: Routledge, 1965.
+Print.
+Haines, Victor Yelverton. The Fortunate Fall of Sir Gawain: The Typology of Sir Gawain and
+the Green Knight. Washington, D.C: UP of America, 1982. Print.
+Jokinen, Anniiina. “Sir Gawain and the Green Knight.” Luminarium: Anthology of English
+Literature. 28 Jan. 2010. Web. 4 Oct. 2010.
+Jones, Alfred. “Understanding Old English Poetry.” Time 10 Oct. 2001: 50-62. Print. Kiteley, J. F. “The Knight Who Cared for His Life.” Critical Studies of Gawain and the
+Green Knight. Ed. Donald R. Howard and Christian K. Zacher. Paris: U of Notre
+Dame P, 1968. 215-222. Print.
+Pearsall, Derek. Old English and Middle English Poetry. London: Routledge, 1977. Print. Shepherd, Geoffrey. “The Nature of Alliterative Poetry in Late Medieval England.”
+Proceedings of the British Academy [New York] 56.1 (1970): 57-76. MLA
+International Bibliography. Web. 3 Oct. 2010.
+Thurby, Andrew and Samuel Gray. Heroes of Middle English Alliterative Poetry. New York:
+DK, 2001. Print.
+Dent 5
+</Text>
+        </Document>
+        <Document ID="CE44C3A1-BB8B-4FEB-9ACD-ED13B14D3135">
+            <Text>QGIS export settings
+#</Text>
+        </Document>
+        <Document ID="A8954970-E958-4D6D-88A4-315960964A3B">
+            <Title>Function 1</Title>
+            <Text>metric_from_gps &lt;- function(longitude, latitude, origin=c(0,0)) {
+  if(origin[1]==0) {
+    origin &lt;- c(min(longitude),min(latitude))
+  }
+  mid_latitude &lt;- (origin[2] + max(latitude))/2
+
+  easting &lt;- longitude - origin[1]
+  northing &lt;- latitude - origin[2]
+  
+  m_per_deg_lat = 111132.954 - 559.822 * cos(2.0 * mid_latitude) + 1.175 * cos(4.0 * mid_latitude)
+  m_per_deg_lon = (3.14159265359/180 ) * 6367449 * cos(mid_latitude)
+  easting &lt;- easting*m_per_deg_lon
+  northing &lt;- northing*m_per_deg_lat
+  
+  return(list(northing=northing,
+              easting=easting,
+              origin=origin,
+              m_per_deg_lon=m_per_deg_lon,
+              m_per_deg_lat=m_per_deg_lat))
+}
+
+6367449 - Earth (Equatorial) Radius
+ A better approximation (http://www.edwilliams.org/avform.htm)
+d=2*asin(sqrt((sin((lat1-lat2)/2))^2 + cos(lat1)*cos(lat2)*(sin((lon1-lon2)/2))^2)) 
+distance_km = radius_km * distance_radians 
+
+Other Conversions
+Use simpler conversions from (Projections 4-19,4-21, WGS84 7.5)
+
+$$
+L_{\phi} = a (1-e^2) / (1-e^2 sin^2 \phi)^{3/2}
+$$
+where $\phi$ is latitude in radians, $a = 6378137 m$ is the mean radius of the Earth and $e^2 = 2f–f^2$ is the eccentricity of the sphere, with $1/f = 298.2572221$
+
+The length of a radian longitude is given
+$$
+L_{\lambda} = a cos \phi / (1-e^2 sin^2 \phi)^{1/2}
+$$
+
+#convert to radians
+Corn2015.dat$LonR &lt;- (pi/180) * Corn2015.dat$Longitude 
+Corn2015.dat$LatR &lt;- (pi/180) * Corn2015.dat$Latitude
+origin &lt;- c(min(Corn2015.dat$LonR),min(Corn2015.dat$LatR))
+origin
+a = 6378137
+f =  1/298.2572221
+e2 = (2*f - f^2)
+sin2_phi &lt;- sin(Corn2015.dat$LatR)^2
+div &lt;- sqrt(1-e2*sin2_phi)
+L_phi &lt;- (a*(1-e2))/(div^3)
+L_lambda &lt;- a*cos(Corn2015.dat$LatR)/div
+
+Corn2015.dat$Easting &lt;-  L_lambda*(Corn2015.dat$LonR - origin[1])
+Corn2015.dat$Northing &lt;- L_phi*(Corn2015.dat$LatR - origin[2])
+max(Corn2015.dat$Easting)
+max(Corn2015.dat$Northing)</Text>
+        </Document>
+        <Document ID="C6B48C53-1AB0-4C40-801D-296774FA61BA">
+            <Title>FunctionalDataAnalysisStripTrials</Title>
+        </Document>
+        <Document ID="091D552F-A46F-496A-B8B8-E0536558E133">
+            <Title>Notes</Title>
+        </Document>
+        <Document ID="E04A9517-FAAB-47E9-9BFE-51A96887545E">
+            <Title>Figures</Title>
+        </Document>
+        <Document ID="8D10EBB8-7185-4F8A-AED5-6714FCB71EB9">
+            <Title>Extension to Power Analysis</Title>
+            <Text>Once a statistical test has been determined, historical or expected values for treatment effect size and variance terms can be used to plan for future analysis. Briefly, start with the t statistic. Assuming  effect size d and and standard deviation s, the t ratio can be re-arranged to solve for the number of replicates required to meet or exceed a desired critical t value.
+#
+Additionally, when planning trials, and second critical value is included to protect against type II errors. 
+￼
+Similarly, a detectable treatment effect size can be calculated from
+￼
+Frequently, the number of required replicates will be calculated for a range of effect sizes, and effect size will be calculated for a range of practical replicates. These formula have functional forms that follow from the functional t statistic (Table #)
+</Text>
+        </Document>
+        <Document ID="12756D18-3F66-4D1C-8D42-750103C7AC2F">
+            <Title>Example 2</Title>
+            <Text>The data from example 2 come from a soybean field harvested in 2016.
+
+The data from Example 3 are from a corn field harvested in 2015. This field was planted according to standard practices and no particular treatments were applied.. 
+
+The yield monitor used has up to 7 channels per sample. The data were aggregated into single yield observations per sample in QGIS as follows. 
+The shape file was opened in a QGIS project, and a new virtual layer was added.
+
+Mean Coordinates
+Statistics by Categories
+Join Attributes by Field Value
+Add Field (Keep)
+Select points and edit
+Extract by Attribute (Keep)
+Add Field (Strip)
+Select points and edit (Strip number)
+Export to csv</Text>
+        </Document>
+        <Document ID="39C9B624-BEE7-4182-A67E-9AAC08375D28">
+            <Title>Sample Code</Title>
+        </Document>
+        <Document ID="E6D153DB-7A4F-43D7-98EF-25E3B5F028EB">
+            <Title>Materials and Methods</Title>
+        </Document>
+        <Document ID="900437F4-1BEC-41AF-8214-B1CB6B0711A9">
+            <Title>Converting GPS Coordinates</Title>
+            <Text>While not affecting analysis, it will aid in interpretation to convert spatial coordinates from degrees longitude or latitude to distance from an origin. The origin is specified as the south-west corner of the field, and degrees longitude and latitude are converted to degrees of distance by subtracting the origin, then multiplying by 180/𝜋 to convert to distance in radians.
+Distance in radians is then convert to metric distance by
+#
+for L𝜙 = meters of latitude and L𝜆 = meters longitude at the latitude 𝜙, where a = 6378137 is radius of the earth at the equator and e is a measure of eccentricity, with e2 = (2f - f2) and 1/f = 298.2572221.
+
+Northing and Easting
+
+Conversion was checked against the Measure function of QGIS, which measures the field in example 2 at 340 meter wide by 150 meters tall.
+Example 1 is 695m wide, 770m tall.</Text>
+        </Document>
+        <Document ID="C283CA35-AB03-4E2A-A9A4-4A688599DDA0">
+            <Title>Functional Data Analysis</Title>
+            <Text>To extend the univariate analysis to a functional analysis, we first need to model the experimental unit as a function over some variable; preferably a variable that allows us to compare equivalent subsamples from each unit. In this case, we want to compare different strips at equivalent positions in the field; in other cases, we may wish to compare measurements made at equivalent time intervals or growth stages.
+#
+Then each formula from # has a functional equivalent (Table 2). Letting a line running perpendicular to the main axis of the strips, at one side of the field, represent the origin, (#) provides an estimate of yield at any distance d from the origin.  Figure # shows yields estimates for each strip evaluated at 2 meter intervals from the west border of the field.
+From Table #, the functional t-test follows as illustrated in Figure #. The difference between treatment means is a continuous function of distance d and in this example is larger in the eastern half of the field. Standard deviation also varies with position, but is greater in the western part of the field. Since t is a function of both difference and standard deviation (in this example, replicates are constant across the field) the test of significance also varies with position and the p-value associated with this test is more often significant in the western part of the field.</Text>
+        </Document>
+        <Document ID="1A14639E-A8F0-46D4-BBE3-F939B1ED1415">
+            <Title>Data Format and Analysis</Title>
+            <Text>Both data sets were prepared for analysis as follows:
+The raw shape files were imported into AgLeader(c) SMS BasicTM software, then exported to comma-separated files (CSV). The remaining analysis were performed in R.
+Fields corresponding to yield volume, adjusted to dry weight, in bu/acre, were used for analysis. Longitude and latitude for each yield point were converted to meters.
+Let be latitude in decimal format and be longitude. Let the origin O ={min(lon),min(lat)} and find the middle latitude mid. 
+
+Removing outliers.</Text>
+        </Document>
+        <Document ID="D3E77CE7-556E-491C-824C-4FDFFE9A5800">
+            <Title>Endnotes</Title>
+            <Text>&lt;$--ENDNOTES--&gt; All footnotes will get inserted here upon print, and this bubble will be removed automatically.</Text>
+        </Document>
+        <Document ID="3E2C04EB-1C64-4F84-914E-D57AAA647F2C">
+            <Title>Introduction</Title>
+            <Text>Collaborative research between agronomists and farmers has a long history, but recent technological advances has greatly increased opportunities for on-farm research. For our purposes, we will define on-farm research as comparative experiments 1) conducted on farmer-owned fields, 2)treatments applied using farmer-owned equipment and 3) data collected using farmer-owned harvesters. 3) implies the use of GPS-enabled yield data monitors, while 2) and 3) determine the nature of experimental units. Specifically, the dimensions of the experimental units will be determined by the width of farm implements and by the length of a typical planting, application or harvest pass.
+We will consider a ‘pass’ as a simple complete farming operation, e.g. the interval between when a planter is lowered into the soil at one end of the field to when the planter is raised at the other end of the field. As such, each pass may be thought of in terms of a traditional plot, albeit a very long and very thin plot. However, a very long and very thin rectangle becomes increasingly similar to a single line, and we can easily model yield as function of position on this line. Thus, the analysis of yield monitor data is a likely candidate for functional data analysis.</Text>
+        </Document>
+        <Document ID="0A49AFF2-BB49-46AF-89BD-77935EBDD825">
+            <Title>Ideas</Title>
+        </Document>
+    </Documents>
+</SearchIndexes>

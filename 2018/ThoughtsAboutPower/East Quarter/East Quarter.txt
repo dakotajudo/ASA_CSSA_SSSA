@@ -1,0 +1,125 @@
+Identification_Information:
+   Description:
+       Abstract: John Deere Apex Data Export Shapefile
+       Purpose: Export data from a John Deere Apex in Shapefile format
+Status:
+   Progress: Complete
+Keywords:
+   Theme:
+       Theme_Keyword_Thesaurus: John Deere
+       Theme_Keyword: John Deere Apex
+       Theme_Keyword: Apex Data Export
+Spatial_Reference_Information:
+   Horizontal_Coordinate_System_Definition:
+       Geographic:
+           Latitude_Resolution: 0.000000
+           Longitude_Resolution: 0.000000
+           Geographic_Coordinate_Units: Decimal degrees
+       Geodetic_Model:
+           Horizontal_Datum_Name: D_WGS_1984
+           Ellipsoid_Name: WGS_1984
+           Semi-major_Axis: 6378137.000000
+           Denominator_of_Flattening_Ratio: 298.257224
+Entity_and_Attribute_Information:
+   Detailed_Description:
+       Entity_Type:
+           Entity_Type_Label: Apex EXPORT DATA
+    Attribute:
+      Attribute_Label: Heading
+      Attribute_Definition: Heading indicates orientation of equipment in deg
+    Attribute:
+      Attribute_Label: Distance
+      Attribute_Definition: DistanceTraveled in ft
+    Attribute:
+      Attribute_Label: Elevatio
+      Attribute_Definition: Elevation in ft
+    Attribute:
+      Attribute_Label: Time
+      Attribute_Definition: Delta Time
+    Attribute:
+      Attribute_Label: Width
+      Attribute_Definition: Implement/Section Width in ft
+    Attribute:
+      Attribute_Label: DelStatus
+      Attribute_Definition: DeletedStatus
+    Attribute:
+      Attribute_Label: Relative
+      Attribute_Definition: Recorded outside relative humidty. in %
+    Attribute:
+      Attribute_Label: AirTempe
+      Attribute_Definition: Recorded outside air temperature. in °F
+    Attribute:
+      Attribute_Label: WindSpee
+      Attribute_Definition: Recorded wind speed in mi/h
+    Attribute:
+      Attribute_Label: SoilTemp
+      Attribute_Definition: Recorded soil temperature. in °F
+    Attribute:
+      Attribute_Label: WindDire
+      Attribute_Definition: Wind direction in textual increments
+    Attribute:
+      Attribute_Label: SkyCondi
+      Attribute_Definition: Sky Condition
+    Attribute:
+      Attribute_Label: SoilMois
+      Attribute_Definition: Soil Moisture
+    Attribute:
+      Attribute_Label: FuelRate
+      Attribute_Definition: Fuel consumption rate in gal/h
+    Attribute:
+      Attribute_Label: Product0
+      Attribute_Definition: Corn
+    Attribute:
+      Attribute_Label: Record01
+      Attribute_Definition: Used to specify record status.  Values can be On or Off.
+    Attribute:
+      Attribute_Label: HarvestM
+      Attribute_Definition: Harvest Moisture in %
+    Attribute:
+      Attribute_Label: YieldMas
+      Attribute_Definition: Dry yield mass in lb
+    Attribute:
+      Attribute_Label: YieldWet
+      Attribute_Definition: Wet yield mass in lb
+    Attribute:
+      Attribute_Label: DryYield
+      Attribute_Definition: Crop Yield per Area(bu/ac or kg/ha, bales/ac or bales/ha for Cotton) in bu/ac
+    Attribute:
+      Attribute_Label: LoadNumber
+      Attribute_Definition: Load Number
+    Attribute:
+      Attribute_Label: LoadName
+      Attribute_Definition: Load Name
+    Attribute:
+      Attribute_Label: LoadDest
+      Attribute_Definition: Load Destination
+    Attribute:
+      Attribute_Label: Operator
+      Attribute_Definition: Operator Name
+    Attribute:
+      Attribute_Label: Machine
+      Attribute_Definition: Machine Name
+    Attribute:
+      Attribute_Label: Implement1
+      Attribute_Definition: Implement Name
+    Attribute:
+      Attribute_Label: Client
+      Attribute_Definition: Client Name
+    Attribute:
+      Attribute_Label: Farm
+      Attribute_Definition: Farm Name
+    Attribute:
+      Attribute_Label: Field
+      Attribute_Definition: Field Name
+    Attribute:
+      Attribute_Label: Task
+      Attribute_Definition: Task Name
+    Attribute:
+      Attribute_Label: OperType
+      Attribute_Definition: Operation Type
+    Attribute:
+      Attribute_Label: ProcYear
+      Attribute_Definition: Year
+Metadata_Reference_Information:
+   Metadata_Standard_Name: FGDC Content Standards for Digital Geospatial Metadata
+   Metadata_Standard_Version: FGDC-STD-001-1998

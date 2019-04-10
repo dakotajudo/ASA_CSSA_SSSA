@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CompileSettings Template="Yes">
+    <ProjectSettings>
+        <Options>
+            <LinkedFootnotesAsEndnotes>Yes</LinkedFootnotesAsEndnotes>
+            <InlineFootnotesAsEndnotes>Yes</InlineFootnotesAsEndnotes>
+        </Options>
+        <MetaData>
+            <MMDMetaData>
+                <Value Key="Title"><![CDATA[<$projecttitle>]]></Value>
+                <Value Key="Author"><![CDATA[<$author>]]></Value>
+            </MMDMetaData>
+        </MetaData>
+    </ProjectSettings>
+    <FormatSettings>
+        <Format ID="mla-format">
+            <SectionLayouts>
+                <Type ID="43405063-67CE-4371-9E7C-D0934F23EF8F">TEXT-SECTION</Type>
+                <Type ID="4FDA8A90-343A-457C-B47A-E776E0DE0CB7">TEXT-SECTION</Type>
+                <Type ID="6F9C3951-FDDC-438E-901E-0AA887F9D4C4">338064FF-726A-41A6-8ECA-CEE07226D4D4</Type>
+                <Type ID="847EAE8D-9A8B-4566-B8EF-FF237754FACA">B3864823-4571-4CFE-BAE3-B954CAA0177B</Type>
+                <Type ID="8F214CE3-4595-4357-BEF7-576EDC1B07E9">BBAB44B9-1C8B-405E-9F5A-E0FC67AEBB81</Type>
+            </SectionLayouts>
+        </Format>
+    </FormatSettings>
+    <CurrentFileType>Print</CurrentFileType>
+    <LastUsedFormats>
+        <Print>mla-format</Print>
+        <docx>mla-format</docx>
+    </LastUsedFormats>
+</CompileSettings>
