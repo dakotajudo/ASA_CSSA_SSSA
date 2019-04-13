@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SearchIndexes Version="1.0">
+    <Documents>
+        <Document ID="32">
+            <Title>Summary of Interactions</Title>
+            <Text>
+
+ 
+Treatment
+Trial
+Interaction
+Reference(s)
+Fixed
+#
+￼
+￼
+
+Random Trial
+￼
+￼
+￼
+
+Fully Random
+￼
+￼
+￼
+
+Multiplicative Random
+￼
+￼
+￼
+
+Multiplicative Synergistic
+￼
+￼
+￼
+
+Multiplicative Antagonistic
+
+
+
+
+Reciprocal (Treatment)
+￼
+￼
+￼
+
+Quadratic
+￼
+￼
+￼
+
+Heterogeneous
+￼
+￼
+￼
+
+
+</Text>
+        </Document>
+        <Document ID="25">
+            <Title>Notation</Title>
+            <Text>Pettitt, A. N. (1989)
+#
+
+(Yan 2006) - uses 
+￼</Text>
+        </Document>
+        <Document ID="10">
+            <Title>Tables</Title>
+        </Document>
+        <Document ID="33">
+            <Title>Milliken and Johnson coding</Title>
+            <Text>Milliken and Johnson (1989) present a one df analysis based on the SOLUTION from PROC GLM. GLM uses a reduced rank matrix, so reports the last coefficient for each effect as 0 (i.e. the intercept). Milliken and Johnson then provide a series of transformed variables that convert the reduced rank coefficients to the full rank equivalents. </Text>
+        </Document>
+        <Document ID="26">
+            <Title>Simple Additivity</Title>
+            <Text>In the case of simple additivity, 
+#
+This implies that treatment by trial means are determined by the main effects only,
+￼
+￼
+
+</Text>
+        </Document>
+        <Document ID="11">
+            <Title>Introduction</Title>
+        </Document>
+        <Document ID="27">
+            <Title>Non-additivity</Title>
+            <Text>Proportional to product of main effects (Tukey 1949)
+
+#
+</Text>
+        </Document>
+        <Document ID="12">
+            <Title>Bibliography</Title>
+            <Text>Mandel, J., 1961. Non-additivity in the Two-Way Analysis of Variance. Journal of the American Statistical Association, 56(296).
+Tukey, J.W., 1949. One Degree of Freedom for Non-Additivity. Biometrics, 5(3).
+Ghaderi, A. (1980). Classification of Environments and Genotypes in Wheat, 707–710.
+Pettitt, A. N. (1989). One Degree of Freedom for Nonadditivity: Applications with Generalized Linear Models and Link Functions. Biometrics.
+Crossa, J., Yang, R.C., &amp; Cornelius, P. L. (2004). Studying Crossover Genotype  Environment Interaction Using Linear-Bilinear Models and Mixed Models. Journal of Agricultural, Biological, and Environmental Statistics, 9(3), 362–380.</Text>
+        </Document>
+        <Document ID="28">
+            <Title>Proportional to one main effect</Title>
+            <Text>â  Proportional to one main (trial) effect (Mandel 1961)
+â  Î¸_(i*j)=Î»_i*Î²_j+e_(i*j)
+â  Since this is an effect associated with each treatment, this should be fixed when treatment is fixed, and random when treatment is random. If fixed, we should expect that repeated experiments produce comparable values. </Text>
+        </Document>
+        <Document ID="20">
+            <Title>Analysis</Title>
+        </Document>
+        <Document ID="13">
+            <Title>Materials and Methods</Title>
+        </Document>
+        <Document ID="3">
+            <Title>Title Page</Title>
+            <Text>Exploring Treatment x Trial Interactions using Treatment Stability/Trial Dendrogram plots</Text>
+        </Document>
+        <Document ID="21">
+            <Title>Abstract</Title>
+            <Text>In the analysis of combined agricultural experiments, the interaction between treatment and environment is of particular concern. When cross-over interactions are present, the recommendation for superior treatment will differ depending on environment.
+One common method for analyzing interaction is to plot treatment-in-trial means against the grand trial mean. The stability of treatments across trials is examined, with highly stable treatments varying less with trial mean than low-stability treatments. The treatment stability plot also allows trials to be ranked as low or high performing trials.
+Cluster analysis is also used to classify trials based on the performance of treatments within those trials. Dendrograms are used to show the rankings among trials and the relative distances between groups of trials. In the combined treatment stability/trial dendrogram plot, the position of "leaves" in the dendrogram is constrained to match the position of trial means in the treatment stability plot. 
+In the absence of interaction, the ranking and relative distance between trials in the dendrogram will be proportional to the trial mean. With interaction, trial dendrograms will cross when trial means are out of proportion relative the the performance of treatments within trials. For example, a low-performing trial may cluster with high-performing trials based on relative treatment performance. Other examples will be presented, and the use of geospatial mapping to supplement trial cluster analysis will be demonstrated.</Text>
+        </Document>
+        <Document ID="29">
+            <Title>Milliken and Johnson 1989</Title>
+        </Document>
+        <Document ID="14">
+            <Title>Results</Title>
+        </Document>
+        <Document ID="22">
+            <Title>Statistical Model, Multiple Trials</Title>
+            <Text>We write
+# (1)
+where 𝜇 is the grand mean over all trials, 𝛼i is the ith treatment, 𝛽j  is the jth trial and 𝛾ij  is the interaction between the ith treatment and jth trial. When the combined trials are all randomized complete block, 𝜌jk is the kth block in jth trial. Finally, eijk is the residual error, usually at the plot level.
+
+
+</Text>
+        </Document>
+        <Document ID="15">
+            <Title>Discussion</Title>
+        </Document>
+        <Document ID="30">
+            <Title>Cornelius et al. 2001</Title>
+        </Document>
+        <Document ID="23">
+            <Title>Decomposition of Interaction</Title>
+            <Text>Consider the treatment by trial means table, with trials indexed by rows and treatments indexed by columns, i.e. 
+
+#
+From (1), we can write
+￼. For simplicity, we write this as
+ 
+￼, with
+￼
+We can refer d as a lack of fit in the interaction model.
+Sometimes only the means table is of interest. This may be represented as a matrix with treatment. 
+</Text>
+        </Document>
+        <Document ID="16">
+            <Title>Figures</Title>
+        </Document>
+        <Document ID="31">
+            <Title>Expected Mean Squares</Title>
+        </Document>
+        <Document ID="24">
+            <Title>Decomposing Interaction</Title>
+            <Text>
+Random Effect
+In most cases, trials are assumed to be random effects. This forces interaction to be a random effect, 
+#
+and can be regarded as another level of error. However, treatments may exhibit heterogeneous interactions (Steel p.399)
+
+Fixed Effect
+Non additivity
+  Tukey proposed a one degree of freedom test for interaction in a two-way table, analogous to &lt;inactive|&lt;reference|two.way&gt;&gt;. His argument, in brief:
+  Start with the assumption of perfect additivity. The ij entry in the table is a simple sum of the i row effect and the j column effect,
+￼  &lt;$n:equation:simple.additive&gt;
+ 
+Next, consider a function of y
+￼ &lt;$n:equation:non.linear&gt;
+where 𝜆 is a constant and 
+
+￼
+Substituting
+ &lt;#n:equation:simple.additive&gt; into &lt;#n:equation:non.linear&gt;, we find
+￼
+ The first term depends on rows only, the second on columns only. When we analyze in terms of f(a) instead of a any non-additivity arises from the third term. Since the third term is a product, there is one degree of freedom associated with this term.
+
+  See snee.r-09-1982
+
+  Compare synergistic with antagonistic interactions.
+
+  Mandel (mandel.j-12-1961) includes Tukey's as a special case.
+
+ Johnson and Graybill (johnson.d-06-1972,johnson.d-12-1972) generalize Tukey's model from
+￼
+to
+￼
+where they are explicitly model interaction for treatments and blocks. They argue the second model is more suitable when interaction is present, but treatments are not significant; when interaction is present for only a few outliers; when interaction is due to only one or two treatments; for theoretical reasons or when data are observational and not experimental. They go on to prove that maximum likelihood estimators of
+  &lt;math|\lambda,\alpha&gt; and &lt;math|\&lt;gamma\&gt;&gt; derive from the root and
+  characteristic vector of the matrix &lt;math|Z Z&lt;rprime|'&gt;&gt;, defining &lt;math|Z&gt;
+  to be a matrix of residuals from additivity, &lt;math|Z=&lt;around*|{|z_{i
+  j&gt;|}&gt;=&lt;around*|{|y_{i j}-y_{i .&gt;-y_{\&lt;nosymbol\&gt;j&gt;+y_{\&lt;nosymbol\&gt;\&lt;nosymbol\&gt;\&lt;ldots\&gt;&gt;|}&gt;&gt;
+
+Bilinear Model
+
+  aastveit 1986
+
+  We consider &lt;math|\&lt;phi\&gt;&gt; is a product of two values associated with, but
+  independent from, main effects, such that
+
+  &lt;\equation*&gt;
+    \phi_{i j}=\&lt;gamma\&gt;_{g&gt;\&lt;delta\&gt;_{e&gt;+\&lt;varepsilon\&gt;_{i
+    j&gt;
+  &lt;/equation*&gt;
+
+  If we assume &lt;math|\&lt;delta\&gt;&gt; is equal to &lt;math|\beta&gt;, (that is, the
+  interaction is a result of the genotypes response to the environment) then
+
+  &lt;\eqnarray*&gt;
+    &lt;tformat|&lt;table|&lt;row|&lt;cell|y_{i j
+    &gt;&gt;|&lt;cell|=&gt;|&lt;cell|\mu+\alpha_{i}+\beta_{j}
+    &lt;around*|(|1+\&lt;gamma\&gt;_{g&gt;|)&gt;+\&lt;varepsilon\&gt;_{i
+    j&gt;&gt;&gt;|&lt;row|&lt;cell|y_{i j k&gt;&gt;|&lt;cell|=&gt;|&lt;cell|\mu+\alpha_{i}+\beta_{j}
+    &lt;around*|(|1+\&lt;gamma\&gt;_{g&gt;|)&gt;+\&lt;rho\&gt;_{k&gt;+e_{i j k&gt;&gt;&gt;&gt;&gt;
+  &lt;/eqnarray*&gt;
+
+Multiplicative model: The yield of a treatment in trial is proportional to the fertility of the trial itself; the best measure of fertility of a trial is the trial mean, averaged over all treatments. The proportionality constant is a function of the treatment, and is best measured as proportional to treatment mean across all trials.
+
+
+
+Stability/Regression
+What are the slopes of the lines in the trial stability plot? Which are significant?
+
+ Eberhart and Russell (Regression on the mean)
+Stability is estimated from regression of each variety against environmental index (mean of all varieties minus grand mean -
+  &lt;math|\beta_{j}= &lt;below|&lt;big|sum&gt;|i&gt;y_{i
+  j&gt;/v-&gt;&lt;math|&lt;below|&lt;big|sum&gt;|i&gt;&lt;below|&lt;big|sum&gt;|j&gt;&lt;below|y_{i j}/v n|&gt;&gt;
+
+  &lt;\equation*&gt;
+    y_{i j}=\mu_{i}+b_{i}\beta_{j}+\phi_{i j}
+  &lt;/equation*&gt;
+
+  where &lt;math|y_{i j}&gt; is the mean of the &lt;math|i&lt;rsup|th&gt;&gt; variety at
+  the &lt;math|j&lt;rsup|th&gt;&gt; environment. From predicted values
+  &lt;math|&lt;wide|y|^&gt;_{i j&gt;=x_{i}+b_{i}\beta_{j}&gt;, we
+  estimate deviations &lt;math|&lt;wide|\&lt;phi\&gt;|^&gt;_{i j&gt;=&lt;around*|(|y_{i
+  j&gt;-&lt;wide|y|^&gt;_{i j&gt;|)&gt;&gt;, we estimate a stability parameter
+  &lt;math|\&lt;sigma\&gt;_{d&gt;&lt;rsup|2&gt;&gt;,
+
+  &lt;\equation*&gt;
+    s_{d_{i}&gt;&lt;rsup|2&gt;=&lt;around*|[|&lt;below|&lt;big|sum&gt;|j&gt;&lt;wide|\&lt;phi\&gt;|^&gt;&lt;rsup|2&gt;_{i
+    j&gt;/&lt;around*|(|n-2|)&gt;-s&lt;rsup|2&gt;_{e&gt;/r|]&gt;
+  &lt;/equation*&gt;
+
+  Malosetti (2013) use the notation
+
+  &lt;\equation*&gt;
+    y_{i j}=\alpha&lt;rprime|'&gt;_{i}+b&lt;rprime|'&gt;_{&gt;\beta_{j}+\&lt;varepsilon\&gt;_{i
+    j&gt;
+  &lt;/equation*&gt;
+
+  where &lt;math|a&lt;rprime|'&gt;_{i}=\mu+a_{i&gt;&gt; and
+  &lt;math|b&lt;rprime|'&gt;=*&lt;around*|(|1+b_{i&gt;|)&gt;&gt;, then decompose interaction
+  into heterogeneity of slopes
+
+  &lt;subsection|Decomposition of interaction by nonadditivity&gt;
+
+  Do the treatment means diverge or converge as trial means get larger (which
+  trials are more discriminating?).\ 
+
+  muir.w-01-1992 - heteregenous variance vs imperfect correlation
+
+  gauch.h-09-2013 - says that both Gollob and &lt;math|F_{R&gt;&gt; are used.
+
+Cluster Identification
+Which trials belong to statistically different groups?
+
+Principal Components and Biplots
+Do the treatment-by-trial interactions observed in this set of experiments warrant biplot analysis?
+
+johnson.d-12-1972 lay theoretical foundations for a model where interaction is not a function of main effects. They show an example where the 1 d.f. test suggests additivity, while their likelihood ratio test does suggest nonadditivity.
+Mandel mandel.j-10-1969 also shows the application of principal component decomposition
+
+Significant Pairs/Outliers
+Do one or more trial show an unusual level of treatment-by-trial interaction?
+Will excluding these trials (as outliers) reduce the significance of interaction?
+
+Alternative Regression
+Are the lines fitting treatment means to trial means straight, convex (suggesting an asymptote) or concave?
+
+Dendrogram Cross-over
+When are differences in groups between trial means and dendrogram distances an indication of significant interaction?
+
+  We relate conventional clustering to crossa-1995.
+
+Euclidean distance
+
+Given two vectors a and b, 
+
+￼
+the unweighted, squared, Euclidean distance is given by
+
+￼
+When a and b represent treatment in trial means from two trials, then
+
+￼
+so
+
+￼
+
+
+
+￼
+
+￼
+  &lt;\eqnarray*&gt;
+    &lt;tformat|&lt;table|&lt;row|&lt;cell|&lt;with|font-series|bold|a&gt;&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|{|y_{i
+    1&gt; :i=1,2,\&lt;ldots\&gt;,m|}&gt;&gt;&gt;|&lt;row|&lt;cell|&lt;with|font-series|bold|b&gt;&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|{|y_{i
+    2&gt; :i=1,2,\&lt;ldots\&gt;,m|}&gt;&gt;&gt;|&lt;row|&lt;cell|&lt;around*|(|&lt;with|font-series|bold|a&gt;-&lt;with|font-series|bold|b&gt;|)&gt;&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|{|y_{i
+    1&gt;-y_{i 2&gt;|}&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|{|&lt;around*|(|\mu+\alpha_{i}+\beta_{1&gt;+\&lt;phi\&gt;_{i
+    1&gt;+\&lt;varepsilon\&gt;_{i 1&gt;|)&gt;-&lt;around*|(|\mu+\alpha_{i}\alpha_{i}+\beta_{2&gt;+\&lt;phi\&gt;_{i
+    2&gt;+\&lt;varepsilon\&gt;_{i 2&gt;|)&gt;|}&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|{|&lt;around*|(|\beta_{1&gt;+\&lt;phi\&gt;_{i
+    1&gt;+\&lt;varepsilon\&gt;_{i 1&gt;|)&gt;-&lt;around*|(|\beta_{2&gt;+\&lt;phi\&gt;_{i
+    2&gt;+\&lt;varepsilon\&gt;_{i 2&gt;|)&gt;|}&gt;&gt;&gt;&gt;&gt;
+  &lt;/eqnarray*&gt;
+
+  In the absence of interactions (&lt;math|\&lt;phi\&gt;_{11&gt;=\&lt;phi\&gt;_{2
+  1&gt;=\&lt;ldots\&gt;=\phi_{i j}=0&gt;), then the difference is
+
+  &lt;\eqnarray*&gt;
+    &lt;tformat|&lt;table|&lt;row|&lt;cell|&lt;around*|(|&lt;with|font-series|bold|a&gt;-&lt;with|font-series|bold|b&gt;|)&gt;&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|{|&lt;around*|(|\beta_{1&gt;+\&lt;varepsilon\&gt;_{i
+    1&gt;|)&gt;-&lt;around*|(|\beta_{2&gt;+\&lt;varepsilon\&gt;_{i
+    2&gt;|)&gt;|}&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|{|\beta_{1&gt;-\beta_{2&gt;+\&lt;varepsilon\&gt;_{i
+    1&gt;-\&lt;varepsilon\&gt;_{i 2&gt;|}&gt;&gt;&gt;|&lt;row|&lt;cell|&lt;around*|(|&lt;with|font-series|bold|a&gt;-&lt;with|font-series|bold|b&gt;|)&gt;&lt;rsup|&lt;rprime|'&gt;&gt;&lt;around*|(|&lt;with|font-series|bold|a&gt;-&lt;with|font-series|bold|b&gt;|)&gt;&gt;|&lt;cell|=&gt;|&lt;cell|n&lt;around*|(|\beta_{1&gt;-\beta_{2&gt;|)&gt;&lt;rsup|2&gt;&gt;&gt;&gt;&gt;
+  &lt;/eqnarray*&gt;
+
+  &lt;\eqnarray*&gt;
+    &lt;tformat|&lt;table|&lt;row|&lt;cell|&lt;around*|\&lt;\|\|\&gt;|T_{1&gt;-T_{2&gt;|\&lt;\|\|\&gt;&gt;&gt;|&lt;cell|=&gt;|&lt;cell|&lt;sqrt|&lt;big|sum&gt;&lt;around*|{|&lt;around*|(|t_{1
+    1&gt;-t_{1 2&gt;|)&gt;&lt;rsup|2&gt;,&lt;around*|(|t_{2 1&gt;-t_{2
+    2&gt;|)&gt;&lt;rsup|2&gt;\&lt;nocomma\&gt;,\&lt;ldots\&gt; ,&lt;around*|(|t_{m 1&gt;-t_{m
+    2&gt;|)&gt;&lt;rsup|2&gt;|}&gt;&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|{|&lt;around*|[|&lt;around*|(|\mu+\alpha_{1&gt;+\beta_{1&gt;+&lt;around*|(|\alpha\beta|)&gt;_{1
+    1&gt;|)&gt;-&lt;around*|(|\mu+\alpha_{1&gt;+\beta_{2&gt;+&lt;around*|(|\alpha\beta|)&gt;_{1
+    2&gt;|)&gt;|]&gt;, &lt;around*|[|&lt;around*|(|\mu+\alpha_{2&gt;+\beta_{1&gt;+&lt;around*|(|\alpha\beta|)&gt;_{2
+    1&gt;|)&gt;-&lt;around*|(|\mu+\alpha_{2&gt;+\beta_{2&gt;+&lt;around*|(|\alpha\beta|)&gt;_{2
+    2&gt;|)&gt;|]&gt;,\&lt;ldots\&gt; ,&lt;around*|(|\mu+\alpha_{2m&gt;+\beta_{1&gt;+&lt;around*|(|\alpha\beta|)&gt;_{m
+    1&gt;|)&gt;-&lt;around*|(|\mu+\alpha_{m&gt;+\beta_{2&gt;+&lt;around*|(|\alpha\beta|)&gt;_{m
+    2&gt;|)&gt;|}&gt;&lt;rsup|1/2&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|{|&lt;around*|(|\mu+\alpha_{1&gt;+\beta_{1&gt;+0|)&gt;-&lt;around*|(|\mu+\alpha_{1&gt;+\beta_{2&gt;+0|)&gt;,
+    &lt;around*|(|\mu+\alpha_{2&gt;+\beta_{1&gt;+0|)&gt;-&lt;around*|(|\mu+\alpha_{2&gt;+\beta_{2&gt;+0|)&gt;,\&lt;ldots\&gt;
+    ,&lt;around*|(|\mu+\alpha_{m&gt;+\beta_{1&gt;+0|)&gt;-&lt;around*|(|\mu+\alpha_{m&gt;+\beta_{2&gt;+0|)&gt;|}&gt;&lt;rsup|1/2&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;sqrt|&lt;around*|{|&lt;around*|(|\beta_{1&gt;-\beta_{2&gt;|)&gt;,
+    &lt;around*|(|\beta_{1&gt;-\beta_{2&gt;|)&gt;,\&lt;ldots\&gt;
+    ,&lt;around*|(|\beta_{1&gt;-\beta_{2&gt;|)&gt;|}&gt;&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;sqrt|m&lt;around*|(|\beta_{1&gt;-\beta_{2&gt;|)&gt;&lt;rsup|2&gt;&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;sqrt|m&gt;&lt;sqrt|&lt;around*|(|\beta_{1&gt;-\beta_{2&gt;|)&gt;&lt;rsup|2&gt;&gt;&gt;&gt;&gt;&gt;
+  &lt;/eqnarray*&gt;
+
+  &lt;\eqnarray*&gt;
+    &lt;tformat|&lt;table|&lt;row|&lt;cell|&lt;around*|\&lt;\|\|\&gt;|T_{1&gt;-T_{2&gt;|\&lt;\|\|\&gt;&gt;&gt;|&lt;cell|=&gt;|&lt;cell|&lt;sqrt|&lt;big|sum&gt;&lt;around*|{|&lt;around*|(|t_{1
+    1&gt;-t_{1 2&gt;|)&gt;&lt;rsup|2&gt;,&lt;around*|(|t_{2 1&gt;-t_{2
+    2&gt;|)&gt;&lt;rsup|2&gt;\&lt;nocomma\&gt;,\&lt;ldots\&gt; ,&lt;around*|(|t_{m 1&gt;-t_{m
+    2&gt;|)&gt;&lt;rsup|2&gt;|}&gt;&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|{|&lt;around*|[|&lt;around*|(|\mu+\alpha_{1&gt;+\beta_{1&gt;+&lt;around*|(|\alpha\beta|)&gt;_{1
+    1&gt;|)&gt;-&lt;around*|(|\mu+\alpha_{1&gt;+\beta_{2&gt;+&lt;around*|(|\alpha\beta|)&gt;_{1
+    2&gt;|)&gt;|]&gt;, &lt;around*|[|&lt;around*|(|\mu+\alpha_{2&gt;+\beta_{1&gt;+&lt;around*|(|\alpha\beta|)&gt;_{2
+    1&gt;|)&gt;-&lt;around*|(|\mu+\alpha_{2&gt;+\beta_{2&gt;+&lt;around*|(|\alpha\beta|)&gt;_{2
+    2&gt;|)&gt;|]&gt;,\&lt;ldots\&gt; ,&lt;around*|(|\mu+\alpha_{2m&gt;+\beta_{1&gt;+&lt;around*|(|\alpha\beta|)&gt;_{m
+    1&gt;|)&gt;-&lt;around*|(|\mu+\alpha_{m&gt;+\beta_{2&gt;+&lt;around*|(|\alpha\beta|)&gt;_{m
+    2&gt;|)&gt;|}&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|{|&lt;around*|(|&lt;around*|(|\beta_{1&gt;+&lt;around*|(|\alpha\beta|)&gt;_{1
+    1&gt;|)&gt;-&lt;around*|(|\beta_{2&gt;+&lt;around*|(|\alpha\beta|)&gt;_{1
+    2&gt;|)&gt;|)&gt;, &lt;around*|(|&lt;around*|(|\beta_{1&gt;+&lt;around*|(|\alpha\beta|)&gt;_{2
+    1&gt;|)&gt;-&lt;around*|(|\beta_{2&gt;+&lt;around*|(|\alpha\beta|)&gt;_{2
+    2&gt;|)&gt;|)&gt;,\&lt;ldots\&gt; ,&lt;around*|(|&lt;around*|(|\beta_{1&gt;+&lt;around*|(|\alpha\beta|)&gt;_{m
+    1&gt;|)&gt;-&lt;around*|(|\beta_{2&gt;+&lt;around*|(|\alpha\beta|)&gt;_{m
+    2&gt;|)&gt;|)&gt;|}&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|{|&lt;around*|(|&lt;around*|(|\beta_{1&gt;-\beta_{2&gt;|)&gt;+&lt;around*|(|&lt;around*|(|\alpha\beta|)&gt;_{1
+    1&gt;-&lt;around*|(|\alpha\beta|)&gt;_{1 2&gt;|)&gt;|)&gt;,
+    &lt;around*|(|&lt;around*|(|\beta_{1&gt;-\beta_{2&gt;|)&gt;-&lt;around*|(|&lt;around*|(|\alpha\beta|)&gt;_{2
+    1&gt;-&lt;around*|(|\alpha\beta|)&gt;_{2 2&gt;|)&gt;|)&gt;,\&lt;ldots\&gt;
+    ,&lt;around*|(|&lt;around*|(|\beta_{1&gt;-\beta_{2&gt;|)&gt;-&lt;around*|(|&lt;around*|(|\alpha\beta|)&gt;_{m
+    1&gt;-&lt;around*|(|\alpha\beta|)&gt;_{m
+    2&gt;|)&gt;|)&gt;|}&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&gt;&gt;&gt;&gt;
+  &lt;/eqnarray*&gt;
+
+  &lt;\eqnarray*&gt;
+    &lt;tformat|&lt;table|&lt;row|&lt;cell|&lt;around*|\&lt;\|\|\&gt;|y_{1\&lt;bullet\&gt;&gt;-y_{2\&lt;bullet\&gt;&gt;|\&lt;\|\|\&gt;&gt;&gt;|&lt;cell|=&gt;|&lt;cell|&lt;sqrt|&lt;big|sum&gt;&lt;around*|(|y_{1i&gt;-y_{2i&gt;|)&gt;&lt;rsup|2&gt;&gt;&gt;&gt;|&lt;row|&lt;cell|y_{1\&lt;bullet\&gt;&gt;-y_{2\&lt;bullet\&gt;&gt;&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|(|y_{11&gt;,y_{12&gt;,y_{13&gt;|)&gt;-&lt;around*|(|y_{21&gt;,y_{22&gt;,y_{33&gt;|)&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|(|\mu+\alpha_{1&gt;+\beta_{1&gt;+\&lt;phi\&gt;_{11&gt;,\mu+\alpha_{1&gt;+\beta_{2&gt;+\&lt;phi\&gt;_{12&gt;,\mu+\alpha_{1&gt;+\beta_{3&gt;+\&lt;phi\&gt;_{13&gt;|)&gt;-&lt;around*|(|\mu+\alpha_{2&gt;+\beta_{1&gt;+\&lt;phi\&gt;_{21&gt;,\mu+\alpha_{2&gt;+\beta_{2&gt;+\&lt;phi\&gt;_{22&gt;,\mu+\alpha_{2&gt;+\beta_{3&gt;+\&lt;phi\&gt;_{23&gt;|)&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|(|\alpha_{1&gt;+\&lt;phi\&gt;_{11&gt;-\alpha_{2&gt;-\&lt;phi\&gt;_{21&gt;,\alpha_{1&gt;+\&lt;phi\&gt;_{12&gt;-\alpha_{2&gt;-\&lt;phi\&gt;_{22&gt;,\alpha_{1&gt;+\&lt;phi\&gt;_{13&gt;-\alpha_{2&gt;-\&lt;phi\&gt;_{23&gt;|)&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|(|&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+&lt;around*|(|\&lt;phi\&gt;_{11&gt;-\&lt;phi\&gt;_{21&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+&lt;around*|(|\&lt;phi\&gt;_{12&gt;-\&lt;phi\&gt;_{22&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+&lt;around*|(|\&lt;phi\&gt;_{13&gt;-\&lt;phi\&gt;_{23&gt;|)&gt;|)&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|&gt;|&lt;cell|no
+    interaction&gt;&gt;|&lt;row|&lt;cell|y_{1\&lt;bullet\&gt;&gt;-y_{2\&lt;bullet\&gt;&gt;&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|(|&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;|)&gt;&gt;&gt;|&lt;row|&lt;cell|H_{0&gt;=&lt;around*|\&lt;\|\|\&gt;|y_{1\&lt;bullet\&gt;&gt;-y_{2\&lt;bullet\&gt;&gt;|\&lt;\|\|\&gt;&gt;&lt;rsup|2&gt;&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|(|&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;|)&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|&gt;|&lt;cell|simple
+    nonadditivity&gt;&gt;|&lt;row|&lt;cell|y_{1\&lt;bullet\&gt;&gt;-y_{2\&lt;bullet\&gt;&gt;&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|(|&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+&lt;around*|(|\lambda\alpha_{1&gt;_{&gt;\beta_{1&gt;-\lambda\alpha_{2&gt;_{&gt;\beta_{1&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+&lt;around*|(|\lambda\alpha_{1&gt;_{&gt;\beta_{2&gt;-\lambda\alpha_{2&gt;_{&gt;\beta_{2&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+&lt;around*|(|\lambda\alpha_{1&gt;_{&gt;\beta_{3&gt;-\lambda\alpha_{2&gt;_{&gt;\beta_{3&gt;|)&gt;|)&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|&gt;|&lt;cell|&lt;around*|(|&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+\lambda\beta_{1&gt;&lt;around*|(|\alpha_{1&gt;_{&gt;-\alpha_{2&gt;_{&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+\lambda\beta_{2&gt;&lt;around*|(|\alpha_{1&gt;_{&gt;-\alpha_{2&gt;_{&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+\lambda\beta_{3&gt;&lt;around*|(|\alpha_{1&gt;_{&gt;-\alpha_{2&gt;_{&gt;|)&gt;|)&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|&gt;|&lt;cell|&lt;around*|(|&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;&lt;around*|(|1+\lambda\beta_{1&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;&lt;around*|(|1+\lambda\beta_{2&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;&lt;around*|(|1+\lambda\beta_{3&gt;|)&gt;|)&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|&gt;|&lt;cell|if
+    \lambda=0,&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|&gt;|&lt;cell|&lt;around*|(|&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;&lt;around*|(|1|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;&lt;around*|(|1|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;&lt;around*|(|1|)&gt;|)&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|&gt;|&lt;cell|&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|&gt;|&lt;cell|heterogenous
+    slopes&gt;&gt;|&lt;row|&lt;cell|y_{1\&lt;bullet\&gt;&gt;-y_{2\&lt;bullet\&gt;&gt;&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|(|&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+&lt;around*|(|\lambda_{1&gt;_{&gt;\beta_{1&gt;-\lambda_{2&gt;_{&gt;\beta_{1&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+&lt;around*|(|\lambda_{1&gt;_{&gt;\beta_{2&gt;-\lambda_{2&gt;_{&gt;\beta_{2&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+&lt;around*|(|\lambda_{1&gt;_{&gt;\beta_{3&gt;-\lambda_{2&gt;_{&gt;\beta_{3&gt;|)&gt;|)&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|&gt;|&lt;cell|&lt;around*|(|&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+\beta_{1&gt;&lt;around*|(|\lambda_{1&gt;_{&gt;-\lambda_{2&gt;_{&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+\beta_{2&gt;&lt;around*|(|\lambda_{1&gt;_{&gt;-\lambda_{2&gt;_{&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;+\beta_{3&gt;&lt;around*|(|\lambda_{1&gt;_{&gt;-\lambda_{2&gt;_{&gt;|)&gt;|)&gt;&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|&gt;|&lt;cell|if
+    \lambda_{1&gt;_{&gt;-\lambda_{2&gt;\&lt;nocomma\&gt;,\&lt;nocomma\&gt;\&lt;nocomma\&gt;then&gt;&gt;|&lt;row|&lt;cell|&gt;|&lt;cell|=&gt;|&lt;cell|&lt;around*|(|&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;,&lt;around*|(|\alpha_{1&gt;-\alpha_{2&gt;|)&gt;|)&gt;&gt;&gt;&gt;&gt;
+  &lt;/eqnarray*&gt;
+
+  Corsten 1990 - simultaneous clustering of genotypes and environments
+
+vargas_2001
+</Text>
+        </Document>
+        <Document ID="9">
+            <Title>Figure Captions</Title>
+        </Document>
+    </Documents>
+</SearchIndexes>
