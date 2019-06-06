@@ -1,0 +1,773 @@
+---
+title: "What Do We Mean When We Say 'p'"
+author: "Peter Claussen"
+date: "5/27/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Abstract
+
+The American Statistical Assocation released a position statement on the use of p-values in 2016, generally cautioning against the use of p-values. In 2019, the (other) ASA published as special issue, headlined by the editorial "Moving to a World Beyond 'p<0.05'".
+
+In that context, we review Fisher's commentary on the meaning and use of probability, with regard to the interpretation of the null hypothesis in the context of on farm trials. How do Fisher's thoughts on statistical inference translate from small-plot experiments to large data-driven participatory trials, in a post p-value world? How does the introduction of spatial modeling change our understanding of p-value, when moving from small-plot to on farm trials?
+
+```{r}
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+```
+
+
+
+# East Quarter
+
+```{r}
+load(file="../../2017/Workshop/Case Study 2/Strips.Rda")
+```
+
+```{r,fig.width=8,fig.height=4, EastQuarterProduct}
+ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Product),size=2) + 
+scale_colour_manual(values=cbPalette) +
+labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+```
+
+```{r}
+
+#EastQuarter.dat$ObjId <- as.numeric(as.character(EastQuarter.dat$ObjId))
+#EastQuarter.dat <- EastQuarter.dat[!is.na(EastQuarter.dat$ObjId),]
+#EastQuarter.dat$Pass <- 1
+#Pass <- 1
+#for(i in 2:dim(EastQuarter.dat)[1]) {
+#  if(EastQuarter.dat$ObjId[i] > (EastQuarter.dat$ObjId[i-1]+2)) {
+#    Pass <- Pass + 1
+#  }
+#  EastQuarter.dat$Pass[i] <- Pass
+#}
+#EastQuarter.dat$Pass <- as.factor(EastQuarter.dat$Pass)
+#levels(EastQuarter.dat$Pass)
+
+EastQuarter.dat$Pass <- floor(EastQuarter.dat$Northing/6)+1
+EastQuarter.dat$Pair <- floor((EastQuarter.dat$Pass+1)/2)
+EastQuarter.dat$Direction <- "Easterly"
+EastQuarter.dat$Direction[EastQuarter.dat$Heading>100] <- "Westerly"
+EastQuarter.dat$Direction <- as.factor(EastQuarter.dat$Direction)
+
+#EastQuarter.dat$Pass[EastQuarter.dat$Heading>100] <- EastQuarter.dat$Pass[EastQuarter.dat$Heading>100] + 400
+EastQuarter.dat$PassNo <- EastQuarter.dat$Pass
+
+EastQuarter.dat$Block <- ceiling(EastQuarter.dat$Pair/2)
+EastQuarter.dat$Strip <- EastQuarter.dat$Pair %/% EastQuarter.dat$Block
+EastQuarter.dat$Block <- as.factor(EastQuarter.dat$Block)
+EastQuarter.dat$Pass <- as.factor(EastQuarter.dat$Pass)
+EastQuarter.dat$Pair <- as.factor(EastQuarter.dat$Pair)
+EastQuarter.dat$Strip <- as.factor(EastQuarter.dat$Strip)
+
+```
+
+
+
+
+```{r,fig.width=8,fig.height=4, EastQuarterPass}
+ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Pass),size=2) + 
+#scale_colour_manual(values=cbPalette) +
+labs(colour = "Pass", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+```
+
+
+```{r,fig.width=8,fig.height=4, EastQuarterPair}
+ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Pair),size=2) + 
+#scale_colour_manual(values=cbPalette) +
+labs(colour = "Pair", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+```
+
+```{r,fig.width=8,fig.height=4, EastQuarterDirection}
+ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Direction),size=2) + 
+#scale_colour_manual(values=cbPalette) +
+labs(colour = "Direction", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+```
+
+```{r,fig.width=8,fig.height=4, EastQuarterBlock}
+ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Block),size=2) + 
+#scale_colour_manual(values=cbPalette) +
+labs(colour = "Block", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+```
+
+```{r,fig.width=8,fig.height=4, EastQuarterStrip}
+ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Strip),size=2) + 
+#scale_colour_manual(values=cbPalette) +
+labs(colour = "Strip", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+```
+
+# One dimensional analysis
+
+Strips as experimental units
+
+```{r}
+means.dat <- with(EastQuarter.dat, data.frame(
+  Pass = aggregate(Yield ~ Pass,EastQuarter.dat,mean,na.rm=TRUE)[,1],
+  Yield = aggregate(Yield ~ Pass,EastQuarter.dat,mean,na.rm=TRUE)[,2],
+  Product = aggregate(as.numeric(Product) ~ Pass,EastQuarter.dat,mean,na.rm=TRUE)[,2],
+  Northing = aggregate(Northing ~ Pass,EastQuarter.dat,mean,na.rm=TRUE)[,2]
+))
+means.dat
+means.dat$Product <- levels(EastQuarter.dat$Product)[means.dat$Product]
+```
+
+```{r}
+ggplot(EastQuarter.dat, aes(x=Northing, y=Yield)) + 
+geom_boxplot(aes(group=Pass,color=Product)) + geom_jitter(width = 0.2,size=0.2) +
+scale_colour_manual(values=cbPalette) +
+labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+```
+
+
+
+```{r}
+ggplot(means.dat, aes(x=Northing, y=Yield, color=Product,fill=Product)) +
+  geom_bar(stat="identity") + scale_colour_manual(values=cbPalette) + scale_fill_manual(values=cbPalette)
+```
+
+```{r}
+ggplot(EastQuarter.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette) + stat_smooth(method=lm, formula = y ~ 1, aes(group=Product, colour = Product),se=FALSE) +
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter")
+```
+
+```{r}
+ggplot(EastQuarter.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette) + stat_smooth(aes(group=Product,colour = Product)) +
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter")
+```
+
+
+
+
+
+```{r}
+#levels(as.factor(EastQuarter.dat$Swath))
+```
+
+```{r}
+ggplot(EastQuarter.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette) + stat_smooth(method=lm, formula = y ~ 1, aes(group=Pass, colour = Product),se=FALSE) +
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter")
+```
+
+```{r}
+ggplot(EastQuarter.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette) + stat_smooth(method=lm, formula = y ~ 1, aes(group=Pair, colour = Product),se=FALSE) +
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter")
+```
+
+```{r}
+ggplot(EastQuarter.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette) + stat_smooth(aes(group=Pass, colour = Product),se=FALSE) +
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter")
+```
+
+## Smoothing
+
+Assume that most error is sampling error, so we produce LOESS smoothed curves.
+```{r}
+Travel <- abs(EastQuarter.dat$Easting[2:dim(EastQuarter.dat)[1]] - EastQuarter.dat$Easting[1:(dim(EastQuarter.dat)[1]-1)])
+hist(Travel)
+Travel <- Travel[Travel<5]
+hist(Travel)
+mean(Travel)
+```
+
+Create a data frame of passes, one observation for every 2 meters, excluding ends
+```{r}
+LOESS.basis <- rep(seq(2,398,by=2))
+total.passes <- max(EastQuarter.dat$PassNo)
+Smoothed.dat <- data.frame(
+  Yield = rep(0,total.passes*length(LOESS.basis)),
+  Easting = rep(LOESS.basis,total.passes),
+  PassNo = rep(1:total.passes,each=length(LOESS.basis)),
+  Pair = rep(0,total.passes*length(LOESS.basis)),
+  Product = rep(levels(EastQuarter.dat$Product),total.passes*length(LOESS.basis)/2),
+  Northing = rep(0,total.passes*length(LOESS.basis))
+)
+#for(i in 1:max(EastQuarter.dat$PassNo)) {
+for(i in 1:total.passes) {
+  current.pass <- EastQuarter.dat[EastQuarter.dat$PassNo==i,]
+  current.loess <- loess(Yield ~ Easting,data=current.pass)
+  current.smoothed <- predict(current.loess, data.frame(Easting = LOESS.basis))
+  Smoothed.dat$Yield[Smoothed.dat$PassNo==i] <- current.smoothed
+  Smoothed.dat$Pair[Smoothed.dat$PassNo==i] <- current.pass$Pair[1]
+  Smoothed.dat$Product[Smoothed.dat$PassNo==i] <- current.pass$Product[1]
+  Smoothed.dat$Northing[Smoothed.dat$PassNo==i] <- mean(current.pass$Northing)
+}
+Smoothed.dat$Pass <- as.factor(Smoothed.dat$PassNo)
+```
+```{r}
+ggplot(Smoothed.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette) + 
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter") +
+  ylim(125, 275)
+```
+
+
+```{r}
+ggplot(EastQuarter.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Product),size=.2) + 
+scale_colour_manual(values=cbPalette) + stat_smooth(aes(group=Pair, colour = Product)) +
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter")
+```
+
+
+```{r}
+ggplot(Smoothed.dat, aes(Easting,Yield)) + 
+#geom_point(aes(colour = Product),size=.1) + 
+scale_colour_manual(values=cbPalette) + stat_smooth(aes(group=Pair, colour = Product)) +
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter") +
+  ylim(125, 275)
+```
+
+
+```{r}
+#head(EastQuarter.dat)
+```
+
+
+# Permutations
+Possible combinations of pairs
+$$
+\frac{14!}{7!(14!-7!)}
+$$
+Lady tasting tea example:
+```{r}
+fac8 <- factorial(8)
+fac4 <- factorial(4)
+fac8/(fac4*fac4)
+```
+
+Note that
+```{r}
+2/70
+```
+
+```{r}
+fac12 <- factorial(12)
+fac6 <- factorial(6)
+
+fac12/(fac6*fac6)
+```
+
+Note the relationship between rank sum permutations
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3111167/pdf/bjc2011157a.pdf
+
+Iterating over each possible combination, 000000 111111 to 111111 000000
+
+000000 111111
+000001 011111
+000010 011111
+000100 011111
+
+Modified from 
+```{r}
+binary <- function(x,digits=32) {
+  i <- 0
+  string <- rep(0,digits)
+  while(x > 0) {
+    string[digits - i] <- x %% 2
+    x <- x %/% 2
+    i <- i + 1 
+  }
+  string
+}
+```
+
+
+```{r}
+permutations <- fac12/(fac6*fac6)
+randomizations <- matrix(0,nrow=permutations,ncol=12)
+idx <- 1
+for(i in 1:(2^12)) {
+  trts <- binary(i,12)
+  if(sum(trts) == 6) {
+    randomizations[idx,] <- trts
+    idx <- idx+1
+  }
+}
+head(randomizations)
+tail(randomizations)
+```
+
+```{r}
+pair.means <- tapply(EastQuarter.dat$Yield,list(EastQuarter.dat$Pair),mean,na.rm=TRUE)
+Strip <- 1:12
+Product <- rep(c(1,0), 6)
+summary(lm(pair.means ~ Strip))
+
+#product.means <- tapply(EastQuarter.dat$Yield,list(EastQuarter.dat$Product),mean,na.rm=TRUE)
+product.means <- tapply(pair.means,list(Product),mean,na.rm=TRUE)
+product.means
+product.sd <- tapply(pair.means,list(Product),sd,na.rm=TRUE)
+product.sd
+mean(pair.means)
+sd(pair.means)
+
+product.diff <- product.means[1]-product.means[2]
+product.diff
+```
+
+
+Rememer that our $t$ statistic is
+
+$$
+t = \frac{\bar{y}_1 - \bar{y}_2}{\sigma / \sqrt{n}}
+$$
+
+With two sd, we can write
+
+$$
+t = \frac{\bar{y}_1 - \bar{y}_2}{\sqrt{\sigma^2_1/n_1 + \sigma^2_2/n_2}}
+$$
+
+```{r}
+product.diff / sqrt(sum(product.sd^2/6))
+```
+
+```{r}
+summary(aov(pair.means ~ as.factor(Product)))
+qt(1-0.05/2,10)
+```
+
+```{r}
+2*(1-pt(product.diff / sqrt(sum(product.sd^2/6)),10))
+```
+
+```{r}
+diffs <- rep(0,permutations)
+
+for(i in 1:permutations) {
+  means <- tapply(pair.means,list(randomizations[i,]), mean)
+  diffs[i] <- means[1] - means[2]
+}
+hist(diffs,breaks=30)
+abline(v=product.diff,col='red')
+sum(diffs>product.diff)
+sum(diffs>product.diff)/length(diffs)
+which.max(diffs)
+product.diff
+diffs[which.max(diffs)]
+```
+
+
+
+## Permuations by position
+
+```{r}
+Prob <- data.frame(
+  Easting = LOESS.basis
+)
+Prob$P <- 1
+Prob$Max <- 0
+Prob$Diff <- 0
+Prob$SD <- 0
+Prob$SE <- 0
+for(i in 1:length(LOESS.basis)) {
+  l <- LOESS.basis[i]
+  obs <- Smoothed.dat[Smoothed.dat$Easting==l,]
+  pair.means <- tapply(obs$Yield,list(obs$Pair),mean,na.rm=TRUE)
+  product.means <- tapply(obs$Yield,list(obs$Product),mean,na.rm=TRUE)
+  product.sd <- tapply(obs$Yield,list(obs$Product),sd,na.rm=TRUE)
+  product.diff <- product.means[1]-product.means[2]
+  Prob$Diff[i] <- product.diff
+  diffs <- rep(0,permutations)
+
+  for(j in 1:permutations) {
+    means <- tapply(pair.means,list(randomizations[j,]), mean)
+    diffs[j] <- means[1] - means[2]
+  }
+  Prob$P[i] <- 2*sum(diffs>product.diff)/length(diffs)
+  Prob$Max[i] <- which.max(diffs)
+  #Prob$SD[i] <- sd(pair.means)
+  #pooled SD
+  Prob$SD[i] <- sqrt(sum(product.sd^2)/2)
+  Prob$SE[i] <- sqrt(sum(product.sd^2/6))
+}
+```
+
+```{r}
+ggplot(Smoothed.dat, aes(Easting,Yield)) + 
+#geom_point(aes(colour = Product),size=.1) + 
+scale_colour_manual(values=cbPalette) + stat_smooth(aes(group=Pair, colour = Product)) +
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter") #+ylim(125, 275)
+```
+
+
+
+```{r,fig.width=8,fig.height=8}
+#Prob$Z <- Prob$Diff/(Prob$SE/sqrt(6))
+Prob$Z <- Prob$Diff/Prob$SE
+Prob$PZ <- 2*(1-pt(Prob$Z,10))
+par(mfrow=c(2,2))
+plot(Diff ~ Easting,data=Prob,type='l',main='Treatment Differences')
+plot(P ~ Easting,data=Prob,type='l',main='Probability')
+lines(PZ ~ Easting,data=Prob,type='l',col='blue')
+abline(h=0.05,col='red')
+plot(SD ~ Easting,data=Prob,type='l',main='Standard Deviation')
+plot(Z ~ Easting,data=Prob,type='l',main='t Value')
+abline(h=qt(1-0.05/2,10),col='blue')
+```
+
+```{r}
+
+```
+
+```{r,fig.width=6,fig.height=9}
+par(mfrow=c(3,1))
+plot(P ~ SD,data=Prob)
+plot(P ~ Diff,data=Prob)
+plot(P ~ Z,data=Prob)
+abline(h=0.05,col='red')
+abline(v=qt(1-0.05/2,10),col='blue')
+plot(P ~ PZ,data=Prob)
+```
+
+
+
+### From ISA
+
+```{r}
+Yield <- c(44.8,48.6,51.8,46.9,46.4,47.9,53.9,52.8,60.9,57.9,60.9,58.1)
+Treatment <- c('Untreated','Priaxor','Priaxor','Untreated','Priaxor','Untreated','Priaxor','Untreated','Priaxor','Untreated','Priaxor','Untreated')
+Strip <- 1:12
+Pair <- as.factor(ceiling(Strip/2))
+summary(lm(Yield ~ Strip))
+```
+
+using the lm permutation library
+```{r}
+library(lmPerm)
+summary(aovp(Yield ~ Treatment))
+summary(aovp(Yield ~ Treatment + Pair))
+summary(aovp(Yield ~ Treatment + Pair,perm="Exact"))
+```
+
+We start using the same randomizations as our previous example - this assumes that any strip in the field could have been either untreated or Priaxor treated.
+
+```{r}
+product.means <- tapply(Yield,list(Treatment),mean,na.rm=TRUE)
+product.diff <- product.means[1]-product.means[2]
+permutations <- dim(randomizations)[1]
+diffs <- rep(0,permutations)
+
+for(i in 1:permutations) {
+  means <- tapply(Yield,list(randomizations[i,]), mean)
+  diffs[i] <- means[1] - means[2]
+}
+hist(diffs,breaks=32)
+abline(v=product.diff,col='red')
+sum(diffs>product.diff)
+sum(diffs>product.diff)/length(diffs)
+which.max(diffs)
+product.diff
+diffs[which.max(diffs)]
+```
+
+In the event, strips were randomized in pairs. Thus, we have $2^n = 2^6 = 64$ possible randomizations. We recompute by
+
+```{r}
+randomizations <- matrix(0,nrow=64,ncol=12)
+pair.trt <- matrix(c(0,1,1,0),nrow=2)
+idx <- binary(3,6)
+as.vector(t(pair.trt[idx+1,]))
+for(i in 1:64) {
+  idx <- binary(i-1,6)
+  randomizations[i,] <- as.vector(t(pair.trt[idx+1,]))
+}
+colSums(randomizations)
+rowSums(randomizations)
+```
+
+```{r}
+product.means <- tapply(Yield,list(Treatment),mean,na.rm=TRUE)
+product.diff <- product.means[1]-product.means[2]
+permutations <- dim(randomizations)[1]
+diffs <- rep(0,permutations)
+
+for(i in 1:permutations) {
+  means <- tapply(Yield,list(randomizations[i,]), mean)
+  diffs[i] <- means[1] - means[2]
+}
+hist(diffs,breaks=32)
+abline(v=product.diff,col='red')
+sum(diffs>product.diff)
+sum(diffs>product.diff)/length(diffs)
+which.max(diffs)
+product.diff
+diffs[which.max(diffs)]
+```
+
+
+
+```{r}
+Prob <- data.frame(
+  Easting = LOESS.basis
+)
+Prob$P <- 1
+Prob$Max <- 0
+for(i in 1:length(LOESS.basis)) {
+  l <- LOESS.basis[i]
+  obs <- Smoothed.dat[Smoothed.dat$Easting==l,]
+  pair.means <- tapply(obs$Yield,list(obs$Pair),mean,na.rm=TRUE)
+  product.means <- tapply(obs$Yield,list(obs$Product),mean,na.rm=TRUE)
+  product.diff <- product.means[1]-product.means[2]
+  diffs <- rep(0,permutations)
+
+  for(j in 1:permutations) {
+    means <- tapply(pair.means,list(randomizations[j,]), mean)
+    diffs[j] <- means[1] - means[2]
+  }
+  sum(diffs>=product.diff)
+  Prob$P[i] <- 2*sum(diffs>=product.diff)/length(diffs)
+  Prob$Max[i] <- which.max(diffs)
+}
+
+plot(P ~ Easting,data=Prob)
+abline(h=0.05,col='red')
+```
+
+
+# Functional
+
+Create a matrix of passes, 1 row per second
+
+```{r}
+pass.length <- tapply(EastQuarter.dat$Yield, list(EastQuarter.dat$Pass),length)
+pass.length
+time.points <- max(pass.length)
+time.points
+pass.mat <- matrix(NA,nrow=time.points,ncol=max(EastQuarter.dat$PassNo))
+for(i in 1:max(EastQuarter.dat$PassNo)) {
+  current.pass <- EastQuarter.dat[EastQuarter.dat$PassNo==i,]
+  direction <- order(current.pass$Easting)
+  pass.mat[1:dim(current.pass)[1],i] <- t(current.pass$Yield[direction])
+}
+```
+
+First, we need to create a set of functions.  How many observations per pass?
+
+```{r}
+
+library(fda)
+time <- 1:time.points
+test.mat <- pass.mat[1:min(pass.length),1:12]
+#passes.fda <- smooth.basisPar(argvals=time, y=pass.mat, lambda=1)
+```
+
+```{r}
+passes.fda <- smooth.basisPar(argvals=1:min(pass.length), y=test.mat, lambda=4)
+summary(passes.fda)
+plot(passes.fda$fd, xlab="time", ylab="Yield",  main="Passes" )
+passes.fda <- smooth.basisPar(argvals=1:min(pass.length), y=test.mat, lambda=40)
+summary(passes.fda)
+plot(passes.fda$fd, xlab="time", ylab="Yield",  main="Passes" )
+passes.fda <- smooth.basisPar(argvals=1:min(pass.length), y=test.mat, lambda=400)
+summary(passes.fda)
+plot(passes.fda$fd, xlab="time", ylab="Yield",  main="Passes" )
+passes.fda <- smooth.basisPar(argvals=1:min(pass.length), y=test.mat, lambda=4000)
+summary(passes.fda)
+plot(passes.fda$fd, xlab="time", ylab="Yield",  main="Passes" )
+```
+
+
+```{r}
+
+summary(aov(Yield ~ Product + Block+Pair+Pass,data= EastQuarter.dat))
+library(nlme)
+summary(lme(Yield ~ Product + Block, random = ~ 1 | Pass,data= EastQuarter.dat))
+summary(lme(Yield ~ Product*Block, random = ~ 1 | Pass,data= EastQuarter.dat))
+anova(lme(Yield ~ Product*Block, random = ~ 1 | Pass,data= EastQuarter.dat))
+
+summary(lme(Yield ~ Product, random = ~ 1 | Block/Pair/Pass,data= EastQuarter.dat))
+anova(lme(Yield ~ Product, random = ~ 1 | Block/Pair/Pass,data= EastQuarter.dat))
+
+summary(aov(Yield ~ Block+Product + Error(Product:Block), data= EastQuarter.dat))
+```
+
+# Paired vs unpaired tests
+https://en.wikipedia.org/wiki/Paired_difference_test
+
+
+# Planning
+
+Suppose we have a field where we might test strips, and that we have yield monitor data.
+
+```{r}
+load(file="../../2017/Workshop/Case Study 1/Pooled.Rda")
+```
+
+Corn2013.dat,Corn2015.dat,Soybean2014.dat,Soybean2016.dat
+
+Trim between 50 and 350 
+```{r}
+uniformity.dat <- subset(Soybean2016.dat,Soybean2016.dat$Easting>50)
+uniformity.dat <- subset(uniformity.dat,uniformity.dat$Easting<350)
+uniformity.dat$Gap <- c(0,uniformity.dat$Seconds[2:dim(uniformity.dat)[1]] -uniformity.dat$Seconds[1:(dim(uniformity.dat)[1]-1)])
+hist(uniformity.dat$Gap)
+uniformity.dat$PassNo <- 0
+Pass <- 1
+head(uniformity.dat)
+for(i in 1:dim(uniformity.dat)[1]) {
+  if(uniformity.dat$Gap[i]>5) {
+    Pass <- Pass+1
+  }
+  uniformity.dat$PassNo[i] <- Pass
+}
+#uniformity.dat$Pass <- as.factor(uniformity.dat$Pass)
+```
+
+
+```{r,fig.width=8,fig.height=4, UniformitySwath}
+ggplot(uniformity.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = as.factor(PassNo)),size=2) + 
+#scale_colour_manual(values=cbPalette) +
+labs(colour = "Swath", x="Longitude (m)", y="Latitude (m)", title = "Uniformity 2016")
+```
+
+```{r}
+uniformity.dat <- uniformity.dat[!(uniformity.dat$PassNo %in% c(2,3,6,8,9,10)),]
+```
+
+```{r,fig.width=8,fig.height=4, UniformitySwathSubset}
+uniformity.dat$Pass <- as.factor(uniformity.dat$Pass)
+ggplot(uniformity.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = as.factor(Pass)),size=2) + 
+#scale_colour_manual(values=cbPalette) +
+labs(colour = "Swath", x="Longitude (m)", y="Latitude (m)", title = "Uniformity 2016")
+```
+
+
+Repeat interpolation from part 1
+
+```{r}
+LOESS.basis <- rep(seq(min(uniformity.dat$Easting),max(uniformity.dat$Easting),by=2))
+total.passes <- length(levels(uniformity.dat$Pass))
+SmoothedU.dat <- data.frame(
+  Yield = rep(0,total.passes*length(LOESS.basis)),
+  Easting = rep(LOESS.basis,total.passes),
+  PassNo = rep(levels(uniformity.dat$Pass),each=length(LOESS.basis)),
+  Northing = rep(0,total.passes*length(LOESS.basis))
+)
+
+for(i in levels(uniformity.dat$Pass)) {
+  current.pass <- uniformity.dat[uniformity.dat$Pass==i,]
+  current.loess <- loess(Yield ~ Easting,data=current.pass)
+  current.smoothed <- predict(current.loess, data.frame(Easting = LOESS.basis))
+  SmoothedU.dat$Yield[SmoothedU.dat$PassNo==i] <- current.smoothed
+  SmoothedU.dat$Northing[SmoothedU.dat$PassNo==i] <- mean(current.pass$Northing)
+}
+SmoothedU.dat$Pass <- as.factor(SmoothedU.dat$PassNo)
+```
+
+```{r}
+ggplot(uniformity.dat,aes(Easting,Yield))+
+  geom_point(aes(colour = Pass),size=.1) +
+  #scale_colour_manual(values=cbPalette)+ 
+  stat_smooth(aes(group=Pass, colour = Pass))+
+  labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "Middle")
+```
+
+```{r}
+ggplot(SmoothedU.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Pass),size=.2) + 
+#scale_colour_manual(values=cbPalette) + 
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "") #+  ylim(125, 275)
+```
+
+```{r}
+Prob <- data.frame(
+  Easting = LOESS.basis
+)
+Prob$SD <- 0
+for(i in 1:length(LOESS.basis)) {
+  l <- LOESS.basis[i]
+  obs <- SmoothedU.dat[SmoothedU.dat$Easting==l,]
+  product.sd <- sd(obs$Yield,na.rm=TRUE)
+  Prob$SD[i] <- product.sd
+}
+Prob$R1 <- Prob$SD^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+Prob$R2 <- (Prob$SD/4)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+Prob$R3 <- (Prob$SD/8)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+```
+
+
+
+
+```{r,fig.width=8,fig.height=8}
+par(mfrow=c(2,1))
+plot(SD ~ Easting, data=Prob)
+plot(R1 ~ Easting, data=Prob,ylim=c(0,50),type='l')
+lines(R2 ~ Easting, data=Prob,col='red')
+lines(R3 ~ Easting, data=Prob,col='blue')
+abline(h=6)
+```
+
+
+
+```{r}
+SmoothedU.dat <- SmoothedU.dat[!(SmoothedU.dat$PassNo %in% c(1,4,19,20)),]
+```
+
+
+```{r}
+ggplot(SmoothedU.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Pass),size=.2) + 
+#scale_colour_manual(values=cbPalette) + 
+labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "") #+  ylim(125, 275)
+```
+
+```{r}
+Prob <- data.frame(
+  Easting = LOESS.basis
+)
+Prob$SD <- 0
+for(i in 1:length(LOESS.basis)) {
+  l <- LOESS.basis[i]
+  obs <- SmoothedU.dat[SmoothedU.dat$Easting==l,]
+  product.sd <- sd(obs$Yield,na.rm=TRUE)
+  Prob$SD[i] <- product.sd
+}
+Prob$R1 <- Prob$SD^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+Prob$R2 <- (Prob$SD/4)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+Prob$R3 <- (Prob$SD/8)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
+```
+
+
+
+
+```{r,fig.width=8,fig.height=8}
+par(mfrow=c(2,1))
+plot(SD ~ Easting, data=Prob)
+plot(R1 ~ Easting, data=Prob,ylim=c(0,20),type='l')
+lines(R2 ~ Easting, data=Prob,col='red')
+lines(R3 ~ Easting, data=Prob,col='blue')
+abline(h=5)
+```
+
+# Two dimensions
+
+
+References:
+Comments on the Neyman–Fisher Controversy and Its Consequences

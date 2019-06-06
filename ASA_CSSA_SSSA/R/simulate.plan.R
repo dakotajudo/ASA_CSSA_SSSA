@@ -12,18 +12,19 @@ simulate.plan <- function(plan,
                           sample.vgm=NULL,
                           spacing=3,
                           model="rcb",
-                          verbose=FALSE) {
+                          verbose=FALSE,
+                          mean=TRUE) {
   
   res.dat = NULL
   
   original.plan = FALSE
   if(is.null(plots)) {
     plots <- overlay.field(plan=plan, field=field,plot.dim=plot.dim,
-                          buffer.dim=buffer.dim,sample.vgm=sample.vgm,spacing=spacing)
+                          buffer.dim=buffer.dim,sample.vgm=sample.vgm,spacing=spacing,
+                          mean=mean)
     original.plan = TRUE
     
   }
-  
   for(number in 1:max(plots$number)) {
     currentPlots <- plots[plots$number==number,]
     if(!original.plan) {
@@ -58,7 +59,7 @@ rcb.analysis <- function(current.dat,REML=TRUE) {
   require(nlme)
   #is there valid data?
   current.dat <- subset(current.dat,!is.na(current.dat$YldVolDry))
-  if(dim(current.dat)[1]<9) {
+  if(dim(current.dat)[1]<4) {
     return(NULL)
   }
   aov.tbl <- summary(aov(YldVolDry ~ as.factor(trt)+as.factor(rep),data=current.dat))
@@ -130,13 +131,14 @@ overlay.field <- function(plan, field,
   trial.width <- trial.dim[1]
   trial.height <- trial.dim[2]
   
-  if(is.null(sample.vgm)) {
-    sample.var <- variogram(YldVolDry~1, 
-                            locations=~LonM+LatM, 
-                            data=field)
-    sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
+  if(!mean) {
+    if(is.null(sample.vgm)) {
+      sample.var <- variogram(YldVolDry~1, 
+                              locations=~LonM+LatM, 
+                              data=field)
+      sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
+    }
   }
-  
   rightBorder <- max(field$LonM) - (trial.width+2*spacing)
   topBorder <- max(field$LatM) - (trial.height+2*spacing)
   
@@ -159,16 +161,18 @@ overlay.field <- function(plan, field,
                                           start.point=corner,
                                           plot.dim=plot.dim,
                                           buffer.dim=buffer.dim,
-                                          sample.vgm=sample.vgm
+                                          sample.vgm=sample.vgm,
+                                          mean=mean
+                                      
           )
           
           #save points
           current.plots <- NA
-          if(mean) {
-            current.plots <- currentPlan$mean
-          } else {
+          #if(mean) {
+          #  current.plots <- currentPlan$mean
+          #} else {
             current.plots <- currentPlan$plan
-          }
+          #}
           current.plots$number <- planNo
           current.plots$Row <- currentRow
           current.plots$Col <- currentCol
@@ -194,7 +198,7 @@ overlay.field <- function(plan, field,
 
 simulate.plans <- function(plan.list, trial.data, plots.list=NULL, 
                            sample.vgm=NULL,plot.dim=c(1,1), buffer.dim=c(0,0),
-                           model="rcb",spacing=3,analysis.fn=rcb.analysis) {
+                           model="rcb",spacing=3,analysis.fn=rcb.analysis,mean=TRUE) {
   
   tmp.plots <- NULL
   aov <- NULL
@@ -202,7 +206,7 @@ simulate.plans <- function(plan.list, trial.data, plots.list=NULL,
 
   if(is.null(plots.list)) {
     plots <- overlay.field(plan=plan.list[[1]], field=trial.data, plot.dim=plot.dim,
-                             buffer.dim=buffer.dim,sample.vgm=sample.vgm,spacing=spacing)
+                             buffer.dim=buffer.dim,sample.vgm=sample.vgm,spacing=spacing,mean=mean)
     plots.list <- list(plots=plots)
   }
   

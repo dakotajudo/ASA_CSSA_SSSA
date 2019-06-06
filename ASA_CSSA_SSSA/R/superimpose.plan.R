@@ -1,4 +1,7 @@
-superimpose.plan <- function(plan,map.data,start.point,plot.dim=c(1,1),buffer.dim=c(0,0),sample.vgm=NULL) {
+superimpose.plan <- function(plan,map.data,start.point,plot.dim=c(1,1),
+                             buffer.dim=c(0,0),
+                             sample.vgm=NULL,
+                             mean=TRUE) {
   
   require(gstat)
   
@@ -28,38 +31,37 @@ superimpose.plan <- function(plan,map.data,start.point,plot.dim=c(1,1),buffer.di
   plan$e <- plan$LonM-half.width
   plan$w <- plan$LonM+half.width
   
-  if(is.null(sample.vgm)) {
-    sample.var <- variogram(YldVolDry~1, 
-                            locations=~LonM+LatM, 
-                            data=map.data)
-    sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
+  sample.krig = NULL
+  if(!mean) {
+    if(is.null(sample.vgm)) {
+      sample.var <- variogram(YldVolDry~1, 
+                              locations=~LonM+LatM, 
+                              data=map.data)
+      sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
+    }
+    sample.krig <- krige(id="YldVolDry", 
+                         formula=YldVolDry~1, 
+                         data = trial.dat, 
+                         newdata = plan, 
+                         model = sample.vgm,
+                         locations=~LonM+LatM)
+    plan$YldVolDry <- sample.krig$YldVolDry.pred
+  } else {
+    for(idx in 1:dim(plan)[1]) {
+      points.dat <- subset(trial.dat, trial.dat$LatM <= plan$n[idx])
+      points.dat <- subset(points.dat, points.dat$LatM >= plan$s[idx])
+      points.dat <- subset(points.dat, points.dat$LonM >= plan$e[idx])
+      points.dat <- subset(points.dat, points.dat$LonM <= plan$w[idx])
+      plan$YldVolDry[idx] <- mean(points.dat$YldVolDry,na.rm=TRUE)
+    }
   }
-  
-  sample.krig <- krige(id="YldVolDry", 
-                       formula=YldVolDry~1, 
-                       data = trial.dat, 
-                       newdata = plan, 
-                       model = sample.vgm,
-                       locations=~LonM+LatM)
-  
-  plan$YldVolDry <- sample.krig$YldVolDry.pred
-  
-  
-  mean <- plan
-  for(idx in 1:dim(mean)[1]) {
-    points.dat <- subset(trial.dat, trial.dat$LatM <= plan$n[idx])
-    points.dat <- subset(points.dat, points.dat$LatM >= plan$s[idx])
-    points.dat <- subset(points.dat, points.dat$LonM >= plan$e[idx])
-    points.dat <- subset(points.dat, points.dat$LonM <= plan$w[idx])
-    mean$YldVolDry[1] <- mean(points.dat$YldVolDry,na.rm=TRUE)
-  }
-  
+
   return(list(
     trial.dim=trial.dim,
     plan=plan,
     trial=trial.dat,
     krig=sample.krig,
-    mean=mean,
+    #mean=mean,
     pooled = data.frame(
       LonM = c(trial.dat$LonM,plan$LonM),
       LatM = c(trial.dat$LatM,plan$LatM),
