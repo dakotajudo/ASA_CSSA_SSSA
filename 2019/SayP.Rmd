@@ -3,8 +3,8 @@ title: "What Do We Mean When We Say 'p'"
 author: "Peter Claussen"
 date: "5/27/2019"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -17,28 +17,209 @@ The American Statistical Assocation released a position statement on the use of 
 
 In that context, we review Fisher's commentary on the meaning and use of probability, with regard to the interpretation of the null hypothesis in the context of on farm trials. How do Fisher's thoughts on statistical inference translate from small-plot experiments to large data-driven participatory trials, in a post p-value world? How does the introduction of spatial modeling change our understanding of p-value, when moving from small-plot to on farm trials?
 
+
+Statistical Methods for Researchers.
+The arrangement of field experiments. ABBAABBA arrangement p 89.
+What did Fisher mean by "inverse probability" in 1912--1922?
+Comments on the Neyman–Fisher Controversy and Its Consequences
+
 ```{r}
 library(ggplot2)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
 ```
 
+```{r}
 
+arm.trt <- c(33.834, 25.741, 37.814, 29.72, 33.357, 25.263, 37.336, 29.243, 31.65, 23.556, 35.629, 27.536, 31.172, 23.079, 35.152, 27.059)
+arm.unt <- c(27.059, 35.152, 23.079, 31.172, 27.536, 35.629, 23.556, 31.65, 29.243, 37.336, 25.263, 33.357, 29.72, 37.814, 25.741, 33.834)
+arm.mean <- c(30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464)
+arm.sd <- c(14.1292, 13.0837, 9.2464, 15.1271, 14.41, 12.5934, 10.1806, 15.0457, 15.0457, 10.1806, 12.5934, 14.41, 15.1271, 9.2464, 13.0837, 14.1292)
+arm.diff <- c(6.7750, 9.4115, 14.7345, 1.4520, 5.8203, 10.3662, 13.7798, 2.4067, 2.4067, 13.7798, 10.3662, 5.8203, 1.4520, 14.7345, 9.4115, 6.7750)
+arm.diff <- arm.trt - arm.unt
+#arm.diff <- 9.4115 (31%), 14.7345 (48%), 1.4520 (4%), 5.8203 (19%), 10.3662 (34%), 13.7798 (45%), 2.4067 (7%), 2.4067 (7%), 13.7798 (45%), 10.3662 (34%), 5.8203 (19%), 1.4520 (4%), 14.7345 (48%), 9.4115 (31%), 6.7750 (22%))
+arm.F <- c(0.46, 1.035, 5.079, 0.018, 0.326, 1.355, 3.664, 0.051, 0.051, 3.664, 1.355, 0.326, 0.018, 5.079, 1.035, 0.46)
+arm.pF <- c(0.5463, 0.3839, 0.1096, 0.9006, 0.6078, 0.3285, 0.1515, 0.8356, 0.8356, 0.1515, 0.3285, 0.6078, 0.9006, 0.1096, 0.3839, 0.5463)
+```
+
+```{r}
+hist(arm.diff)
+hist(arm.F)
+```
+
+
+```{r}
+arm.diff
+diff.ranks <- length(arm.diff) - rank(arm.diff)+1
+diff.ranks
+(diff.ranks[1]-1)/length(diff.ranks)
+abs.diff.ranks <- length(arm.diff) - rank(abs(arm.diff))+1
+1-abs.diff.ranks[1]/length(abs.diff.ranks)
+rank(arm.F)
+rank(arm.F)[1]/length(arm.F)
+
+t.value <- abs(arm.diff)/(arm.sd*sqrt(2/4))
+t.value
+p.t <- 2*(1-pt(t.value,df=3))
+p.t
+arm.pF
+```
+
+```{r}
+arm.sd[1]
+arm.diff[1]
+quantiles <- seq(arm.diff[1]-4*arm.sd[1],arm.diff[1]+4*arm.sd[1],length=100)
+t.dat <- data.frame(Quantile = quantiles, PDF = dt(quantiles,3))
+norm.dat <- data.frame(Quantile = quantiles, PDF = dnorm(quantiles,mean=arm.diff[1],sd=arm.sd[1]))
+norm.dat$CDF <- norm.dat$PDF
+sum = norm.dat$PDF[1]
+
+quantiles <- seq(0-4*arm.sd[1],0+4*arm.sd[1],length=100)
+null.dat <- data.frame(Quantile = quantiles, PDF = dnorm(quantiles,mean=0,sd=arm.sd[1]))
+null.dat$CDF <- null.dat$PDF
+for(i in 2:length(quantiles)) {
+  norm.dat$CDF <- norm.dat$CDF[i-1] +  norm.dat$PDF[i]
+  null.dat$CDF <- null.dat$CDF[i-1] +  null.dat$PDF[i]
+}
+print(q.points <- c(0,arm.diff[1]))
+print(l.points <- dnorm(q.points,mean=arm.diff[1],sd=arm.sd[1]))
+shade.dat <- null.dat[abs(null.dat$Quantile) > arm.diff[1],]
+shade2.dat <- null.dat[null.dat$Quantile > arm.diff[1],]
+ggplot(norm.dat, aes(Quantile,PDF)) + 
+geom_line(aes(color='L(y|mu,sigma)')) + 
+  geom_line(aes(color='L(y|0,sigma)'),data=null.dat) + 
+#labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+  geom_segment(aes(x = Quantile, y = 0, xend = Quantile, yend = PDF, colour = "P(>y)"), data = shade.dat) +
+  geom_point(aes(x=arm.diff[1], y = l.points[2], colour = "L(MLE(y))")) +
+   geom_point(aes(x=0, y = l.points[1], colour = "L(H0)")) +
+scale_colour_manual(values=cbPalette)
+l.points
+#ggplot()
+#pooled.dat <- rbind()
+#plot(quantiles,dnorm(quantiles),col='gray',ylim=c(0,0.4),type='l')
+#lines(quantiles,dt(quantiles,3),col='red')
+
+#abline(v=c(t.value[1],-t.value[1]),col='blue')
+```
+
+```{r}
+l.points[2]/l.points[1]
+LR <- l.points[1]/l.points[2]
+LR
+-2*log(LR)
+pchisq(LR,df=1)
+```
+
+```{r}
+
+quantiles <- seq(-4,4,by=0.1)
+t.dat <- data.frame(Quantile = quantiles, PDF = dt(quantiles,3))
+norm.dat <- data.frame(Quantile = quantiles, PDF = dnorm(quantiles))
+sum = 0
+norm.dat$CDF <- norm.dat$PDF
+sum = norm.dat$PDF[1]
+for(i in 2:length(quantiles)) {
+  norm.dat$CDF[i] <- norm.dat$CDF[i-1] +  norm.dat$PDF[i]
+}
+shade.dat <- norm.dat[abs(norm.dat$Quantile) > t.value[1],]
+shade2.dat <- norm.dat[norm.dat$Quantile > t.value[1],]
+ggplot(norm.dat, aes(Quantile,PDF)) + 
+geom_line(color=cbPalette[1]) + 
+#labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+  geom_segment(aes(x = Quantile, y = 0, xend = Quantile, yend = PDF, colour = "P(>t)"), data = shade.dat) +
+  geom_point(aes(x = t.value[1], y = dnorm(t.value[1]), colour = "L(t)")) +
+scale_colour_manual(values=cbPalette)
+```
+
+
+```{r}
+norm.pdf <- function(y,mean,var) {
+  n <- length(y)
+  c1 <- 2 * pi * var
+  c1 <- c1^(-n/2)
+  ss <- (y-mean)^2
+  return(c1*exp(-sum(ss/(2*var))))
+}
+
+quantiles <- seq(arm.diff[1]-4*arm.sd[1],arm.diff[1]+4*arm.sd[1],length=100)
+dnorm(quantiles[1],mean=arm.diff[1],sd=arm.sd[1])
+norm.pdf(quantiles[1],mean=arm.diff[1],var=arm.sd[1]^2)
+
+control <-  c(5.511537,34.27445,37.97378,30.4757)
+trt <- c(37.88459, 18.35549, 39.88316,39.21226)
+diffs <- trt - control
+sd(diffs)
+norm.pdf(diffs,mean=arm.diff[1],var=arm.sd[1]^2)
+
+#apply(quantiles,1,norm.pdf,var=arm.sd[1]^2)
+#apply(quantiles,1,norm.pdf,y=diffs,var=arm.sd[1]^2)
+
+norm.dat <- data.frame(Quantile = quantiles)
+norm.dat$PDF <- 0
+for(i in 1:length(quantiles)) {
+  norm.dat$PDF[i] <- norm.pdf(diffs,mean=quantiles[i],var=arm.sd[1]^2)
+}
+
+norm.pdf(diffs,mean=arm.diff[1],var=arm.sd[1]^2)
+norm.pdf(diffs,mean=0,var=arm.sd[1]^2)
+
+ggplot(norm.dat, aes(Quantile,PDF)) + 
+geom_line(aes(color='L(y|mu,sigma)')) + 
+#  geom_line(aes(color='L(y|0,sigma)'),data=null.dat) + 
+#labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+#  geom_segment(aes(x = Quantile, y = 0, xend = Quantile, yend = PDF, colour = "P(>y)"), data = shade.dat) +
+#  geom_point(aes(x=arm.diff[1], y = l.points[2], colour = "L(MLE(y))")) +
+#   geom_point(aes(x=0, y = l.points[1], colour = "L(H0)")) +
+scale_colour_manual(values=cbPalette)
+
+```
+
+
+```{r}
+arm.sd[1]
+arm.diff[1]
+quantiles <- seq(arm.diff[1]-4*arm.sd[1],arm.diff[1]+4*arm.sd[1],length=100)
+t.dat <- data.frame(Quantile = quantiles, PDF = dt(quantiles,3))
+norm.dat <- data.frame(Quantile = quantiles, PDF = dnorm(quantiles,mean=arm.diff[1],sd=arm.sd[1]))
+norm.dat$CDF <- norm.dat$PDF
+sum = norm.dat$PDF[1]
+
+quantiles <- seq(0-4*arm.sd[1],0+4*arm.sd[1],length=100)
+null.dat <- data.frame(Quantile = quantiles, PDF = dnorm(quantiles,mean=0,sd=arm.sd[1]))
+null.dat$CDF <- null.dat$PDF
+for(i in 2:length(quantiles)) {
+  norm.dat$CDF[i] <- norm.dat$CDF[i-1] +  norm.dat$PDF[i]
+  null.dat$CDF[i] <- null.dat$CDF[i-1] +  null.dat$PDF[i]
+}
+print(q.points <- c(0,arm.diff[1]))
+print(l.points <- dnorm(q.points,mean=arm.diff[1],sd=arm.sd[1]))
+shade.dat <- null.dat[abs(null.dat$Quantile) > arm.diff[1],]
+shade2.dat <- null.dat[null.dat$Quantile > arm.diff[1],]
+ggplot(norm.dat, aes(Quantile,PDF)) + 
+geom_line(aes(color='L(y|mu,sigma)')) + 
+  geom_line(aes(color='L(y|0,sigma)'),data=null.dat) + 
+#
+  geom_segment(aes(x = Quantile, y = 0, xend = Quantile, yend = PDF, colour = "P(>y)"), data = shade.dat) +
+  geom_point(aes(x=arm.diff[1], y = l.points[2], colour = "L(MLE(y))")) +
+   geom_point(aes(x=0, y = l.points[1], colour = "L(H0)")) +
+scale_colour_manual(values=cbPalette) +
+  labs(colour = "Function", x="y", y="Likelihood", title = "Likelihood Functions")
+l.points
+```
 
 # East Quarter
 
-```{r}
+```{r,eval=FALSE}
 load(file="../../2017/Workshop/Case Study 2/Strips.Rda")
 ```
 
-```{r,fig.width=8,fig.height=4, EastQuarterProduct}
+```{r,fig.width=8,fig.height=4, EastQuarterProduct,eval=FALSE}
 ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
 geom_point(aes(colour = Product),size=2) + 
 scale_colour_manual(values=cbPalette) +
 labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
 ```
 
-```{r}
-
+```{r,eval=FALSE}
 #EastQuarter.dat$ObjId <- as.numeric(as.character(EastQuarter.dat$ObjId))
 #EastQuarter.dat <- EastQuarter.dat[!is.na(EastQuarter.dat$ObjId),]
 #EastQuarter.dat$Pass <- 1
@@ -73,7 +254,7 @@ EastQuarter.dat$Strip <- as.factor(EastQuarter.dat$Strip)
 
 
 
-```{r,fig.width=8,fig.height=4, EastQuarterPass}
+```{r,fig.width=8,fig.height=4, EastQuarterPass,eval=FALSE}
 ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
 geom_point(aes(colour = Pass),size=2) + 
 #scale_colour_manual(values=cbPalette) +
@@ -81,28 +262,28 @@ labs(colour = "Pass", x="Longitude (m)", y="Latitude (m)", title = "East Quarter
 ```
 
 
-```{r,fig.width=8,fig.height=4, EastQuarterPair}
+```{r,fig.width=8,fig.height=4, EastQuarterPair,eval=FALSE}
 ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
 geom_point(aes(colour = Pair),size=2) + 
 #scale_colour_manual(values=cbPalette) +
 labs(colour = "Pair", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
 ```
 
-```{r,fig.width=8,fig.height=4, EastQuarterDirection}
+```{r,fig.width=8,fig.height=4, EastQuarterDirection,eval=FALSE}
 ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
 geom_point(aes(colour = Direction),size=2) + 
 #scale_colour_manual(values=cbPalette) +
 labs(colour = "Direction", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
 ```
 
-```{r,fig.width=8,fig.height=4, EastQuarterBlock}
+```{r,fig.width=8,fig.height=4, EastQuarterBlock,eval=FALSE}
 ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
 geom_point(aes(colour = Block),size=2) + 
 #scale_colour_manual(values=cbPalette) +
 labs(colour = "Block", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
 ```
 
-```{r,fig.width=8,fig.height=4, EastQuarterStrip}
+```{r,fig.width=8,fig.height=4, EastQuarterStrip,eval=FALSE}
 ggplot(EastQuarter.dat, aes(Easting,Northing)) + 
 geom_point(aes(colour = Strip),size=2) + 
 #scale_colour_manual(values=cbPalette) +
@@ -113,7 +294,7 @@ labs(colour = "Strip", x="Longitude (m)", y="Latitude (m)", title = "East Quarte
 
 Strips as experimental units
 
-```{r}
+```{r,eval=FALSE}
 means.dat <- with(EastQuarter.dat, data.frame(
   Pass = aggregate(Yield ~ Pass,EastQuarter.dat,mean,na.rm=TRUE)[,1],
   Yield = aggregate(Yield ~ Pass,EastQuarter.dat,mean,na.rm=TRUE)[,2],
@@ -124,7 +305,7 @@ means.dat
 means.dat$Product <- levels(EastQuarter.dat$Product)[means.dat$Product]
 ```
 
-```{r}
+```{r,eval=FALSE}
 ggplot(EastQuarter.dat, aes(x=Northing, y=Yield)) + 
 geom_boxplot(aes(group=Pass,color=Product)) + geom_jitter(width = 0.2,size=0.2) +
 scale_colour_manual(values=cbPalette) +
@@ -133,19 +314,19 @@ labs(colour = "Yield", x="Longitude (m)", y="Latitude (m)", title = "East Quarte
 
 
 
-```{r}
+```{r,eval=FALSE}
 ggplot(means.dat, aes(x=Northing, y=Yield, color=Product,fill=Product)) +
   geom_bar(stat="identity") + scale_colour_manual(values=cbPalette) + scale_fill_manual(values=cbPalette)
 ```
 
-```{r}
+```{r,eval=FALSE}
 ggplot(EastQuarter.dat, aes(Easting,Yield)) + 
 geom_point(aes(colour = Product),size=.2) + 
 scale_colour_manual(values=cbPalette) + stat_smooth(method=lm, formula = y ~ 1, aes(group=Product, colour = Product),se=FALSE) +
 labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter")
 ```
 
-```{r}
+```{r,eval=FALSE}
 ggplot(EastQuarter.dat, aes(Easting,Yield)) + 
 geom_point(aes(colour = Product),size=.2) + 
 scale_colour_manual(values=cbPalette) + stat_smooth(aes(group=Product,colour = Product)) +
@@ -156,25 +337,25 @@ labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter")
 
 
 
-```{r}
+```{r,eval=FALSE}
 #levels(as.factor(EastQuarter.dat$Swath))
 ```
 
-```{r}
+```{r,eval=FALSE}
 ggplot(EastQuarter.dat, aes(Easting,Yield)) + 
 geom_point(aes(colour = Product),size=.2) + 
 scale_colour_manual(values=cbPalette) + stat_smooth(method=lm, formula = y ~ 1, aes(group=Pass, colour = Product),se=FALSE) +
 labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter")
 ```
 
-```{r}
+```{r,eval=FALSE}
 ggplot(EastQuarter.dat, aes(Easting,Yield)) + 
 geom_point(aes(colour = Product),size=.2) + 
 scale_colour_manual(values=cbPalette) + stat_smooth(method=lm, formula = y ~ 1, aes(group=Pair, colour = Product),se=FALSE) +
 labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter")
 ```
 
-```{r}
+```{r,eval=FALSE}
 ggplot(EastQuarter.dat, aes(Easting,Yield)) + 
 geom_point(aes(colour = Product),size=.2) + 
 scale_colour_manual(values=cbPalette) + stat_smooth(aes(group=Pass, colour = Product),se=FALSE) +
@@ -184,7 +365,7 @@ labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter")
 ## Smoothing
 
 Assume that most error is sampling error, so we produce LOESS smoothed curves.
-```{r}
+```{r,eval=FALSE}
 Travel <- abs(EastQuarter.dat$Easting[2:dim(EastQuarter.dat)[1]] - EastQuarter.dat$Easting[1:(dim(EastQuarter.dat)[1]-1)])
 hist(Travel)
 Travel <- Travel[Travel<5]
@@ -193,7 +374,7 @@ mean(Travel)
 ```
 
 Create a data frame of passes, one observation for every 2 meters, excluding ends
-```{r}
+```{r,eval=FALSE}
 LOESS.basis <- rep(seq(2,398,by=2))
 total.passes <- max(EastQuarter.dat$PassNo)
 Smoothed.dat <- data.frame(
@@ -216,7 +397,7 @@ for(i in 1:total.passes) {
 }
 Smoothed.dat$Pass <- as.factor(Smoothed.dat$PassNo)
 ```
-```{r}
+```{r,eval=FALSE}
 ggplot(Smoothed.dat, aes(Easting,Yield)) + 
 geom_point(aes(colour = Product),size=.2) + 
 scale_colour_manual(values=cbPalette) + 
@@ -225,7 +406,7 @@ labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter") +
 ```
 
 
-```{r}
+```{r,eval=FALSE}
 ggplot(EastQuarter.dat, aes(Easting,Yield)) + 
 geom_point(aes(colour = Product),size=.2) + 
 scale_colour_manual(values=cbPalette) + stat_smooth(aes(group=Pair, colour = Product)) +
@@ -233,7 +414,7 @@ labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter")
 ```
 
 
-```{r}
+```{r,eval=FALSE}
 ggplot(Smoothed.dat, aes(Easting,Yield)) + 
 #geom_point(aes(colour = Product),size=.1) + 
 scale_colour_manual(values=cbPalette) + stat_smooth(aes(group=Pair, colour = Product)) +
@@ -242,7 +423,7 @@ labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter") +
 ```
 
 
-```{r}
+```{r,eval=FALSE}
 #head(EastQuarter.dat)
 ```
 
@@ -311,7 +492,7 @@ head(randomizations)
 tail(randomizations)
 ```
 
-```{r}
+```{r,eval=FALSE}
 pair.means <- tapply(EastQuarter.dat$Yield,list(EastQuarter.dat$Pair),mean,na.rm=TRUE)
 Strip <- 1:12
 Product <- rep(c(1,0), 6)
@@ -342,20 +523,20 @@ $$
 t = \frac{\bar{y}_1 - \bar{y}_2}{\sqrt{\sigma^2_1/n_1 + \sigma^2_2/n_2}}
 $$
 
-```{r}
+```{r,eval=FALSE}
 product.diff / sqrt(sum(product.sd^2/6))
 ```
 
-```{r}
+```{r,eval=FALSE}
 summary(aov(pair.means ~ as.factor(Product)))
 qt(1-0.05/2,10)
 ```
 
-```{r}
+```{r,eval=FALSE}
 2*(1-pt(product.diff / sqrt(sum(product.sd^2/6)),10))
 ```
 
-```{r}
+```{r,eval=FALSE}
 diffs <- rep(0,permutations)
 
 for(i in 1:permutations) {
@@ -375,7 +556,7 @@ diffs[which.max(diffs)]
 
 ## Permuations by position
 
-```{r}
+```{r,eval=FALSE}
 Prob <- data.frame(
   Easting = LOESS.basis
 )
@@ -407,7 +588,7 @@ for(i in 1:length(LOESS.basis)) {
 }
 ```
 
-```{r}
+```{r,eval=FALSE}
 ggplot(Smoothed.dat, aes(Easting,Yield)) + 
 #geom_point(aes(colour = Product),size=.1) + 
 scale_colour_manual(values=cbPalette) + stat_smooth(aes(group=Pair, colour = Product)) +
@@ -416,7 +597,7 @@ labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "East Quarter") #
 
 
 
-```{r,fig.width=8,fig.height=8}
+```{r,fig.width=8,fig.height=8,eval=FALSE}
 #Prob$Z <- Prob$Diff/(Prob$SE/sqrt(6))
 Prob$Z <- Prob$Diff/Prob$SE
 Prob$PZ <- 2*(1-pt(Prob$Z,10))
@@ -430,11 +611,11 @@ plot(Z ~ Easting,data=Prob,type='l',main='t Value')
 abline(h=qt(1-0.05/2,10),col='blue')
 ```
 
-```{r}
+```{r,eval=FALSE}
 
 ```
 
-```{r,fig.width=6,fig.height=9}
+```{r,fig.width=6,fig.height=9,eval=FALSE}
 par(mfrow=c(3,1))
 plot(P ~ SD,data=Prob)
 plot(P ~ Diff,data=Prob)
@@ -448,7 +629,7 @@ plot(P ~ PZ,data=Prob)
 
 ### From ISA
 
-```{r}
+```{r,eval=FALSE}
 Yield <- c(44.8,48.6,51.8,46.9,46.4,47.9,53.9,52.8,60.9,57.9,60.9,58.1)
 Treatment <- c('Untreated','Priaxor','Priaxor','Untreated','Priaxor','Untreated','Priaxor','Untreated','Priaxor','Untreated','Priaxor','Untreated')
 Strip <- 1:12
@@ -457,7 +638,7 @@ summary(lm(Yield ~ Strip))
 ```
 
 using the lm permutation library
-```{r}
+```{r,eval=FALSE}
 library(lmPerm)
 summary(aovp(Yield ~ Treatment))
 summary(aovp(Yield ~ Treatment + Pair))
@@ -466,7 +647,7 @@ summary(aovp(Yield ~ Treatment + Pair,perm="Exact"))
 
 We start using the same randomizations as our previous example - this assumes that any strip in the field could have been either untreated or Priaxor treated.
 
-```{r}
+```{r,eval=FALSE}
 product.means <- tapply(Yield,list(Treatment),mean,na.rm=TRUE)
 product.diff <- product.means[1]-product.means[2]
 permutations <- dim(randomizations)[1]
@@ -487,7 +668,7 @@ diffs[which.max(diffs)]
 
 In the event, strips were randomized in pairs. Thus, we have $2^n = 2^6 = 64$ possible randomizations. We recompute by
 
-```{r}
+```{r,eval=FALSE}
 randomizations <- matrix(0,nrow=64,ncol=12)
 pair.trt <- matrix(c(0,1,1,0),nrow=2)
 idx <- binary(3,6)
@@ -500,7 +681,7 @@ colSums(randomizations)
 rowSums(randomizations)
 ```
 
-```{r}
+```{r,eval=FALSE}
 product.means <- tapply(Yield,list(Treatment),mean,na.rm=TRUE)
 product.diff <- product.means[1]-product.means[2]
 permutations <- dim(randomizations)[1]
@@ -521,7 +702,7 @@ diffs[which.max(diffs)]
 
 
 
-```{r}
+```{r,eval=FALSE}
 Prob <- data.frame(
   Easting = LOESS.basis
 )
@@ -553,7 +734,7 @@ abline(h=0.05,col='red')
 
 Create a matrix of passes, 1 row per second
 
-```{r}
+```{r,eval=FALSE}
 pass.length <- tapply(EastQuarter.dat$Yield, list(EastQuarter.dat$Pass),length)
 pass.length
 time.points <- max(pass.length)
@@ -568,7 +749,7 @@ for(i in 1:max(EastQuarter.dat$PassNo)) {
 
 First, we need to create a set of functions.  How many observations per pass?
 
-```{r}
+```{r,eval=FALSE}
 
 library(fda)
 time <- 1:time.points
@@ -576,7 +757,7 @@ test.mat <- pass.mat[1:min(pass.length),1:12]
 #passes.fda <- smooth.basisPar(argvals=time, y=pass.mat, lambda=1)
 ```
 
-```{r}
+```{r,eval=FALSE}
 passes.fda <- smooth.basisPar(argvals=1:min(pass.length), y=test.mat, lambda=4)
 summary(passes.fda)
 plot(passes.fda$fd, xlab="time", ylab="Yield",  main="Passes" )
@@ -592,7 +773,7 @@ plot(passes.fda$fd, xlab="time", ylab="Yield",  main="Passes" )
 ```
 
 
-```{r}
+```{r,eval=FALSE}
 
 summary(aov(Yield ~ Product + Block+Pair+Pass,data= EastQuarter.dat))
 library(nlme)
@@ -614,14 +795,14 @@ https://en.wikipedia.org/wiki/Paired_difference_test
 
 Suppose we have a field where we might test strips, and that we have yield monitor data.
 
-```{r}
+```{r,eval=FALSE}
 load(file="../../2017/Workshop/Case Study 1/Pooled.Rda")
 ```
 
 Corn2013.dat,Corn2015.dat,Soybean2014.dat,Soybean2016.dat
 
 Trim between 50 and 350 
-```{r}
+```{r,eval=FALSE}
 uniformity.dat <- subset(Soybean2016.dat,Soybean2016.dat$Easting>50)
 uniformity.dat <- subset(uniformity.dat,uniformity.dat$Easting<350)
 uniformity.dat$Gap <- c(0,uniformity.dat$Seconds[2:dim(uniformity.dat)[1]] -uniformity.dat$Seconds[1:(dim(uniformity.dat)[1]-1)])
@@ -639,18 +820,18 @@ for(i in 1:dim(uniformity.dat)[1]) {
 ```
 
 
-```{r,fig.width=8,fig.height=4, UniformitySwath}
+```{r,fig.width=8,fig.height=4, UniformitySwath,eval=FALSE}
 ggplot(uniformity.dat, aes(Easting,Northing)) + 
 geom_point(aes(colour = as.factor(PassNo)),size=2) + 
 #scale_colour_manual(values=cbPalette) +
 labs(colour = "Swath", x="Longitude (m)", y="Latitude (m)", title = "Uniformity 2016")
 ```
 
-```{r}
+```{r,eval=FALSE}
 uniformity.dat <- uniformity.dat[!(uniformity.dat$PassNo %in% c(2,3,6,8,9,10)),]
 ```
 
-```{r,fig.width=8,fig.height=4, UniformitySwathSubset}
+```{r,fig.width=8,fig.height=4, UniformitySwathSubset,eval=FALSE}
 uniformity.dat$Pass <- as.factor(uniformity.dat$Pass)
 ggplot(uniformity.dat, aes(Easting,Northing)) + 
 geom_point(aes(colour = as.factor(Pass)),size=2) + 
@@ -661,7 +842,7 @@ labs(colour = "Swath", x="Longitude (m)", y="Latitude (m)", title = "Uniformity 
 
 Repeat interpolation from part 1
 
-```{r}
+```{r,eval=FALSE}
 LOESS.basis <- rep(seq(min(uniformity.dat$Easting),max(uniformity.dat$Easting),by=2))
 total.passes <- length(levels(uniformity.dat$Pass))
 SmoothedU.dat <- data.frame(
@@ -681,7 +862,7 @@ for(i in levels(uniformity.dat$Pass)) {
 SmoothedU.dat$Pass <- as.factor(SmoothedU.dat$PassNo)
 ```
 
-```{r}
+```{r,eval=FALSE}
 ggplot(uniformity.dat,aes(Easting,Yield))+
   geom_point(aes(colour = Pass),size=.1) +
   #scale_colour_manual(values=cbPalette)+ 
@@ -689,14 +870,14 @@ ggplot(uniformity.dat,aes(Easting,Yield))+
   labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "Middle")
 ```
 
-```{r}
+```{r,eval=FALSE}
 ggplot(SmoothedU.dat, aes(Easting,Yield)) + 
 geom_point(aes(colour = Pass),size=.2) + 
 #scale_colour_manual(values=cbPalette) + 
 labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "") #+  ylim(125, 275)
 ```
 
-```{r}
+```{r,eval=FALSE}
 Prob <- data.frame(
   Easting = LOESS.basis
 )
@@ -715,7 +896,7 @@ Prob$R3 <- (Prob$SD/8)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
 
 
 
-```{r,fig.width=8,fig.height=8}
+```{r,fig.width=8,fig.height=8,eval=FALSE}
 par(mfrow=c(2,1))
 plot(SD ~ Easting, data=Prob)
 plot(R1 ~ Easting, data=Prob,ylim=c(0,50),type='l')
@@ -726,19 +907,19 @@ abline(h=6)
 
 
 
-```{r}
+```{r,eval=FALSE}
 SmoothedU.dat <- SmoothedU.dat[!(SmoothedU.dat$PassNo %in% c(1,4,19,20)),]
 ```
 
 
-```{r}
+```{r,eval=FALSE}
 ggplot(SmoothedU.dat, aes(Easting,Yield)) + 
 geom_point(aes(colour = Pass),size=.2) + 
 #scale_colour_manual(values=cbPalette) + 
 labs(colour = "Variety", x="Longitude (m)", y="Yield", title = "") #+  ylim(125, 275)
 ```
 
-```{r}
+```{r,eval=FALSE}
 Prob <- data.frame(
   Easting = LOESS.basis
 )
@@ -757,7 +938,7 @@ Prob$R3 <- (Prob$SD/8)^2 * (qnorm(1-0.05/2)-qnorm(0.2))^2
 
 
 
-```{r,fig.width=8,fig.height=8}
+```{r,fig.width=8,fig.height=8,eval=FALSE}
 par(mfrow=c(2,1))
 plot(SD ~ Easting, data=Prob)
 plot(R1 ~ Easting, data=Prob,ylim=c(0,20),type='l')
@@ -769,5 +950,3 @@ abline(h=5)
 # Two dimensions
 
 
-References:
-Comments on the Neyman–Fisher Controversy and Its Consequences
