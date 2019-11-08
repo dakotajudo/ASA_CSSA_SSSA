@@ -1,0 +1,665 @@
+\documentclass{article}
+\usepackage{amsmath}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\title{Thoughts about Power and Sample Size for On-Farm Strip Trials}
+\maketitle{}
+
+\section*{Abstract}
+
+
+
+<<LoadGraphics,echo=FALSE>>=
+library(ggplot2)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+@
+
+\section{Introduction}
+
+<<>>=
+Andersons.dat <- read.csv("./AndersonsStevens-Soybeans.csv",header=TRUE,comment.char = "#")
+Andersons.dat$Pass <- Andersons.dat$Block
+Andersons.dat$Block <- as.factor(ceiling(Andersons.dat$Pass/2))
+
+Andersons.dat$Sprayed <- Andersons.dat$Pass %in% c(2,4,6,8)
+
+names(Andersons.dat)[7] <- 'Yield'
+Andersons.dat <- Andersons.dat[Andersons.dat$Yield < 100,]
+head(Andersons.dat)
+
+Andersons.dat$Easting <- Andersons.dat$X - min(Andersons.dat$X)
+Andersons.dat$Northing <- Andersons.dat$Y - min(Andersons.dat$Y)
+latMid <- (min(Andersons.dat$Y) + max(Andersons.dat$Y))/2
+m_per_deg_lat = 111132.954 - 559.822 * cos( 2.0 * latMid ) + 1.175 * cos( 4.0 * latMid)
+m_per_deg_lon = (3.14159265359/180 ) * 6367449 * cos ( latMid )
+Andersons.dat$Easting <- Andersons.dat$Easting*m_per_deg_lon
+Andersons.dat$Northing <- Andersons.dat$Northing*m_per_deg_lat
+
+
+Andersons.dat$PassF <- as.factor(Andersons.dat$Pass)
+
+@
+
+<<AndersonsSpray,fig=TRUE,echo=false,width=8,height=5>>=
+pair.colors <- c(2,5)
+ggplot(Andersons.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Sprayed),size=2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) +
+labs(colour = "Sprayed", x="Easting", y="Northing", title = "Spray Map")
+@
+
+<<AndersonsYield,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(Andersons.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Easting", y="Northing", title = "Yeild Map")
+@
+
+<<Strips,fig=TRUE,echo=false,width=8,height=5>>=
+Strips.dat <- Andersons.dat[Andersons.dat$Pass>0,]
+Strips.dat <- Strips.dat[Strips.dat$Pass<9,]
+
+ggplot(Strips.dat, aes(X,Y)) + 
+geom_point(aes(colour = PassF),size=2) + 
+scale_colour_manual(values=cbPalette) +
+labs(colour = "Pass", x="Easting", y="Northing", title = "East Quarter")
+@
+
+\section{Naive analysis}
+
+\section{Simple Univariate Analysis}
+
+As a starting point, first we consider each strip as a single experimental unit. We use the model
+
+\begin{equation}
+	y_{ij} = \mu_i + e_{ij}
+\end{equation}
+for a number of treatments $i = 1, \dots, I$ and number of strips $j = 1, \dots, N_j$.
+We calculate mean and standard deviation
+
+\begin{align}
+	\widehat{\mu}_{i} &= \frac{\sum_{j=1}^{N_i} y_{ij}}{N_i} \\
+	\widehat{\sigma}_{i}^2 &= \frac{\sum_{j=1}^{N_i} (y_{ij} - \widehat{\mu}_{i} )^2}{N_i}
+\end{align}
+
+
+It suffices at this stage to calculate an average yield for each strip as a measure of $y_{ij}$ - that is, we consider each individual yield estimate $y_{i j k}$ from the yield map as a sample from $y_{ij}$ and let
+
+\begin{equation}
+	y_{ij} = \bar{y}_{ij . } = \frac{\sum_{k=1}^{K} y_{ijk}}{K}
+\end{equation}
+
+
+<<>>=
+meansNaive.dat <- data.frame(
+  Pass = aggregate(Yield ~ Pass,Strips.dat,mean,na.rm=TRUE)[,1],
+  Yield = aggregate(Yield ~ Pass,Strips.dat,mean,na.rm=TRUE)[,2]
+)
+meansNaive.dat$Product <- ifelse(meansNaive.dat$Pass %in% c(2,4,6,8),'Sprayed','Control')
+meansNaive.dat$Product <- as.factor(meansNaive.dat$Product)
+meansNaive.dat$Block <- as.factor(ceiling(meansNaive.dat$Pass/2))
+meansNaive.dat
+t.test(Yield ~ Product, data = meansNaive.dat)
+t.test(Yield ~ Product, data = meansNaive.dat,paired=TRUE)
+t.test(Yield ~ Product, data = meansNaive.dat,paired=TRUE,alternative = "less")
+@
+
+
+<<>>=
+wilcox.test(Yield ~ Product, paired=TRUE,meansNaive.dat)
+kruskal.test(Yield ~  Product, meansNaive.dat)
+friedman.test(Yield ~  Block | Product,meansNaive.dat)
+quade.test(Yield ~  Block | Product,meansNaive.dat)
+@
+
+<<NaiveMeans,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(meansNaive.dat, aes(x=Pass, y=Yield, color=Product,fill=Product)) +
+  geom_bar(stat="identity") + scale_colour_manual(values=cbPalette[pair.colors]) + scale_fill_manual(values=cbPalette[pair.colors])
+@
+
+
+<<>>=
+meansNaive.lm <- lm(Yield ~ Block + Product,data=meansNaive.dat)
+anova(meansNaive.lm)
+@
+
+<<NaiveMeansDiagnostics,fig=TRUE,echo=false,width=8,height=8>>=
+par(mfrow=c(2,2))
+plot(meansNaive.lm)
+@
+
+<<>>=
+TeaTasting <-
+matrix(c(4, 0, 0, 4),
+       nrow = 2,
+       dimnames = list(Guess = c("Greater", "Lesser"),
+                       Truth = c("Sprayed", "Unsprayed")))
+TeaTasting
+fisher.test(TeaTasting)
+@
+
+
+<<>>=
+library(nlme)
+Strips.lme <- lme(Yield ~ Sprayed,random= ~ 1 | Block, data=Strips.dat)
+summary(Strips.lme)
+anova(Strips.lme)
+Strips.lme <- lme(Yield ~ Sprayed,random= ~ 1 | Block/Sample, data=Strips.dat)
+summary(Strips.lme)
+anova(Strips.lme)
+@
+
+\section{Equal Sizes}
+
+<<>>=
+EqualSizes.dat <- Andersons.dat[Andersons.dat$Pass>0,]
+EqualSizes.dat <- EqualSizes.dat[EqualSizes.dat$Balanced==1,]
+EqualSizesB.dat <- EqualSizes.dat[EqualSizes.dat$Pass %in% 2:9,]
+EqualSizes.dat <- EqualSizes.dat[EqualSizes.dat$Pass %in% 1:8,]
+@
+
+<<AndersonsEqualSizes,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(EqualSizes.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Sprayed),size=2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) +
+labs(colour = "Sprayed", x="Easting", y="Northing", title = "East Quarter")
+@
+
+<<AndersonsBalancedB,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(EqualSizesB.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Sprayed),size=2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) +
+labs(colour = "Sprayed", x="Easting", y="Northing", title = "East Quarter")
+@
+
+
+Repeated analysis from above
+
+
+<<>>=
+meansEqual.dat <- data.frame(
+  Pass = aggregate(Yield ~ Pass,EqualSizes.dat,mean,na.rm=TRUE)[,1],
+  Yield = aggregate(Yield ~ Pass,EqualSizes.dat,mean,na.rm=TRUE)[,2]
+)
+meansEqual.dat$Product <- ifelse(meansEqual.dat$Pass %in% c(2,4,6,8),'Sprayed','Control')
+meansEqual.dat$Product <- as.factor(meansEqual.dat$Product)
+meansEqual.dat$Block <- as.factor(ceiling(meansEqual.dat$Pass/2))
+meansEqual.dat
+t.test(Yield ~ Product, data = meansEqual.dat)
+t.test(Yield ~ Product, data = meansEqual.dat,paired=TRUE)
+t.test(Yield ~ Product, data = meansEqual.dat,paired=TRUE,alternative = "less")
+@
+
+
+<<>>=
+wilcox.test(Yield ~ Product, paired=TRUE,meansEqual.dat)
+kruskal.test(Yield ~  Product, meansEqual.dat)
+friedman.test(Yield ~  Block | Product,meansEqual.dat)
+quade.test(Yield ~  Block | Product,meansEqual.dat)
+@
+
+<<EqualMeans,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(meansEqual.dat, aes(x=Pass, y=Yield, color=Product,fill=Product)) +
+  geom_bar(stat="identity") + scale_colour_manual(values=cbPalette[pair.colors]) + scale_fill_manual(values=cbPalette[pair.colors])
+@
+
+
+<<>>=
+meansEqual.lm <- lm(Yield ~ Block + Product,data=meansEqual.dat)
+anova(meansEqual.lm)
+
+H1.lm <- lm(Yield ~ Block,data=meansEqual.dat)
+H2.lm <- lm(Yield ~ Block + Product,data=meansEqual.dat)
+
+anova(H1.lm)
+anova(H1.lm,H2.lm)
+logLik(H1.lm)
+logLik(H2.lm)
+logLik(H2.lm)-logLik(H1.lm)
+library(lmtest)
+lrtest(H1.lm,H2.lm)
+
+AIC(H1.lm)
+AIC(H2.lm)
+
+BIC(H1.lm)
+BIC(H2.lm)
+@
+
+<<EqualMeansDiagnostics,fig=TRUE,echo=false,width=8,height=8>>=
+par(mfrow=c(2,2))
+plot(meansEqual.lm)
+@
+
+
+<<>>
+TeaTasting <-
+matrix(c(3, 1, 1, 3),
+       nrow = 2,
+       dimnames = list(Guess = c("Greater", "Lesser"),
+                       Truth = c("Sprayed", "Unsprayed")))
+TeaTasting
+fisher.test(TeaTasting, alternative = "greater")
+@
+
+=
+<<>>=
+library(coin)
+wilcox_test(Yield ~ Product, data = meansEqual.dat,
+                      distribution = "exact", alternative = "less",
+                      conf.int = TRUE)
+independence_test(Yield ~ Product, data = meansEqual.dat)
+independence_test(Yield ~ Product+Block, data = meansEqual.dat)
+@
+
+
+For anova, we might use
+
+<<>>=
+block.lm <- lm(Yield ~ Block,data=meansEqual.dat)
+rcb.lm <- lm(Yield ~ Block + Product,data=meansEqual.dat)
+trt.lm <- lm(Yield ~ Block,data=meansEqual.dat)
+mean.lm <- lm(Yield ~ 1,data=meansEqual.dat)
+anova(block.lm,rcb.lm)
+anova(rcb.lm)
+anova(trt.lm)
+anova(mean.lm,trt.lm)
+@
+
+<<>>=
+ggplot(EqualSizes.dat, aes(X,Y)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Easting", y="Northing", title = "Balanced")
+@
+
+<<>>=
+BalancedANonZero.dat <- EqualSizes.dat[EqualSizes.dat$Yield > 0,]
+hist(BalancedANonZero.dat$Yield)
+
+meansNonZero.dat <- with(BalancedANonZero.dat, data.frame(
+  Pass = aggregate(Yield ~ Pass,BalancedANonZero.dat,mean,na.rm=TRUE)[,1],
+  Yield = aggregate(Yield ~ Pass,BalancedANonZero.dat,mean,na.rm=TRUE)[,2],
+  Product = aggregate(as.numeric(Sprayed) ~ Pass,BalancedANonZero.dat,mean,na.rm=TRUE)[,2]
+))
+meansNonZero.dat
+meansNonZero.dat$Product <- as.logical(meansNonZero.dat$Product)
+meansNonZero.dat$Block <- as.factor(ceiling(meansNonZero.dat$Pass/2))
+@
+
+<<AverageYieldsATrimmed,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(meansNonZero.dat, aes(x=Block, y=Yield, color=Product,fill=Product)) +
+  geom_bar(stat="identity") + scale_colour_manual(values=cbPalette[pair.colors]) + scale_fill_manual(values=cbPalette[pair.colors])
+@
+
+
+<<>>=
+anova(mean.lm,trt.lm,test='Chisq')
+anova(mean.lm,trt.lm,test='Cp')
+@
+
+This gives us an F-test, but we can also perform a likelihood ratio test.
+<<>>=
+library(lmtest)
+lrtest(mean.lm,trt.lm)
+@
+
+
+
+
+$$
+L (x ; \mu, \sigma^2) = \frac{1}{\sigma \sqrt{2 \pi}} e^{- \frac{1}{2 \sigma^2} (y - \mu)^2}
+$$
+
+<<>>=
+norm.pdf <- function(x,mu=0,sigma=1) {
+  (1/sqrt(2*pi*sigma^2))*exp(-(x-mu)^2/(2*sigma^2))
+}
+@
+
+
+$$
+L (x ; \mu, \sigma^2) = \frac{1}{\sigma \sqrt{2 \pi}} e^{- \frac{1}{2 \sigma^2} \sum (y - X \beta)^2}
+$$
+
+
+We might then proceed to a simple paired t-test, assuming independent populations, and a pooled standard deviation and a equal number of strips for each treatment. We let $\delta$ denote the difference between means $\widehat{\mu}_1 - \widehat{\mu}_2$, and we use a t-test of
+
+\begin{equation}
+t = \frac{\delta}{\sqrt{2 \sigma^2/n}}
+\end{equation}
+
+<<>>=
+print(product.means <- tapply(meansNaive.dat$Yield,list(meansNaive.dat$Product),mean,na.rm=TRUE))
+print(product.sd <- tapply(meansNaive.dat$Yield,list(meansNaive.dat$Product),sd,na.rm=TRUE))
+print(pooled.sd <- mean(product.sd))
+print(delta <- abs(product.means[1]-product.means[2]))
+print(pooled.t <- delta / (sqrt((2*pooled.sd^2)/6)))
+@
+
+
+<<>>=
+betas <- seq(-1,20,by=0.1)
+plot(betas,norm.pdf(betas,pooled.sd),type='l')
+@
+
+Assuming a two-sided test, we can compute a critical $t$ and a $Pr(>t)$ by
+<<>>=
+qt(1-0.05/2,10)
+2*(1-pt(pooled.t,10))
+@
+
+\section{Trend Analysis}
+
+
+
+<<EqualTrendSelection,fig=TRUE,width=5,height=5>>=
+models.lm <- vector(mode='list',length=9)
+for(i in 1:length(models.lm)) {
+  models.lm[[i]] <- lm(Yield ~ poly(Easting,1+2*(i-1))+Sprayed,data=EqualSizes.dat)
+}
+selection.dat <- data.frame(Degree = rep(1+2*(1:9-1),3),
+                            Criteria = as.factor(c(rep('logLik',9),
+                                                   rep('AIC',9),
+                                                   rep('BIC',9))),
+                            Score = c(unlist(lapply(models.lm,logLik)),
+                                      unlist(lapply(models.lm,AIC)),
+                                      unlist(lapply(models.lm,BIC))))
+ggplot(selection.dat, aes(Degree,Score)) + 
+geom_point(aes(colour = Criteria),size=2) + 
+  geom_line(aes(colour = Criteria),size=1) + 
+ scale_colour_manual(values=cbPalette) + facet_wrap(~Criteria,nrow=3,scales="free_y")
+ # geom_smooth(aes(group= Sprayed,linetype=Sprayed,col=Sprayed), method="lm", formula= y ~ poly(x,5), se=FALSE) + labs(colour = "Sprayed", x="Easting", y="Yield", title = "East Quarter") 
+@
+
+
+It appears a 7th degree polynomial best descibes the data
+
+<<>>=
+summary(models.lm[[4]])
+mean.lm <- lm(Yield ~ poly(Easting,7),data=EqualSizes.dat)
+trt.lm <- lm(Yield ~ poly(Easting,7)+Sprayed,data=EqualSizes.dat)
+summary(mean.lm)
+summary(trt.lm)
+anova(mean.lm)
+anova(trt.lm)
+anova(mean.lm,trt.lm)
+lrtest(mean.lm,trt.lm)
+@
+
+<<EqualYields,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(EqualSizes.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Sprayed),size=2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) + labs(x="Easting", y="Yield", title = "Full Width Strip") 
+@
+
+<<EqualTrend,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(EqualSizes.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Sprayed),size=2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) +
+  geom_smooth(method="lm", formula= y ~ poly(x,7), se=FALSE) + labs(x="Easting", y="Yield", title = "Full Width Strip") 
+@
+
+\section {Trend on a rectangle}
+
+<<>>=
+Grid.dat <- Andersons.dat[Andersons.dat$Rectangle==1,]
+@
+
+\section {One Dimension}
+
+<<AndersonsTrendGrid,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(Grid.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Sprayed),size=2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) +
+  geom_smooth(aes(group= Sprayed,linetype=Sprayed,col=Sprayed), method="lm", formula= y ~ poly(x,5), se=FALSE) + labs(colour = "Sprayed", x="Easting", y="Yield", title = "East Quarter") 
+@
+
+
+<<GridYield,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(Grid.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Easting", y="Northing", title = "Yeild Map")
+@
+
+<<AndersonsTrendSelectionGrid,fig=TRUE,width=5,height=5>>=
+models.lm <- vector(mode='list',length=9)
+for(i in 1:length(models.lm)) {
+  models.lm[[i]] <- lm(Yield ~ poly(Easting,1+2*(i-1))+Sprayed,data=Grid.dat)
+}
+selection.dat <- data.frame(Degree = rep(1+2*(1:9-1),3),
+                            Criteria = as.factor(c(rep('logLik',9),
+                                                   rep('AIC',9),
+                                                   rep('BIC',9))),
+                            Score = c(unlist(lapply(models.lm,logLik)),
+                                      unlist(lapply(models.lm,AIC)),
+                                      unlist(lapply(models.lm,BIC))))
+ggplot(selection.dat, aes(Degree,Score)) + 
+geom_point(aes(colour = Criteria),size=2) + 
+  geom_line(aes(colour = Criteria),size=1) + 
+ scale_colour_manual(values=cbPalette) + facet_wrap(~Criteria,nrow=3,scales="free_y")
+ # geom_smooth(aes(group= Sprayed,linetype=Sprayed,col=Sprayed), method="lm", formula= y ~ poly(x,5), se=FALSE) + labs(colour = "Sprayed", x="Easting", y="Yield", title = "East Quarter") 
+@
+
+<<>>=
+summary(models.lm[[3]])
+mean.lm <- lm(Yield ~ poly(Easting,5),data=Grid.dat)
+trt.lm <- lm(Yield ~ poly(Easting,5)+Sprayed,data=Grid.dat)
+summary(mean.lm)
+summary(trt.lm)
+anova(mean.lm)
+anova(trt.lm)
+anova(mean.lm,trt.lm)
+lrtest(mean.lm,trt.lm)
+@
+
+\subsection{Two dimensions}
+
+<<AndersonsGridSelectionGrid,fig=TRUE,width=5,height=5>>=
+models.lm <- vector(mode='list',length=9)
+for(i in 1:length(models.lm)) {
+  models.lm[[i]] <- lm(Yield ~ poly(Easting,1+2*(i-1))*poly(Northing,1+2*(i-1))+Sprayed,data=Grid.dat)
+}
+selection.dat <- data.frame(Degree = rep(1+2*(1:9-1),3),
+                            Criteria = as.factor(c(rep('logLik',9),
+                                                   rep('AIC',9),
+                                                   rep('BIC',9))),
+                            Score = c(unlist(lapply(models.lm,logLik)),
+                                      unlist(lapply(models.lm,AIC)),
+                                      unlist(lapply(models.lm,BIC))))
+ggplot(selection.dat, aes(Degree,Score)) + 
+geom_point(aes(colour = Criteria),size=2) + 
+  geom_line(aes(colour = Criteria),size=1) + 
+ scale_colour_manual(values=cbPalette) + facet_wrap(~Criteria,nrow=3,scales="free_y")
+ # geom_smooth(aes(group= Sprayed,linetype=Sprayed,col=Sprayed), method="lm", formula= y ~ poly(x,5), se=FALSE) + labs(colour = "Sprayed", x="Easting", y="Yield", title = "East Quarter") 
+@
+
+<<>>=
+mean.lm <- lm(Yield ~ poly(Easting,7)*poly(Northing,7),data=Grid.dat)
+trt.lm <- lm(Yield ~ poly(Easting,7)*poly(Northing,7)+Sprayed,data=Grid.dat)
+anova(lm(Yield ~ Sprayed + poly(Easting,7)*poly(Northing,7),data=Grid.dat))
+summary(mean.lm)
+summary(trt.lm)
+anova(mean.lm)
+anova(trt.lm)
+anova(mean.lm,trt.lm)
+lrtest(mean.lm,trt.lm)
+@
+
+
+<<AndersonsGridFertility,fig=TRUE,echo=false,width=8,height=5>>=
+New.dat <- Grid.dat
+New.dat$Sprayed <- FALSE
+New.dat$Yield <- predict(trt.lm,newdata=New.dat)
+ggplot(New.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Easting", y="Northing", title = "Estimates")
+@
+
+\section {Approximately Square}
+<<>>=
+Square.dat <- Andersons.dat[Andersons.dat$Square==1,]
+@
+
+<<SquareSprayed,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(Square.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Sprayed),size=2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) +
+labs(colour = "Sprayed", x="Easting", y="Northing", title = "East Quarter")
+@
+
+
+<<ModelSelectionSquare,fig=TRUE,width=5,height=5>>=
+models.lm <- vector(mode='list',length=12)
+for(i in 1:length(models.lm)) {
+  models.lm[[i]] <- lm(Yield ~ polym(Easting,degree=1+2*(i-1))*polym(Northing,degree=1+2*(i-1))+Sprayed,
+                       data=Square.dat)
+}
+selection.dat <- data.frame(Degree = rep(1+2*(1:12-1),3),
+                            Criteria = as.factor(c(rep('logLik',12),
+                                                   rep('AIC',12),
+                                                   rep('BIC',12))),
+                            Score = c(unlist(lapply(models.lm,logLik)),
+                                      unlist(lapply(models.lm,AIC)),
+                                      unlist(lapply(models.lm,BIC))))
+ggplot(selection.dat, aes(Degree,Score)) + 
+geom_point(aes(colour = Criteria),size=2) + 
+  geom_line(aes(colour = Criteria),size=1) + 
+ scale_colour_manual(values=cbPalette) + facet_wrap(~Criteria,nrow=3,scales="free_y")
+ # geom_smooth(aes(group= Sprayed,linetype=Sprayed,col=Sprayed), method="lm", formula= y ~ poly(x,5), se=FALSE) + labs(colour = "Sprayed", x="Easting", y="Yield", title = "East Quarter") 
+@
+
+<<>>=
+mean.lm <- lm(Yield ~ poly(Easting,9)*poly(Northing,9),data=Square.dat)
+trt.lm <- lm(Yield ~ poly(Easting,9)*poly(Northing,9)+Sprayed,data=Square.dat)
+anova(lm(Yield ~ Sprayed + poly(Easting,9)*poly(Northing,9),data=Square.dat))
+summary(mean.lm)
+summary(trt.lm)
+anova(mean.lm)
+anova(trt.lm)
+anova(mean.lm,trt.lm)
+lrtest(mean.lm,trt.lm)
+@
+
+
+<<SquareFertility,fig=TRUE,echo=false,width=8,height=5>>=
+New.dat <- Square.dat
+New.dat$Sprayed <- levels(Square.dat$Sprayed)[1]
+New.dat$Yield <- predict(trt.lm,data=New.dat)
+ggplot(New.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Easting", y="Northing", title = "Estimates")
+@
+
+<<SquareFertilityMissing,fig=TRUE,echo=false,width=8,height=5>>=
+data.rows <- dim(Square.dat)[1]
+Northing <- seq(min(Square.dat$Northing),max(Square.dat$Northing),length=ceiling(sqrt(data.rows)))
+Easting <- seq(min(Square.dat$Easting),max(Square.dat$Easting),length=ceiling(sqrt(data.rows)))
+New.dat <- expand.grid(Northing, Easting)
+names(New.dat) <- c('Northing','Easting')
+New.dat$Sprayed <- FALSE
+New.dat$Yield <- NA
+New.dat$Yield[1:data.rows] <- predict(trt.lm,newdata=New.dat[1:data.rows,])
+New.dat$Yield <- predict(trt.lm,newdata=New.dat)
+ggplot(New.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Easting", y="Northing", title = "Estimates")
+@
+
+\section {All Strips}
+
+
+<<StripsSprayed,fig=TRUE,echo=false,width=8,height=5>>=
+ggplot(Strips.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Sprayed),size=2) + 
+scale_colour_manual(values=cbPalette[pair.colors]) +
+labs(colour = "Sprayed", x="Easting", y="Northing", title = "East Quarter")
+@
+
+
+<<ModelSelectionSquare,fig=TRUE,width=5,height=5>>=
+models.lm <- vector(mode='list',length=12)
+for(i in 1:length(models.lm)) {
+  models.lm[[i]] <- lm(Yield ~ polym(Easting,degree=1+2*(i-1))*polym(Northing,degree=1+2*(i-1))+Sprayed,
+                       data=Strips.dat)
+}
+selection.dat <- data.frame(Degree = rep(1+2*(1:12-1),3),
+                            Criteria = as.factor(c(rep('logLik',12),
+                                                   rep('AIC',12),
+                                                   rep('BIC',12))),
+                            Score = c(unlist(lapply(models.lm,logLik)),
+                                      unlist(lapply(models.lm,AIC)),
+                                      unlist(lapply(models.lm,BIC))))
+ggplot(selection.dat, aes(Degree,Score)) + 
+geom_point(aes(colour = Criteria),size=2) + 
+  geom_line(aes(colour = Criteria),size=1) + 
+ scale_colour_manual(values=cbPalette) + facet_wrap(~Criteria,nrow=3,scales="free_y")
+ # geom_smooth(aes(group= Sprayed,linetype=Sprayed,col=Sprayed), method="lm", formula= y ~ poly(x,5), se=FALSE) + labs(colour = "Sprayed", x="Easting", y="Yield", title = "East Quarter") 
+@
+
+<<>>=
+mean.lm <- lm(Yield ~ poly(Easting,9)*poly(Northing,9),data=Strips.dat)
+trt.lm <- lm(Yield ~ poly(Easting,9)*poly(Northing,9)+Sprayed,data=Strips.dat)
+anova(lm(Yield ~ Sprayed + poly(Easting,9)*poly(Northing,9),data=Strips.dat))
+summary(mean.lm)
+summary(trt.lm)
+anova(mean.lm)
+anova(trt.lm)
+anova(mean.lm,trt.lm)
+lrtest(mean.lm,trt.lm)
+@
+
+
+<<StripsFertility,fig=TRUE,echo=false,width=8,height=5>>=
+New.dat <- Strips.dat
+New.dat$Sprayed <- levels(Strips.dat$Sprayed)[1]
+New.dat$Yield <- predict(trt.lm,data=Strips.dat)
+ggplot(New.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Easting", y="Northing", title = "Estimates")
+@
+
+<<StripsFertilityMissing,fig=TRUE,echo=false,width=8,height=5>>=
+data.rows <- dim(Strips.dat)[1]
+Northing <- seq(min(Strips.dat$Northing),max(Strips.dat$Northing),length=ceiling(sqrt(data.rows)))
+Easting <- seq(min(Strips.dat$Easting),max(Strips.dat$Easting),length=ceiling(sqrt(data.rows)))
+New.dat <- expand.grid(Northing, Easting)
+names(New.dat) <- c('Northing','Easting')
+New.dat$Sprayed <- FALSE
+New.dat$Yield <- NA
+New.dat$Yield[1:data.rows] <- predict(trt.lm,newdata=New.dat[1:data.rows,])
+New.dat$Yield <- predict(trt.lm,newdata=New.dat)
+ggplot(New.dat, aes(Easting,Northing)) + 
+geom_point(aes(colour = Yield),size=2) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+labs(colour = "Yield", x="Easting", y="Northing", title = "Estimates")
+@
+
+\clearpage
+\section{Appendix}
+
+\subsection{Yield Trial Data}
+
+
+\subsection{Permutations}
+
+
+Processing QGIS shape file for analysis
+1. Merge channels
+  Vector -> Analysis Tools -> Mean Coordinates 
+  This creates a shape file with the midpoint for each swath sample
+2. Average channel samples
+  Processing Toolbox : Vector Analysis -> Statistics by Categories
+  This creates an attribute table.
+3. Join the two preceding steps
+  Processing Toolbox : Vector General -> Join attributes by field value
+  
+
+\end{document}
