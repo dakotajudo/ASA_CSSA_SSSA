@@ -4,7 +4,7 @@
 \begin{document}
 \SweaveOpts{concordance=TRUE}
 
-\title{Thoughts about Power and Sample Size for On-Farm Strip Trials}
+\title{What Do We Mean When We Say 'p'}
 \maketitle{}
 
 \section*{Abstract}
@@ -151,6 +151,80 @@ summary(Strips.lme)
 anova(Strips.lme)
 @
 
+
+<<>>=
+
+arm.trt <- c(33.834, 25.741, 37.814, 29.72, 33.357, 25.263, 37.336, 29.243, 31.65, 23.556, 35.629, 27.536, 31.172, 23.079, 35.152, 27.059)
+arm.unt <- c(27.059, 35.152, 23.079, 31.172, 27.536, 35.629, 23.556, 31.65, 29.243, 37.336, 25.263, 33.357, 29.72, 37.814, 25.741, 33.834)
+arm.mean <- c(30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464, 30.4464)
+arm.sd <- c(14.1292, 13.0837, 9.2464, 15.1271, 14.41, 12.5934, 10.1806, 15.0457, 15.0457, 10.1806, 12.5934, 14.41, 15.1271, 9.2464, 13.0837, 14.1292)
+arm.diff <- c(6.7750, 9.4115, 14.7345, 1.4520, 5.8203, 10.3662, 13.7798, 2.4067, 2.4067, 13.7798, 10.3662, 5.8203, 1.4520, 14.7345, 9.4115, 6.7750)
+arm.diff <- arm.trt - arm.unt
+#arm.diff <- 9.4115 (31%), 14.7345 (48%), 1.4520 (4%), 5.8203 (19%), 10.3662 (34%), 13.7798 (45%), 2.4067 (7%), 2.4067 (7%), 13.7798 (45%), 10.3662 (34%), 5.8203 (19%), 1.4520 (4%), 14.7345 (48%), 9.4115 (31%), 6.7750 (22%))
+arm.F <- c(0.46, 1.035, 5.079, 0.018, 0.326, 1.355, 3.664, 0.051, 0.051, 3.664, 1.355, 0.326, 0.018, 5.079, 1.035, 0.46)
+arm.pF <- c(0.5463, 0.3839, 0.1096, 0.9006, 0.6078, 0.3285, 0.1515, 0.8356, 0.8356, 0.1515, 0.3285, 0.6078, 0.9006, 0.1096, 0.3839, 0.5463)
+@
+
+<<>>=
+hist(arm.diff)
+hist(arm.F)
+@
+
+
+<<>>=
+arm.diff
+diff.ranks <- length(arm.diff) - rank(arm.diff)+1
+diff.ranks
+(diff.ranks[1]-1)/length(diff.ranks)
+abs.diff.ranks <- length(arm.diff) - rank(abs(arm.diff))+1
+1-abs.diff.ranks[1]/length(abs.diff.ranks)
+rank(arm.F)
+rank(arm.F)[1]/length(arm.F)
+
+t.value <- abs(arm.diff)/(arm.sd*sqrt(2/4))
+t.value
+p.t <- 2*(1-pt(t.value,df=3))
+p.t
+arm.pF
+@
+
+<<ProbVsLikNaive,fig=TRUE,echo=false,width=8,height=4>>=
+s2 <- sqrt(sum(meansNaive.lm$residuals^2)/meansNaive.lm$df.residual) #arm.sd[1]
+x.bar <- coef(meansNaive.lm)[5] #arm.diff[1]
+quantiles <- seq(x.bar-4*s2,x.bar+4*s2,length=100)
+t.dat <- data.frame(Quantile = quantiles, PDF = dt(quantiles,3))
+normNaive.dat <- data.frame(Quantile = quantiles, PDF = dnorm(quantiles,mean=x.bar,sd=s2))
+normNaive.dat$CDF <- normNaive.dat$PDF
+sum = normNaive.dat$PDF[1]
+
+quantiles <- seq(0-4*s2,0+4*s2,length=100)
+nullNaive.dat <- data.frame(Quantile = quantiles, PDF = dnorm(quantiles,mean=0,sd=s2))
+nullNaive.dat$CDF <- nullNaive.dat$PDF
+for(i in 2:length(quantiles)) {
+  normNaive.dat$CDF <- normNaive.dat$CDF[i-1] +  normNaive.dat$PDF[i]
+  nullNaive.dat$CDF <- nullNaive.dat$CDF[i-1] +  nullNaive.dat$PDF[i]
+}
+print(q.points <- c(0,x.bar))
+print(l.points <- dnorm(q.points,mean=x.bar,sd=s2))
+shadeNaive.dat <- nullNaive.dat[abs(nullNaive.dat$Quantile) > x.bar,]
+shade2.dat <- nullNaive.dat[nullNaive.dat$Quantile > x.bar,]
+ggplot(normNaive.dat, aes(Quantile,PDF)) + 
+geom_line(aes(color='L(y|mu,sigma)')) + 
+  geom_line(aes(color='L(y|0,sigma)'),data=nullNaive.dat) + 
+#labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+  geom_segment(aes(x = Quantile, y = 0, xend = Quantile, yend = PDF, colour = "P(>y)"), data = shadeNaive.dat) +
+  geom_point(aes(x=x.bar, y = l.points[2], colour = "L(MLE(y))")) +
+   geom_point(aes(x=0, y = l.points[1], colour = "L(H0)")) +
+scale_colour_manual(values=cbPalette)
+l.points
+#ggplot()
+#pooled.dat <- rbind()
+#plot(quantiles,dnorm(quantiles),col='gray',ylim=c(0,0.4),type='l')
+#lines(quantiles,dt(quantiles,3),col='red')
+
+#abline(v=c(t.value[1],-t.value[1]),col='blue')
+@
+
 \section{Equal Sizes}
 
 <<>>=
@@ -234,7 +308,61 @@ plot(meansEqual.lm)
 @
 
 
-<<>>
+<<ProbVsLikEqual,fig=TRUE,echo=false,width=8,height=4>>=
+s2 <- sqrt(sum(meansEqual.lm$residuals^2)/meansEqual.lm$df.residual) #arm.sd[1]
+x.bar <- coef(meansEqual.lm)[5] #arm.diff[1]
+quantiles <- seq(x.bar-4*s2,x.bar+4*s2,length=100)
+t.dat <- data.frame(Quantile = quantiles, PDF = dt(quantiles,3))
+normEqual.dat <- data.frame(Quantile = quantiles, PDF = dnorm(quantiles,mean=x.bar,sd=s2))
+normEqual.dat$CDF <- normEqual.dat$PDF
+sum = normEqual.dat$PDF[1]
+
+quantiles <- seq(0-4*s2,0+4*s2,length=100)
+nullEqual.dat <- data.frame(Quantile = quantiles, PDF = dnorm(quantiles,mean=0,sd=s2))
+nullEqual.dat$CDF <- nullEqual.dat$PDF
+for(i in 2:length(quantiles)) {
+  normEqual.dat$CDF <- normEqual.dat$CDF[i-1] +  normEqual.dat$PDF[i]
+  nullEqual.dat$CDF <- nullEqual.dat$CDF[i-1] +  nullEqual.dat$PDF[i]
+}
+print(q.points <- c(0,x.bar))
+print(l.points <- dnorm(q.points,mean=x.bar,sd=s2))
+shadeEqual.dat <- nullEqual.dat[abs(nullEqual.dat$Quantile) > x.bar,]
+shade2.dat <- nullEqual.dat[nullEqual.dat$Quantile > x.bar,]
+ggplot(normEqual.dat, aes(Quantile,PDF)) + 
+geom_line(aes(color='L(y|mu,sigma)')) + 
+  geom_line(aes(color='L(y|0,sigma)'),data=nullEqual.dat) + 
+#labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+  geom_segment(aes(x = Quantile, y = 0, xend = Quantile, yend = PDF, colour = "P(>y)"), data = shadeEqual.dat) +
+  geom_point(aes(x=x.bar, y = l.points[2], colour = "L(MLE(y))")) +
+   geom_point(aes(x=0, y = l.points[1], colour = "L(H0)")) +
+scale_colour_manual(values=cbPalette)
+@
+
+
+<<ProbVsLikFacet,fig=TRUE,echo=false,width=6,height=6>>=
+
+normNaive.dat$Source <- 'Naive'
+nullNaive.dat$Source <- 'Naive'
+
+normEqual.dat$Source <- 'Equal'
+nullEqual.dat$Source <- 'Equal'
+
+shadeEqual.dat$Source <- 'Equal'
+shadeNaive.dat$Source <- 'Naive'
+
+norm.dat <- rbind(normNaive.dat,normEqual.dat)
+null.dat <- rbind(nullNaive.dat,nullEqual.dat)
+shade.dat <- rbind(shadeNaive.dat,shadeEqual.dat)
+
+ggplot(norm.dat, aes(Quantile,PDF)) + 
+geom_line(aes(color='L(y|mu,sigma)')) + 
+  geom_line(aes(color='L(y|0,sigma)'),data=null.dat) + 
+#labs(colour = "Variety", x="Longitude (m)", y="Latitude (m)", title = "East Quarter")
+  geom_segment(aes(x = Quantile, y = 0, xend = Quantile, yend = PDF, colour = "P(>y)"), data = shade.dat) +
+scale_colour_manual(values=cbPalette) + facet_wrap(~ Source,nrow=2)
+@
+
+<<>>=
 TeaTasting <-
 matrix(c(3, 1, 1, 3),
        nrow = 2,
@@ -356,17 +484,19 @@ qt(1-0.05/2,10)
 
 
 <<EqualTrendSelection,fig=TRUE,width=5,height=5>>=
-models.lm <- vector(mode='list',length=9)
+m <- 16
+models.lm <- vector(mode='list',length=m)
 for(i in 1:length(models.lm)) {
-  models.lm[[i]] <- lm(Yield ~ poly(Easting,1+2*(i-1))+Sprayed,data=EqualSizes.dat)
+  models.lm[[i]] <- lm(Yield ~ poly(Easting,i)+Sprayed,data=EqualSizes.dat)
 }
-selection.dat <- data.frame(Degree = rep(1+2*(1:9-1),3),
-                            Criteria = as.factor(c(rep('logLik',9),
-                                                   rep('AIC',9),
-                                                   rep('BIC',9))),
+selection.dat <- data.frame(Degree = rep(1:m,3),
+                            Criteria = factor(c(rep('l',m),
+                                                   rep('AIC',m),
+                                                   rep('BIC',m)),levels=c("l", "AIC", "BIC")),
                             Score = c(unlist(lapply(models.lm,logLik)),
                                       unlist(lapply(models.lm,AIC)),
                                       unlist(lapply(models.lm,BIC))))
+
 ggplot(selection.dat, aes(Degree,Score)) + 
 geom_point(aes(colour = Criteria),size=2) + 
   geom_line(aes(colour = Criteria),size=1) + 
@@ -378,7 +508,7 @@ geom_point(aes(colour = Criteria),size=2) +
 It appears a 7th degree polynomial best descibes the data
 
 <<>>=
-summary(models.lm[[4]])
+summary(models.lm[[7]])
 mean.lm <- lm(Yield ~ poly(Easting,7),data=EqualSizes.dat)
 trt.lm <- lm(Yield ~ poly(Easting,7)+Sprayed,data=EqualSizes.dat)
 summary(mean.lm)
@@ -401,6 +531,40 @@ geom_point(aes(colour = Sprayed),size=2) +
 scale_colour_manual(values=cbPalette[pair.colors]) +
   geom_smooth(method="lm", formula= y ~ poly(x,7), se=FALSE) + labs(x="Easting", y="Yield", title = "Full Width Strip") 
 @
+
+<<EqualTrendH6vH7,fig=TRUE,echo=false,width=8,height=5>>=
+
+H6.lm <- lm(Yield ~ poly(Easting,6)+Sprayed,data=EqualSizes.dat)
+EqualSizes.dat$H7 <- predict(trt.lm)
+EqualSizes.dat$H6 <- predict(H6.lm)
+
+ggplot(EqualSizes.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Sprayed),size=2) + 
+  geom_line(aes(Easting,H7,colour = 'H6'),size=1,data=EqualSizes.dat) + 
+  geom_line(aes(Easting,H6,colour = 'H7'),size=1,data=EqualSizes.dat) + 
+scale_colour_manual(values=cbPalette[c(2,3,4,5)]) +
+#  geom_smooth(aes(group= Sprayed,linetype=Sprayed,col=Sprayed), method="lm", formula= y ~ poly(x,7), se=FALSE) + 
+  labs(x="Easting", y="Yield", title = "Full Width Strip") 
+@
+
+<<>>=
+lrtest(H6.lm,trt.lm)
+@
+
+<<EqualTrendPair,fig=TRUE,echo=false,width=8,height=5>>=
+EqualSizes.dat$H7 <- predict(trt.lm)
+
+EqualSizes.dat$H7Null <- predict(mean.lm)
+ggplot(EqualSizes.dat, aes(Easting,Yield)) + 
+geom_point(aes(colour = Sprayed),size=2) + 
+  geom_line(aes(Easting,H7,colour = 'H7'),size=1,data=EqualSizes.dat) + 
+  geom_line(aes(Easting,H7Null,colour = 'H7 null'),size=1,data=EqualSizes.dat) + 
+scale_colour_manual(values=cbPalette[c(2,3,4,5)]) +
+#  geom_smooth(aes(group= Sprayed,linetype=Sprayed,col=Sprayed), method="lm", formula= y ~ poly(x,7), se=FALSE) + 
+  labs(x="Easting", y="Yield", title = "Full Width Strip") 
+@
+
+
 
 \section {Trend on a rectangle}
 
@@ -537,9 +701,9 @@ geom_point(aes(colour = Criteria),size=2) +
 mean.lm <- lm(Yield ~ poly(Easting,9)*poly(Northing,9),data=Square.dat)
 trt.lm <- lm(Yield ~ poly(Easting,9)*poly(Northing,9)+Sprayed,data=Square.dat)
 anova(lm(Yield ~ Sprayed + poly(Easting,9)*poly(Northing,9),data=Square.dat))
-summary(mean.lm)
+#summary(mean.lm)
 summary(trt.lm)
-anova(mean.lm)
+#anova(mean.lm)
 anova(trt.lm)
 anova(mean.lm,trt.lm)
 lrtest(mean.lm,trt.lm)
@@ -604,15 +768,28 @@ geom_point(aes(colour = Criteria),size=2) +
 @
 
 <<>>=
-mean.lm <- lm(Yield ~ poly(Easting,9)*poly(Northing,9),data=Strips.dat)
-trt.lm <- lm(Yield ~ poly(Easting,9)*poly(Northing,9)+Sprayed,data=Strips.dat)
-anova(lm(Yield ~ Sprayed + poly(Easting,9)*poly(Northing,9),data=Strips.dat))
-summary(mean.lm)
-summary(trt.lm)
-anova(mean.lm)
-anova(trt.lm)
-anova(mean.lm,trt.lm)
-lrtest(mean.lm,trt.lm)
+mean17.lm <- lm(Yield ~ poly(Easting,17)*poly(Northing,17),data=Strips.dat)
+trt17.lm <- lm(Yield ~ poly(Easting,17)*poly(Northing,17)+Sprayed,data=Strips.dat)
+
+mean21.lm <- lm(Yield ~ poly(Easting,21)*poly(Northing,21),data=Strips.dat)
+trt21.lm <- lm(Yield ~ poly(Easting,21)*poly(Northing,21)+Sprayed,data=Strips.dat)
+
+#summary(mean.lm)
+summary(trt17.lm)
+summary(trt21.lm)
+#anova(mean.lm)
+anova(trt17.lm)
+anova(trt21.lm)
+
+anova(mean17.lm,trt17.lm)
+lrtest(mean17.lm,trt17.lm)
+
+anova(mean21.lm,trt21.lm)
+lrtest(mean21.lm,trt21.lm)
+
+lrtest(trt17.lm,trt21.lm)
+
+trt.lm <- trt21.lm
 @
 
 
