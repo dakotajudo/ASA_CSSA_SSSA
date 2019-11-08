@@ -217,7 +217,7 @@ anova(H1.lm)
 anova(H1.lm,H2.lm)
 logLik(H1.lm)
 logLik(H2.lm)
-logLik(H2.lm)-logLik(H1.lm)
+logLik(H1.lm)-logLik(H2.lm)
 library(lmtest)
 lrtest(H1.lm,H2.lm)
 
