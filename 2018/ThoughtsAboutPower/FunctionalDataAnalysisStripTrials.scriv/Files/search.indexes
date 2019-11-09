@@ -512,6 +512,9 @@ Dent 5
             <Text>QGIS export settings
 #</Text>
         </Document>
+        <Document ID="C6B48C53-1AB0-4C40-801D-296774FA61BA">
+            <Title>FunctionalDataAnalysisStripTrials</Title>
+        </Document>
         <Document ID="A8954970-E958-4D6D-88A4-315960964A3B">
             <Title>Function 1</Title>
             <Text>metric_from_gps &lt;- function(longitude, latitude, origin=c(0,0)) {
@@ -571,9 +574,6 @@ Corn2015.dat$Northing &lt;- L_phi*(Corn2015.dat$LatR - origin[2])
 max(Corn2015.dat$Easting)
 max(Corn2015.dat$Northing)</Text>
         </Document>
-        <Document ID="C6B48C53-1AB0-4C40-801D-296774FA61BA">
-            <Title>FunctionalDataAnalysisStripTrials</Title>
-        </Document>
         <Document ID="091D552F-A46F-496A-B8B8-E0536558E133">
             <Title>Notes</Title>
         </Document>
@@ -610,12 +610,6 @@ Add Field (Strip)
 Select points and edit (Strip number)
 Export to csv</Text>
         </Document>
-        <Document ID="39C9B624-BEE7-4182-A67E-9AAC08375D28">
-            <Title>Sample Code</Title>
-        </Document>
-        <Document ID="E6D153DB-7A4F-43D7-98EF-25E3B5F028EB">
-            <Title>Materials and Methods</Title>
-        </Document>
         <Document ID="900437F4-1BEC-41AF-8214-B1CB6B0711A9">
             <Title>Converting GPS Coordinates</Title>
             <Text>While not affecting analysis, it will aid in interpretation to convert spatial coordinates from degrees longitude or latitude to distance from an origin. The origin is specified as the south-west corner of the field, and degrees longitude and latitude are converted to degrees of distance by subtracting the origin, then multiplying by 180/𝜋 to convert to distance in radians.
@@ -627,6 +621,9 @@ Northing and Easting
 
 Conversion was checked against the Measure function of QGIS, which measures the field in example 2 at 340 meter wide by 150 meters tall.
 Example 1 is 695m wide, 770m tall.</Text>
+        </Document>
+        <Document ID="E6D153DB-7A4F-43D7-98EF-25E3B5F028EB">
+            <Title>Materials and Methods</Title>
         </Document>
         <Document ID="C283CA35-AB03-4E2A-A9A4-4A688599DDA0">
             <Title>Functional Data Analysis</Title>
@@ -644,14 +641,17 @@ Let be latitude in decimal format and be longitude. Let the origin O ={min(lon),
 
 Removing outliers.</Text>
         </Document>
-        <Document ID="D3E77CE7-556E-491C-824C-4FDFFE9A5800">
-            <Title>Endnotes</Title>
-            <Text>&lt;$--ENDNOTES--&gt; All footnotes will get inserted here upon print, and this bubble will be removed automatically.</Text>
-        </Document>
         <Document ID="3E2C04EB-1C64-4F84-914E-D57AAA647F2C">
             <Title>Introduction</Title>
             <Text>Collaborative research between agronomists and farmers has a long history, but recent technological advances has greatly increased opportunities for on-farm research. For our purposes, we will define on-farm research as comparative experiments 1) conducted on farmer-owned fields, 2)treatments applied using farmer-owned equipment and 3) data collected using farmer-owned harvesters. 3) implies the use of GPS-enabled yield data monitors, while 2) and 3) determine the nature of experimental units. Specifically, the dimensions of the experimental units will be determined by the width of farm implements and by the length of a typical planting, application or harvest pass.
 We will consider a ‘pass’ as a simple complete farming operation, e.g. the interval between when a planter is lowered into the soil at one end of the field to when the planter is raised at the other end of the field. As such, each pass may be thought of in terms of a traditional plot, albeit a very long and very thin plot. However, a very long and very thin rectangle becomes increasingly similar to a single line, and we can easily model yield as function of position on this line. Thus, the analysis of yield monitor data is a likely candidate for functional data analysis.</Text>
+        </Document>
+        <Document ID="D3E77CE7-556E-491C-824C-4FDFFE9A5800">
+            <Title>Endnotes</Title>
+            <Text>&lt;$--ENDNOTES--&gt; All footnotes will get inserted here upon print, and this bubble will be removed automatically.</Text>
+        </Document>
+        <Document ID="39C9B624-BEE7-4182-A67E-9AAC08375D28">
+            <Title>Sample Code</Title>
         </Document>
         <Document ID="0A49AFF2-BB49-46AF-89BD-77935EBDD825">
             <Title>Ideas</Title>
