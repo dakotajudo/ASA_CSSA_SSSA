@@ -807,9 +807,9 @@ geom_point(aes(colour = Criteria),size=2) +
 @
 
 <<>>=
-mean.lm <- lm(Yield ~ poly(Easting,9)*poly(Northing,9),data=Square.dat)
-trt.lm <- lm(Yield ~ poly(Easting,9)*poly(Northing,9)+Sprayed,data=Square.dat)
-anova(lm(Yield ~ Sprayed + poly(Easting,9)*poly(Northing,9),data=Square.dat))
+mean.lm <- lm(Yield ~ poly(Easting,17)*poly(Northing,17),data=Square.dat)
+trt.lm <- lm(Yield ~ poly(Easting,17)*poly(Northing,17)+Sprayed,data=Square.dat)
+anova(lm(Yield ~ Sprayed + poly(Easting,17)*poly(Northing,17),data=Square.dat))
 #summary(mean.lm)
 summary(trt.lm)
 #anova(mean.lm)
