@@ -4,7 +4,7 @@
 \begin{document}
 \SweaveOpts{concordance=TRUE}
 
-\title{What Do We Mean When We Say 'p'}
+\title{What Do We Mean When We Say 'p-value'}
 \maketitle{}
 
 \section*{Abstract}
@@ -111,6 +111,8 @@ meansNaive.dat$Product <- ifelse(meansNaive.dat$Pass %in% c(2,4,6,8),'Sprayed','
 meansNaive.dat$Product <- as.factor(meansNaive.dat$Product)
 meansNaive.dat$Block <- as.factor(ceiling(meansNaive.dat$Pass/2))
 meansNaive.dat
+aggregate(Yield ~ Pass,meansNaive.dat,mean)
+
 t.test(Yield ~ Product, data = meansNaive.dat)
 t.test(Yield ~ Product, data = meansNaive.dat,paired=TRUE)
 t.test(Yield ~ Product, data = meansNaive.dat,paired=TRUE,alternative = "less")
@@ -565,8 +567,75 @@ qt(1-0.05/2,10)
 
 \section{Trend Analysis}
 
+\subsection{Maive Means}
+<<15NaiveTrendSelectionMeans,fig=TRUE,width=5,height=5>>=
+m <- 4
+models.lm <- vector(mode='list',length=m)
+for(i in 1:length(models.lm)) {
+  models.lm[[i]] <- lm(Yield ~ poly(Pass,i)+Product,data=meansNaive.dat)
+}
+selection.dat <- data.frame(Degree = rep(1:m,3),
+                            Criteria = factor(c(rep('l',m),
+                                                   rep('AIC',m),
+                                                   rep('BIC',m)),levels=c("l", "AIC", "BIC")),
+                            Score = c(unlist(lapply(models.lm,logLik)),
+                                      unlist(lapply(models.lm,AIC)),
+                                      unlist(lapply(models.lm,BIC))))
+
+ggplot(selection.dat, aes(Degree,Score)) + 
+geom_point(aes(colour = Criteria),size=2) + 
+  geom_line(aes(colour = Criteria),size=1) + 
+ scale_colour_manual(values=cbPalette) + facet_wrap(~Criteria,nrow=3,scales="free_y")
+ # geom_smooth(aes(group= Sprayed,linetype=Sprayed,col=Sprayed), method="lm", formula= y ~ poly(x,5), se=FALSE) + labs(colour = "Sprayed", x="Easting", y="Yield", title = "East Quarter") 
+@
+
+<<>>=
+H3Null.lm <- lm(Yield ~ poly(Pass,3),data=meansNaive.dat)
+H3.lm <- lm(Yield ~ poly(Pass,3)+Product,data=meansNaive.dat)
+summary(H3Null.lm)
+summary(H3.lm)
+anova(H3Null.lm)
+anova(H3.lm)
+anova(H3Null.lm,H3.lm)
+lrtest(H3Null.lm,H3.lm)
+logLik(H3Null.lm)
+logLik(H3.lm)-logLik(H3Null.lm)
+exp(logLik(H3.lm)-logLik(H3Null.lm))
+@
+
+<<17NaiveTrendH2vsH3,fig=TRUE,echo=false,width=8,height=5>>=
+H2.lm <- lm(Yield ~ poly(Pass,2)+Product,data=meansNaive.dat)
+meansNaive.dat$H2 <- predict(H2.lm)
+meansNaive.dat$H3 <- predict(H3.lm)
+
+ggplot(meansNaive.dat, aes(x=Pass, y=Yield)) +
+  geom_bar(stat="identity",aes(colour = Product)) +
+#ggplot(meansNaive.dat, aes(Pass,Yield)) + 
+#geom_bar(aes(colour = Product),size=2) + 
+  geom_line(aes(Pass,H2,colour = 'H2'),size=1,data=meansNaive.dat) + 
+  geom_line(aes(Pass,H3,colour = 'H3'),size=1,data=meansNaive.dat) + 
+scale_colour_manual(values=cbPalette[c(2,3,4,5)]) +
+   labs(x="Easting", y="Yield", title = "Strip Mean and Models") 
+@
+
+<<>>=
+lrtest(H2.lm,H3.lm)
+@
+
+<<17NaiveTrendH3vsNull,fig=TRUE,echo=false,width=8,height=5>>=
+meansNaive.dat$H3Null <- predict(H3Null.lm)
+ggplot(meansNaive.dat, aes(x=Pass, y=Yield)) +
+  geom_bar(stat="identity",aes(colour = Product)) +
+#ggplot(meansNaive.dat, aes(Pass,Yield)) + 
+#geom_bar(aes(colour = Product),size=2) + 
+  geom_line(aes(Pass,H3Null,colour = 'H3Null'),size=1,data=meansNaive.dat) + 
+  geom_line(aes(Pass,H3,colour = 'H3'),size=1,data=meansNaive.dat) + 
+scale_colour_manual(values=cbPalette[c(2,3,4,5)]) +
+   labs(x="Easting", y="Yield", title = "Strip Mean and Models") 
+@
 
 
+\subsection{Observations}
 <<15EqualTrendSelection,fig=TRUE,width=5,height=5>>=
 m <- 16
 models.lm <- vector(mode='list',length=m)

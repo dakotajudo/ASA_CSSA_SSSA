@@ -1,0 +1,33 @@
+---
+title: "On-farm Trials from First Principles"
+author: "Peter Claussen"
+date: "3/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+Suppose we wish to test the effectiveness of a plant protection product by engaging a full-time farmer, and we want to provide a degree of scientific and statistical rigor. We provide the farmer with some product, and ask that he apply the product to part of a crop field, leaving the rest of the field untreated. We then compare yield from the treated and untreated regions.
+
+How do we plan for this experiment, in the context of
+
+- estimation
+- inference
+- prediction
+?
+
+## Estimation
+
+We could simply apply treatment to exactly one-half of a field. During harvest, we would ask the farmer to harvest each half, independently, dumping grain into seperate wagons and emptying the combine completely between sections. In the end, we can measure the total yield from both parts of the field, and will have a reasonable estimate of yield from treated vs untreated. However, we will find it difficult to make inferences about treatment effects.
+
+## Inference
+
+We will use inference to refer to making statements about cause-and-effect relationships. We can, for example, use estimation to determine if yield was greater *from* the treated part of the field, but we would like to infer that yield was greater *because* of the treatment. To do that, we need to ensure that treatment is applied to the field in an unbiased manner; this will frequently require dividing an experiment into *exchangeable experimental units* and to block units to control for variability.
+
+## Prediction
+
+Inference will allow us to make statements about past performance of treatment, but we would like to make statements about further use of that same treatment under different conditions. This requires some knowledge of *sample space* and a discussion of broad-sense and narrow-sense inference.

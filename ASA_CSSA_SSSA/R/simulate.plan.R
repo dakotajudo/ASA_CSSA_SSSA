@@ -84,7 +84,7 @@ rcb.analysis <- function(current.dat,REML=TRUE) {
   TrtDF = aov.tbl[[1]][1,1]
   ResDF = aov.tbl[[1]][3,1]
   
-  effect.size <-PerMeanDiff/CV
+  effect.size <- PerMeanDiff/CV
 
   return(data.frame(
     TrtDF = TrtDF,

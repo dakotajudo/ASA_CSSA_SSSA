@@ -113,7 +113,7 @@ make.pairs.table <- function(pairs.dat) {
   trt1 <- c()
   trt2 <- c()
   contrast <- c()
-  for (cont in levels(pairs.dat$contrast)) {
+  for (cont in unique(pairs.dat$contrast)) {
     current.dat <- subset(pairs.dat,pairs.dat$contrast==cont)
     current.count <- length(current.dat$d)
     count.d <- c(count.d,current.count)
