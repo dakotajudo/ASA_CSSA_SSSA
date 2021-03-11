@@ -13,7 +13,7 @@ simulate.plan <- function(plan,
                           spacing=3,
                           model="rcb",
                           verbose=FALSE,
-                          mean=TRUE) {
+                          mean=FALSE) {
   
   res.dat = NULL
   
@@ -55,26 +55,26 @@ simulate.plan <- function(plan,
               plots=plots))
 }
 
-rcb.analysis <- function(current.dat,REML=TRUE) {
+rcb.analysis <- function(current.dat,REML=FALSE) {
   require(nlme)
   #is there valid data?
-  current.dat <- subset(current.dat,!is.na(current.dat$YldVolDry))
+  current.dat <- subset(current.dat,!is.na(current.dat$Yield))
   if(dim(current.dat)[1]<4) {
     return(NULL)
   }
-  aov.tbl <- summary(aov(YldVolDry ~ as.factor(trt)+as.factor(rep),data=current.dat))
+  aov.tbl <- summary(aov(Yield ~ as.factor(trt)+as.factor(rep),data=current.dat))
   RepVar <- NA
   ResVar <- NA
   if(REML) {
-    aov.mle <- lme(YldVolDry ~ as.factor(trt), random = ~ 1| as.factor(rep), data=current.dat)
+    aov.mle <- lme(Yield ~ as.factor(trt), random = ~ 1| as.factor(rep), data=current.dat)
     var.tbl <- VarCorr(aov.mle)
     RepVar = as.numeric(var.tbl[1])
     ResVar = as.numeric(var.tbl[2])
   }
 
   #posthoc power
-  means <- tapply(current.dat$YldVolDry,list(current.dat$trt),mean)
-  GrandMean=mean(current.dat$YldVolDry)
+  means <- tapply(current.dat$Yield,list(current.dat$trt),mean)
+  GrandMean=mean(current.dat$Yield)
   ResMS = aov.tbl[[1]][3,3]
   SD <- sqrt(ResMS)
   CV=100*SD/GrandMean
@@ -123,7 +123,7 @@ overlay.field <- function(plan, field,
                           plot.dim=c(1,1),
                           buffer.dim=c(0,0),
                           sample.vgm=NULL,
-                          spacing=3,model="rcb",mean=TRUE) {
+                          spacing=3,model="rcb",mean=FALSE) {
   require(gstat)
   
   trial.dim <- trial.dimensions(plan=plan, plot.dim=plot.dim,buffer.dim=buffer.dim)
@@ -133,14 +133,14 @@ overlay.field <- function(plan, field,
   
   if(!mean) {
     if(is.null(sample.vgm)) {
-      sample.var <- variogram(YldVolDry~1, 
-                              locations=~LonM+LatM, 
+      sample.var <- variogram(Yield~1, 
+                              locations=~Longitude+Latitude, 
                               data=field)
       sample.vgm <- fit.variogram(sample.var, vgm("Exp"))
     }
   }
-  rightBorder <- max(field$LonM) - (trial.width+2*spacing)
-  topBorder <- max(field$LatM) - (trial.height+2*spacing)
+  rightBorder <- max(field$Longitude) - (trial.width+2*spacing)
+  topBorder <- max(field$Latitude) - (trial.height+2*spacing)
   
   row=1
   col=1
@@ -198,7 +198,7 @@ overlay.field <- function(plan, field,
 
 simulate.plans <- function(plan.list, trial.data, plots.list=NULL, 
                            sample.vgm=NULL,plot.dim=c(1,1), buffer.dim=c(0,0),
-                           model="rcb",spacing=3,analysis.fn=rcb.analysis,mean=TRUE) {
+                           model="rcb",spacing=3,analysis.fn=rcb.analysis,mean=FALSE) {
   
   tmp.plots <- NULL
   aov <- NULL
@@ -263,7 +263,7 @@ simulate.plans <- function(plan.list, trial.data, plots.list=NULL,
   
   rcbmap.dat$plan <- as.factor(rcbmap.dat$plan)
   rcbmap.dat$PlanNumber <- as.factor(rcbmap.dat$PlanNumber)
-  map.plot <- ggplot(rcbmap.dat, aes(LonM, LatM)) + geom_point(aes(colour = trt),size=3) + facet_wrap(~PlanNumber)
+  map.plot <- ggplot(rcbmap.dat, aes(Longitude, Latitude)) + geom_point(aes(colour = trt),size=3) + facet_wrap(~PlanNumber)
   aov$PlanNumber <- as.factor(aov$PlanNumber)
   
   plan.plot <- ggplot(aov, aes(TrtP,color=PlanNumber,linetype=PlanNumber)) + 
