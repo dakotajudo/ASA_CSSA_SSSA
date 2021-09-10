@@ -1,0 +1,1079 @@
+---
+title: "72 Plot Simulations"
+author: "Peter Claussen"
+date: "4/13/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Detailing simulating designs over uniformity trials.
+
+Other data
+Christidis, Basil G (1931). The importance of the shape of plots in field experimentation. The Journal of Agricultural Science, 21, 14-37. Table VI, p. 28. https://dx.doi.org/10.1017/S0021859600007942
+
+
+```{r}
+setwd("~/Work/git/ASA_CSSA_SSSA/working")
+bestseed <- 1500
+set.seed(bestseed)
+library(ggplot2)
+#library(gridExtra)
+#library(nlme)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+yellow <- "#F0E442"
+blue <- "#0072B2"
+vermillion <- "#D55E00"
+```
+
+# Trial Maps
+
+
+```{r}
+library(agridat)
+```
+
+We will use for our yield estimates the data from Mercer and Hall
+
+Mercer, WB and Hall, AD, (1911). The experimental error of field trials The Journal of Agricultural Science
+
+Fundamental Distribution of Errors for Agricultural Field Trials
+
+We are given plot sizes (McCullaugh) of  8 ft * 10.82
+
+```{r}
+library(agridat)
+  data(mercer.wheat.uniformity)
+  dat <- mercer.wheat.uniformity
+
+  
+  libs(desplot)
+  desplot(dat, grain ~ col*row,
+          aspect=216/200, # true aspect
+          main="mercer.wheat.uniformity - grain yield")
+
+  
+  libs(lattice)
+  xyplot(straw ~ grain, data=dat, type=c('p','r'),
+         main="mercer.wheat.uniformity - regression")
+
+  
+  libs(hexbin)
+  hexbinplot(straw ~ grain, data=dat)
+
+
+  libs(sp, gstat)
+  plot.wid <- 2.5
+  plot.len <- 3.2
+  nr <- length(unique(dat$row))
+  nc <- length(unique(dat$col))
+  
+  xy <- expand.grid(x = seq(plot.wid/2, by=plot.wid, length=nc),
+                    y = seq(plot.len/2, by=plot.len, length=nr))
+  dat.sp <- dat
+  coordinates(dat.sp) <- xy
+  
+  # heatmap
+  spplot(dat.sp, zcol = "grain", cuts=8,
+         cex = 1.6,
+         col.regions =  bpy.colors(8),
+         main = "Grain yield", key.space = "right")
+
+  # variogram
+  # Need gstat::variogram to get the right method
+  vg <- gstat::variogram(grain ~ 1, dat.sp, cutoff = plot.wid * 10, width = plot.wid)
+  plot(vg, plot.numbers = TRUE,
+       main="mercer.wheat.uniformity - variogram")
+```
+
+```{r}
+data(piepho.barley.uniformity) 
+  dat <- piepho.barley.uniformity
+  libs(desplot)
+  desplot(yield ~ col*row, dat,
+          tick=TRUE, # aspect unknown
+          main="piepho.barley.uniformity.csv")
+write.csv(piepho.barley.uniformity,'piepho.barley.uniformity.csv')
+```
+
+```{r}
+  library(agridat)
+  data(wiebe.wheat.uniformity)
+  dat <- wiebe.wheat.uniformity
+  
+  libs(desplot)
+  desplot(dat, yield~col+row,
+          aspect=125/180, flip=TRUE, # true aspect
+          main="wiebe.wheat.uniformity: yield") # row 1 is at south
+  
+  
+  # Preece (1981) found the last digits have an interesting distribution
+  # with 0 and 5 much more common than other digits.
+  dig <- substring(dat$yield, nchar(dat$yield))
+  dig <- as.numeric(dig)
+  hist(dig, breaks=0:10-.5, xlab="Last digit",
+       main="wiebe.wheat.uniformity - histogram of last digit")
+  table(dat$col, dig) # Table 3 of Preece
+  
+  # Wilkinson (1983, p. 152) noted that an 8-row planter was used which
+  # produced a recurring pattern of row effects on yield.  This can be seen
+  # in the high autocorrelations of row means at lag 8 and lag 16
+  rowm <- tapply(dat$yield, dat$row, mean)
+  acf(rowm, main="wiebe.wheat.uniformity row means")
+  # Plot the row mean against the planter row unit 1-8
+  libs("lattice")
+  xyplot(rowm~rep(1:8, length=125),
+         main="wiebe.wheat.uniformity",
+         xlab="Planter row unit", ylab="Row mean yield")
+
+  # Wiebe (1937) and Yates (1939) show the effect of "guess rows"
+  # caused by the 8-row drill passing back and forth through
+  # the field.
+  # Yates gives the distance between strips (8 rows per strip) as:
+  # 10.2,12.4,11.7,13.4,10.6,14.2,11.8,13.8,12.2,13.1,11.2,14,11.3,12.9,12.4
+
+  # First give each row 12 inches of growing width between rows
+  tmp <- data.frame(row=1:125,area=12)
+  # Distance between rows 8,9 is 10.2 inches, so we give these two
+  # rows 6 inches (on the 'inside' of the strip) and 10.2/2=5.1 inches
+  # on the outside of the strip, total 11.1 inches
+  tmp$area[8:9] <- 6 + 10.2/2
+  tmp$area[16:17] <- 6 + 12.4/2
+  tmp$area[24:25] <- 6 + 11.7/2
+  tmp$area[32:33] <- 6 + 13.4/2
+  tmp$area[40:41] <- 6 + 10.6/2
+  tmp$area[48:49] <- 6 + 14.2/2
+  tmp$area[56:57] <- 6 + 11.8/2
+  tmp$area[64:65] <- 6 + 13.8/2
+  tmp$area[72:73] <- 6 + 12.2/2
+  tmp$area[80:81] <- 6 + 13.1/2
+  tmp$area[88:89] <- 6 + 11.2/2
+  tmp$area[96:97] <- 6 + 14.0/2
+  tmp$area[104:105] <- 6 + 11.3/2
+  tmp$area[112:113] <- 6 + 12.9/2
+  tmp$area[120:121] <- 6 + 12.4/2
+  dat <- merge(dat, tmp)
+  
+  # It's not clear if Wiebe used border rows...we delete them
+  dat <- subset(dat, row >  1 & row < 125)
+
+  # Wiebe (1937) calculated a moving average to adjust for fertility
+  # effects, then used only the OUTER rows of each 8-row drill strip
+  # and found 21.5 g / inch of space between rows.  We used all the
+  # data without correcting for fertility and obtained 33.1 g / inch.
+  xyplot(yield ~ area, dat, type=c('p','r'),
+         xlab="Average area per row", ylab="Yield")
+  coef(lm(yield ~ area, dat))[2]
+  # 33.1
+  
+write.csv(wiebe.wheat.uniformity,'wiebe.wheat.uniformity.csv')
+```
+
+```{r}
+data(stickler.sorghum.uniformity)
+dat <- stickler.sorghum.uniformity
+  
+  dat1 <- subset(dat, expt=="E1")
+  dat2 <- subset(dat, expt!="E1")
+  
+  libs(desplot)
+  desplot(dat, yield ~ col*row|expt,
+          subset=expt=="E1",
+          #cex=1,text=yield, shorten="none",
+          xlab="row",ylab="range",
+          flip=TRUE, tick=TRUE, aspect=(20*10)/(20*14/12), # true aspect
+          main="stickler.sorghum.uniformity: expt E1")
+
+  desplot(dat, yield ~ col*row|expt,
+          subset=expt!="E1",
+          xlab="row",ylab="range",
+          flip=TRUE, tick=TRUE, aspect=(20*5)/(20*44/12), # true aspect
+          main="stickler.sorghum.uniformity: expt E2,E3,E4")
+
+  # Stickler, p. 10-11 has
+  #    E1    E2    E3    E4
+  # 34.81 11.53 11.97 14.10 
+  cv <- function(x) 100*sd(x)/mean(x)
+  tapply(dat$yield, dat$expt, cv)
+  # 35.74653 11.55062 11.97011 14.11389
+```
+
+```{r}
+data(stephens.sorghum.uniformity)
+dat <- stephens.sorghum.uniformity
+
+  dat <- subset(dat, row>2 & row<99) # omit outer two rows
+  # mean(dat$yield) # 180.27
+  # range(dat$yield) # 75,302 matches Stephens
+  
+  # densityplot(~dat$yield) # Stephens figure 3
+  
+  # Aggregate 4 side-by-side rows.
+  d4 <- dat
+  d4$row2 <- ceiling((d4$row-2)/4)
+  d4 <- aggregate(yield ~ row2+col, data=d4, FUN=sum)
+  d4$row2 <- 25-d4$row2 # flip horizontally
+  
+  libs(desplot)
+  grays <- colorRampPalette(c("#d9d9d9","#252525"))
+  desplot(d4, yield ~ row2*col,
+          aspect=333/330, flip=TRUE, # true aspect
+          main="stephens.sorghum.uniformity",
+          col.regions=grays(3),
+          at=c(500,680,780,1000))
+  # Similar to Stephens Figure 7.  North at top.  East at right.
+```
+
+```{r}
+data(smith.corn.uniformity)
+dat <- smith.corn.uniformity
+
+  dat = transform(dat, year=factor(year))
+  libs(desplot)
+  desplot(dat, yield~col*row|year,
+          layout=c(2,2), aspect=1,
+          main="smith.corn.uniformity: yield across years 1895-1987")
+
+  ## # Outliers are obvious
+  ## libs(lattice)
+  ## xyplot(yield~row|factor(col), dat, groups=year,
+  ##        auto.key=list(columns=3), main="smith.corn.uniformity")
+
+  libs(rgl)
+  # A few odd pairs of outliers in column 6
+  # black/gray dots very close to each other
+  plot3d(dat$col, dat$row, dat$yield, col=dat$year,
+         xlab="col",ylab="row",zlab="yield")
+  rgl.close()
+```
+
+```{r}
+
+data(smith.beans.uniformity)
+dat1 <- subset(smith.beans.uniformity, expt=="E1")
+  dat2 <- subset(smith.beans.uniformity, expt=="E2")
+  dat3 <- subset(smith.beans.uniformity, expt=="E3")
+  dat4 <- subset(smith.beans.uniformity, expt=="E4")
+
+  cv <- function(x) { sd(x)/mean(x) }
+  cv(dat1$yield)
+  cv(dat2$yield) # Does not match Smith. Checked all values by hand.
+  cv(dat3$yield)
+  cv(dat4$yield)
+
+  libs("desplot")
+  desplot(dat1, yield ~ col*row,
+          aspect=180/45, flip=TRUE, # true aspect
+          main="smith.beans.uniformity, expt 1 (true aspect)")
+
+  desplot(dat2, yield ~ col*row,
+          aspect=180/45, flip=TRUE, # true aspect
+          main="smith.beans.uniformity, expt 2 (true aspect)")
+
+  desplot(dat3, yield ~ col*row,
+          aspect=450/80, flip=TRUE, # true aspect
+          main="smith.beans.uniformity, expt 3 (true aspect)")
+
+
+
+  desplot(dat4, yield ~ col*row,
+          aspect=450/80, flip=TRUE, # true aspect
+          main="smith.beans.uniformity expt 4, (true aspect)")
+```
+          
+```{r}
+data(odland.soyhay.uniformity)
+  dat1 <- odland.soyhay.uniformity
+  desplot(dat1, yield ~ col*row,
+          flip=TRUE, aspect=200/105, # true aspect
+          main="odland.soyhay.uniformity")
+
+  data(odland.soybean.uniformity)
+  dat2 <- odland.soybean.uniformity
+  desplot(dat2, yield ~ col*row,
+          flip=TRUE, aspect = 232/137, 
+          main="odland.soybean.uniformity")
+  write.csv(odland.soybean.uniformity,'odland.soybean.uniformity.csv')
+```
+
+```{r}
+  # Corn 1
+  data(nonnecke.sweetcorn.uniformity)
+  dat <- nonnecke.sweetcorn.uniformity
+
+  libs(desplot)
+  desplot(dat, yield~col*row|loc,
+          flip=TRUE, tick=TRUE, aspect=96/180, # true aspect
+          main="nonnecke.sweetcorn.uniformity")
+```
+
+```{r}
+
+  data(montgomery.wheat.uniformity)
+  dat <- montgomery.wheat.uniformity
+  dat09 <- subset(dat, year==1909)
+  dat11 <- subset(dat, year==1911)
+
+  # Match the figures of Montgomery 1912 Fig 3, p. 178
+  libs(desplot)
+  desplot(dat09, yield ~ col*row,
+          aspect=1, # true aspect
+          main="montgomery.wheat.uniformity - 1909 yield")
+  desplot(dat, yield ~ col*row, subset= year==1911,
+          aspect=1, # true aspect
+          main="montgomery.wheat.uniformity - 1911 yield")
+
+  # Surface & Pearl adjust 1909 yield for fertility effects.
+  # They calculate smoothed yield as (row sum)*(column sum)/(total)
+  # and subtract this from the overall mean to get 'deviation'.
+  # We can do something similar with a linear model with rows and columns
+  # as factors, then predict yield to get the smooth trend.
+  # Corrected yield = observed - deviation = observed - (smooth-mean)
+  
+  m1 <- lm(yield ~ factor(col) + factor(row), data=dat09)
+  dev1 <- predict(m1) - mean(dat09$yield)
+  # Corrected.  Similar (but not exact) to Surface, fig 2.
+  dat09$correct <- round(dat09$yield - dev1,0)
+
+  libs(desplot)
+  desplot(dat09, yield ~ col*row,
+          shorten="none", text=yield,
+          main="montgomery.wheat.uniformity 1909 observed")
+  desplot(dat09, correct ~ col*row, text=correct,
+          cex=0.8, shorten="none",
+          main="montgomery.wheat.uniformity 1909 corrected")
+  # Corrected yields are slightly shrunk toward overall mean
+  plot(correct~yield,dat09, xlim=c(350,1000), ylim=c(350,1000))
+  abline(0,1)
+```
+
+```{r}
+data(kristensen.barley.uniformity)
+dat <- kristensen.barley.uniformity
+
+desplot(dat, yield ~ col*row,
+        flip=TRUE, aspect=(11*6.24)/(22*8.79),
+        main="kristensen.barley.uniformity")
+```
+
+```{r}
+
+  data(kalamkar.wheat.uniformity)
+  dat <- kalamkar.wheat.uniformity
+  
+  plot(yield ~ ears, dat, main="kalamkar.wheat.uniformity")
+  
+  # totals match Kalamkar
+  # sum(dat$yield) # 24112.5
+  # sum(dat$ears) # 25850
+  
+  desplot(dat, ears ~ col*row,
+          flip=TRUE, aspect=(80*0.5)/(16*1.64042), # true aspect
+          main="kalamkar.wheat.uniformity - ears")
+  desplot(dat, yield ~ col*row,
+          flip=TRUE, aspect=(80*0.5)/(16*1.64042), # true aspect
+          main="kalamkar.wheat.uniformity - yield")
+```
+
+```{r}
+data(iyer.wheat.uniformity)
+dat <- iyer.wheat.uniformity
+
+desplot(dat, yield ~ col*row,
+        main="iyer.wheat.uniformity", tick=TRUE, 
+        aspect=(25*5)/(80*5)) # true aspect
+
+# not exactly the same as Iyer table 1, p. 241
+var(subset(dat, col <= 20)$yield)
+var(subset(dat, col > 20 & col <= 40)$yield)
+var(subset(dat, col > 40 & col <= 60)$yield)
+var(subset(dat, col > 60)$yield)
+  
+# cv for 1x1 whole-field
+```
+
+```{r}
+
+data(goulden.barley.uniformity)
+dat <- goulden.barley.uniformity
+
+libs(desplot)
+desplot(dat, yield ~ col*row,
+        aspect=20/20, # true aspect
+        main="goulden.barley.uniformity")
+
+# Left skewed distribution. See LeClerg, Leonard, Clark
+hist(dat$yield, main="goulden.barley.uniformity",
+     breaks=c(21,40,59,78,97,116,135,154,173,192,211,230,249)+.5)
+```
+
+```{r}
+data(gomez.rice.uniformity)
+dat <- gomez.rice.uniformity
+
+# Raw data plot
+desplot(dat, yield ~ col*row,
+        aspect=38/18, # true aspect
+        main="gomez.rice.uniformity")
+
+write.csv(gomez.rice.uniformity,file='gomez.rice.uniformity.csv')
+```
+
+```{r}
+data(goulden.barley.uniformity)
+dat <- goulden.barley.uniformity
+
+write.csv(goulden.barley.uniformity,file='goulden.barley.uniformity')
+```
+
+
+```{r}
+data(day.wheat.uniformity)
+dat <- day.wheat.uniformity
+
+desplot(dat, grain~col*row,
+        flip=TRUE, aspect=(100*8)/(155*12), # true aspect
+        main="day.wheat.uniformity - grain yield")
+  
+# similar to Day table IV
+libs(lattice)
+xyplot(grain~straw, data=dat, main="day.wheat.uniformity", type=c('p','r'))
+# cor(dat$grain, dat$straw) # .9498 # Day calculated 0.9416
+  
+libs(desplot)
+desplot(dat, straw~col*row,
+        flip=TRUE, aspect=(100*8)/(155*12), # true aspect
+        main="day.wheat.uniformity - straw yield")
+  
+# Day fig 2
+coldat <- aggregate(grain~col, dat, sum) 
+xyplot(grain ~ col, coldat, type='l', ylim=c(2500,6500))
+dat$rowgroup <- round((dat$row +1)/3,0)
+rowdat <- aggregate(grain~rowgroup, dat, sum) 
+xyplot(grain ~ rowgroup, rowdat, type='l', ylim=c(2500,6500))
+```
+
+```{r}
+data(correa.soybean.uniformity)
+dat <- correa.soybean.uniformity
+
+libs(desplot)
+desplot(dat, yield ~ col*row,
+        flip=TRUE, aspect=28.8/14.4, 
+        main="correa.soybean.uniformity")
+write.csv(correa.soybean.uniformity,'correa.soybean.uniformity.csv')
+```
+
+```{r}
+  data(bose.multi.uniformity)
+  dat <- bose.multi.uniformity
+
+  # match sum at bottom of Bose tables 1, 4, 5
+  # library(dplyr)
+  # dat 
+
+  libs(desplot, dplyr)
+  # Calculate percent of mean yield for each year
+  dat <- group_by(dat, year)
+  dat <- mutate(dat, pctyld = (yield-mean(yield))/mean(yield))
+
+  dat <- ungroup(dat)
+  dat <- mutate(dat, year=as.character(year))
+  # Bose smoothed the data by averaging 2x3 plots together before drawing
+  # contour maps.  Heatmaps of raw data have similar structure to Bose Fig 1.
+  desplot(dat, pctyld ~ col*row|year,
+          tick=TRUE, flip=TRUE, aspect=(26)/(15),
+          main="bose.multi.* - Percent of mean yield")
+```
+
+```{r}
+data("christidis.wheat.uniformity")
+ desplot(dat, yield ~  col*row,
+         flip=TRUE, aspect=16/90, # true aspect
+         main="christidis.wheat.uniformity")
+```
+
+```{r}
+source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/generate.rcb.plans.R")
+source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/plan.to.string.R")
+```
+
+# As Executed
+
+```{r}
+germination.plan <- data.frame(
+Plot=c(101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612), 
+Treatment=c(6, 11, 12, 7, 1, 4, 5, 10, 2, 8, 9, 3, 12, 7, 3, 5, 6, 10, 1, 8, 9, 4, 11, 2, 4, 5, 9, 1, 3, 8, 11, 2, 12, 10, 6, 7, 3, 2, 10, 12, 5, 1, 9, 7, 6, 11, 4, 8, 5, 8, 3, 1, 6, 10, 12, 11, 4, 2, 7, 9, 6, 7, 4, 9, 11, 5, 2, 1, 12, 8, 10, 3),
+Replicate=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6),
+Row=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6), 
+Column=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
+assessment14=c(1.00000000, 0.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 0.00000000, 2.00000000, 1.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 1.00000000, 2.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 2.00000000, 1.00000000, 0.00000000, 0.00000000, 1.00000000, 0.00000000, 2.00000000, 1.00000000, 0.00000000, 1.00000000,
+0.00000000, 1.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 3.00000000, 2.00000000, 1.00000000, 3.00000000, 0.00000000, 0.00000000, 0.00000000, 1.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 0.00000000, 2.00000000, 0.00000000), 
+stringsAsFactors=FALSE)
+
+attr(germination.plan,'PlotDim') <- c(4,6)
+attr(germination.plan,'BufferDim') <- c(0.5,1)
+```
+
+# Analysis
+
+We use the same analysis function as other simulations
+
+```{r}
+#source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/rcb.analysis.R")
+rcb.analysis <- function(rcb.dat) {
+  rcb.dat$Treatment <- as.factor(rcb.dat$Treatment)
+  rcb.dat$Replicate <- as.factor(rcb.dat$Replicate)
+  gy.lm <- lm(Yield ~ Treatment + Replicate, data=rcb.dat)
+  tbl <- anova(gy.lm)
+  tbl$Mean <- mean(rcb.dat$Yield)
+  return(list(Table=tbl,
+         Residuals=residuals(gy.lm)))
+}
+```
+
+
+Now, to map, say, the lower left corner onto this plan,
+
+# Repeated Experiments
+
+# Repetitions of a trial
+
+
+```{r}
+project.yield.unif <- function(plan, unif, origin=c(1,1)) {
+
+  for(i in 1:dim(plan)[1]) {
+    plan.row <- plan$Row[i]
+    plan.col <- plan$Column[i]
+    unif.row <- plan.row + origin[1]-1
+    unif.col <- plan.col + origin[2]-1
+    
+    mask <- unif$Row==unif.row & unif$Column==unif.col
+    if(sum(mask)==1) {
+      plan$Yield[i] <- unif$Yield[mask]
+    } else {
+       plan$Yield[i] <- NA
+    }
+    
+  }
+  return(plan)
+}
+```
+
+
+```{r}
+#uniformity.dat <- mercer.wheat.uniformity
+#uniformity.dat$Yield <- uniformity.dat$grain
+
+#has missing data
+#uniformity.dat <- piepho.barley.uniformity
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+uniformity.dat <- wiebe.wheat.uniformity
+uniformity.dat$Yield <- uniformity.dat$yield
+
+#uniformity.dat <- stickler.sorghum.uniformity
+#uniformity.dat <- subset(dat, expt=="E1")
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+#uniformity.dat <- stephens.sorghum.uniformity
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+#perhaps not good
+#uniformity.dat <- smith.corn.uniformity
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+#uniformity.dat <- smith.beans.uniformity
+#uniformity.dat <- subset(uniformity.dat, expt=="E1")
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+
+#uniformity.dat <- odland.soybean.uniformity
+
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+#uniformity.dat <- nonnecke.sweetcorn.uniformity
+#uniformity.dat <- subset(uniformity.dat, loc=="Cranford")
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+#uniformity.dat <- montgomery.wheat.uniformity
+#uniformity.dat <- subset(uniformity.dat, year==1909)
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+#uniformity.dat <- kristensen.barley.uniformity
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+
+#uniformity.dat <- kalamkar.wheat.uniformity
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+
+#uniformity.dat <- iyer.wheat.uniformity
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+#uniformity.dat <- goulden.barley.uniformity
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+#uniformity.dat <- gomez.rice.uniformity
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+#uniformity.dat <- day.wheat.uniformity
+#uniformity.dat$Yield <- uniformity.dat$grain
+
+#uniformity.dat <- correa.soybean.uniformity
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+#uniformity.dat <- bose.multi.uniformity
+#uniformity.dat <- subset(uniformity.dat, year==1930)
+#uniformity.dat$Yield <- uniformity.dat$yield
+
+uniformity.dat$Row <- uniformity.dat$row
+uniformity.dat$Column <- uniformity.dat$col
+
+current.plan <- project.yield.unif(germination.plan,uniformity.dat)
+```
+
+```{r}
+desplot(current.plan, Yield ~ Column*Row,
+          aspect=216/200, # true aspect
+          main="Subset Mercer onto Plan")
+```
+
+```{r}
+current.analysis <- rcb.analysis(current.plan)
+current.analysis$Table
+```
+and repeat plan
+
+```{r}
+repeat.plan.unif <- function(plan,
+                          unif,
+                          analysis.fn=rcb.analysis) {
+  
+  max.plan.row <- max(unique(plan$Row)) 
+  max.plan.col <- max(unique(plan$Column)) 
+  
+  max.unif.row <- max(unique(unif$Row))
+  max.unif.col <- max(unique(unif$Column))
+  
+  start.row <- min(unique(unif$Row))
+  start.col <- min(unique(unif$Column))
+  
+  end.row <- max.unif.row-max.plan.row
+  end.col <- max.unif.col-max.plan.col
+  
+  analysis.tbl <- NULL
+  plan.tbl <- NULL
+  planNo<-1
+  for (i in start.row:end.row) {
+    for (j in start.col:end.col) {
+      
+       currentPlan <- project.yield.unif(plan,
+                           unif=unif,
+                           origin=c(i,j))
+          analysis <- analysis.fn(currentPlan)
+
+          #save points
+         # currentPlan$Residuals <- analysis$Residuals
+          currentPlan$Number <- planNo
+          currentPlan$FieldRow <- i
+          currentPlan$FieldCol <- j
+          plan.tbl <- rbind(plan.tbl,currentPlan)
+         
+          analysis$Table$Source <- row.names(analysis$Table)
+          analysis$Table$Number <- planNo
+          analysis$Table$FieldRow <- i
+          analysis$Table$FieldCol <- j
+          
+          analysis.tbl <- rbind(analysis.tbl,analysis$Table)
+          
+          planNo <- planNo+1
+          
+    }
+  }
+  
+
+  row.names(analysis.tbl) <- 1:dim(analysis.tbl)[1]
+  #not sure why I need to do this to get text in the return table
+  #print(row.names(analysis$Table))
+  #analysis.tbl$Source <- row.names(analysis$Table)[analysis.tbl$Source]
+  
+  return(list(Data=plan.tbl,
+              Analysis=analysis.tbl))
+}
+```
+
+```{r}
+repetitions <- repeat.plan.unif(germination.plan,uniformity.dat)
+```
+
+
+```{r,eval=FALSE}
+if(!file.exists('RepetitionsUnif.Rda')) {
+  repetitions <- repeat.plan(rcb.plan,yield.model)
+  save(repetitions,file='RepetitionsUnif.Rda')
+} else {
+  load(file='RepetitionsUnif.Rda')
+}
+
+length(unique(repetitions$Data$Number))
+if(!file.exists('RepetitionsUnif.tab')) {
+  write.table(repetitions$Data,file='RepetitionsUnif.tab')
+}
+```
+
+
+What are the important results? We want to determine Type I Error rates, so
+
+```{r}
+
+idx <- which(names(repetitions$Analysis)=='Pr(>F)')
+names(repetitions$Analysis)[idx] <- 'P'
+TrtP <- repetitions$Analysis[repetitions$Analysis$Source=='Treatment',]
+head(TrtP)
+
+ggplot(TrtP, aes(P)) + geom_histogram(position="identity")
+
+```
+
+```{r,fig.width=6,fig.height=4}
+title <- paste("ECDF over",dim(TrtP)[1],"simulations of a single trial map")
+ggplot(TrtP, aes(P)) + stat_ecdf(size=1,colour=cbPalette[1]) +  geom_abline(colour=cbPalette[13], linetype = "longdash") + annotate("text", x = 0.4, y = 0.60, label = "Expected CDF",colour=cbPalette[13]) + 
+annotate("text", x = 0.6, y = 0.40, label = "Observed eCDF",colour=cbPalette[1]) +
+labs(x="Prob(Treatment F)",y='Observed Frequency',title = title)
+```
+
+We expect (20-6)*(26-12) simulations.
+
+```{r}
+if(file.exists('72PlotSimulation.Rda')) {
+  load(file='72PlotSimulation.Rda')
+}
+```
+
+
+
+
+```{r}
+Repeated.rcbA <- NULL
+for(i in 1:length(rcbA.list)) {
+  current <- repeat.plan.unif(rcbA.list[[i]],uniformity.dat)
+  current$Analysis$Plan<- i
+  Repeated.rcbA <- rbind(Repeated.rcbA,current$Analysis)
+}
+```
+
+```{r}
+idx <- which(names(Repeated.rcbA)=='Pr(>F)')
+names(Repeated.rcbA)[idx] <- 'P'
+Repeated.rcbA.TrtP <- Repeated.rcbA[Repeated.rcbA$Source=='Treatment',]
+head(Repeated.rcbA.TrtP)
+```
+
+```{r}
+Repeated.rcbC <- NULL
+for(i in 1:length(rcbC.list)) {
+  current <- repeat.plan.unif(rcbC.list[[i]],uniformity.dat)
+  current$Analysis$Plan<- i
+  Repeated.rcbC <- rbind(Repeated.rcbC,current$Analysis)
+}
+```
+
+```{r}
+idx <- which(names(Repeated.rcbC)=='Pr(>F)')
+names(Repeated.rcbC)[idx] <- 'P'
+Repeated.rcbC.TrtP <- Repeated.rcbC[Repeated.rcbC$Source=='Treatment',]
+head(Repeated.rcbC.TrtP)
+```
+
+
+
+```{r,fig.width=8,fig.height=6}
+Repeated.rcbA.TrtP$Plan <- as.factor(Repeated.rcbA.TrtP$Plan)
+title <- paste("ECDF over",dim(TrtP)[1],"simulations of a single trial map")
+ggplot(Repeated.rcbA.TrtP, aes(P,color=Plan)) + stat_ecdf(aes(group=Plan),size=1) + scale_colour_manual(values=cbPalette)+
+geom_abline(colour=cbPalette[13], linetype = "longdash") + annotate("text", x = 0.4, y = 0.60, label = "Expected CDF",colour=cbPalette[13]) + 
+annotate("text", x = 0.6, y = 0.40, label = "Observed eCDF",colour=cbPalette[1]) +
+labs(x="Prob(Treatment F)",y='Observed Frequency',title = title) +
+  theme(legend.position = "bottom",legend.box = "vertical")
+```
+
+```{r,fig.width=8,fig.height=6}
+Repeated.rcbC.TrtP$Plan <- as.factor(Repeated.rcbC.TrtP$Plan)
+title <- paste("ECDF over",dim(TrtP)[1],"simulations of a single trial map")
+ggplot(Repeated.rcbC.TrtP, aes(P,color=Plan)) + stat_ecdf(aes(group=Plan),size=1) + scale_colour_manual(values=cbPalette)+
+geom_abline(colour=cbPalette[13], linetype = "longdash") + annotate("text", x = 0.4, y = 0.60, label = "Expected CDF",colour=cbPalette[13]) + 
+annotate("text", x = 0.6, y = 0.40, label = "Observed eCDF",colour=cbPalette[1]) +
+labs(x="Prob(Treatment F)",y='Observed Frequency',title = title) +
+  theme(legend.position = "bottom",legend.box = "vertical")
+```
+
+
+
+```{r}
+Repeated.rcbA.Res <- Repeated.rcbA[Repeated.rcbA$Source=='Residuals',]
+Repeated.rcbA.Res$CV <- 100*sqrt(Repeated.rcbA.Res[,'Mean Sq'])/Repeated.rcbA.Res$Mean
+#boxplot(CV ~ Plan,data=Repeated.Res)
+ggplot(Repeated.rcbA.Res, aes(x=Plan, y=CV,group=Plan)) + 
+  geom_boxplot() +
+  labs(title="Coefficient of Variance",x="Plan", y = "CV")
+```
+
+```{r}
+Repeated.rcbC.Res <- Repeated.rcbC[Repeated.rcbC$Source=='Residuals',]
+Repeated.rcbC.Res$CV <- 100*sqrt(Repeated.rcbC.Res[,'Mean Sq'])/Repeated.rcbC.Res$Mean
+#boxplot(CV ~ Plan,data=Repeated.Res)
+ggplot(Repeated.rcbC.Res, aes(x=Plan, y=CV,group=Plan)) + 
+  geom_boxplot() +
+  labs(title="Coefficient of Variance",x="Plan", y = "CV")
+```
+
+```{r}
+poor.plan <- data.frame(
+Plot=c(101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612), 
+Treatment=c(5, 1, 11, 9, 4, 8, 12, 10, 6, 2, 7, 3, 5, 11, 6, 9, 1, 4, 10, 12, 2, 7, 3, 8, 11, 5, 9, 10, 6, 8, 1, 4, 12, 7, 2, 3, 11, 5, 9, 10, 6, 4, 8, 1, 12, 2, 3, 7, 5, 4, 11, 9, 6, 10, 1, 12, 2, 8, 7, 3, 11, 5, 9, 8, 1, 12, 10, 4, 6, 2, 7, 3), 
+#Treatment=c(2, 1, 11, 9, 7, 3, 12, 5, 6, 8, 4, 10, 5, 3, 6, 9, 1, 11, 10, 12, 2, 7, 4, 8, 11, 5, 9, 10, 6, 8, 7, 4, 2, 1, 3, 12, 3, 7, 9, 10, 6, 4, 8, 5, 12, 2, 1, 11, 5, 4, 2, 3, 6, 10, 1, 12, 11, 8, 7, 9, 11, 10, 9, 7, 1, 12, 5, 4, 6, 2, 3, 8), 
+#Treatment=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 10, 12, 4, 7, 3, 11, 8, 2, 6, 5, 9, 6, 4, 12, 3, 9, 8, 7, 11, 10, 5, 2, 1, 3, 1, 2, 11, 8, 10, 9, 6, 4, 5, 7, 12, 2, 6, 1, 4, 12, 7, 8, 11, 3, 5, 10, 9, 8, 7, 12, 9, 4, 10, 11, 2, 1, 5, 3, 6), 
+Replicate=as.factor(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6)), 
+Row=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6), 
+Column=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
+attr(poor.plan,'PlotDim') <- c(4,6)
+attr(poor.plan,'BufferDim') <- c(0.5,1)
+```
+
+```{r}
+Analysis.poor <- repeat.plan.unif(poor.plan,uniformity.dat)
+Analysis.poor$Analysis$Plan<- 13
+```
+
+```{r}
+Repeated.rcbA.TrtP$Source <- 'Randomized Complete Block'
+
+Analysis.Germ <-repetitions$Analysis
+germination.TrtP <- Analysis.Germ[Analysis.Germ$Source=='Treatment',]
+germination.TrtP$Source <- 'As Executed'
+```
+
+```{r}
+idx <- which(names(Analysis.poor$Analysis)=='Pr(>F)')
+names(Analysis.poor$Analysis)[idx] <- 'P'
+poor.TrtP <- Analysis.poor$Analysis[Analysis.poor$Analysis$Source=='Treatment',]
+
+poor.TrtP$Source <- 'Undesirable'
+poor.TrtP$Plan <- 200
+
+germination.TrtP$Plan <- 100
+germination.TrtP <- rbind(germination.TrtP,Repeated.rcbA.TrtP)
+
+```
+
+```{r,fig.width=8,fig.height=4}
+Alpha <- rep(1,length(germination.TrtP$Source))
+Alpha[germination.TrtP$Source =='Randomized Complete Block'] <- .95
+
+ggplot(germination.TrtP, aes(P,color=Source)) + stat_ecdf(aes(group=Plan,alpha=Alpha),size=1) + scale_colour_manual(values=cbPalette[c(2,3,1,4)]) + guides(Alpha = FALSE)
+#suppress legend 
+```
+
+
+
+```{r,fig.width=8,fig.height=4}
+germination.TrtP <- rbind(germination.TrtP,poor.TrtP)
+Alpha <- rep(1,length(germination.TrtP$Source))
+Alpha[germination.TrtP$Source =='Randomized Complete Block'] <- .95
+
+ggplot(germination.TrtP, aes(P,color=Source)) + stat_ecdf(aes(group=Plan,alpha=Alpha),size=1) + scale_colour_manual(values=cbPalette[c(2,3,1,4)]) +  guides(Alpha = FALSE)
+```
+
+
+```{r}
+
+#load(file='Analysis.adj2.Rda')
+adj.list <- vector(mode='list',16)
+tmp <- rcbA.list[[1]]
+    
+  tmp$Treatment <- c(10,2,5,9,12,4,11,7,6,8,3,1,12,7,1,2,11,3,9,8,10,4,5,6,8,5,10,9,12,2,7,6,3,11,1,4,4,12,6,7,8,1,3,11,10,9,2,5,6,8,2,9,12,11,7,5,1,4,10,3,1,7,4,3,10,8,2,11,9,6,5,12)
+  adj.list[[1]] <- tmp
+  
+  tmp$Treatment <- c(8,7,3,1,10,9,6,2,11,5,12,4,12,1,4,6,2,11,7,10,3,9,8,5,4,8,7,9,5,3,12,1,6,2,10,11,5,1,10,4,6,7,9,2,8,11,12,3,9,11,7,2,10,8,12,5,4,3,6,1,12,5,10,1,4,7,11,2,6,8,9,3)
+  adj.list[[2]] <- tmp
+
+tmp$Treatment <- c(2, 4, 12, 11, 1, 10, 7, 5, 6, 9, 3, 8, 8, 3, 9, 2, 5, 4, 1, 12, 7, 10, 11, 6, 9, 2, 11, 10, 12, 7, 6, 3, 4, 1, 5, 8, 5, 6, 4, 2, 1, 8, 10, 7, 12, 11, 3, 9, 8, 11, 1, 6, 5, 12, 9, 4, 3, 7, 2, 10, 2, 6, 8, 7, 4, 3, 5, 1, 10, 12, 9, 11)
+  adj.list[[3]] <- tmp
+  tmp$Treatment <- c(5, 7, 4, 3, 10, 1, 9, 11, 2, 12, 6, 8, 4, 8, 5, 2, 7, 6, 10, 12, 9, 1, 11, 3, 7, 9, 10, 11, 4, 8, 1, 3, 6, 12, 2, 5, 10, 2, 5, 12, 3, 9, 11, 8, 7, 4, 6, 1, 11, 3, 6, 8, 10, 4, 7, 2, 1, 5, 12, 9, 2, 4, 12, 1, 7, 11, 10, 9, 6, 3, 8, 5)
+  adj.list[[4]] <- tmp
+  tmp$Treatment <- c(1, 10, 4, 6, 8, 5, 3, 11, 12, 9, 2, 7, 11, 8, 3, 2, 4, 9, 1, 7, 6, 5, 12, 10, 9, 1, 11, 10, 6, 5, 2, 12, 3, 4, 7, 8, 8, 2, 6, 4, 1, 3, 7, 5, 11, 10, 12, 9, 5, 10, 11, 12, 7, 4, 8, 1, 3, 9, 6, 2, 7, 1, 2, 4, 5, 9, 11, 10, 6, 8, 12, 3)
+  adj.list[[5]] <- tmp
+  tmp$Treatment <- c(1, 4, 6, 5, 11, 2, 9, 3, 12, 8, 7, 10, 8, 7, 9, 10, 12, 4, 5, 1, 2, 6, 3, 11, 4, 5, 1, 6, 7, 3, 8, 11, 10, 9, 12, 2, 11, 10, 12, 8, 2, 1, 6, 9, 4, 3, 7, 5, 7, 5, 1, 6, 4, 9, 11, 3, 2, 8, 10, 12, 12, 3, 2, 9, 8, 1, 10, 5, 7, 6, 11, 4)
+  adj.list[[6]] <- tmp
+  tmp$Treatment <- c(12, 9, 11, 3, 1, 2, 10, 5, 4, 6, 7, 8, 11, 2, 1, 6, 10, 3, 12, 8, 7, 9, 4, 5, 8, 3, 11, 5, 1, 2, 9, 10, 4, 12, 6, 7, 5, 9, 12, 2, 6, 7, 4, 11, 1, 8, 10, 3, 6, 4, 11, 7, 10, 9, 1, 5, 3, 12, 2, 8, 9, 12, 2, 4, 8, 3, 6, 10, 11, 7, 5, 1)
+  adj.list[[7]] <- tmp
+  tmp$Treatment <- c(4,10,6,8,11,2,12,3,5,9,7,1,12,9,11,1,6,7,5,2,8,3,10,4,6,5,2,4,12,9,1,11,10,7,8,3,7,8,9,6,1,10,12,4,3,2,5,11,1,10,2,11,7,8,5,9,6,4,12,3,5,6,7,4,12,10,3,11,1,8,2,9)
+  adj.list[[8]] <- tmp
+  
+  tmp$Treatment <- c(9,10,1,6,2,8,4,5,3,12,11,7,7,2,9,8,1,12,10,11,6,5,4,3,4,1,10,2,6,7,5,12,3,8,9,11,2,6,3,12,5,11,8,10,9,1,7,4,3,11,8,2,1,12,9,5,7,4,6,10,2,5,12,10,11,6,1,4,9,8,3,7)
+  adj.list[[9]] <- tmp
+  
+  tmp$Treatment <- c(4,8,2,5,9,12,1,6,3,7,10,11,6,9,7,3,8,4,10,11,1,12,5,2,10,1,8,6,11,12,5,2,3,4,9,7,11,5,7,12,1,3,8,4,9,10,6,2,1,6,10,8,11,4,9,3,5,2,12,7,9,11,3,12,7,6,5,10,8,1,4,2)
+  adj.list[[10]] <- tmp 
+  
+  tmp$Treatment <- c(12,2,6,5,1,3,11,7,8,10,4,9,9,3,11,4,6,7,1,10,5,2,12,8,11,10,8,12,3,9,2,4,6,7,5,1,1,5,6,10,7,8,3,9,12,4,11,2,8,11,9,5,6,1,12,4,10,2,7,3,5,2,12,1,4,10,7,3,8,9,11,6)
+  adj.list[[11]] <- tmp
+
+  tmp$Treatment <- c(2,3,8,5,9,6,1,4,12,11,7,10,10,5,9,1,12,11,3,7,2,8,6,4,12,3,11,2,9,5,6,8,4,7,1,10,4,10,5,12,7,8,9,2,1,11,3,6,2,12,7,11,5,4,6,3,9,8,1,10,11,6,5,12,3,7,8,1,10,2,9,4)
+  adj.list[[12]] <- tmp
+  
+  tmp$Treatment <- c(11,2,3,4,6,9,10,8,5,12,1,7,3,10,7,2,1,12,11,6,4,8,9,5,7,11,9,5,8,2,10,1,3,12,6,4,6,12,3,1,10,11,9,7,4,8,5,2,3,2,11,8,6,1,10,5,12,7,9,4,12,1,3,2,9,4,8,7,10,5,11,6)
+  adj.list[[13]] <- tmp
+  
+  tmp$Treatment <- c(7,11,2,4,6,12,9,10,8,5,3,1,8,12,10,5,1,7,3,2,11,4,9,6,9,4,7,6,2,10,8,5,1,12,3,11,6,1,3,8,7,4,12,10,9,11,2,5,12,2,6,11,10,5,1,7,4,3,8,9,6,8,3,9,1,2,4,11,12,5,7,10)
+  adj.list[[14]] <- tmp
+  
+  tmp$Treatment <- c(7,4,8,11,10,6,1,5,2,12,3,9,8,9,10,1,12,3,2,7,11,5,4,6,3,12,4,2,11,5,1,9,10,6,7,8,1,2,6,10,12,4,11,7,3,8,9,5,8,3,4,5,11,9,10,6,1,7,2,12,2,7,12,1,10,8,11,4,5,3,6,9)
+  adj.list[[15]] <- tmp
+     
+  tmp$Treatment <- c(3,5,7,2,9,8,10,11,6,4,1,12,6,9,3,11,7,2,4,1,12,10,8,5,12,11,2,8,4,9,5,10,6,3,1,7,10,9,5,11,7,3,8,1,12,2,6,4,3,4,12,2,8,11,6,10,9,5,1,7,7,2,11,9,12,5,1,4,3,10,8,6)
+  adj.list[[16]] <- tmp
+  
+  
+  names(adj.list) <- 1:length(adj.list)
+
+
+Repeated.adj <- NULL
+for(i in 1:length(adj.list)) {
+  current <- repeat.plan.unif(adj.list[[i]],uniformity.dat)
+  current$Analysis$Plan<- i
+  Repeated.adj <- rbind(Repeated.adj,current$Analysis)
+}
+```
+
+```{r}
+idx <- which(names(Repeated.adj)=='Pr(>F)')
+names(Repeated.adj)[idx] <- 'P'
+Repeated.adj <- Repeated.adj[Repeated.adj$Source=='Treatment',]
+```
+
+
+```{r,fig.width=8,fig.height=6}
+Repeated.adj$Plan <- as.factor(Repeated.adj$Plan)
+title <- paste("ECDF over",dim(Repeated.adj)[1],"simulations of a single trial map")
+ggplot(Repeated.adj, aes(P,color=Plan)) + stat_ecdf(aes(group=Plan),size=1) + scale_colour_manual(values=cbPalette)+
+geom_abline(colour=cbPalette[13], linetype = "longdash") + annotate("text", x = 0.4, y = 0.60, label = "Expected CDF",colour=cbPalette[13]) + 
+annotate("text", x = 0.6, y = 0.40, label = "Observed eCDF",colour=cbPalette[1]) +
+labs(x="Prob(Treatment F)",y='Observed Frequency',title = title) +
+  theme(legend.position = "bottom",legend.box = "vertical")
+```
+
+```{r}
+Repeated.adj$Source <- 'Adjacency'
+
+Repeated.adj$Family <- 'RCB (Adj=2)'
+Repeated.rcbA.TrtP$Family <- 'RCB'
+Comp.TrtP <- rbind(Repeated.rcbA.TrtP,Repeated.adj)
+Comp.TrtP$FamilyPlan <- as.factor(Comp.TrtP$Family):as.factor(Comp.TrtP$Plan)
+```
+
+
+```{r,fig.width=6,fig.height=4}
+ggplot(Comp.TrtP, aes(P,color=Family,group=FamilyPlan)) + stat_ecdf(size=1,alpha=0.4) + scale_colour_manual(values=cbPalette)
+```
+
+```{r,fig.width=8,fig.height=5}
+ggplot(Comp.TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ Family) +
+  theme(legend.position = "bottom",legend.box = "vertical")
+```
+
+```{r}
+permute.plan <- function(plan,byRow=TRUE,byCol=TRUE,renumber=TRUE) {
+  if(byRow) {
+    rows <- max(plan$Row)
+    plan$Row = sample(1:rows)[plan$Row]
+  }
+  if(byCol) {
+    Column <- max(plan$Column)
+    plan$Column = sample(1:Column)[plan$Column]
+  }
+  if(renumber) {
+    plan$Replicate <- plan$Row
+    cols <- max(plan$Column)
+    plan$Plot <- cols*(plan$Row - 1)  + plan$Column
+    plan <- plan[order(plan$Plot),]
+  }
+  return(plan)
+} 
+```
+
+```{r}
+spatial.plan <- data.frame(
+Plot=c(101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612), 
+Treatment=c(9, 8, 1, 2, 3, 6, 7, 4, 11, 12, 5, 10, 5, 4, 8, 3, 1, 12, 11, 9, 6, 10, 7, 2, 6, 11, 8, 5, 2, 1, 10, 3, 12, 7, 4, 9, 8, 12, 7, 6, 5, 3, 9, 10, 1, 4, 11, 2, 3, 11, 7, 8, 10, 9, 5, 2, 4, 6, 1, 12, 1, 7, 5, 11, 9, 12, 2, 8, 4, 10, 6, 3), 
+Replicate=as.factor(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6)), 
+Row=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6), 
+Column=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
+stringsAsFactors=FALSE)
+
+attr(spatial.plan,'PlotDim') <- c(4,6)
+attr(spatial.plan,'BufferDim') <- c(0.5,1)
+```
+
+```{r}
+ spat.list <- vector(mode='list',16)
+  spat.list[[1]] <- spatial.plan
+  
+  tmp <- spatial.plan
+  #tmp$Treatment <- c(5, 9, 3, 1, 8, 2, 10, 12, 6, 7, 4, 11, 4, 12, 9, 8, 3, 7, 6, 5, 2, 11, 10, 1, 2, 6, 9, 4, 1, 3, 11, 8, 7, 10, 12, 5, 9, 7, 10, 2, 4, 8, 5, 11, 3, 12, 6, 1, 8, 6, 10, 9, 11, 5, 4, 1, 12, 2, 3, 7, 3, 10, 4, 6, 5, 7, 1, 9, 12, 11, 2, 8)
+  for(k in 2:length(spat.list)) {
+    spat.list[[k]] <- permute.plan(spatial.plan)
+  }
+
+```
+
+```{r}
+Repeated.spat <- NULL
+for(i in 1:length(spat.list)) {
+  current <- repeat.plan.unif(spat.list[[i]],uniformity.dat)
+  current$Analysis$Plan<- i
+  Repeated.spat <- rbind(Repeated.spat,current$Analysis)
+}
+```
+
+```{r}
+idx <- which(names(Repeated.spat)=='Pr(>F)')
+names(Repeated.spat)[idx] <- 'P'
+Repeated.spat <- Repeated.spat[Repeated.spat$Source=='Treatment',]
+```
+
+
+```{r,fig.width=8,fig.height=6}
+Repeated.spat$Plan <- as.factor(Repeated.spat$Plan)
+title <- paste("ECDF over",dim(Repeated.spat)[1],"simulations of a single trial map")
+ggplot(Repeated.spat, aes(P,color=Plan)) + stat_ecdf(aes(group=Plan),size=1) + scale_colour_manual(values=cbPalette)+
+geom_abline(colour=cbPalette[13], linetype = "longdash") + annotate("text", x = 0.4, y = 0.60, label = "Expected CDF",colour=cbPalette[13]) + 
+annotate("text", x = 0.6, y = 0.40, label = "Observed eCDF",colour=cbPalette[1]) +
+labs(x="Prob(Treatment F)",y='Observed Frequency',title = title)+ 
+  theme(legend.position = "bottom",legend.box = "vertical")
+```
+
+
+```{r}
+Repeated.spat$Source <- 'Spatially balance'
+
+Repeated.spat$Family <- 'Spat. Bal'
+Repeated.spat$FamilyPlan <- as.factor(Repeated.spat$Family):as.factor(Repeated.spat$Plan)
+Comp.TrtP <- rbind(Comp.TrtP,Repeated.spat)
+```
+
+
+```{r,fig.width=8,fig.height=4}
+ggplot(Comp.TrtP, aes(P,color=Family,group=FamilyPlan)) + stat_ecdf(size=1,alpha=0.4) + scale_colour_manual(values=cbPalette)
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(Comp.TrtP, aes(P,group=Plan,color=Family)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ Family) #+ theme(legend.position = "bottom",legend.box = "vertical")
+```
+
