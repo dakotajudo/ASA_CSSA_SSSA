@@ -1,0 +1,355 @@
+---
+title: "72 Plot Simulations, Spatially Balanced"
+author: "Peter Claussen"
+date: "3/28/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+setwd("~/Work/git/ASA_CSSA_SSSA/working")
+bestseed <- 1500
+set.seed(bestseed)
+library(ggplot2)
+library(gridExtra)
+library(nlme)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+yellow <- "#F0E442"
+blue <- "#0072B2"
+vermillion <- "#D55E00"
+```
+
+Assume that 72PlotSimulations has been compiled
+
+
+```{r}
+library(mgcv)
+load(file='FitModels.Rda')
+```
+
+# Trial Maps
+
+
+```{r}
+#load(file="~/Work/git/ManagementZoneML/home.squares.Rda")
+```
+
+```{r}
+#source('~/Work/git/YieldDataModels/R/remove.harvest.outliers.fn.R')
+#source('~/Work/git/YieldDataModels/R/spatial.model.selection.R')
+#source('~/Work/git/YieldDataModels/R/select.best.variogram.R')
+#source('~/Work/git/YieldDataModels/R/spatial.selection.plots.R')
+#source('~/Work/git/YieldDataModels/R/read.yield.data.R')
+source('~/Work/git/YieldDataModels/R/combined.map.R')
+```
+
+```{r}
+#source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/generate.rcb.plans.R")
+#source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/plan.to.string.R")
+
+source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/repeat.plan.R")
+source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/trial.dimensions.R")
+source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/project.yield.R")
+source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/add.coordinates.R")
+source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/rcb.analysis.R")
+```
+
+
+```{r}
+load(file='Repetitions.Rda')
+```
+
+
+```{r}
+repetitions$Data$Quantile <- rank(repetitions$Data$Yield)/length(repetitions$Data$Yield)
+ggplot(repetitions$Data, aes(Longitude,Latitude)) + 
+geom_point(aes(colour = Quantile),size=.5) + 
+scale_colour_gradient2(low=vermillion, mid=yellow, high=blue, midpoint = 0.5) +
+labs(colour = "Relative Yield Rank", x="Easting", y="Northing", title = "Repeated Uniformity Trials") 
+```
+
+
+
+
+
+# Comparisons
+
+```{r}
+germination.plan <- data.frame(
+Plot=c(101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612), 
+Treatment=c(6, 11, 12, 7, 1, 4, 5, 10, 2, 8, 9, 3, 12, 7, 3, 5, 6, 10, 1, 8, 9, 4, 11, 2, 4, 5, 9, 1, 3, 8, 11, 2, 12, 10, 6, 7, 3, 2, 10, 12, 5, 1, 9, 7, 6, 11, 4, 8, 5, 8, 3, 1, 6, 10, 12, 11, 4, 2, 7, 9, 6, 7, 4, 9, 11, 5, 2, 1, 12, 8, 10, 3),
+Replicate=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6),
+Row=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6), 
+Column=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
+assessment14=c(1.00000000, 0.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 0.00000000, 2.00000000, 1.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 1.00000000, 2.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 2.00000000, 1.00000000, 0.00000000, 0.00000000, 1.00000000, 0.00000000, 2.00000000, 1.00000000, 0.00000000, 1.00000000,
+0.00000000, 1.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 3.00000000, 2.00000000, 1.00000000, 3.00000000, 0.00000000, 0.00000000, 0.00000000, 1.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 0.00000000, 2.00000000, 0.00000000), 
+stringsAsFactors=FALSE)
+
+attr(germination.plan,'PlotDim') <- c(4,6)
+attr(germination.plan,'BufferDim') <- c(0.5,1)
+```
+
+
+```{r}
+Data.germination <- NULL
+Analysis.germination <- NULL
+Plans.germination <- NULL
+
+years <- c(2013,2015,2016,2018)
+for(j in 1:4) {
+  yield.model <- models[[j]]
+
+  current <- repeat.plan(germination.plan,yield.model)
+  current$Data$Plan <- 'Germination'
+  current$Analysis$Plan <- 'Germination'
+   
+  current$Data$Year <- years[j]
+  current$Analysis$Year <- years[j]
+  
+  Data.germination <- rbind(Data.germination,current$Data)
+  Analysis.germination <- rbind(Analysis.germination,current$Analysis)
+}
+```
+
+```{r}
+spatial.plan <- data.frame(
+Plot=c(101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612), 
+Treatment=c(9, 8, 1, 2, 3, 6, 7, 4, 11, 12, 5, 10, 5, 4, 8, 3, 1, 12, 11, 9, 6, 10, 7, 2, 6, 11, 8, 5, 2, 1, 10, 3, 12, 7, 4, 9, 8, 12, 7, 6, 5, 3, 9, 10, 1, 4, 11, 2, 3, 11, 7, 8, 10, 9, 5, 2, 4, 6, 1, 12, 1, 7, 5, 11, 9, 12, 2, 8, 4, 10, 6, 3), 
+Replicate=as.factor(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6)), 
+Row=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6), 
+Column=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
+stringsAsFactors=FALSE)
+
+attr(spatial.plan,'PlotDim') <- c(4,6)
+attr(spatial.plan,'BufferDim') <- c(0.5,1)
+```
+
+```{r}
+Data.spatial <- NULL
+Analysis.spatial <- NULL
+Plans.spatial <- NULL
+
+for(j in 1:4) {
+  yield.model <- models[[j]]
+
+  current <- repeat.plan(spatial.plan,yield.model)
+  current$Data$Plan <- 'Balanced'
+  current$Analysis$Plan <- 'Balanced'
+   
+  current$Data$Year <- years[j]
+  current$Analysis$Year <- years[j]
+  
+  Data.spatial <- rbind(Data.spatial,current$Data)
+  Analysis.spatial <- rbind(Analysis.spatial,current$Analysis)
+}
+```
+
+```{r}
+poor.plan <- data.frame(
+Plot=c(101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612), 
+Treatment=c(5, 1, 11, 9, 4, 8, 12, 10, 6, 2, 7, 3, 5, 11, 6, 9, 1, 4, 10, 12, 2, 7, 3, 8, 11, 5, 9, 10, 6, 8, 1, 4, 12, 7, 2, 3, 11, 5, 9, 10, 6, 4, 8, 1, 12, 2, 3, 7, 5, 4, 11, 9, 6, 10, 1, 12, 2, 8, 7, 3, 11, 5, 9, 8, 1, 12, 10, 4, 6, 2, 7, 3), 
+#Treatment=c(2, 1, 11, 9, 7, 3, 12, 5, 6, 8, 4, 10, 5, 3, 6, 9, 1, 11, 10, 12, 2, 7, 4, 8, 11, 5, 9, 10, 6, 8, 7, 4, 2, 1, 3, 12, 3, 7, 9, 10, 6, 4, 8, 5, 12, 2, 1, 11, 5, 4, 2, 3, 6, 10, 1, 12, 11, 8, 7, 9, 11, 10, 9, 7, 1, 12, 5, 4, 6, 2, 3, 8), 
+#Treatment=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 10, 12, 4, 7, 3, 11, 8, 2, 6, 5, 9, 6, 4, 12, 3, 9, 8, 7, 11, 10, 5, 2, 1, 3, 1, 2, 11, 8, 10, 9, 6, 4, 5, 7, 12, 2, 6, 1, 4, 12, 7, 8, 11, 3, 5, 10, 9, 8, 7, 12, 9, 4, 10, 11, 2, 1, 5, 3, 6), 
+Replicate=as.factor(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6)), 
+Row=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6), 
+Column=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
+attr(poor.plan,'PlotDim') <- c(4,6)
+attr(poor.plan,'BufferDim') <- c(0.5,1)
+```
+
+```{r}
+Data.poor <- NULL
+Analysis.poor <- NULL
+Plans.poor <- NULL
+
+for(j in 1:4) {
+  yield.model <- models[[j]]
+
+  current <- repeat.plan(poor.plan,yield.model)
+  current$Data$Plan <- 'Poor'
+  current$Analysis$Plan <- 'Poor'
+   
+  current$Data$Year <- years[j]
+  current$Analysis$Year <- years[j]
+  
+  Data.poor <- rbind(Data.poor,current$Data)
+  Analysis.poor <- rbind(Analysis.poor,current$Analysis)
+}
+```
+
+```{r}
+load(file='72PlotSimulation.Rda')
+idx <- which(names(Analysis.rcbA)=='Pr(>F)')
+names(Analysis.rcbA)[idx] <- 'P'
+rcbA.TrtP <- Analysis.rcbA[Analysis.rcbA$Source=='Treatment',]
+rcbA.TrtP$Year <- as.factor(rcbA.TrtP$Year)
+```
+
+
+```{r}
+rcbA.TrtP$Source <- 'Randomized Complete Block'
+idx <- which(names(Analysis.germination)=='Pr(>F)')
+names(Analysis.germination)[idx] <- 'P'
+germination.TrtP <- Analysis.germination[Analysis.germination$Source=='Treatment',]
+germination.TrtP$Year <- as.factor(germination.TrtP$Year)
+germination.TrtP$GridSize <- unique(rcbA.TrtP$GridSize)
+germination.TrtP$Source <- 'As Executed'
+  
+idx <- which(names(Analysis.spatial)=='Pr(>F)')
+names(Analysis.spatial)[idx] <- 'P'
+spatial.TrtP <- Analysis.spatial[Analysis.spatial$Source=='Treatment',]
+spatial.TrtP$Year <- as.factor(spatial.TrtP$Year)
+spatial.TrtP$GridSize <- unique(rcbA.TrtP$GridSize)
+spatial.TrtP$Source <- 'Spatially Balanced'
+
+
+idx <- which(names(Analysis.poor)=='Pr(>F)')
+names(Analysis.poor)[idx] <- 'P'
+poor.TrtP <- Analysis.poor[Analysis.poor$Source=='Treatment',]
+poor.TrtP$Year <- as.factor(poor.TrtP$Year)
+poor.TrtP$GridSize <- unique(rcbA.TrtP$GridSize)
+poor.TrtP$Source <- 'Undesirable'
+
+germination.TrtP <- rbind(germination.TrtP,rcbA.TrtP)
+
+```
+
+```{r,fig.width=8,fig.height=4}
+Alpha <- rep(1,length(germination.TrtP$Source))
+Alpha[germination.TrtP$Source =='Randomized Complete Block'] <- .95
+
+ggplot(germination.TrtP, aes(P,color=Source)) + stat_ecdf(aes(group=Plan,alpha=Alpha),size=1) + scale_colour_manual(values=cbPalette[c(2,3,1,4)])
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(germination.TrtP, aes(P,color=Source)) + stat_ecdf(aes(group=Plan,alpha=Alpha),size=1) + scale_colour_manual(values=cbPalette[c(2,3,4,1)]) + facet_wrap(~ Year)
+```
+
+
+```{r,fig.width=8,fig.height=4}
+germination.TrtP <- rbind(germination.TrtP,poor.TrtP)
+Alpha <- rep(1,length(germination.TrtP$Source))
+Alpha[germination.TrtP$Source =='Randomized Complete Block'] <- .95
+
+ggplot(germination.TrtP, aes(P,color=Source)) + stat_ecdf(aes(group=Plan,alpha=Alpha),size=1) + scale_colour_manual(values=cbPalette[c(2,3,1,4)])
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(germination.TrtP, aes(P,color=Source)) + stat_ecdf(aes(group=Plan,alpha=Alpha),size=1) + scale_colour_manual(values=cbPalette[c(2,3,4,1)]) + facet_wrap(~ Year)
+```
+
+```{r,fig.width=8,fig.height=4}
+germination.TrtP <- rbind(germination.TrtP,spatial.TrtP)
+Alpha <- rep(1,length(germination.TrtP$Source))
+Alpha[germination.TrtP$Source =='Randomized Complete Block'] <- .95
+
+ggplot(germination.TrtP, aes(P,color=Source)) + stat_ecdf(aes(group=Plan,alpha=Alpha),size=1) + scale_colour_manual(values=cbPalette[c(2,3,4,1)])
+```
+
+
+```{r,fig.width=8,fig.height=4}
+ggplot(germination.TrtP, aes(P,color=Source)) + stat_ecdf(aes(group=Plan,alpha=Alpha),size=1) + scale_colour_manual(values=cbPalette[c(2,3,4,1)]) + facet_wrap(~ Year)
+```
+
+
+
+```{r}
+permute.plan <- function(plan,byRow=TRUE,byCol=TRUE,renumber=TRUE) {
+  if(byRow) {
+    rows <- max(plan$Row)
+    plan$Row = sample(1:rows)[plan$Row]
+  }
+  if(byCol) {
+    Column <- max(plan$Column)
+    plan$Column = sample(1:Column)[plan$Column]
+  }
+  if(renumber) {
+    plan$Replicate <- plan$Row
+    cols <- max(plan$Column)
+    plan$Plot <- cols*(plan$Row - 1)  + plan$Column
+    plan <- plan[order(plan$Plot),]
+  }
+  return(plan)
+} 
+```
+
+```{r}
+if(!file.exists('Analysis.spat12.Rda')) {
+  Data.spat12 <- NULL
+  Analysis.spat12 <- NULL
+  Plans.spat12 <- NULL
+
+  spat.list <- vector(mode='list',16)
+  spat.list[[1]] <- spatial.plan
+  
+  tmp <- spatial.plan
+  #tmp$Treatment <- c(5, 9, 3, 1, 8, 2, 10, 12, 6, 7, 4, 11, 4, 12, 9, 8, 3, 7, 6, 5, 2, 11, 10, 1, 2, 6, 9, 4, 1, 3, 11, 8, 7, 10, 12, 5, 9, 7, 10, 2, 4, 8, 5, 11, 3, 12, 6, 1, 8, 6, 10, 9, 11, 5, 4, 1, 12, 2, 3, 7, 3, 10, 4, 6, 5, 7, 1, 9, 12, 11, 2, 8)
+  for(k in 2:length(spat.list)) {
+    spat.list[[k]] <- permute.plan(spatial.plan)
+  }
+  
+  #tmp$Treatment <- c(5,9,3,1,8,2,10,12,6,7,4,11,4,12,9,8,3,7,6,5,2,11,10,1,2,6,9,4,1,3,11,8,7,10,12,5,9,7,10,2,4,8,5,11,3,12,6,1,8,6,10,9,11,5,4,1,12,2,3,7,3,10,4,6,5,7,1,9,12,11,2,8) 
+  #tmp$Treatment <- c(8, 1, 12, 3, 5, 7, 9, 2, 6, 4, 11, 10, 11, 2, 1, 5, 12, 4, 6, 8, 7, 10, 9, 3, 7, 6, 1, 11, 3, 12, 10, 5, 4, 9, 2, 8, 1, 4, 9, 7, 11, 5, 8, 10, 12, 2, 6, 3, 5, 6, 9, 1, 10, 8, 11, 3, 2, 7, 12, 4, 12, 9, 11, 6, 8, 4, 3, 1, 2, 10, 7, 5)
+#tmp$Treatment <- c(10,7,11,6,1,8,2,4,5,9,3,12,3,4,7,1,11,9,5,10,8,12,2,6,8,5,7,3,6,11,12,1,9,2,4,10,7,9,2,8,3,1,10,12,11,4,5,6,1,5,2,7,12,10,3,6,4,8,11,9,11,2,3,5,10,9,6,7,4,12,8,1)
+ 
+  names(spat.list) <- 1:length(spat.list)
+  
+  for(i in 1:length(spat.list)) {
+    tmp <- spat.list[[i]]
+    Plans.spat12 <- rbind(Plans.spat12,tmp)
+  }
+  
+  for(j in 1:4) {
+    yield.model <- models[[j]]
+
+    for(i in 1:length(spat.list)) {
+      current <- repeat.plan(spat.list[[i]],yield.model)
+      current$Data$Plan <- names(spat.list)[i]
+      current$Analysis$Plan <- names(spat.list)[i]
+   
+      current$Data$Year <- years[j]
+      current$Analysis$Year <- years[j]
+  
+      Data.spat12 <- rbind(Data.spat12,current$Data)
+      Analysis.spat12 <- rbind(Analysis.spat12,current$Analysis)
+    }
+  }
+  save(spat.list,Analysis.spat12,Plans.spat12,Data.spat12,file='Analysis.spat12.Rda')
+} else {
+  load(file='Analysis.spat12.Rda')
+}
+```
+
+```{r}
+idx <- which(names(Analysis.spat12)=='Pr(>F)')
+names(Analysis.spat12)[idx] <- 'P'
+spat12.TrtP <- Analysis.spat12[Analysis.spat12$Source=='Treatment',]
+spat12.TrtP$Year <- as.factor(spat12.TrtP$Year)
+```
+
+```{r}
+ggplot(spat12.TrtP, aes(P)) + geom_histogram(position="identity")
+ggplot(spat12.TrtP, aes(P,color=Year)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+ggplot(spat12.TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+```
+
+
+```{r}
+rcbA.TrtP$Family <- 'RCB'
+#spat12.TrtP$GridSize <- '1x12'
+spat12.TrtP$Family <- 'Spatially Balanced'
+Comp.TrtP <- rbind(rcbA.TrtP,spat12.TrtP)
+Comp.TrtP$FamilyPlan <- as.factor(Comp.TrtP$Family):as.factor(Comp.TrtP$Plan)
+```
+
+
+```{r}
+ggplot(Comp.TrtP, aes(P,color=Family,group=FamilyPlan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+ggplot(Comp.TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ Family)
+```

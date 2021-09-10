@@ -1,19 +1,20 @@
 generate.rcb.plan <- function(reps,treatments) {
-  row <- c()
-  trt <- c()
+  Row <- c()
+  Treatment <- c()
   for (i in 1:reps) {
-    row <- c(row,rep(i,treatments))
-    trt <- c(trt,sample(1:treatments))
+    Row <- c(Row,rep(i,treatments))
+    Treatment <- c(Treatment,sample(1:treatments))
   }
   base.plan <- data.frame(
-    plotno = 1:(reps*treatments),
-    row = row,
-    col = rep(1:treatments,reps),
-    trt = trt
+    Plot = 1:(reps*treatments),
+    Row = Row,
+    Column = rep(1:treatments,reps),
+    Treatment = Treatment
   )
-  base.plan$trt <- as.factor(base.plan$trt)
-  base.plan$blk <- as.factor(base.plan$row)
-  base.plan$rep <- as.factor(base.plan$row)
+  base.plan$Replicate <- base.plan$Row
+  #base.plan$trt <- as.factor(base.plan$trt)
+  #base.plan$blk <- as.factor(base.plan$row)
+  #base.plan$rep <- as.factor(base.plan$row)
   class(base.plan) <- c("trial.map",class(base.plan))
   return(base.plan)
  
@@ -30,11 +31,11 @@ generate.rcb.plans <- function(reps,treatments,count,hash=TRUE) {
   
   while (cnt <= count) {
     current.plan <- base.plan
-    trt <- c()
+    Treatment <- c()
     for (i in 1:reps) {
-      trt <- c(trt,sample(1:treatments))
+      Treatment <- c(Treatment,sample(1:treatments))
     }
-    current.plan$trt <- as.factor(trt)
+    current.plan$Treatment <- Treatment
     if(hash) {
       hash.key <- plan.to.string(current.plan)
       if(!(hash.key %in% hashes)) {

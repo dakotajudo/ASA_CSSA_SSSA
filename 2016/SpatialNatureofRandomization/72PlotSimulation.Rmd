@@ -1,0 +1,1427 @@
+---
+title: "72 Plot Simulations"
+author: "Peter Claussen"
+date: "3/16/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+See Uniformity Simulations for more detail
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+setwd("~/Work/git/ASA_CSSA_SSSA/working")
+bestseed <- 1500
+set.seed(bestseed)
+
+#library(gridExtra)
+#library(nlme)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+yellow <- "#F0E442"
+blue <- "#0072B2"
+vermillion <- "#D55E00"
+```
+
+# Trial Maps
+
+
+```{r}
+load(file="~/Work/git/ManagementZoneML/home.squares.Rda")
+```
+
+```{r}
+#source('~/Work/git/YieldDataModels/R/remove.harvest.outliers.fn.R')
+#source('~/Work/git/YieldDataModels/R/spatial.model.selection.R')
+#source('~/Work/git/YieldDataModels/R/select.best.variogram.R')
+#source('~/Work/git/YieldDataModels/R/spatial.selection.plots.R')
+#source('~/Work/git/YieldDataModels/R/read.yield.data.R')
+source('~/Work/git/YieldDataModels/R/combined.map.R')
+```
+
+```{r}
+source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/generate.rcb.plans.R")
+source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/plan.to.string.R")
+```
+
+```{r,fig.width=8,fig.height=4.5,echo=FALSE}
+attr(home.2013.dat,'Year') <- 2013
+attr(home.2015.dat,'Year') <- 2015
+attr(home.2016.dat,'Year') <- 2016
+attr(home.2018.dat,'Year') <- 2018
+
+harvests <- list(
+  home.2013.dat,home.2015.dat,home.2016.dat,home.2018.dat
+  
+  #remove.harvest.outliers.fn(home.2013.dat),
+  #remove.harvest.outliers.fn(home.2015.dat),
+  #remove.harvest.outliers.fn(home.2016.dat),
+  #remove.harvest.outliers.fn(home.2018.dat)
+)
+
+Maps6 <- combined.map(harvests)
+ggplot(Maps6, aes(Longitude,Latitude)) + 
+geom_point(aes(colour = Quantile),size=.5) + 
+scale_colour_gradient2(low=vermillion, mid=yellow, high=blue, midpoint = 0.5) +
+labs(colour = "Relative Yield Rank", x="Easting", y="Northing", title = "Multiple Years") + facet_wrap(~ Map)
+```
+
+
+
+
+# Trial Map
+
+We'll simulate a trial with plot dimensions of 4mx6m, and with 1 m buffer in between rows and 0.5m buffer between plots. For now, we'll make these attributes of the plan.
+
+We will assume trial maps with Row, Column, Plot Number and Treatment.
+
+```{r}
+
+rcb.plan <- generate.rcb.plan(reps=6,treatments=12)
+
+rcb.planA <- data.frame(
+  Row = c(1,1,1,1,1,1,1,1,1,1,1,1,
+          2,2,2,2,2,2,2,2,2,2,2,2,
+          3,3,3,3,3,3,3,3,3,3,3,3,
+          4,4,4,4,4,4,4,4,4,4,4,4,
+          5,5,5,5,5,5,5,5,5,5,5,5,
+          6,6,6,6,6,6,6,6,6,6,6,6),
+  Column = c(1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12), 
+  Plot = 1:72
+)
+
+rcb.planA$Replicate = rcb.planA$Row
+
+rcb.planAt <- data.frame(
+  Row = c(1,1,1,1,1,1,
+          2,2,2,2,2,2,
+          3,3,3,3,3,3,
+          4,4,4,4,4,4,
+          5,5,5,5,5,5,
+          6,6,6,6,6,6,
+          7,7,7,7,7,7,
+          8,8,8,8,8,8,
+          9,9,9,9,9,9,
+          10,10,10,10,10,10,
+          11,11,11,11,11,11,
+          12,12,12,12,12,12),
+  Column = c(1,2,3,4,5,6,
+             1,2,3,4,5,6,
+             1,2,3,4,5,6,
+             1,2,3,4,5,6,
+             1,2,3,4,5,6,
+             1,2,3,4,5,6,
+             1,2,3,4,5,6,
+             1,2,3,4,5,6,
+             1,2,3,4,5,6,
+             1,2,3,4,5,6,
+             1,2,3,4,5,6,
+             1,2,3,4,5,6), 
+  Plot = 1:72
+)
+
+rcb.planAt$Replicate = rcb.planAt$Column
+
+rcb.planB <- data.frame(
+  Row = c(1,1,1,1,1,1,1,1,1,1,1,1,
+          2,2,2,2,2,2,2,2,2,2,2,2,
+          3,3,3,3,3,3,3,3,3,3,3,3,
+          4,4,4,4,4,4,4,4,4,4,4,4,
+          5,5,5,5,5,5,5,5,5,5,5,5,
+          6,6,6,6,6,6,6,6,6,6,6,6),
+  Column = c(1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12), 
+  Replicate = c(1,1,2,2,3,3,4,4,5,5,6,6,
+                1,1,2,2,3,3,4,4,5,5,6,6,
+                1,1,2,2,3,3,4,4,5,5,6,6,
+                1,1,2,2,3,3,4,4,5,5,6,6,
+                1,1,2,2,3,3,4,4,5,5,6,6,
+                1,1,2,2,3,3,4,4,5,5,6,6),
+  Plot = 1:72
+)
+
+rcb.planC <- data.frame(
+  Row = c(1,1,1,1,1,1,1,1,1,1,1,1,
+          2,2,2,2,2,2,2,2,2,2,2,2,
+          3,3,3,3,3,3,3,3,3,3,3,3,
+          4,4,4,4,4,4,4,4,4,4,4,4,
+          5,5,5,5,5,5,5,5,5,5,5,5,
+          6,6,6,6,6,6,6,6,6,6,6,6),
+  Column = c(1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12,
+             1,2,3,4,5,6,7,8,9,10,11,12), 
+  Replicate = c(1,1,1,1,2,2,2,2,3,3,3,3,
+                1,1,1,1,2,2,2,2,3,3,3,3,
+                1,1,1,1,2,2,2,2,3,3,3,3,
+                4,4,4,4,5,5,5,5,6,6,6,6,
+                4,4,4,4,5,5,5,5,6,6,6,6,
+                4,4,4,4,5,5,5,5,6,6,6,6),
+  Plot = 1:72
+)
+ rcb.planA$Treatment <- rcb.plan$Treatment
+ rcb.planB$Treatment <- rcb.plan$Treatment
+ rcb.planC$Treatment <- rcb.plan$Treatment
+ 
+for(i in 1:6) {
+  rcb.planA$Treatment[rcb.planA$Replicate==i] <- rcb.plan$Treatment[rcb.plan$Row==i]
+  rcb.planB$Treatment[rcb.planB$Replicate==i] <- rcb.plan$Treatment[rcb.plan$Row==i]
+  rcb.planC$Treatment[rcb.planC$Replicate==i] <- rcb.plan$Treatment[rcb.plan$Row==i]
+}
+
+transpose.plan <- function(plan) {
+  tmp <- plan$Row
+  plan$Row <- plan$Column
+  plan$Column <- tmp
+  return(plan)
+}
+
+#for(r in unique(rcb.planA$Row)) {
+#  for(c in unique(rcb.planA$Column)) {
+#    idxA <- rcb.planA$Row==r & rcb.planA$Column==c
+#    idxAt <- rcb.planAt$Row==c & rcb.planAt$Column==r
+#    rcb.planAt$Treatment[idxAt] <- rcb.planA$Treatment[idxA]
+#  }
+# }
+ 
+attr(rcb.plan,'PlotDim') <- c(4,6)
+attr(rcb.plan,'BufferDim') <- c(0.5,1)
+
+attr(rcb.planA,'PlotDim') <- c(4,6)
+attr(rcb.planA,'BufferDim') <- c(0.5,1)
+attr(rcb.planB,'PlotDim') <- c(4,6)
+attr(rcb.planB,'BufferDim') <- c(0.5,1)
+attr(rcb.planC,'PlotDim') <- c(4,6)
+attr(rcb.planC,'BufferDim') <- c(0.5,1)
+
+#attr(rcb.planAt,'PlotDim') <- c(4,6)
+#attr(rcb.planAt,'BufferDim') <- c(0.5,1)
+attr(rcb.planAt,'PlotDim') <- c(6, 4)
+attr(rcb.planAt,'BufferDim') <- c(1, 0.5)
+#attr(rcb.planBt,'PlotDim') <- c(6, 4)
+#attr(rcb.planBt,'BufferDim') <- c(1, 0.5)
+
+#attr(rcb.planCt,'PlotDim') <- c(6, 4)
+#attr(rcb.planCt,'BufferDim') <- c(1, 0.5)
+
+
+base.plan <- rcb.plan
+```
+
+
+A utility function to compute trial dimensions, given plot size and buffer between rows.
+
+```{r}
+#source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/trial.dimensions.R")
+trial.dimensions <- function(plan) {
+  plot.dim <- attr(plan,'PlotDim')
+  buffer.dim <- attr(plan,'BufferDim')
+  rows <- max(plan$Row)-min(plan$Row)+1
+  cols <-  max(plan$Column)-min(plan$Column)+1
+  plot.width <- plot.dim[1]*cols + (cols-1)*buffer.dim[1]
+  plot.height <- plot.dim[2]*rows + (rows-1)*buffer.dim[2]
+  return(c(plot.width,plot.height))
+}
+```
+
+```{r}
+trial.dim <- trial.dimensions(rcb.plan)
+```
+
+Given the trial map, we compute plot centers in distances from a reference point assumed to be the lower left corner. Here, we inset the trial map 3m from the origin (0,0).
+
+```{r}
+#source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/add.coordinates")
+add.coordinates <- function(plan,origin) {
+  attr(plan,'Origin') <-  origin
+  plot.dim <- attr(plan,'PlotDim')
+  buffer.dim <- attr(plan,'BufferDim')
+  if(is.null(plot.dim)) {
+    plot.dim <-  c(4,6)
+  }
+  if(is.null(buffer.dim)) {
+    buffer.dim <-  c(0.5,1)
+  }
+  plan$Longitude <- 0
+  plan$Latitude <- 0
+
+  half.width <- plot.dim[1]/2
+  half.height <- plot.dim[2]/2
+
+  plan$Longitude <- origin[1] + half.width + (plan$Column-1)*plot.dim[1] + (plan$Column-1)*buffer.dim[1]
+  plan$Latitude <- origin[2] + half.height + (plan$Row-1)*plot.dim[2] + (plan$Row-1)*buffer.dim[2]
+  return(plan)
+}
+```
+
+```{r}
+rcb.plan <- add.coordinates(rcb.plan,c(3,3))
+rcb.planA <- add.coordinates(rcb.planA,c(3,3))
+rcb.planB <- add.coordinates(rcb.planB,c(3,3))
+rcb.planC <- add.coordinates(rcb.planC,c(3,3))
+
+#rcb.planAt <- add.coordinates(rcb.planAt,c(3,3))
+```
+
+We can plot the trial map using
+
+```{r}
+rcb.plan$Treatment <- as.factor(rcb.plan$Treatment)
+ggplot(rcb.plan, aes(Longitude, Latitude)) + geom_point(aes(colour = Treatment), size = 3) + scale_colour_manual(values=cbPalette)
+```
+
+```{r}
+ggplot(rcb.planA, aes(Longitude, Latitude)) + geom_point(aes(colour = Treatment), size = 3)
+ggplot(rcb.planB, aes(Longitude, Latitude)) + geom_point(aes(colour = Treatment), size = 3)
+ggplot(rcb.planC, aes(Longitude, Latitude)) + geom_point(aes(colour = Treatment), size = 3)
+```
+
+```{r}
+library(mgcv)
+
+yield.model <- gam(Yield ~ s(Longitude,Latitude,k=150),data=harvests[[1]])
+rcb.plan$Yield <- predict(yield.model,newdata=rcb.plan)
+```
+
+We will want to compare the actual yield samples in the neighborhood of our proposed experiment to the location of plot centers (and to the imputed yields).
+
+```{r}
+neighborhood.samples <- function(plan, data,border=5) {
+  origin <- attr(rcb.plan,'Origin')
+  trial.dim <- trial.dimensions(plan)
+  trial.dat <- data[data$Longitude<(trial.dim[1]+border),]
+  trial.dat <- trial.dat[trial.dat$Longitude>(origin[1]-border),]
+  trial.dat <- trial.dat[trial.dat$Latitude<(trial.dim[2]+border),]
+  trial.dat <- trial.dat[trial.dat$Latitude>(origin[2]-border),]
+  return(trial.dat)
+}
+```
+
+```{r}
+combined.yield.plot <- function(plan,data) {
+  tmp1 <- plan[,c('Yield','Longitude','Latitude')]
+  tmp2 <- neighborhood.samples(plan,harvests[[1]])[c('Yield','Longitude','Latitude')]
+  tmp1$Source <- 'Projected'
+  tmp2$Source <- 'Data'
+  pooled.dat <- rbind(tmp1,tmp2)
+  plan$n <- plan$Latitude+3
+  plan$s <- plan$Latitude-3
+  plan$e <- plan$Longitude-2
+  plan$w <- plan$Longitude+2
+  base.plot <- ggplot(pooled.dat, aes(Longitude, Latitude)) + 
+    geom_point(aes(colour = Yield,shape=Source),size = 4) + 
+    scale_colour_gradient(low=cbPalette[7], high=cbPalette[4]) +
+    labs(colour = "Yield (bu/acre)", x="Longitude (m)", y="Latitude (m)", 
+         title = "Yield Monitor and Projected Data Points")
+  base.plot <- base.plot + 
+    geom_segment(aes(x = e, y = s, xend = e+4, yend = s), data = plan, color = vermillion)
+  base.plot <- base.plot + 
+    geom_segment(aes(x = e, y = s, xend = e, yend = s+6), data = plan, color = vermillion)
+  base.plot <- base.plot + 
+    geom_segment(aes(x = e, y = n, xend = e+4, yend = n), data = plan, color = vermillion)
+  base.plot <- base.plot + 
+    geom_segment(aes(x = w, y = s, xend = w, yend = s+6), data = plan, color = vermillion)
+  return(base.plot)
+}
+```
+
+```{r,01SingleTrialPoints}
+print(combined.yield.plot(rcb.plan,harvests[[1]]))
+```
+
+# Analysis
+
+```{r}
+#source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/rcb.analysis.R")
+rcb.analysis <- function(rcb.dat) {
+  rcb.dat$Treatment <- as.factor(rcb.dat$Treatment)
+  rcb.dat$Replicate <- as.factor(rcb.dat$Replicate)
+  qq.dat <- rcb.dat
+  gy.lm <- lm(Yield ~ Treatment + Replicate, data=rcb.dat)
+  qq.dat$Yield <- residuals(gy.lm)
+  rcb.dat$Source <- 'Data'
+  qq.dat$Source <- 'Residuals'
+  qq.dat <- rbind(rcb.dat,qq.dat)
+  tbl <- anova(gy.lm)
+  p <- ggplot(qq.dat, aes(sample = Yield)) + 
+              stat_qq() + stat_qq_line() + 
+              facet_wrap(~ Source, scales="free_y")
+  return(list(Table=tbl,
+         Plot=p,
+         Residuals=residuals(gy.lm)))
+}
+```
+
+```{r}
+rcb.plan$Replicate <- rcb.plan$Row
+analysis <- rcb.analysis(rcb.plan)
+analysis$Table
+print(analysis$Plot)
+```
+
+# Repeated Experiments
+
+# Repetitions of a trial
+
+
+```{r}
+#source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/project.yield.R")
+project.yield <- function(plan, model, origin) {
+  plan <- add.coordinates(plan,origin)
+  plan$Yield <- predict(model,newdata=plan)
+  return(plan=plan)
+}
+```
+
+
+```{r}
+#source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/repeat.plan.R")
+repeat.plan <- function(plan,
+                          model,
+                          analysis.fn=rcb.analysis,
+                          spacing=3) {
+  
+  trial.dim <- trial.dimensions(plan)
+
+  trial.width <- trial.dim[1]
+  trial.height <- trial.dim[2]
+  
+  rightBorder <- max(model$model$Longitude) - (trial.width+2*spacing)
+  topBorder <- max(model$model$Latitude) - (trial.height+2*spacing)
+
+  row=1
+  col=1
+  
+  atColEnd=FALSE
+  atRowEnd=FALSE
+  plan.tbl <- NULL
+  planNo <- 1
+  analysis.tbl <- NULL
+  while(!atColEnd) {
+    currentRow <- 3+(row-1)*trial.height + (row-1)*2*spacing
+    if(currentRow < topBorder) {
+      while(!atRowEnd) {
+        currentCol <- 3+(col-1)*trial.width + (col-1)*2*spacing
+        if(currentCol<rightBorder) {
+          corner <- c(currentCol,currentRow)
+          #overlay and analyze
+          currentPlan <- project.yield(plan,
+                           model=model,
+                           origin=corner)
+          analysis <- analysis.fn(currentPlan)
+
+          #save points
+          currentPlan$Residuals <- analysis$Residuals
+          currentPlan$Number <- planNo
+          currentPlan$FieldRow <- corner[1]
+          currentPlan$FieldCol <- corner[2]
+          plan.tbl <- rbind(plan.tbl,currentPlan)
+         
+          analysis$Table$Source <- row.names(analysis$Table)
+          analysis$Table$Number <- planNo
+          analysis$Table$FieldRow <- corner[1]
+          analysis$Table$FieldCol <- corner[2]
+          
+          analysis.tbl <- rbind(analysis.tbl,analysis$Table)
+          
+          planNo <- planNo+1
+
+          col=col+1  
+        } else {
+          atRowEnd=TRUE
+        }
+      }
+      col=1
+      row=row+1
+      atRowEnd=FALSE
+    } else {
+      atColEnd =TRUE
+    }
+  }
+  
+  row.names(analysis.tbl) <- 1:dim(analysis.tbl)[1]
+  #not sure why I need to do this to get text in the return table
+  #print(row.names(analysis$Table))
+  #analysis.tbl$Source <- row.names(analysis$Table)[analysis.tbl$Source]
+  
+  return(list(Data=plan.tbl,
+              Analysis=analysis.tbl))
+}
+```
+
+
+```{r}
+if(!file.exists('Repetitions.Rda')) {
+  repetitions <- repeat.plan(rcb.plan,yield.model)
+  save(repetitions,file='Repetitions.Rda')
+} else {
+  load(file='Repetitions.Rda')
+}
+
+length(unique(repetitions$Data$Number))
+if(!file.exists('Repetitions.tab')) {
+  write.table(repetitions$Data,file='Repetitions.tab')
+}
+```
+
+```{r}
+head(repetitions$Analysis)
+```
+
+Now visualize the projected yield values.
+
+```{r}
+ggplot(repetitions$Data, aes(Longitude,Latitude)) + 
+geom_point(aes(colour = Yield),size=.5) + 
+scale_colour_gradient(low=cbPalette[7], high=cbPalette[4])  +
+labs(colour = "Projected Yield", x="Easting", y="Northing", title = "Repeated Uniformity Trials") 
+```
+
+```{r}
+repetitions$Data$Quantile <- rank(repetitions$Data$Yield)/length(repetitions$Data$Yield)
+ggplot(repetitions$Data, aes(Longitude,Latitude)) + 
+geom_point(aes(colour = Quantile),size=.5) + 
+scale_colour_gradient2(low=vermillion, mid=yellow, high=blue, midpoint = 0.5) +
+labs(colour = "Relative Yield Rank", x="Easting", y="Northing", title = "Repeated Uniformity Trials") 
+```
+
+```{r}
+repetitions$Data$Treatment <- as.factor(repetitions$Data$Treatment)
+ggplot(repetitions$Data, aes(Longitude,Latitude)) + 
+geom_point(aes(colour = Treatment),size=.5) + 
+scale_colour_manual(values=cbPalette) +
+labs(colour = "Treatment", x="Easting", y="Northing", title = "Repeated Uniformity Trials") 
+```
+
+
+What are the important results? We want to determine Type I Error rates, so
+
+```{r}
+idx <- which(names(repetitions$Analysis)=='Pr(>F)')
+names(repetitions$Analysis)[idx] <- 'P'
+TrtP <- repetitions$Analysis[repetitions$Analysis$Source=='Treatment',]
+head(TrtP)
+
+ggplot(TrtP, aes(P)) + geom_histogram(geom="line",position="identity")
+```
+
+```{r,fig.width=6,fig.height=4}
+title <- paste("ECDF over",dim(TrtP)[1],"simulations of a single trial map")
+ggplot(TrtP, aes(P)) + stat_ecdf(size=1,colour=cbPalette[1]) +  geom_abline(colour=cbPalette[13], linetype = "longdash") + annotate("text", x = 0.4, y = 0.60, label = "Expected CDF",colour=cbPalette[13]) + 
+annotate("text", x = 0.6, y = 0.40, label = "Observed eCDF",colour=cbPalette[1]) +
+labs(x="Prob(Treatment F)",y='Observed Frequency',title = title)
+```
+
+This seems like a very high Type I error rate. We can consider three sources of this
+
+1) This RCB design is pathological
+2) The source data is flat or biased
+3) The fitting is too smooth
+
+
+```{r}
+ggplot(repetitions$Data, aes(sample = Residuals)) + 
+              stat_qq() + stat_qq_line() #+ 
+              #facet_wrap(~ Source, scales="free_y")
+```
+
+```{r}
+Data <- NULL
+Analysis <- NULL
+Plans <- NULL
+
+rerandomize.rcb <- function(plan) {
+  treatments <- unique(plan$Treatment)
+  for(i in unique(plan$Replicate)) {
+    plan$Treatment[plan$Replicate==i] <- sample(treatments)
+  }
+  return(plan)
+}
+
+source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/generate.rcb.plans.R")
+source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/plan.to.string.R")
+#rcb.list <- generate.rcb.plans(reps=6,treatments=12,count=16)
+```
+
+```{r}
+if(file.exists('72PlotSimulation.Rda')) {
+  load(file='72PlotSimulation.Rda')
+}
+```
+
+```{r}
+if(!exists('rcbA.list')) {
+  randomizations <- 16
+  rcbA.list <- vector(length=randomizations,mode='list')
+  names(rcbA.list) <- 1:length(rcbA.list)
+  combined.plan <- NULL
+  for(i in 1:length(rcbA.list)) {
+    rcbA.list[[i]] <- rerandomize.rcb(rcb.planA)
+  }
+  save(rcbA.list,file='72PlotSimulation.Rda')
+}
+```
+
+```{r}
+  combined.plan <- NULL
+  for(i in 1:length(rcbA.list)) {
+    tmp <- rcbA.list[[i]]
+    tmp$Plan <- names(rcbA.list)[i]
+    combined.plan <- rbind(combined.plan,tmp)
+  }
+combined.plan$Treatment <- as.factor(combined.plan$Treatment)
+combined.plan$Replicate <- as.factor(combined.plan$Replicate)
+ggplot(combined.plan, aes(Longitude, Latitude)) + geom_point(aes(colour = Treatment), size = 3) + scale_colour_manual(values=cbPalette) + facet_wrap(~Plan)
+
+ggplot(combined.plan, aes(Longitude, Latitude)) + geom_point(aes(colour = Replicate), size = 3) + scale_colour_manual(values=cbPalette) + facet_wrap(~Plan)
+```
+
+```{r}
+if(!file.exists('Plans.Rda')) {
+  for(i in 1:length(rcbA.list)) {
+    attr(rcbA.list[[i]],'PlotDim') <- c(4,6)
+    attr(rcbA.list[[i]],'BufferDim') <- c(0.5,1)
+    current <- repeat.plan(rcbA.list[[i]],yield.model)
+    current$Data$Plan <- names(rcbA.list)[i]
+    current$Analysis$Plan <- names(rcbA.list)[i]
+  
+    Data <- rbind(Data,current$Data)
+    Analysis <- rbind(Analysis,current$Analysis)
+  
+    rcbA.list[[i]]$Plan <- names(rcbA.list)[i]
+    Plans <- rbind(Plans,rcbA.list[[i]])
+    save(Plans,Data,Analysis,file='Plans.Rda')
+  }
+} else {
+  load(file='Plans.Rda')
+}
+
+idx <- which(names(Analysis)=='Pr(>F)')
+names(Analysis)[idx] <- 'P'
+TrtP <- Analysis[Analysis$Source=='Treatment',]
+head(TrtP)
+```
+
+```{r}
+ggplot(TrtP, aes(P)) + geom_histogram(geom="line",position="identity")
+
+ggplot(TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+```
+
+```{r}
+Plans$Treatment <- as.factor(Plans$Treatment)
+ggplot(Plans, aes(Row, Column)) + geom_point(aes(colour = Treatment), size = 3) + scale_colour_manual(values=cbPalette) + facet_wrap(~Plan)
+```
+
+# Overfitting
+
+```{r}
+if(!file.exists('Overfitting.Rda')) {
+yield.model <- gam(Yield ~ s(Longitude,Latitude,k=800),data=harvests[[1]])
+
+Overfitting.Data <- NULL
+Overfitting.Analysis <- NULL
+Plans <- NULL
+
+for(i in 1:length(rcbA.list)) {
+  current <- repeat.plan(rcbA.list[[i]],yield.model)
+  current$Data$Plan <- names(rcbA.list)[i]
+  current$Analysis$Plan <- names(rcbA.list)[i]
+  
+  Overfitting.Data <- rbind(Overfitting.Data,current$Data)
+  Overfitting.Analysis <- rbind(Overfitting.Analysis,current$Analysis)
+}
+} else {
+  load(file='Overfitting.Rda')
+}
+
+idx <- which(names(Overfitting.Analysis)=='Pr(>F)')
+names(Overfitting.Analysis)[idx] <- 'P'
+TrtP <- Overfitting.Analysis[Overfitting.Analysis$Source=='Treatment',]
+```
+
+```{r,fig.width=6,fig.height=4}
+plans <- length(unique(TrtP$Plan))
+trials <- dim(TrtP)[1]/plans
+title <- paste("Histograms from",trials,"simulations of",plans,"trial maps")
+
+ggplot(TrtP, aes(P)) + geom_histogram(position="identity",aes(fill=Plan)) + scale_fill_manual(values=cbPalette) + facet_wrap(~Plan) +
+    labs(x="Prob(Treatment F)",y='Count',title = title)
+```
+
+```{r,fig.width=8,fig.height=6}
+title <- paste("eCDF from",trials,"simulations of",plans,"trial maps")
+ggplot(TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") +
+annotate("text", x = 0.12, y = 0.90, label = "p=0.05",colour=cbPalette[13]) + geom_abline() +
+  labs(x="Prob(Treatment F)",y='Observed Frequency',title = title)
+```
+
+```{r,fig.width=8,fig.height=6}
+title <- paste("ECDF over",dim(TrtP)[1],"simulations of a single trial map")
+ggplot(TrtP, aes(P)) + stat_ecdf(size=1,colour=cbPalette[1]) +  geom_abline(colour=cbPalette[13], linetype = "longdash")
+
+```
+
+
+
+# Other years
+
+```{r}
+if(!file.exists('FitModels.Rda')) {
+  models <- vector(4, mode='list')
+  for(i in 1:length(models)) {
+    #models[[i]] <- gam(Yield ~ s(Longitude,Latitude,k=150),data=harvests[[i]])
+    models[[i]] <- gam(Yield ~ s(Longitude,Latitude,k=800),data=harvests[[i]])
+  }
+  save(models,file='FitModels.Rda')
+} else {
+  load(file='FitModels.Rda')
+}
+```
+
+
+```{r}
+if(!file.exists('RepeatedYears.Rda')) {
+
+  RepeatedYears <- repeat.plan(rcb.plan,models[[1]])
+  RepeatedYears$Data$Quantile <- rank(RepeatedYears$Data$Yield)/length(RepeatedYears$Data$Yield)
+  RepeatedYears$Data$Year <- 2013
+  RepeatedYears$Analysis$Year <- 2013
+   
+  tmp <- repeat.plan(rcb.plan,models[[2]])
+  tmp$Data$Quantile <- rank(tmp$Data$Yield)/length(tmp$Data$Yield)
+  tmp$Data$Year <- 2015
+  tmp$Analysis$Year <- 2015
+  
+  RepeatedYears$Data <- rbind(RepeatedYears$Data,tmp$Data)
+  RepeatedYears$Analysis <- rbind(RepeatedYears$Analysis, tmp$Analysis)
+  
+  tmp <- repeat.plan(rcb.plan,models[[3]])
+  tmp$Data$Quantile <- rank(tmp$Data$Yield)/length(tmp$Data$Yield)
+  tmp$Data$Year <- 2016
+  tmp$Analysis$Year <- 2016
+  RepeatedYears$Data <- rbind(RepeatedYears$Data, tmp$Data)
+  RepeatedYears$Analysis <- rbind(RepeatedYears$Analysis, tmp$Analysis)
+  
+  tmp <- repeat.plan(rcb.plan,models[[4]])
+  tmp$Data$Quantile <- rank(tmp$Data$Yield)/length(tmp$Data$Yield)
+  tmp$Data$Year <- 2018
+  tmp$Analysis$Year <- 2018
+  RepeatedYears$Data <- rbind(RepeatedYears$Data, tmp$Data)
+  RepeatedYears$Analysis <- rbind(RepeatedYears$Analysis, tmp$Analysis)
+  
+  save(RepeatedYears,file='RepeatedYears.Rda')
+} else {
+  load(file='RepeatedYears.Rda')
+}
+
+if(!file.exists('RepeatedYearsYears.tab')) {
+  write.table(RepeatedYears$Data,file='RepeatedYears.tab')
+}
+```
+
+```{r, fig.width=16,fig.height=12}
+ggplot(RepeatedYears$Data, aes(Longitude,Latitude)) + 
+geom_point(aes(colour = Quantile),size=.5) + 
+scale_colour_gradient2(low=vermillion, mid=yellow, high=blue, midpoint = 0.5) +
+labs(colour = "Relative Yield Rank", x="Easting", y="Northing", title = "Repeated Uniformity Trials") +facet_wrap(~Year)
+```
+
+
+
+```{r}
+idx <- which(names(RepeatedYears$Analysis)=='Pr(>F)')
+names(RepeatedYears$Analysis)[idx] <- 'P'
+RepeatedYears.TrtP <- RepeatedYears$Analysis[RepeatedYears$Analysis$Source=='Treatment',]
+RepeatedYears.TrtP$Year <- as.factor(RepeatedYears.TrtP$Year)
+```
+
+```{r,fig.width=8,fig.height=6}
+title = paste("ECDF over",dim(TrtP)[1],"simulations over 4 yield maps")
+ggplot(RepeatedYears.TrtP, aes(P)) + stat_ecdf(size=1,colour=cbPalette[1]) +  geom_abline(colour=cbPalette[13], linetype = "longdash") +labs(x="Prob(Treatment F)",y='Observed Frequency',title = title)
+```
+
+```{r}
+ggplot(RepeatedYears.TrtP, aes(P,color=Year)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette) + geom_abline(colour=cbPalette[13], linetype = "longdash") +labs(x="Prob(Treatment F)",y='Observed Frequency',title = title)
+```
+
+
+# Variations on a plan
+```{r}
+rerandomize.plan <- function(plan, randomizations, randomization.fn) {
+  ret <- vector(length=randomizations,mode='list')
+  names(ret) <- 1:length(ret)
+  for(i in 1:length(ret)) {
+    tmp <- rerandomize.rcb(plan)
+    tmp$Plan <- names(ret)[i]
+    ret[[i]] <- tmp
+  }
+  return(ret)
+}
+```
+
+
+```{r}
+if(!exists('Analysis.rcbA')) {
+  Data.rcbA <- NULL
+  Analysis.rcbA <- NULL
+  Plans.rcbA <- NULL
+
+  rcbA.list <- rerandomize.plan(rcb.planA,16,rerandomize.rcb)
+  for(i in 1:length(rcbA.list)) {
+    tmp <- rcbA.list[[i]]
+    Plans.rcbA <- rbind(Plans.rcbA,tmp)
+  }
+  
+  for(j in 1:4) {
+    yield.model <- models[[j]]
+
+    for(i in 1:length(rcbA.list)) {
+      current <- repeat.plan(rcbA.list[[i]],yield.model)
+      current$Data$Plan <- names(rcbA.list)[i]
+      current$Analysis$Plan <- names(rcbA.list)[i]
+   
+      current$Data$Year <- attr(harvests[[j]],'Year')
+      current$Analysis$Year <- attr(harvests[[j]],'Year')
+  
+      Data.rcbA <- rbind(Data.rcbA,current$Data)
+      Analysis.rcbA <- rbind(Analysis.rcbA,current$Analysis)
+    }
+  }
+  save(rcbA.list,Analysis.rcbA,Plans.rcbA,Data.rcbA,file='72PlotSimulation.Rda')
+}
+```
+
+```{r}
+idx <- which(names(Analysis.rcbA)=='Pr(>F)')
+names(Analysis.rcbA)[idx] <- 'P'
+rcbA.TrtP <- Analysis.rcbA[Analysis.rcbA$Source=='Treatment',]
+rcbA.TrtP$Year <- as.factor(rcbA.TrtP$Year)
+```
+
+```{r}
+#ggplot(rcbA.TrtP, aes(P)) + geom_histogram(geom="line",position="identity")
+#ggplot(rcbA.TrtP, aes(P,color=Year)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+#ggplot(rcbA.TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+```
+
+
+# 2x6 Block size
+
+
+```{r}
+if(!exists('Analysis.rcbB')) {
+  Data.rcbB <- NULL
+  Analysis.rcbB <- NULL
+  Plans.rcbB <- NULL 
+  
+  rcbB.list <- rerandomize.plan(rcb.planB,16,rerandomize.rcb)
+  for(i in 1:length(rcbB.list)) {
+    tmp <- rcbB.list[[i]]
+    Plans.rcbB <- rbind(Plans.rcbB,tmp)
+  }
+  
+  for(j in 1:4) {
+    yield.model <- models[[j]]
+
+    for(i in 1:length(rcbB.list)) {
+      current <- repeat.plan(rcbB.list[[i]],yield.model)
+      current$Data$Plan <- names(rcbB.list)[i]
+      current$Analysis$Plan <- names(rcbB.list)[i]
+   
+      current$Data$Year <- attr(harvests[[j]],'Year')
+      current$Analysis$Year <- attr(harvests[[j]],'Year')
+  
+      Data.rcbB <- rbind(Data.rcbB,current$Data)
+      Analysis.rcbB <- rbind(Analysis.rcbB,current$Analysis)
+    }
+  }
+  save(rcbA.list,Analysis.rcbA,Plans.rcbA,Data.rcbA,
+       rcbB.list,Analysis.rcbB,Plans.rcbB,Data.rcbB,file='72PlotSimulation.Rda')
+}
+```
+
+
+```{r}
+idx <- which(names(Analysis.rcbB)=='Pr(>F)')
+names(Analysis.rcbB)[idx] <- 'P'
+rcbB.TrtP <- Analysis.rcbB[Analysis.rcbB$Source=='Treatment',]
+rcbB.TrtP$Year <- as.factor(rcbB.TrtP$Year)
+```
+
+
+```{r}
+Plans.rcbB$Treatment <- as.factor(Plans.rcbB$Treatment)
+Plans.rcbB$Replicate <- as.factor(Plans.rcbB$Replicate)
+ggplot(Plans.rcbB, aes(Longitude, Latitude)) + geom_point(aes(colour = Treatment), size = 3) + scale_colour_manual(values=cbPalette) + facet_wrap(~Plan)
+
+ggplot(Plans.rcbB, aes(Longitude, Latitude)) + geom_point(aes(colour = Replicate), size = 3) + scale_colour_manual(values=cbPalette) + facet_wrap(~Plan)
+```
+
+```{r}
+#ggplot(rcbB.TrtP, aes(P)) + geom_histogram(geom="line",position="identity")
+#ggplot(rcbB.TrtP, aes(P,color=Year)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+#ggplot(rcbB.TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+```
+
+
+
+# 3x4 Block size
+
+```{r}
+if(!exists('Analysis.rcbC')) {
+  
+  Data.rcbC <- NULL
+  Analysis.rcbC <- NULL
+  Plans.rcbC <- NULL
+
+  rcbC.list <- rerandomize.plan(rcb.planC,16,rerandomize.rcb)
+  for(i in 1:length(rcbC.list)) {
+    tmp <- rcbC.list[[i]]
+    Plans.rcbC <- rbind(Plans.rcbC,tmp)
+  }
+  
+  for(j in 1:4) {
+    yield.model <- models[[j]]
+
+    for(i in 1:length(rcbC.list)) {
+      current <- repeat.plan(rcbC.list[[i]],yield.model)
+      current$Data$Plan <- names(rcbC.list)[i]
+      current$Analysis$Plan <- names(rcbC.list)[i]
+   
+      current$Data$Year <- attr(harvests[[j]],'Year')
+      current$Analysis$Year <- attr(harvests[[j]],'Year')
+  
+      Data.rcbC <- rbind(Data.rcbC,current$Data)
+      Analysis.rcbC <- rbind(Analysis.rcbC,current$Analysis)
+    }
+  }
+  save(rcbA.list,Analysis.rcbA,Plans.rcbA,Data.rcbA,
+       rcbB.list,Analysis.rcbB,Plans.rcbB,Data.rcbB,
+       rcbC.list,Analysis.rcbC,Plans.rcbC,Data.rcbC,file='72PlotSimulation.Rda')
+  
+}
+```
+
+
+```{r}
+idx <- which(names(Analysis.rcbC)=='Pr(>F)')
+names(Analysis.rcbC)[idx] <- 'P'
+rcbC.TrtP <- Analysis.rcbC[Analysis.rcbC$Source=='Treatment',]
+rcbC.TrtP$Year <- as.factor(rcbC.TrtP$Year)
+```
+
+```{r}
+Plans.rcbC$Treatment <- as.factor(Plans.rcbC$Treatment)
+Plans.rcbC$Replicate <- as.factor(Plans.rcbC$Replicate)
+ggplot(Plans.rcbC, aes(Longitude, Latitude)) + geom_point(aes(colour = Treatment), size = 3) + scale_colour_manual(values=cbPalette) + facet_wrap(~Plan)
+
+ggplot(Plans.rcbC, aes(Longitude, Latitude)) + geom_point(aes(colour = Replicate), size = 3) + scale_colour_manual(values=cbPalette) + facet_wrap(~Plan)
+```
+
+```{r}
+#ggplot(rcbC.TrtP, aes(P)) + geom_histogram(geom="line",position="identity")
+#ggplot(rcbC.TrtP, aes(P,color=Year)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+#ggplot(rcbC.TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+```
+
+# Transpose
+
+### 1x12
+
+```{r}
+if(!exists('Analysis.rcbAt')) {
+  Data.rcbAt <- NULL
+  Analysis.rcbAt <- NULL
+  Plans.rcbAt <- NULL
+
+  rcbAt.list <- vector(16, mode='list')
+  names(rcbAt.list) <- names(rcbA.list)
+  for(i in 1:length(rcbA.list)) {
+    tmp <- transpose.plan(rcbA.list[[i]])
+    tmp$Plan <- names(rcbAt.list)[i]
+    rcbAt.list[[i]] <- tmp
+    Plans.rcbAt <- rbind(Plans.rcbAt,tmp)
+  }
+  
+  for(j in 1:4) {
+    yield.model <- models[[j]]
+
+    for(i in 1:length(rcbAt.list)) {
+      current <- repeat.plan(rcbAt.list[[i]],yield.model)
+      current$Data$Plan <- names(rcbAt.list)[i]
+      current$Analysis$Plan <- names(rcbAt.list)[i]
+   
+      current$Data$Year <- attr(harvests[[j]],'Year')
+      current$Analysis$Year <- attr(harvests[[j]],'Year')
+  
+      Data.rcbAt <- rbind(Data.rcbAt,current$Data)
+      Analysis.rcbAt <- rbind(Analysis.rcbAt,current$Analysis)
+    }
+  }
+  save(rcbA.list,Analysis.rcbA,Plans.rcbA,Data.rcbA,
+       rcbB.list,Analysis.rcbB,Plans.rcbB,Data.rcbB,
+       rcbC.list,Analysis.rcbC,Plans.rcbC,Data.rcbC,
+       rcbAt.list,Analysis.rcbAt,Plans.rcbAt,Data.rcbAt,file='72PlotSimulation.Rda')
+  
+}
+```
+
+```{r}
+idx <- which(names(Analysis.rcbAt)=='Pr(>F)')
+names(Analysis.rcbAt)[idx] <- 'P'
+rcbAt.TrtP <- Analysis.rcbAt[Analysis.rcbAt$Source=='Treatment',]
+rcbAt.TrtP$Year <- as.factor(rcbAt.TrtP$Year)
+```
+
+
+```{r}
+#ggplot(rcbAt.TrtP, aes(P)) + geom_histogram(geom="line",position="identity")
+#ggplot(rcbAt.TrtP, aes(P,color=Year)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+#ggplot(rcbAt.TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+```
+
+
+### 6x2
+
+```{r}
+if(!exists('Analysis.rcbBt')) {
+  Data.rcbBt <- NULL
+  Analysis.rcbBt <- NULL
+  Plans.rcbBt <- NULL
+
+  #rcbBt.list <- rerandomize.plan(rcb.planBt,16,rerandomize.rcb)
+  #for(i in 1:length(rcbBt.list)) {
+  #  tmp <- rcbBt.list[[i]]
+  #  Plans.rcbBt <- rbind(Plans.rcbBt,tmp)
+  #}
+  
+  rcbBt.list <- vector(16, mode='list')
+  names(rcbBt.list) <- names(rcbB.list)
+  for(i in 1:length(rcbB.list)) {
+    tmp <- transpose.plan(rcbB.list[[i]])
+    tmp$Plan <- names(rcbBt.list)[i]
+    rcbBt.list[[i]] <- tmp
+    Plans.rcbBt <- rbind(Plans.rcbBt,tmp)
+  }
+  
+  for(j in 1:4) {
+    yield.model <- models[[j]]
+
+    for(i in 1:length(rcbBt.list)) {
+      current <- repeat.plan(rcbBt.list[[i]],yield.model)
+      current$Data$Plan <- names(rcbBt.list)[i]
+      current$Analysis$Plan <- names(rcbBt.list)[i]
+   
+      current$Data$Year <- attr(harvests[[j]],'Year')
+      current$Analysis$Year <- attr(harvests[[j]],'Year')
+  
+      Data.rcbBt <- rbind(Data.rcbBt,current$Data)
+      Analysis.rcbBt <- rbind(Analysis.rcbBt,current$Analysis)
+    }
+  }
+  save(rcbA.list,Analysis.rcbA,Plans.rcbA,Data.rcbA,
+       rcbB.list,Analysis.rcbB,Plans.rcbB,Data.rcbB,
+       rcbC.list,Analysis.rcbC,Plans.rcbC,Data.rcbC,
+       rcbAt.list,Analysis.rcbAt,Plans.rcbAt,Data.rcbAt,
+       rcbBt.list,Analysis.rcbBt,Plans.rcbBt,Data.rcbBt,file='72PlotSimulation.Rda')
+}
+```
+
+
+```{r}
+idx <- which(names(Analysis.rcbBt)=='Pr(>F)')
+names(Analysis.rcbBt)[idx] <- 'P'
+rcbBt.TrtP <- Analysis.rcbBt[Analysis.rcbBt$Source=='Treatment',]
+rcbBt.TrtP$Year <- as.factor(rcbBt.TrtP$Year)
+```
+
+
+
+
+```{r}
+#ggplot(rcbBt.TrtP, aes(P)) + geom_histogram(geom="line",position="identity")
+#ggplot(rcbBt.TrtP, aes(P,color=Year)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+#ggplot(rcbBt.TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+```
+
+### 3x4
+
+
+```{r}
+if(!exists('Analysis.rcbCt')) {
+  
+  Data.rcbCt <- NULL
+  Analysis.rcbCt <- NULL
+  Plans.rcbCt <- NULL
+
+  randomizations <- 16
+ # rcbCt.list <- rerandomize.plan(rcb.planCt,16,rerandomize.rcb)
+
+  #for(i in 1:length(rcbCt.list)) {
+  #  tmp <- rcbCt.list[[i]]
+  #  Plans.rcbCt <- rbind(Plans.rcbCt,tmp)
+  #}
+  
+  rcbCt.list <- vector(16, mode='list')
+  names(rcbCt.list) <- names(rcbC.list)
+  for(i in 1:length(rcbC.list)) {
+    tmp <- transpose.plan(rcbC.list[[i]])
+    tmp$Plan <- names(rcbCt.list)[i]
+    rcbCt.list[[i]] <- tmp
+    Plans.rcbCt <- rbind(Plans.rcbCt,tmp)
+  }
+  
+  
+  
+  for(j in 1:4) {
+    yield.model <- models[[j]]
+
+    for(i in 1:length(rcbCt.list)) {
+      current <- repeat.plan(rcbCt.list[[i]],yield.model)
+      current$Data$Plan <- names(rcbCt.list)[i]
+      current$Analysis$Plan <- names(rcbCt.list)[i]
+   
+      current$Data$Year <- attr(harvests[[j]],'Year')
+      current$Analysis$Year <- attr(harvests[[j]],'Year')
+  
+      Data.rcbCt <- rbind(Data.rcbCt,current$Data)
+      Analysis.rcbCt <- rbind(Analysis.rcbCt,current$Analysis)
+    }
+  }
+  save(rcbA.list,Analysis.rcbA,Plans.rcbA,Data.rcbA,
+       rcbB.list,Analysis.rcbB,Plans.rcbB,Data.rcbB,
+       rcbC.list,Analysis.rcbC,Plans.rcbC,Data.rcbC,
+       rcbAt.list,Analysis.rcbAt,Plans.rcbAt,Data.rcbAt,
+       rcbBt.list,Analysis.rcbBt,Plans.rcbBt,Data.rcbBt,
+       rcbCt.list,Analysis.rcbCt,Plans.rcbCt,Data.rcbCt,file='72PlotSimulation.Rda')
+}
+```
+
+
+```{r}
+idx <- which(names(Analysis.rcbCt)=='Pr(>F)')
+names(Analysis.rcbCt)[idx] <- 'P'
+rcbCt.TrtP <- Analysis.rcbCt[Analysis.rcbCt$Source=='Treatment',]
+rcbCt.TrtP$Year <- as.factor(rcbCt.TrtP$Year)
+```
+
+
+```{r}
+#ggplot(rcbCt.TrtP, aes(P)) + geom_histogram(geom="line",position="identity")
+#ggplot(rcbCt.TrtP, aes(P,color=Year)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+#ggplot(rcbCt.TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+```
+
+# Summary
+
+```{r}
+repetitionsA <- repeat.plan(rcbA.list[[1]], yield.model)
+#repetitionsB <- repeat.plan(rcbB.list[[1]], yield.model)
+#repetitionsC <- repeat.plan(rcbC.list[[1]], yield.model)
+
+repetitionsAt <- repeat.plan(rcbAt.list[[1]], yield.model)
+#repetitionsBt <- repeat.plan(rcbBt.list[[1]], yield.model)
+#repetitionsCt <- repeat.plan(rcbCt.list[[1]], yield.model)
+
+repetitionsA$Data$Quantile <- rank(repetitionsA$Data$Yield)/length(repetitionsA$Data$Yield)
+#repetitionsB$Data$Quantile <- rank(repetitionsB$Data$Yield)/length(repetitionsB$Data$Yield)
+#repetitionsC$Data$Quantile <- rank(repetitionsC$Data$Yield)/length(repetitionsC$Data$Yield)
+
+repetitionsAt$Data$Quantile <- rank(repetitionsAt$Data$Yield)/length(repetitionsAt$Data$Yield)
+#repetitionsBt$Data$Quantile <- rank(repetitionsBt$Data$Yield)/length(repetitionsBt$Data$Yield)
+#repetitionsCt$Data$Quantile <- rank(repetitionsCt$Data$Yield)/length(repetitionsCt$Data$Yield)
+
+repetitionsA$Data$Layout <- 'As Executed'
+#repetitionsB$Data$GridSize <- '2x6'
+#repetitionsC$Data$GridSize <- '3x4'
+repetitionsAt$Data$Layout <- 'Blocks as Columns'
+#repetitionsBt$Data$GridSize <- 't2x6'
+#repetitionsCt$Data$GridSize <- 't3x4'
+
+repetitions.dat <- rbind(repetitionsA$Data,repetitionsAt$Data)
+                       #   repetitionsB$Data,
+                       #   repetitionsC$Data,
+                          
+                       #   repetitionsBt$Data,
+                       #   repetitionsCt$Data)
+```
+
+```{r,fig.width=12,fig.height=8}
+ggplot(repetitions.dat, aes(Longitude,Latitude)) + 
+geom_point(aes(colour = Quantile),size=.5) + 
+scale_colour_gradient2(low=vermillion, mid=yellow, high=blue, midpoint = 0.5) +
+labs(colour = "Relative Yield Rank", x="Easting", y="Northing", title = "Repeated Uniformity Trials") + facet_wrap(~ Layout)
+```
+
+
+```{r}
+rcbA.TrtP$GridSize <- '1x12'
+rcbB.TrtP$GridSize <- '2x6'
+rcbC.TrtP$GridSize <- '3x4'
+rcbAt.TrtP$GridSize <- 't1x12'
+rcbBt.TrtP$GridSize <- 't2x6'
+rcbCt.TrtP$GridSize <- 't3x4'
+
+combined.TrtP <- rbind(rcbA.TrtP, rcbB.TrtP, rcbC.TrtP,
+                       rcbAt.TrtP, rcbBt.TrtP, rcbCt.TrtP)
+```
+
+
+```{r}
+ggplot(combined.TrtP, aes(P,color=Year)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~GridSize) 
+
+ggplot(combined.TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~GridSize) 
+```
+
+
+# As Executed
+
+```{r}
+germination.plan <- data.frame(
+Plot=c(101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612), 
+Treatment=c(6, 11, 12, 7, 1, 4, 5, 10, 2, 8, 9, 3, 12, 7, 3, 5, 6, 10, 1, 8, 9, 4, 11, 2, 4, 5, 9, 1, 3, 8, 11, 2, 12, 10, 6, 7, 3, 2, 10, 12, 5, 1, 9, 7, 6, 11, 4, 8, 5, 8, 3, 1, 6, 10, 12, 11, 4, 2, 7, 9, 6, 7, 4, 9, 11, 5, 2, 1, 12, 8, 10, 3),
+Replicate=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6),
+Row=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6), 
+Column=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), 
+assessment14=c(1.00000000, 0.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 0.00000000, 2.00000000, 1.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 1.00000000, 2.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 2.00000000, 1.00000000, 0.00000000, 0.00000000, 1.00000000, 0.00000000, 2.00000000, 1.00000000, 0.00000000, 1.00000000,
+0.00000000, 1.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 3.00000000, 2.00000000, 1.00000000, 3.00000000, 0.00000000, 0.00000000, 0.00000000, 1.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 3.00000000, 0.00000000, 0.00000000, 2.00000000, 0.00000000), 
+stringsAsFactors=FALSE)
+
+attr(germination.plan,'PlotDim') <- c(4,6)
+attr(germination.plan,'BufferDim') <- c(0.5,1)
+```
+
+
+```{r}
+  Data.germination <- NULL
+  Analysis.germination <- NULL
+  Plans.germination <- NULL
+
+  for(j in 1:4) {
+    yield.model <- models[[j]]
+
+
+      current <- repeat.plan(germination.plan,yield.model)
+      current$Data$Plan <- 'Germination'
+      current$Analysis$Plan <- 'Germination'
+   
+      current$Data$Year <- attr(harvests[[j]],'Year')
+      current$Analysis$Year <- attr(harvests[[j]],'Year')
+  
+      Data.germination <- rbind(Data.germination,current$Data)
+      Analysis.germination <- rbind(Analysis.germination,current$Analysis)
+  }
+```
+
+
+```{r}
+poor.plan <- data.frame(
+Plot=c(101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 501, 502, 503, 504, 505, 506, 507, 508, 509, 510, 511, 512, 601, 602, 603, 604, 605, 606, 607, 608, 609, 610, 611, 612), 
+Treatment=c(5, 1, 11, 9, 4, 8, 12, 10, 6, 2, 7, 3, 5, 11, 6, 9, 1, 4, 10, 12, 2, 7, 3, 8, 11, 5, 9, 10, 6, 8, 1, 4, 12, 7, 2, 3, 11, 5, 9, 10, 6, 4, 8, 1, 12, 2, 3, 7, 5, 4, 11, 9, 6, 10, 1, 12, 2, 8, 7, 3, 11, 5, 9, 8, 1, 12, 10, 4, 6, 2, 7, 3), 
+#Treatment=c(2, 1, 11, 9, 7, 3, 12, 5, 6, 8, 4, 10, 5, 3, 6, 9, 1, 11, 10, 12, 2, 7, 4, 8, 11, 5, 9, 10, 6, 8, 7, 4, 2, 1, 3, 12, 3, 7, 9, 10, 6, 4, 8, 5, 12, 2, 1, 11, 5, 4, 2, 3, 6, 10, 1, 12, 11, 8, 7, 9, 11, 10, 9, 7, 1, 12, 5, 4, 6, 2, 3, 8), 
+#Treatment=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 10, 12, 4, 7, 3, 11, 8, 2, 6, 5, 9, 6, 4, 12, 3, 9, 8, 7, 11, 10, 5, 2, 1, 3, 1, 2, 11, 8, 10, 9, 6, 4, 5, 7, 12, 2, 6, 1, 4, 12, 7, 8, 11, 3, 5, 10, 9, 8, 7, 12, 9, 4, 10, 11, 2, 1, 5, 3, 6), 
+Replicate=as.factor(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6)), 
+Row=c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6), 
+Column=c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
+attr(poor.plan,'PlotDim') <- c(4,6)
+attr(poor.plan,'BufferDim') <- c(0.5,1)
+```
+
+```{r}
+Data.poor <- NULL
+Analysis.poor <- NULL
+Plans.poor <- NULL
+
+for(j in 1:4) {
+  yield.model <- models[[j]]
+
+  current <- repeat.plan(poor.plan,yield.model)
+  current$Data$Plan <- 'Poor'
+  current$Analysis$Plan <- 'Poor'
+   
+  current$Data$Year <- attr(harvests[[j]],'Year')
+  current$Analysis$Year <- attr(harvests[[j]],'Year')
+  
+  Data.poor <- rbind(Data.poor,current$Data)
+  Analysis.poor <- rbind(Analysis.poor,current$Analysis)
+}
+```
+
+```{r}
+rcbA.TrtP$Source <- 'Randomized Complete Block'
+idx <- which(names(Analysis.germination)=='Pr(>F)')
+names(Analysis.germination)[idx] <- 'P'
+germination.TrtP <- Analysis.germination[Analysis.germination$Source=='Treatment',]
+germination.TrtP$Year <- as.factor(germination.TrtP$Year)
+germination.TrtP$GridSize <- unique(rcbA.TrtP$GridSize)
+germination.TrtP$Source <- 'As Executed'
+  
+
+
+idx <- which(names(Analysis.poor)=='Pr(>F)')
+names(Analysis.poor)[idx] <- 'P'
+poor.TrtP <- Analysis.poor[Analysis.poor$Source=='Treatment',]
+poor.TrtP$Year <- as.factor(poor.TrtP$Year)
+poor.TrtP$GridSize <- unique(rcbA.TrtP$GridSize)
+poor.TrtP$Source <- 'Undesirable'
+
+germination.TrtP <- rbind(germination.TrtP,rcbA.TrtP)
+
+```
+
+```{r,fig.width=8,fig.height=4}
+Alpha <- rep(1,length(germination.TrtP$Source))
+Alpha[germination.TrtP$Source =='Randomized Complete Block'] <- .95
+
+ggplot(germination.TrtP, aes(P,color=Source)) + stat_ecdf(aes(group=Plan,alpha=Alpha),size=1) + scale_colour_manual(values=cbPalette[c(2,3,1,4)])
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(germination.TrtP, aes(P,color=Source)) + stat_ecdf(aes(group=Plan,alpha=Alpha),size=1) + scale_colour_manual(values=cbPalette[c(2,3,4,1)]) + facet_wrap(~ Year)
+```
+
+
+```{r,fig.width=8,fig.height=4}
+germination.TrtP <- rbind(germination.TrtP,poor.TrtP)
+Alpha <- rep(1,length(germination.TrtP$Source))
+Alpha[germination.TrtP$Source =='Randomized Complete Block'] <- .95
+
+ggplot(germination.TrtP, aes(P,color=Source)) + stat_ecdf(aes(group=Plan,alpha=Alpha),size=1) + scale_colour_manual(values=cbPalette[c(2,3,1,4)])
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(germination.TrtP, aes(P,color=Source)) + stat_ecdf(aes(group=Plan,alpha=Alpha),size=1) + scale_colour_manual(values=cbPalette[c(2,3,4,1)]) + facet_wrap(~ Year)
+```
+
+
+```{r}
+if(!file.exists('Analysis.adj2.Rda')) {
+  Data.adj2 <- NULL
+  Analysis.adj2 <- NULL
+  Plans.adj2 <- NULL
+
+  adj.list <- vector(mode='list',16)
+  tmp <- rcbA.list[[1]]
+    
+  tmp$Treatment <- c(10,2,5,9,12,4,11,7,6,8,3,1,12,7,1,2,11,3,9,8,10,4,5,6,8,5,10,9,12,2,7,6,3,11,1,4,4,12,6,7,8,1,3,11,10,9,2,5,6,8,2,9,12,11,7,5,1,4,10,3,1,7,4,3,10,8,2,11,9,6,5,12)
+  adj.list[[1]] <- tmp
+  
+  tmp$Treatment <- c(8,7,3,1,10,9,6,2,11,5,12,4,12,1,4,6,2,11,7,10,3,9,8,5,4,8,7,9,5,3,12,1,6,2,10,11,5,1,10,4,6,7,9,2,8,11,12,3,9,11,7,2,10,8,12,5,4,3,6,1,12,5,10,1,4,7,11,2,6,8,9,3)
+  adj.list[[2]] <- tmp
+
+tmp$Treatment <- c(2, 4, 12, 11, 1, 10, 7, 5, 6, 9, 3, 8, 8, 3, 9, 2, 5, 4, 1, 12, 7, 10, 11, 6, 9, 2, 11, 10, 12, 7, 6, 3, 4, 1, 5, 8, 5, 6, 4, 2, 1, 8, 10, 7, 12, 11, 3, 9, 8, 11, 1, 6, 5, 12, 9, 4, 3, 7, 2, 10, 2, 6, 8, 7, 4, 3, 5, 1, 10, 12, 9, 11)
+  adj.list[[3]] <- tmp
+  tmp$Treatment <- c(5, 7, 4, 3, 10, 1, 9, 11, 2, 12, 6, 8, 4, 8, 5, 2, 7, 6, 10, 12, 9, 1, 11, 3, 7, 9, 10, 11, 4, 8, 1, 3, 6, 12, 2, 5, 10, 2, 5, 12, 3, 9, 11, 8, 7, 4, 6, 1, 11, 3, 6, 8, 10, 4, 7, 2, 1, 5, 12, 9, 2, 4, 12, 1, 7, 11, 10, 9, 6, 3, 8, 5)
+  adj.list[[4]] <- tmp
+  tmp$Treatment <- c(1, 10, 4, 6, 8, 5, 3, 11, 12, 9, 2, 7, 11, 8, 3, 2, 4, 9, 1, 7, 6, 5, 12, 10, 9, 1, 11, 10, 6, 5, 2, 12, 3, 4, 7, 8, 8, 2, 6, 4, 1, 3, 7, 5, 11, 10, 12, 9, 5, 10, 11, 12, 7, 4, 8, 1, 3, 9, 6, 2, 7, 1, 2, 4, 5, 9, 11, 10, 6, 8, 12, 3)
+  adj.list[[5]] <- tmp
+  tmp$Treatment <- c(1, 4, 6, 5, 11, 2, 9, 3, 12, 8, 7, 10, 8, 7, 9, 10, 12, 4, 5, 1, 2, 6, 3, 11, 4, 5, 1, 6, 7, 3, 8, 11, 10, 9, 12, 2, 11, 10, 12, 8, 2, 1, 6, 9, 4, 3, 7, 5, 7, 5, 1, 6, 4, 9, 11, 3, 2, 8, 10, 12, 12, 3, 2, 9, 8, 1, 10, 5, 7, 6, 11, 4)
+  adj.list[[6]] <- tmp
+  tmp$Treatment <- c(12, 9, 11, 3, 1, 2, 10, 5, 4, 6, 7, 8, 11, 2, 1, 6, 10, 3, 12, 8, 7, 9, 4, 5, 8, 3, 11, 5, 1, 2, 9, 10, 4, 12, 6, 7, 5, 9, 12, 2, 6, 7, 4, 11, 1, 8, 10, 3, 6, 4, 11, 7, 10, 9, 1, 5, 3, 12, 2, 8, 9, 12, 2, 4, 8, 3, 6, 10, 11, 7, 5, 1)
+  adj.list[[7]] <- tmp
+  tmp$Treatment <- c(4,10,6,8,11,2,12,3,5,9,7,1,12,9,11,1,6,7,5,2,8,3,10,4,6,5,2,4,12,9,1,11,10,7,8,3,7,8,9,6,1,10,12,4,3,2,5,11,1,10,2,11,7,8,5,9,6,4,12,3,5,6,7,4,12,10,3,11,1,8,2,9)
+  adj.list[[8]] <- tmp
+  
+  tmp$Treatment <- c(9,10,1,6,2,8,4,5,3,12,11,7,7,2,9,8,1,12,10,11,6,5,4,3,4,1,10,2,6,7,5,12,3,8,9,11,2,6,3,12,5,11,8,10,9,1,7,4,3,11,8,2,1,12,9,5,7,4,6,10,2,5,12,10,11,6,1,4,9,8,3,7)
+  adj.list[[9]] <- tmp
+  
+  tmp$Treatment <- c(4,8,2,5,9,12,1,6,3,7,10,11,6,9,7,3,8,4,10,11,1,12,5,2,10,1,8,6,11,12,5,2,3,4,9,7,11,5,7,12,1,3,8,4,9,10,6,2,1,6,10,8,11,4,9,3,5,2,12,7,9,11,3,12,7,6,5,10,8,1,4,2)
+  adj.list[[10]] <- tmp 
+  
+  tmp$Treatment <- c(12,2,6,5,1,3,11,7,8,10,4,9,9,3,11,4,6,7,1,10,5,2,12,8,11,10,8,12,3,9,2,4,6,7,5,1,1,5,6,10,7,8,3,9,12,4,11,2,8,11,9,5,6,1,12,4,10,2,7,3,5,2,12,1,4,10,7,3,8,9,11,6)
+  adj.list[[11]] <- tmp
+
+  tmp$Treatment <- c(2,3,8,5,9,6,1,4,12,11,7,10,10,5,9,1,12,11,3,7,2,8,6,4,12,3,11,2,9,5,6,8,4,7,1,10,4,10,5,12,7,8,9,2,1,11,3,6,2,12,7,11,5,4,6,3,9,8,1,10,11,6,5,12,3,7,8,1,10,2,9,4)
+  adj.list[[12]] <- tmp
+  
+  tmp$Treatment <- c(11,2,3,4,6,9,10,8,5,12,1,7,3,10,7,2,1,12,11,6,4,8,9,5,7,11,9,5,8,2,10,1,3,12,6,4,6,12,3,1,10,11,9,7,4,8,5,2,3,2,11,8,6,1,10,5,12,7,9,4,12,1,3,2,9,4,8,7,10,5,11,6)
+  adj.list[[13]] <- tmp
+  
+  tmp$Treatment <- c(7,11,2,4,6,12,9,10,8,5,3,1,8,12,10,5,1,7,3,2,11,4,9,6,9,4,7,6,2,10,8,5,1,12,3,11,6,1,3,8,7,4,12,10,9,11,2,5,12,2,6,11,10,5,1,7,4,3,8,9,6,8,3,9,1,2,4,11,12,5,7,10)
+  adj.list[[14]] <- tmp
+  
+  tmp$Treatment <- c(7,4,8,11,10,6,1,5,2,12,3,9,8,9,10,1,12,3,2,7,11,5,4,6,3,12,4,2,11,5,1,9,10,6,7,8,1,2,6,10,12,4,11,7,3,8,9,5,8,3,4,5,11,9,10,6,1,7,2,12,2,7,12,1,10,8,11,4,5,3,6,9)
+  adj.list[[15]] <- tmp
+     
+  tmp$Treatment <- c(3,5,7,2,9,8,10,11,6,4,1,12,6,9,3,11,7,2,4,1,12,10,8,5,12,11,2,8,4,9,5,10,6,3,1,7,10,9,5,11,7,3,8,1,12,2,6,4,3,4,12,2,8,11,6,10,9,5,1,7,7,2,11,9,12,5,1,4,3,10,8,6)
+  adj.list[[16]] <- tmp
+  
+  
+  names(adj.list) <- 1:length(adj.list)
+  
+  for(i in 1:length(adj.list)) {
+    tmp <- adj.list[[i]]
+    Plans.adj2 <- rbind(Plans.adj2,tmp)
+  }
+  
+  for(j in 1:4) {
+    yield.model <- models[[j]]
+
+    for(i in 1:length(adj.list)) {
+      current <- repeat.plan(adj.list[[i]],yield.model)
+      current$Data$Plan <- names(adj.list)[i]
+      current$Analysis$Plan <- names(adj.list)[i]
+   
+      current$Data$Year <- attr(harvests[[j]],'Year')
+      current$Analysis$Year <- attr(harvests[[j]],'Year')
+  
+      Data.adj2 <- rbind(Data.adj2,current$Data)
+      Analysis.adj2 <- rbind(Analysis.adj2,current$Analysis)
+    }
+  }
+  save(adj.list,Analysis.adj2,Plans.adj2,Data.adj2,file='Analysis.adj2.Rda')
+} else {
+  load(file='Analysis.adj2.Rda')
+}
+```
+
+```{r}
+idx <- which(names(Analysis.adj2)=='Pr(>F)')
+names(Analysis.adj2)[idx] <- 'P'
+adj2.TrtP <- Analysis.adj2[Analysis.adj2$Source=='Treatment',]
+adj2.TrtP$Year <- as.factor(adj2.TrtP$Year)
+```
+
+```{r}
+ggplot(adj2.TrtP, aes(P)) + geom_histogram(position="identity")
+ggplot(adj2.TrtP, aes(P,color=Year)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+ggplot(adj2.TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+```
+
+
+```{r}
+adj2.TrtP$GridSize <- '1x12'
+adj2.TrtP$Family <- 'RCB (Adj=2)'
+rcbA.TrtP$Family <- 'RCB'
+Comp.TrtP <- rbind(rcbA.TrtP,adj2.TrtP)
+Comp.TrtP$FamilyPlan <- as.factor(Comp.TrtP$Family):as.factor(Comp.TrtP$Plan)
+```
+
+
+```{r}
+ggplot(Comp.TrtP, aes(P,color=Family,group=FamilyPlan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette)
+ggplot(Comp.TrtP, aes(P,color=Plan)) + stat_ecdf(size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ Family)
+```
+
+
+
+

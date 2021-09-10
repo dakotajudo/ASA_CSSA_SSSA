@@ -1,0 +1,576 @@
+---
+title: "72 Plot Simulations"
+author: "Peter Claussen"
+date: "3/16/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+setwd("~/Work/git/ASA_CSSA_SSSA/working")
+
+library(ggplot2)
+library(mgcv)
+library(gridExtra)
+library(nlme)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#F0E442","#CC79A7","#000000","#734f80", "#2b5a74", "#004f39", "#787221", "#003959", "#6aaf00", "#663cd3")
+yellow <- "#F0E442"
+blue <- "#0072B2"
+vermillion <- "#D55E00"
+```
+
+```{r}
+bestseed <- 1500
+set.seed(bestseed)
+```
+
+# Introduction
+
+We use the RCB simulations from 72PlotSimulation. 
+
+```{r}
+load(file='Repetitions.Rda')
+```
+
+
+For each unique experiment, add increasing values to one treatment, and recalculate the analysis.
+
+```{r}
+source("~/Work/git/ASA_CSSA_SSSA/ASA_CSSA_SSSA/R/rcb.analysis.R")
+```
+
+```{r}
+
+power.simulations <- function(data, mean.diffs=(0:10)/2,Count=0) {
+  Treatments <- unique(data$Treatment)
+  if(Count>0 & Count<Treatments) {
+    Treatments <- Count
+  } 
+  
+  ret <- NULL
+  Trials <- unique(data$Trial)
+  for(Trial in Trials) {
+    original <- data[data$Trial==Trial,]
+    for(Treatment in Treatments) {
+      TrialMean <- mean(original$Yield)
+      TreatmentIdx <- original$Treatment == Treatment
+      for(MeanDiff in mean.diffs) {
+        current <- original
+        current$Yield[TreatmentIdx] <- current$Yield[TreatmentIdx] + TrialMean*MeanDiff/100
+        A <- rcb.analysis(current)$Table
+        A$Source <- row.names(A)
+        A$Treatment <- Treatment
+        A$MeanDiff <- MeanDiff
+        A$Trial <- Trial
+        ret <- rbind(ret,A)
+      }
+    }
+  }
+  return(ret)
+}
+```
+
+
+
+```{r}
+load(file='72PlotSimulation.Rda')
+#load(file='Plans.Rda')
+```
+
+```{r}
+MeanDiffs <- (1:9)*3
+
+Data.rcbA$Trial <- as.factor(Data.rcbA$Year):as.factor(Data.rcbA$Plan):as.factor(Data.rcbA$Number)
+Plans <- unique(Data.rcbA$Plan)
+  
+if(file.exists('72Simulations.Power.Rda')) {
+  load(file='72Simulations.Power.Rda')
+
+} else {
+  #PowerAnalysis <- power.simulations(repetitions$Data)
+  current <- Data.rcbA[Data.rcbA$Plan==Plans[1],]
+
+  PowerAnalysis1 <- power.simulations(current,mean.diffs = MeanDiffs)
+
+ current <- Data.rcbA[Data.rcbA$Plan==Plans[10],]
+
+  PowerAnalysis10 <- power.simulations(current,mean.diffs = MeanDiffs)
+  
+  save(PowerAnalysis1,PowerAnalysis10,file='72Simulations.Power.Rda')
+}
+
+```
+
+Trials <- unique(Data.rcbA$Trial)
+original <- Data.rcbA[Data.rcbA$Trial==Trials[1],]
+
+
+
+
+```{r}
+idx <- which(names(PowerAnalysis1)=='Pr(>F)')
+names(PowerAnalysis1)[idx] <- 'P'
+
+head(PowerAnalysis1)
+
+TrtP1 <- PowerAnalysis1[PowerAnalysis1$Source=='Treatment',]
+TrtP1$TypeIError <- as.numeric(TrtP1$P <=0.05)
+head(TrtP1)
+
+TrtP1.A <- Analysis.rcbA[Analysis.rcbA$Source=='Treatment',]
+TrtP1.A <- TrtP1.A[TrtP1.A$Plan==Plans[1],]
+TrtP1.A$Trial <- as.factor(TrtP1.A$Year):as.factor(TrtP1.A$Plan):as.factor(TrtP1.A$Number)
+TrtP1.A$TypeIError <- as.numeric(TrtP1.A$P <=0.05)
+TrtP1.A$MeanDiff <- 0
+TrtP1.A$Treatment <- 1
+TrtP1.A <- TrtP1.A[,names(TrtP1)]
+TrtP1.Comb <- rbind(TrtP1,TrtP1.A)
+```
+
+```{r,fig.width=8,fig.height=4}
+TrtP1.Comb$MeanDiff <- as.factor(TrtP1.Comb$MeanDiff)
+ggplot(TrtP1.Comb, aes(P,color=MeanDiff)) + stat_ecdf(aes(group=MeanDiff),size=1) + scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") + geom_hline(yintercept = 0.8,colour=cbPalette[12], linetype = "longdash")
+```
+
+```{r,fig.width=8,fig.height=4}
+TrtP1$MeanDiff <- as.factor(TrtP1$MeanDiff)
+ggplot(TrtP1, aes(P,color=MeanDiff)) + stat_ecdf(aes(group=MeanDiff),size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ Treatment) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash")
+```
+
+```{r}
+ggplot(TrtP1, aes(P)) + stat_ecdf(aes(group=Treatment),size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ MeanDiff) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash")
+```
+
+# Trial 10
+
+```{r}
+idx <- which(names(PowerAnalysis10)=='Pr(>F)')
+names(PowerAnalysis10)[idx] <- 'P'
+
+head(PowerAnalysis10)
+
+TrtP10 <- PowerAnalysis10[PowerAnalysis10$Source=='Treatment',]
+TrtP10$TypeIError <- as.numeric(TrtP10$P <=0.05)
+head(TrtP10)
+
+TrtP10.A <- Analysis.rcbA[Analysis.rcbA$Source=='Treatment',]
+TrtP10.A <- TrtP10.A[TrtP10.A$Plan==Plans[10],]
+TrtP10.A$Trial <- as.factor(TrtP10.A$Year):as.factor(TrtP10.A$Plan):as.factor(TrtP10.A$Number)
+TrtP10.A$TypeIError <- as.numeric(TrtP10.A$P <=0.05)
+TrtP10.A$MeanDiff <- 0
+TrtP10.A$Treatment <- 1
+TrtP10.A <- TrtP10.A[,names(TrtP10)]
+TrtP10.Comb <- rbind(TrtP10,TrtP10.A)
+
+```
+
+```{r}
+TrtP10.Comb$MeanDiff <- as.factor(TrtP10.Comb$MeanDiff)
+ggplot(TrtP10.Comb, aes(P,color=MeanDiff)) + stat_ecdf(aes(group=MeanDiff),size=1) + scale_colour_manual(values=cbPalette) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") + geom_hline(yintercept = 0.8,colour=cbPalette[12], linetype = "longdash")
+```
+
+
+
+
+
+
+
+
+
+
+Now, consider just the first trial
+
+```{r,eval=FALSE}
+TrtP1 <- TrtP[TrtP$Trial == 1,]
+head(TrtP1)
+
+plot(1-TypeIError ~ MeanDiff,data=TrtP)
+P1.glm <- glm(1-TypeIError ~ MeanDiff,data=TrtP,family='binomial')
+summary(P1.glm)
+plot(TrtP$MeanDiff,predict(P1.glm,type="response"))
+
+ggplot(TrtP1, aes(MeanDiff,P))+ scale_color_manual(values=cbPalette) +
+geom_point(aes(color=Treatment), size=1) + geom_smooth(se=FALSE)
+
+ggplot(TrtP1, aes(MeanDiff,1-TypeIError))+ scale_color_manual(values=cbPalette) +
+geom_point(aes(color=Treatment), size=1) + geom_smooth(aes(group=Treatment,color=Treatment),se=FALSE)
+
+TypeI <- aggregate(TypeIError ~ MeanDiff + Treatment,data=TrtP,FUN=mean)
+head(TypeI)
+
+TypeI$Treatment <- as.factor(TypeI$Treatment)
+ggplot(TypeI, aes(MeanDiff,1-TypeIError))+ scale_color_manual(values=cbPalette) +
+geom_point(aes(color=Treatment), size=1) + geom_smooth(aes(group=Treatment,color=Treatment),se=FALSE)
+```
+
+
+
+
+
+# Different Trials
+
+Remember, we have different variance for these simulations
+
+```{r}
+Data.rcbA$Trial <- as.factor(Data.rcbA$Year):as.factor(Data.rcbA$Plan):as.factor(Data.rcbA$Number)
+#MeanDiffs <- seq(11,16,length.out = 20)
+if(file.exists('72Simulations.Power.rcbA.Rda')) {
+  load(file='72Simulations.Power.rcbA.Rda')
+} else {
+
+  PowerSimulations <- NA
+  Plans <- unique(Data.rcbA$Plan)
+  for(plan in Plans) {
+     current <- Data.rcbA[Data.rcbA$Plan==plan,]
+     res <- power.simulations(current,mean.diffs = MeanDiffs)
+     res$Plan <- plan
+     PowerSimulations <- rbind(PowerSimulations,res)
+     save(PowerSimulations,file='72Simulations.Power.rcbA.Rda')
+  }
+  
+}
+```
+
+
+
+
+
+```{r}
+Data.rcbC$Trial <- as.factor(Data.rcbC$Year):as.factor(Data.rcbC$Plan):as.factor(Data.rcbC$Number)
+#MeanDiffs <- seq(11,16,length.out = 20)
+if(file.exists('72Simulations.Power.rcbC.Rda')) {
+  load(file='72Simulations.Power.rcbC.Rda')
+} else {
+
+  PowerSimulationsC <- NA
+  Plans <- unique(Data.rcbC$Plan)
+  for(plan in Plans) {
+     current <- Data.rcbC[Data.rcbC$Plan==plan,]
+     res <- power.simulations(current,mean.diffs = MeanDiffs)
+     res$Plan <- plan
+     PowerSimulationsC <- rbind(PowerSimulationsC,res)
+     save(PowerSimulationsC,file='72Simulations.Power.rcbC.Rda')
+  }
+  
+}
+```
+
+
+```{r}
+Data.rcbB$Trial <- as.factor(Data.rcbB$Year):as.factor(Data.rcbB$Plan):as.factor(Data.rcbB$Number)
+#MeanDiffs <- seq(11,16,length.out = 20)
+if(file.exists('72Simulations.Power.rcbB.Rda')) {
+  load(file='72Simulations.Power.rcbB.Rda')
+} else {
+
+  PowerSimulationsB <- NA
+  Plans <- unique(Data.rcbB$Plan)
+  for(plan in Plans) {
+     current <- Data.rcbB[Data.rcbB$Plan==plan,]
+     res <- power.simulations(current,mean.diffs = MeanDiffs)
+     res$Plan <- plan
+     PowerSimulationsB <- rbind(PowerSimulationsB,res)
+     save(PowerSimulationsB,file='72Simulations.Power.rcbB.Rda')
+  }
+}
+```
+
+
+
+
+```{r}
+process.trtp <- function(simulations) {
+  idx <- which(names(simulations)=='Pr(>F)')
+  names(simulations)[idx] <- 'P'
+
+  idx <- which(names(simulations)=='F value')
+  names(simulations)[idx] <- 'F'
+
+  simulations <-simulations[!is.na(simulations$Plan),]
+
+  ret <- simulations[simulations$Source=='Treatment',]
+  ret$TypeIError <- as.numeric(ret$P <= 0.05)
+  ret$Plan <- as.factor(ret$Plan)
+  return(ret)
+}
+```
+
+```{r}
+TrtP <- process.trtp(PowerSimulations)
+head(TrtP)
+TrtPB <- process.trtp(PowerSimulationsB)
+```
+
+```{r,fig.width=9,fig.height=6}
+TrtP$MeanDiff <- as.factor(TrtP$MeanDiff)
+ggplot(TrtP, aes(P)) + stat_ecdf(aes(group=MeanDiff,color=MeanDiff),size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ Plan) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") + geom_hline(yintercept = 0.8,colour=cbPalette[12], linetype = "longdash")
+```
+
+```{r,fig.width=9,fig.height=6}
+ggplot(TrtP, aes(P)) + stat_ecdf(aes(color=Plan,group=Plan),size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ MeanDiff) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") + geom_hline(yintercept = 0.8,colour=cbPalette[12], linetype = "longdash")
+```
+
+
+
+
+
+```{r}
+TrtPC <- process.trtp(PowerSimulationsC)
+```
+
+```{r,fig.width=9,fig.height=6}
+TrtPC$MeanDiff <- as.factor(TrtPC$MeanDiff)
+ggplot(TrtPC, aes(P)) + stat_ecdf(aes(group=MeanDiff,color=MeanDiff),size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ Plan) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") + geom_hline(yintercept = 0.8,colour=cbPalette[12], linetype = "longdash")
+```
+
+```{r,fig.width=9,fig.height=6}
+ggplot(TrtPC, aes(P)) + stat_ecdf(aes(color=Plan,group=Plan),size=1) + scale_colour_manual(values=cbPalette) + facet_wrap(~ MeanDiff) + geom_vline(xintercept = 0.05,colour=cbPalette[13], linetype = "longdash") + geom_hline(yintercept = 0.8,colour=cbPalette[12], linetype = "longdash")
+```
+
+```{r}
+compute.quantiles <- function(TrtPTable) {
+  Quantiles <- expand.grid(MeanDiff=unique(TrtPTable$MeanDiff),
+                       Plan=unique(TrtPTable$Plan))
+  Quantiles$Quantile <- 0
+  Quantiles$Power <- 0
+  #Quantiles$ecdfQuantile <- 0
+  for(i in 1:dim(Quantiles)[1]) {
+    plan <- Quantiles$Plan[i]
+    diff <- Quantiles$MeanDiff[i]
+      current <- TrtPTable[TrtPTable$Plan==plan,]
+      current <- current[current$MeanDiff==diff,]
+      x <- sort(current$P)
+      #see https://stackoverflow.com/questions/38537311/how-to-find-quantiles-of-an-empirical-cumulative-density-function-ecdf
+      #Quantiles$Quantile[i] <- approx(seq(0, 1, length = length(x)), x, 0.8)$y
+      e <- ecdf(current$P)
+      Quantiles$Quantile[i] <- quantile(ecdf(current$P),0.8)
+      Quantiles$Power[i] <- e(0.05)
+  }
+  return(Quantiles)
+}
+QuantilesA <- compute.quantiles(TrtP)
+```
+
+
+```{r,fig.width=8,fig.height=4}
+QuantilesA$Plan <- as.factor(QuantilesA$Plan)
+ggplot(QuantilesA, aes(Power,MeanDiff))+ scale_color_manual(values=cbPalette) +
+geom_point(aes(color=Plan), size=1) + geom_smooth(method='lm', formula = y~poly(x,2),aes(group=Plan,color=Plan),se=FALSE) + geom_vline(xintercept = 0.8,colour=cbPalette[13], linetype = "longdash") 
+```
+
+
+```{r,fig.width=8,fig.height=5}
+ggplot(QuantilesA, aes(MeanDiff,Power))+ scale_color_manual(values=cbPalette) +
+geom_point(aes(color=Plan), size=1) + geom_smooth(aes(group=Plan,color=Plan),se=FALSE) + geom_hline(yintercept = 0.8,colour=cbPalette[13], linetype = "longdash") 
+```
+
+
+
+## Power Calculations
+
+For each trial,
+
+```{r}
+Data.rcbA$Trial <- as.factor(Data.rcbA$Number):as.factor(Data.rcbA$Plan):as.factor(Data.rcbA$Year)
+Means <- aggregate(Yield ~ Trial,data=Data.rcbA,FUN=mean)
+```
+
+```{r}
+process.res <- function(analysis) {
+  idx <- which(names(analysis)=='Mean Sq')
+  names(analysis)[idx] <- 'MS'
+  analysis <-analysis[!is.na(analysis$Number),]
+  ret <- analysis[analysis$Source=='Residuals',]
+  return(ret)
+
+}
+
+ResA <- process.res(Analysis.rcbA)
+ResA$Trial <- as.factor(ResA$Number):as.factor(ResA$Plan):as.factor(ResA$Year)
+row.names(ResA) <- ResA$Trial
+head(ResA)
+Means$Res <- ResA$MS[Means$Trial]
+plot(Means$Yield,Means$Res)
+Means$CV <- sqrt(ResA$MS)/Means$Yield
+hist(Means$CV)
+100*mean(Means$CV)
+```
+
+
+```{r}
+#from PowerAndEfficients
+MeanDiffs
+Power.tbl <- data.frame(
+  MeanDiff = MeanDiffs
+)
+Power.tbl$CV = 100*mean(Means$CV)
+Power.tbl$Reps = 6
+Power.tbl$OSL = 0.05
+
+zas <-  qnorm(Power.tbl$OSL/2)
+zbs <- qnorm(1-Power.tbl$Power)
+
+za = qt(Power.tbl$OSL/2, 55)
+zb = (Power.tbl$MeanDiff / Power.tbl$CV) * sqrt(Power.tbl$Reps / 2) + za
+    
+Power.tbl$Power <- pt(zb, 55)
+
+Power.tbl
+```
+
+```{r,fig.width=8,fig.height=5}
+QuantilesA$MeanDiff <- as.numeric(as.character(QuantilesA$MeanDiff))
+ggplot(QuantilesA, aes(MeanDiff,Power)) +
+geom_point(color=cbPalette[2], size=1) + geom_smooth(color=cbPalette[2],se=FALSE) + geom_hline(yintercept = 0.8,colour=cbPalette[13], linetype = "longdash") + geom_point(data=Power.tbl,aes(MeanDiff,Power),color=cbPalette[3], size=2)+geom_smooth(data=Power.tbl,color=cbPalette[3],se=FALSE)
+```
+
+```{r}
+QuantilesB <-compute.quantiles(TrtPB)
+QuantilesC <-compute.quantiles(TrtPC)
+```
+
+
+```{r,fig.width=8,fig.height=5}
+QuantilesC$Plan <- as.factor(QuantilesC$Plan)
+ggplot(QuantilesC, aes(Power,MeanDiff))+ scale_color_manual(values=cbPalette) +
+geom_point(aes(color=Plan), size=1) + geom_smooth(aes(group=Plan,color=Plan),se=FALSE)
+```
+
+```{r,fig.width=8,fig.height=4}
+QuantilesA$Source <- 'RCB 1 x 12'
+QuantilesB$Source <- 'RCB 6 x 2'
+QuantilesC$Source <- 'RCB 3 x 4'
+Quant.Comb <- rbind(QuantilesA,QuantilesB,QuantilesC)
+Quant.Comb$Trial <- as.factor(Quant.Comb$Plan):as.factor(Quant.Comb$Source)
+Quant.Comb$MeanDiff <- as.numeric(as.character(Quant.Comb$MeanDiff))
+ggplot(Quant.Comb, aes(Power,MeanDiff))+ scale_color_manual(values=cbPalette) +
+geom_point(aes(color=Source), size=1) + geom_smooth(aes(group=Trial,color=Source),se=FALSE)  + geom_vline(xintercept = 0.8,colour=cbPalette[13], linetype = "longdash") 
+```
+
+```{r}
+library(splines)
+Quant.Comb$Plan <- as.factor(Quant.Comb$Plan)
+Quant.Comb$Power <- as.numeric(as.character(Quant.Comb$Power))
+Quant.Comb$MeanDiff <- as.numeric(as.character(Quant.Comb$MeanDiff))
+
+fit <- lm(MeanDiff ~ Source*Plan*poly(Power,2), data=Quant.Comb)
+MeanDiffs <- expand.grid(Plan=levels(Quant.Comb$Plan),
+                         Source=unique(Quant.Comb$Source))
+MeanDiffs$Power <- 0.80
+MeanDiffs$MeanDiff <- predict(fit,newdata=MeanDiffs)
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(MeanDiffs, aes(x=MeanDiff, color=Source)) + #ggplot(MeanDiffs, aes(x=MeanDiff, fill=Source)) +
+  geom_density(size=1.5)+scale_color_manual(values=cbPalette)
+   # geom_histogram(position = 'identity', bins=15) + #, position='dodge'
+   # scale_fill_manual(values=cbPalette) #+ facet_wrap(~ Source)
+```
+
+
+```{r}
+load(file='Analysis.spat12.Rda')
+Data.spat12$Trial <- as.factor(Data.spat12$Year):as.factor(Data.spat12$Plan):as.factor(Data.spat12$Number)
+#MeanDiffs <- seq(11,16,length.out = 20)
+if(file.exists('72Simulations.Power.spat.Rda')) {
+  load(file='72Simulations.Power.spat.Rda')
+} else {
+
+  PowerSimulationsSpat <- NA
+  Plans <- unique(Data.spat12$Plan)
+  for(plan in Plans) {
+     current <- Data.spat12[Data.spat12$Plan==plan,]
+     res <- power.simulations(current,mean.diffs = MeanDiffs)
+     res$Plan <- plan
+     PowerSimulationsSpat <- rbind(PowerSimulationsSpat,res)
+     save(PowerSimulationsSpat,file='72Simulations.Power.spat.Rda')
+  }
+}
+```
+
+```{r}
+TrtP.spat <- process.trtp(PowerSimulationsSpat)
+Quantiles.spat <- compute.quantiles(TrtP.spat)
+```
+
+
+```{r,fig.width=8,fig.height=4}
+Quantiles.spat$Source <- 'Spatially Balanced'
+Quantiles.spat$Trial <- as.factor(Quantiles.spat$Plan):as.factor(Quantiles.spat$Source)
+Quantiles.spat$MeanDiff <- as.numeric(as.character(Quantiles.spat$MeanDiff))
+Quant.Comb <- rbind(Quant.Comb,Quantiles.spat)
+ggplot(Quant.Comb, aes(Power,MeanDiff))+ scale_color_manual(values=cbPalette) +
+geom_point(aes(color=Source), size=1) + geom_smooth(aes(group=Source,color=Source),se=FALSE)  + geom_vline(xintercept = 0.8,colour=cbPalette[13], linetype = "longdash") 
+```
+
+```{r}
+load(file='Analysis.adj2.Rda')
+Data.adj2$Trial <- as.factor(Data.adj2$Year):as.factor(Data.adj2$Plan):as.factor(Data.adj2$Number)
+#MeanDiffs <- seq(11,16,length.out = 20)
+if(file.exists('72Simulations.Power.adj2.Rda')) {
+  load(file='72Simulations.Power.adj2.Rda')
+} else {
+
+  PowerSimulationsAdj <- NA
+  Plans <- unique(Data.adj2$Plan)
+  for(plan in Plans) {
+     current <- Data.adj2[Data.adj2$Plan==plan,]
+     res <- power.simulations(current,mean.diffs = MeanDiffs)
+     res$Plan <- plan
+     PowerSimulationsAdj <- rbind(PowerSimulationsAdj,res)
+     save(PowerSimulationsAdj,file='72Simulations.Power.adj2.Rda')
+  }
+}
+```
+
+```{r}
+TrtP.adj2 <- process.trtp(PowerSimulationsAdj)
+Quantiles.adj2 <- compute.quantiles(TrtP.adj2)
+```
+
+```{r,fig.width=8,fig.height=4}
+Quantiles.adj2$Source <- 'RCB Adjacency=2'
+Quantiles.adj2$Trial <- as.factor(Quantiles.adj2$Plan):as.factor(Quantiles.adj2$Source)
+Quantiles.adj2$MeanDiff <- as.numeric(as.character(Quantiles.adj2$MeanDiff))
+Quant.Comb <- rbind(Quant.Comb,Quantiles.adj2)
+ggplot(Quant.Comb, aes(Power,MeanDiff))+ scale_color_manual(values=cbPalette) +
+geom_point(aes(color=Source), size=1) + geom_smooth(aes(group=Source,color=Source),se=FALSE)  + geom_vline(xintercept = 0.8,colour=cbPalette[13], linetype = "longdash") 
+```
+
+
+```{r}
+Quant.Comb$Plan <- as.factor(Quant.Comb$Plan)
+Quant.Comb$Power <- as.numeric(as.character(Quant.Comb$Power))
+Quant.Comb$MeanDiff <- as.numeric(as.character(Quant.Comb$MeanDiff))
+
+fit <- lm(MeanDiff ~ Source*Plan*poly(Power,2), data=Quant.Comb)
+MeanDiffs <- expand.grid(Plan=levels(Quant.Comb$Plan),
+                         Source=unique(Quant.Comb$Source))
+MeanDiffs$Power <- 0.80
+MeanDiffs$MeanDiff <- predict(fit,newdata=MeanDiffs)
+```
+
+```{r,fig.width=8,fig.height=4}
+ggplot(MeanDiffs, aes(x=MeanDiff, color=Source)) + #ggplot(MeanDiffs, aes(x=MeanDiff, fill=Source)) +
+  geom_density(size=1.5)+scale_color_manual(values=cbPalette)
+   # geom_histogram(position = 'identity', bins=15) + #, position='dodge'
+   # scale_fill_manual(values=cbPalette) #+ facet_wrap(~ Source)
+```
+
+
+```{r,fig.width=8,fig.height=4}
+fit <- lm(MeanDiff ~ Source*Plan*ns(Power), data=Quant.Comb)
+MeanDiffs$MeanDiff <- predict(fit,newdata=MeanDiffs)
+ggplot(MeanDiffs, aes(x=MeanDiff, color=Source)) + #ggplot(MeanDiffs, aes(x=MeanDiff, fill=Source)) +
+  geom_density(size=1.5)+scale_color_manual(values=cbPalette)
+   # geom_histogram(position = 'identity', bins=15) + #, position='dodge'
+   # scale_fill_manual(values=cbPalette) #+ facet_wrap(~ Source)
+```
+
